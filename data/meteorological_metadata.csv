@@ -3,8 +3,8 @@ Near-Surface Relative Humidity,hurs,%
 Near-Surface Specific Humidity,huss,kg kg-1
 Precipitation (rainfall + snowfall),pr,kg m-2 s-1
 Snowfall Flux,prsn,kg m-2 s-1
-Sea-level Air Pressure,ps,Pa
-Surface Air Pressure,psl,Pa
+Sea-level Air Pressure,psl,Pa
+Surface Air Pressure,ps,Pa
 Surface Downwelling Longwave Radiation,rlds,W m-2
 Surface Downwelling Shortwave Radiation,rsds,W m-2
 Near-Surface Wind Speed,sfcWind,m s-1
