@@ -1,0 +1,13 @@
+Variable,Short name,Unit
+Near-Surface Relative Humidity,hurs,%
+Near-Surface Specific Humidity,huss,kg kg-1
+Precipitation (rainfall + snowfall),pr,kg m-2 s-1
+Snowfall Flux,prsn,kg m-2 s-1
+Sea-level Air Pressure,psl,Pa
+Surface Air Pressure,ps,Pa
+Surface Downwelling Longwave Radiation,rlds,W m-2
+Surface Downwelling Shortwave Radiation,rsds,W m-2
+Near-Surface Wind Speed,sfcWind,m s-1
+Near-Surface Air Temperature,tas,K
+Daily Maximum Near-Surface Air Temperature,tasmax,K
+Daily Minimum Near-Surface Air Temperature,tasmin,K
