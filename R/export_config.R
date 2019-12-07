@@ -35,77 +35,6 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     max_depth = max(hyp$DEPTH)
   }
   
-  if("GOTM" %in% model){
-    dir.create('GOTM') # Create directory 
-    temp_fil <- system.file('extdata/gotm.yaml', package= 'GOTMr')
-    out_fil <- system.file('extdata/output.yaml', package= 'GOTMr')
-    file.copy(from = temp_fil, to = 'GOTM')
-    file.copy(from = out_fil, to = 'GOTM')
-    got_yaml <- 'GOTM/gotm.yaml'
-    
-    gotmtools::input_yaml(got_yaml, 'location', 'name', name)
-    gotmtools::input_yaml(got_yaml, 'location', 'latitude', lat)
-    gotmtools::input_yaml(got_yaml, 'location', 'longitude', lon)
-    
-    # Set max depth
-    gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
-    
-    
-    # Create GOTM hypsograph file
-    ndeps <- nrow(hyp)
-    got_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
-    got_hyp[,1] <- -got_hyp[,1]
-    colnames(got_hyp) <- c(as.character(ndeps), '2')
-    write.table(got_hyp, 'GOTM/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
-    
-    # Input light extinction data [To be continued...]
-    
-    
-    message('GOTM configuration complete!')
-  }
-  
-  if("GLM" %in% model){
-    dir.create('GLM') # Create directory 
-    temp_fil <- system.file('extdata/glm3.nml', package= 'GLM3r')
-    file.copy(from = temp_fil, to = 'GLM')
-    
-    # Format hpsograph 
-    glm_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
-    glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1]
-    
-    # Read in nml and input parameters
-    glm_nml <- 'GLM/glm3.nml'
-    nml <- glmtools::read_nml(glm_nml)
-    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'H' = rev(glm_hyp[,1]), 'A' = rev(glm_hyp[,2]))
-    nml <- glmtools::set_nml(nml, arg_list = inp_list)
-    glmtools::write_nml(nml, 'GLM/glm3.nml')
-    
-    
-    message('GLM configuration complete!')
-    
-  }
-  
-  if("Simstrat" %in% model){
-    dir.create('Simstrat') # Create directory 
-    temp_fil <- system.file('extdata/langtjern.par', package= 'SimstratR')
-    file.copy(from = temp_fil, to = paste0('Simstrat/',name,'.par'))
-    sim_par <- paste0('Simstrat/',name,'.par')
-    
-    # Create Simstrat bathymetry
-    sim_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
-    sim_hyp[,1] <- -sim_hyp[,1]
-    colnames(sim_hyp) <- c('Depth [m]',	'Area [m^2]')
-    write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
-    
-    # Input parameters
-    input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
-    input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
-    input_json(sim_par, 'ModelParameters', 'lat', lat)
-    
-    message('Simstrat configuration complete!')
-    
-  }
-  
   if("FLake" %in% model){
     dir.create('FLake') # Create directory 
     temp_fil <- system.file('extdata/Heiligensee80-96.nml', package= 'FLakeR')
@@ -129,17 +58,106 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
       vols <- c(vols, cal_v)
     }
     vol = sum(vols)
-    mean_depth = vol / bthA[1]
+    mean_depth = signif((vol / bthA[1]),4)
     
     # Input parameters
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
-    input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', lat)
+    input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
     
     message('FLake configuration complete!')
     
+  }  
+  
+  if("GLM" %in% model){
+    dir.create('GLM') # Create directory 
+    temp_fil <- system.file('extdata/glm3.nml', package= 'GLM3r')
+    file.copy(from = temp_fil, to = 'GLM')
+    
+    # Format hpsograph 
+    glm_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1]
+    
+    # Read in nml and input parameters
+    glm_nml <- 'GLM/glm3.nml'
+    nml <- glmtools::read_nml(glm_nml)
+    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'H' = rev(glm_hyp[,1]), 'A' = rev(glm_hyp[,2]))
+    nml <- glmtools::set_nml(nml, arg_list = inp_list)
+    glmtools::write_nml(nml, 'GLM/glm3.nml')
+    
+    
+    message('GLM configuration complete!')
+    
+  }  
+  
+  if("GOTM" %in% model){
+    dir.create('GOTM') # Create directory 
+    temp_fil <- system.file('extdata/gotm.yaml', package= 'GOTMr')
+    out_fil <- system.file('extdata/output.yaml', package= 'GOTMr')
+    file.copy(from = temp_fil, to = 'GOTM')
+    file.copy(from = out_fil, to = 'GOTM')
+    got_yaml <- 'GOTM/gotm.yaml'
+    
+    gotmtools::input_yaml(got_yaml, 'location', 'name', name)
+    gotmtools::input_yaml(got_yaml, 'location', 'latitude', lat)
+    gotmtools::input_yaml(got_yaml, 'location', 'longitude', lon)
+    
+    # Set max depth
+    gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
+    
+    
+    # Create GOTM hypsograph file
+    ndeps <- nrow(hyp)
+    got_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    got_hyp[,1] <- -got_hyp[,1]
+    colnames(got_hyp) <- c(as.character(ndeps), '2')
+    write.table(got_hyp, 'GOTM/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
+    
+    ## Input light extinction data [To be continued...]
+    
+    ## Switch off streams
+    streams_switch(got_yaml, method = 'off')
+    
+    
+    message('GOTM configuration complete!')
   }
   
+  if("Simstrat" %in% model){
+    
+    dir.create('Simstrat') # Create directory 
+    
+    temp_fil <- system.file('extdata/langtjern.par', package= 'SimstratR')
+    light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
+    qin_fil <- system.file('extdata/Qin.dat', package= 'SimstratR')
+    qout_fil <- system.file('extdata/Qout.dat', package= 'SimstratR')
+    tin_fil <- system.file('extdata/Tin.dat', package= 'SimstratR')
+    sin_fil <- system.file('extdata/Sin.dat', package= 'SimstratR')
+    light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
+    file.copy(from = temp_fil, to = file.path(folder, 'Simstrat',paste0(name,'.par')))
+    file.copy(from = light_fil, to = file.path(folder, 'Simstrat','light_absorption.dat'))
+    file.copy(from = qin_fil, to = file.path(folder, 'Simstrat','Qin.dat'))
+    file.copy(from = qout_fil, to = file.path(folder, 'Simstrat','Qout.dat'))
+    file.copy(from = tin_fil, to = file.path(folder, 'Simstrat','Tin.dat'))
+    file.copy(from = sin_fil, to = file.path(folder, 'Simstrat','Sin.dat'))
+    sim_par <- paste0('Simstrat/',name,'.par')
+    
+    # Create Simstrat bathymetry
+    sim_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    sim_hyp[,1] <- -sim_hyp[,1]
+    colnames(sim_hyp) <- c('Depth [m]',	'Area [m^2]')
+    write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
+    
+    # Input parameters
+    input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
+    input_json(sim_par, 'Input', 'Absorption', '"light_absorption.dat"')
+    input_json(sim_par, 'ModelParameters', 'lat', lat)
+    
+    ## Input light absorption data [To be continued...]
+    
+    message('Simstrat configuration complete!')
+    
+  }
   
   setwd(oldwd)
 }
