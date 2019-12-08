@@ -32,10 +32,6 @@ streams_switch <- function(file = 'gotm.yaml', method){
     message('Switched on streams!')
   }
   
-  if(length(ind_label) == 0){
-    stop(label, ' not found in ', file)
-  }
-  
   #Write to file
   writeLines(yml, file)
 }

@@ -65,7 +65,7 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
     input_nml(nml_file, 'SIMULATION_PARAMS', 'T_wML_in', tmp[length(tmp)])
     input_nml(nml_file, 'SIMULATION_PARAMS', 'T_bot_in', tmp[1])
     
-    message('FLake: Input initial conditions into ', file.path(folder,"FLake", met_outfile))
+    message('FLake: Input initial conditions into ', file.path(folder,"FLake"))
     
   }
   
