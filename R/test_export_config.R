@@ -11,6 +11,7 @@ source('../../R/export_init_cond.R')
 source('../../R/run_ensemble.R')
 
 # Load helper functions
+source('../../R/helper_functions/input_json.R') # Potential function for 'simstrattools'
 source('../../R/helper_functions/get_json_value.R') # Potential function for 'simstrattools'
 source('../../R/helper_functions/input_nml.R') # This versions preserves comments in the nml
 source('../../R/helper_functions/streams_switch.R') # Will be added to gotmtools in the future

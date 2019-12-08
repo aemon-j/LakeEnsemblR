@@ -19,6 +19,13 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   original_tz = Sys.getenv("tz")
   Sys.setenv(tz="GMT")
   
+  # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
+  yaml = file.path(folder,'GOTM', 'gotm.yaml')
+  
+  # Function to be added to gotmtools
+  lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
+  lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
+  
   
   ### Import data
   # I'd prefer to use a function that can read both comma and tab delimited. data.table::fread does this, but then it's data.table
