@@ -25,14 +25,14 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   
   # Set working directory
   oldwd <- getwd()
-  setwd('.')
+  setwd(folder)
   
   # Read in hypsograph data
   hyp <- read.csv(hypsograph_file)
   
   # Set Max Depth
   if(is.null(max_depth)){
-    max_depth = max(hyp$DEPTH)
+    max_depth = max(hyp$Depth_meter)
   }
   
   if("FLake" %in% model){
@@ -44,9 +44,10 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Calculate mean depth from hypsograph
     #   mdepth = V / SA
     
-    # Calculator to volume from hypsograph - converted to function?
-    bthA = hyp$BATHYMETRY_AREA
-    bthD = hyp$DEPTH
+    # Calculate volume from hypsograph - converted to function?
+    ## Needs to be double checked!
+    bthA = hyp$Area_meterSquared
+    bthD = hyp$Depth_meter
     top = min(bthD)
     bottom = max(bthD)
     layerD <- seq(top, bottom, 0.1)
@@ -59,6 +60,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     }
     vol = sum(vols)
     mean_depth = signif((vol / bthA[1]),4)
+    ##
     
     # Input parameters
     input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
@@ -76,7 +78,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     file.copy(from = temp_fil, to = 'GLM')
     
     # Format hpsograph 
-    glm_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    glm_hyp <- hyp
     glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1]
     
     # Read in nml and input parameters
@@ -92,7 +94,9 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   }  
   
   if("GOTM" %in% model){
-    dir.create('GOTM') # Create directory 
+    dir.create('GOTM') # Create directory
+    
+    # Copy in template from examples folder in the package
     temp_fil <- system.file('extdata/gotm.yaml', package= 'GOTMr')
     out_fil <- system.file('extdata/output.yaml', package= 'GOTMr')
     file.copy(from = temp_fil, to = 'GOTM')
@@ -109,7 +113,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
-    got_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    got_hyp <- hyp
     got_hyp[,1] <- -got_hyp[,1]
     colnames(got_hyp) <- c(as.character(ndeps), '2')
     write.table(got_hyp, 'GOTM/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
@@ -117,7 +121,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     ## Input light extinction data [To be continued...]
     
     ## Switch off streams
-    streams_switch(got_yaml, method = 'off')
+    streams_switch(file = got_yaml, method = 'off')
     
     
     message('GOTM configuration complete!')
@@ -127,6 +131,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     
     dir.create('Simstrat') # Create directory 
     
+    # Copy in template files from examples folder in the package
     temp_fil <- system.file('extdata/langtjern.par', package= 'SimstratR')
     light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
     qin_fil <- system.file('extdata/Qin.dat', package= 'SimstratR')
@@ -143,7 +148,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     sim_par <- paste0('Simstrat/',name,'.par')
     
     # Create Simstrat bathymetry
-    sim_hyp <- hyp[,c('DEPTH', 'BATHYMETRY_AREA')]
+    sim_hyp <- hyp
     sim_hyp[,1] <- -sim_hyp[,1]
     colnames(sim_hyp) <- c('Depth [m]',	'Area [m^2]')
     write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)

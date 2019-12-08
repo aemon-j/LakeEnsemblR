@@ -84,7 +84,9 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     }
     if(!cloud_cover){
       
-      fla_met[[colname_cloud_cover]] =  gotmtools::calc_cc(date = fla_met$datetime, airt = fla_met$Air_Temperature_celsius, relh = fla_met$Relative_Humidity_percent, swr = fla_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, long = lon, elev = 14, daily = daily)
+      fla_met[[colname_cloud_cover]] =  gotmtools::calc_cc(date = fla_met$datetime, airt = fla_met$Air_Temperature_celsius, relh = fla_met$Relative_Humidity_percent, swr = fla_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, long = lon,
+                                                           elev = 14, # Needs to be added dynamically
+                                                           daily = daily)
       
     }
     fla_met$index <- 1:nrow(fla_met)
@@ -142,7 +144,8 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     
     #
     start = glm_met[1,1]
-    stop = glm_met[nrow(glm_met),1]
+    #stop = glm_met[nrow(glm_met),1]
+    stop = '1980-01-01 00:00:00' # Added just for beta testing
     
     # Input to nml file
     nml <- glmtools::read_nml(file.path(folder,'GLM','glm3.nml'))
@@ -188,7 +191,9 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     
     if(!cloud_cover){
       # Function from gotmtools
-      met_got$Cloud_Cover_decimalFraction <- gotmtools::calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, long = lon, elev = elev, daily = daily)
+      met_got$Cloud_Cover_decimalFraction <- gotmtools::calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, long = lon, 
+                                                                elev = 14, # Needs to be dynamically added
+                                                                daily = daily)
     }
     
     met_got <- met_got[,c('datetime', 'Uwind_meterPerSecond', 'Vwind_meterPerSecond', 'Surface_Level_Barometric_Pressure_pascal', 'Air_Temperature_celsius', 'Relative_Humidity_percent', 'Cloud_Cover_decimalFraction', 'Shortwave_Radiation_Downwelling_wattPerMeterSquared', 'Precipitation_meterPerSecond')]
@@ -249,7 +254,8 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     
     # Set start/stop date - optional could be removed?
     start <- met_got[1,1]
-    stop <- met_got[nrow(met_got),1]
+    # stop <- met_got[nrow(met_got),1]
+    stop = '1980-01-01 00:00:00' # Added just for beta testing
     gotmtools::input_yaml(file = yaml, label = 'time', key = 'start', value = start)
     gotmtools::input_yaml(file = yaml, label = 'time', key = 'stop', value = stop)
     
