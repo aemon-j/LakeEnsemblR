@@ -37,6 +37,8 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   
   if("FLake" %in% model){
     dir.create('FLake') # Create directory 
+    dir.create('FLake/output') # Create output directory
+    
     temp_fil <- system.file('extdata/Heiligensee80-96.nml', package= 'FLakeR')
     file.copy(from = temp_fil, to = paste0('FLake/',name,'.nml'))
     fla_fil <- paste0('FLake/',name,'.nml')
@@ -67,6 +69,8 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
     input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
+    input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
+    input_nml(nml_file, 'METEO', 'outputfile', paste0("'output.dat'"))
     
     message('FLake configuration complete!')
     
@@ -74,6 +78,8 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   
   if("GLM" %in% model){
     dir.create('GLM') # Create directory 
+    dir.create('GLM/output') # Create output directory 
+    
     temp_fil <- system.file('extdata/glm3.nml', package= 'GLM3r')
     file.copy(from = temp_fil, to = 'GLM')
     
@@ -84,7 +90,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Read in nml and input parameters
     glm_nml <- 'GLM/glm3.nml'
     nml <- glmtools::read_nml(glm_nml)
-    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'crest_elev' = max(-(glm_hyp[,1])),'bsn_vals'=length(glm_hyp[,1]) ,'H' = -(glm_hyp[,1]), 'A' = rev(glm_hyp[,2]))
+    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'crest_elev' = max(-(glm_hyp[,1])),'bsn_vals'=length(glm_hyp[,1]) ,'H' = -(glm_hyp[,1]), 'A' = rev(glm_hyp[,2], 'out_dir' = 'output', 'out_fn' = 'output'))
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     glmtools::write_nml(nml, 'GLM/glm3.nml')
     
@@ -95,6 +101,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   
   if("GOTM" %in% model){
     dir.create('GOTM') # Create directory
+    dir.create('GOTM/output') # Create directory
     
     # Copy in template from examples folder in the package
     temp_fil <- system.file('extdata/gotm.yaml', package= 'GOTMr')
@@ -109,6 +116,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     
     # Set max depth
     gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
+    gotmtools::input_yaml(got_yaml, 'output', 'output', 'output/output')
     
     
     # Create GOTM hypsograph file
@@ -130,6 +138,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
   if("Simstrat" %in% model){
     
     dir.create('Simstrat') # Create directory 
+    dir.create('Simstrat/output') # Create output directory 
     
     # Copy in template files from examples folder in the package
     temp_fil <- system.file('extdata/langtjern.par', package= 'SimstratR')
@@ -156,6 +165,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Input parameters
     input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
     input_json(sim_par, 'Input', 'Absorption', '"light_absorption.dat"')
+    input_json(sim_par, 'Output', 'Path', '"output"')
     input_json(sim_par, 'ModelParameters', 'lat', lat)
     
     ## Input light absorption data [To be continued...]
