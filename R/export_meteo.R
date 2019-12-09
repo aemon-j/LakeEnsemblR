@@ -34,6 +34,15 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   # Check time step
   tstep <- diff(as.numeric(met[,1]))
   
+  # Is data daily? - For cloud cover calculation
+  if(sum(tstep != 86400) > 0){
+    daily = FALSE
+    subdaily = TRUE
+  }else{
+    daily = TRUE
+    subdaily = FALSE
+  }
+  
   ### Naming conventions standard input
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
   colname_time = "datetime"
@@ -71,12 +80,6 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   #####
   if('FLake' %in% model){
     fla_met <- met
-    # Is data daily? - For cloud cover calculation
-    if(sum(tstep != 86400) > 0){
-      daily = FALSE
-    }else{
-      daily = TRUE
-    }
     
     # Humidity
     if(!vapour_pressure & relative_humidity){
@@ -124,13 +127,6 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   if('GLM' %in% model){
     glm_met <- met
     
-    # Is data daily? - For cloud cover calculation
-    if(sum(tstep != 86400) > 0){
-      subdaily = TRUE
-    }else{
-      subdaily = FALSE
-    }
-    
     # Convert units
     glm_met$Precipitation_meterPerDay <- glm_met$Precipitation_meterPerSecond * 86400
     
@@ -174,15 +170,6 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     # Function to be added to gotmtools
     lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
     lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
-    
-    # Is data daily? - For cloud cover calculation
-    if(sum(tstep != 86400) > 0){
-      daily = FALSE
-    }else{
-      daily = TRUE
-    }
-    
-    
     
     if(wind_direction){
       direction=270-met_got[[colname_wind_direction]] # Converting the wind direction to the "math" direction
