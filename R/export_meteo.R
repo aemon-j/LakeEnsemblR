@@ -153,7 +153,7 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     # Input to nml file
     nml <- glmtools::read_nml(file.path(folder,'GLM','glm3.nml'))
     
-    nml_list <- list('start' = start, 'stop' = stop, 'subdaily' = daily, 'lw_type' = lw_type, 'meteo_fl' = 'meteo_file.csv')
+    nml_list <- list('start' = start, 'stop' = stop, 'subdaily' = subdaily, 'lw_type' = lw_type, 'meteo_fl' = 'meteo_file.csv')
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
     
     glmtools::write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))

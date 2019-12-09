@@ -28,5 +28,9 @@ export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = 'LakeEn
 export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv', date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat', month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
-run_ensemble()
-  
+run_ensemble(model = 'GLM')
+
+# Plot model output
+gotmtools::plot_wtemp('GOTM/output.nc')
+glmtools::plot_temp('GLM/output/output.nc')  
+
