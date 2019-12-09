@@ -1,6 +1,7 @@
-setwd('...\\LakeEnsemblR\\data\\feeagh')
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+setwd('../data/feeagh')
 
-#library
+# Load libraries
 library(GOTMr);library(SimstratR);library(GLM3r);library(FLakeR);library(gotmtools);library(glmtools)
 library(lubridate);library(plyr)
 
