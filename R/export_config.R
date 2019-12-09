@@ -84,7 +84,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Read in nml and input parameters
     glm_nml <- 'GLM/glm3.nml'
     nml <- glmtools::read_nml(glm_nml)
-    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'H' = rev(glm_hyp[,1]), 'A' = rev(glm_hyp[,2]))
+    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'crest_elev' = max(-(glm_hyp[,1])),'bsn_vals'=length(glm_hyp[,1]) ,'H' = -(glm_hyp[,1]), 'A' = rev(glm_hyp[,2]))
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     glmtools::write_nml(nml, 'GLM/glm3.nml')
     
