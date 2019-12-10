@@ -1,18 +1,21 @@
+rm(list=ls())
+graphics.off()
+cat("\f")
+
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 setwd('../data/feeagh')
 
 # Install packages
 #install.packages('devtools')
-devtools::install_github('GLEON/GLM3r')
-devtools::install_github('hdugan/glmtools')
-devtools::install_github('aemon-j/FLakeR')
-devtools::install_github('aemon-j/GOTMr')
-devtools::install_github('aemon-j/gotmtools')
-devtools::install_github('aemon-j/SimstratR')
+if(!require(GLM3r)){devtools::install_github('GLEON/GLM3r');library(GLM3r)}
+if(!require(glmtools)){devtools::install_github('hdugan/glmtools');library(glmtools)}
+if(!require(FLakeR)){devtools::install_github('aemon-j/FLakeR');library(FLakeR)}
+if(!require(GOTMr)){devtools::install_github('aemon-j/GOTMr');library(GOTMr)}
+if(!require(gotmtools)){devtools::install_github('aemon-j/gotmtools');library(gotmtools)}
+if(!require(SimstratR)){devtools::install_github('aemon-j/SimstratR');library(SimstratR)}
 
 
 # Load libraries
-library(GOTMr);library(SimstratR);library(GLM3r);library(FLakeR);library(gotmtools);library(glmtools)
 library(lubridate);library(plyr);library(ncdf4)
 
 # Load functions
@@ -30,18 +33,24 @@ source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools
 source('../../R/helper_functions/get_wtemp_df.R') # Function for flaketools?
 
 # 1. Example - creates directories with all model setups
-export_config(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9, name = 'feeagh', Kw = 1.5)
+export_config(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.',
+              hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9,
+              name = 'feeagh', Kw = 1.5)
 
 # 2. Create meteo driver files
-export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+             meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
 # 3. Create initial conditions
-export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv', date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat', month = 1, ndeps = 2, print = TRUE)
+export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+                 wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+                 date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat',
+                 month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
 run_ensemble(return_list = F, make_output = TRUE)
 
 # Plot model output
 gotmtools::plot_wtemp('GOTM/output/output.nc')
-glmtools::plot_var('GLM/output/output.nc', var_name = 'temp')  
+glmtools::plot_var('GLM/output/output.nc', var_name = 'temp')
 

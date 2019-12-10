@@ -52,7 +52,7 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
   if('GLM' %in% model){
     #Need to input start and stop into nml file
     
-    run_glm(sim_folder = file.path(folder, 'GLM'))
+    GLM3r::run_glm(sim_folder = file.path(folder, 'GLM'))
     
     message('GLM run is complete! ', paste0('[', Sys.time(),']'))
     
