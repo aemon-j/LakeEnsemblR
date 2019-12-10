@@ -70,7 +70,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
     input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
     input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
-    input_nml(nml_file, 'METEO', 'outputfile', paste0("'output.dat'"))
+    input_nml(fla_fil, 'METEO', 'outputfile', paste0("'output/output.dat'"))
     
     message('FLake configuration complete!')
     
@@ -80,8 +80,9 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     dir.create('GLM') # Create directory 
     dir.create('GLM/output') # Create output directory 
     
-    temp_fil <- system.file('extdata/glm3.nml', package= 'GLM3r')
-    file.copy(from = temp_fil, to = 'GLM')
+    # temp_fil <- system.file('extdata/glm3.nml', package= 'GLM3r')
+    temp_fil <- '../../inst/extdata/glm3_template.nml'
+    file.copy(from = temp_fil, to = 'GLM/glm3.nml')
     
     # Format hpsograph 
     glm_hyp <- hyp
@@ -90,7 +91,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Read in nml and input parameters
     glm_nml <- 'GLM/glm3.nml'
     nml <- glmtools::read_nml(glm_nml)
-    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'crest_elev' = max(-(glm_hyp[,1])),'bsn_vals'=length(glm_hyp[,1]) ,'H' = -(glm_hyp[,1]), 'A' = rev(glm_hyp[,2], 'out_dir' = 'output', 'out_fn' = 'output'))
+    inp_list <- list('lake_name' = name, 'latitude' = lat, 'longitude' = lon, 'lake_depth' = max_depth, 'Kw' = Kw, 'crest_elev' = max(-(glm_hyp[,1])),'bsn_vals'=length(glm_hyp[,1]) ,'H' = -(glm_hyp[,1]), 'A' = rev(glm_hyp[,2] ), 'out_dir' = 'output', 'out_fn' = 'output', 'timefmt' = 2)
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     glmtools::write_nml(nml, 'GLM/glm3.nml')
     
@@ -116,8 +117,6 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     
     # Set max depth
     gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
-    gotmtools::input_yaml(got_yaml, 'output', 'output', 'output/output')
-    
     
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
