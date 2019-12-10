@@ -115,7 +115,6 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     
     input_nml(nml_file, 'SIMULATION_PARAMS', 'time_step_number', nrow(fla_met))
     input_nml(nml_file, 'METEO', 'meteofile', paste0("'",met_outfile,"'"))
-    input_nml(nml_file, 'METEO', 'outputfile', paste0("'output.dat'"))
     
     message('FLake: Created file ', file.path(folder,"FLake", met_outfile))
     
