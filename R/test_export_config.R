@@ -67,7 +67,8 @@ for(i in 1:length(vars)){
                              zlab = 'degC')
   p1 <- p1 + scale_y_reverse() + #Reverse y-axis
     ggtitle(vars[i]) + # Add title using variable name
-    xlab('') # Remove x-label
+    xlab('')+ # Remove x-label
+    theme_bw(base_size = 18) # Increase font size of plots
   plist[[i]] <- p1
 }
 
