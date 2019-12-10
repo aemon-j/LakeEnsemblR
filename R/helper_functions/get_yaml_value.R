@@ -11,7 +11,8 @@
 #'Tadhg Moore
 #' @examples
 #'get_yaml_value(file = 'gotm.yaml', label = 'airp', key = 'file'')
-
+#' @export
+#' 
 get_yaml_value <- function(file = 'gotm.yaml', label, key){
   yml <- readLines(file)
 
