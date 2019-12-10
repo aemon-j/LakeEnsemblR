@@ -29,6 +29,7 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
 
   ### Import data
   # I'd prefer to use a function that can read both comma and tab delimited. data.table::fread does this, but then it's data.table
+  message('Loading met data...')
   met = read.csv(file.path(folder,meteo_file), stringsAsFactors = F)
   met[,1] <- as.POSIXct(met[,1])
   # Check time step
@@ -106,7 +107,7 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
                                                            airt = fla_met$Air_Temperature_celsius,
                                                            relh = fla_met$Relative_Humidity_percent,
                                                            swr = fla_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared,
-                                                           lat = lat, long = lon,
+                                                           lat = lat, lon = lon,
                                                            elev = 14, # Needs to be added dynamically
                                                            daily = daily)
 
@@ -196,7 +197,8 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
 
     if(!cloud_cover){
       # Function from gotmtools
-      met_got$Cloud_Cover_decimalFraction <- gotmtools::calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, long = lon,
+
+      met_got$Cloud_Cover_decimalFraction <- gotmtools::calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, lon = lon, 
                                                                 elev = 14, # Needs to be dynamically added
                                                                 daily = daily)
     }
