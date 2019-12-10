@@ -29,14 +29,21 @@ source('../../R/helper_functions/streams_switch.R') # Will be added to gotmtools
 # source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools in the future
 source('../../R/helper_functions/get_wtemp_df.R') # Potential function for flaketools
 
-# 1. Example - creates directories with all model setups
-export_config(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9.5, name = 'feeagh', Kw = 1.5)
+# 1. Example - creates directories with all model setup
+export_config(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.',
+              hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9,
+              name = 'feeagh', Kw = 1.5)
+
 
 # 2. Create meteo driver files
-export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+             meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
 # 3. Create initial conditions
-export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv', date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat', month = 1, ndeps = 2, print = TRUE)
+export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+                 wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+                 date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat',
+                 month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
 wtemp_list <- run_ensemble(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), return_list = TRUE, make_output = TRUE, config_file = 'HOLDER.yaml')
@@ -78,6 +85,5 @@ g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend
 g1
 ggsave('model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 ####
-
 
 
