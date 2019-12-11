@@ -63,12 +63,13 @@ for(i in 1:length(wtemp_list)){
 # Plot model output using gotmtools/ggplot2
 ####
 #Extract names of all the variables in netCDF
-vars <- gotmtools::list_vars('ensemble_output.nc4')
+ens_out <- 'output/ensemble_output.nc4'
+vars <- gotmtools::list_vars(ens_out)
 vars # Print variables
 
 plist <- list() # Initialize empty list for storing plots of each variable
-for(i in 1:length(vars)){
-  p1 <- gotmtools::plot_vari(ncdf = 'ensemble_output.nc4',
+for(i in 1:(length(vars)-1)){
+  p1 <- gotmtools::plot_vari(ncdf = ens_out,
                              var = vars[i],
                              incl_time = FALSE, 
                              limits = c(0,22),
@@ -84,7 +85,7 @@ for(i in 1:length(vars)){
 # install.packages('ggpubr')
 g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = 'right')
 g1
-ggsave('model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
+ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 ####
 
 ###
@@ -108,21 +109,24 @@ p2 <- ggplot(td_df, aes(datetime, value, colour = variable))+
   theme_bw(base_size = 18)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 p2
-ggsave('model_ensemble_thermodepth.png', p2,  dpi = 300,width = 384,height = 300, units = 'mm')
+ggsave('output/model_ensemble_thermodepth.png', p2,  dpi = 300,width = 384,height = 300, units = 'mm')
 ####
 
 ###
 # Calculate stratification statistics
 strat <- lapply(1:length(wtemp_list), function(x){
   df = na.exclude(wtemp_list[[x]])
-  # analyse_strat(Ts = wtemp_list[[x]][,2], Tb = wtemp_list[[x]][,ncol(wtemp_list[[x]])], dates = wtemp_list[[x]][,1])
   dat = analyse_strat(Ts = df[,2], Tb = df[,ncol(df)], dates = df[,1])
   dat$model <- names(wtemp_list)[x]
   return(dat)
 })
 names(strat) <- names(wtemp_list)
-strat <- do.call("rbind", strat)
+strat <- do.call("rbind", strat) # Bind list into data.frame
 strat
+write.csv(strat, 'output/ensemble_strat_results.csv', row.names = F, quote = F)
+###
 
+###
+# Add model diagnostics plot... e.g. lapply(wtemp_list, diag_plot)
 
-
+###

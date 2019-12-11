@@ -188,10 +188,32 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       # Remove columns without any value
       sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
       
-      # Set column headers
-      str_depths <- abs(as.numeric(colnames(sim_out)[2:ncol(sim_out)]))
-      colnames(sim_out) <- c("datetime", paste0('wtr_',str_depths))
+      # Add in obs depths which are not in depths and less than mean depth
+      mod_depths = as.numeric(colnames(sim_out)[-1])
+      obs_dep_neg <- -obs_deps
+      add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
+      depths <- c(add_deps, mod_depths)
+      depths <- depths[order(-depths)]
       
+      if(length(depths) != (ncol(sim_out)-1)){
+        message('Interpolating Simstrat temp to include obs depths')
+        
+        # Create empty matrix and interpolate to new depths
+        wat_mat <- matrix(NA, nrow = nrow(sim_out), ncol = length(depths))
+        for(i in 1:nrow(sim_out)){
+          y = as.vector(unlist(sim_out[i,-1]))
+          wat_mat[i,] <- approx(mod_depths, y, depths, rule = 2)$y
+        }
+        df = data.frame(wat_mat)
+        df$datetime <- sim_out[,1]
+        df <- df[,c(ncol(df), 1:(ncol(df)-1))]
+        colnames(df) <- c("datetime", paste0('wtr_',abs(depths)))
+        sim_out <- df
+      }else{
+        # Set column headers
+        str_depths <- abs(as.numeric(colnames(sim_out)[2:ncol(sim_out)]))
+        colnames(sim_out) <- c("datetime", paste0('wtr_',str_depths))
+      }
     }
   }
   
@@ -222,6 +244,10 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       deps <- rLakeAnalyzer::get.offsets(temp_list[[lon_list]]) # Extract depths
       deps <- deps
       
+      # Creat output directory
+      message('Creating directory for output: ', file.path(folder, 'output'))
+      dir.create(file.path(folder, 'output'), showWarnings = FALSE)
+      
       #Create ncdf
       message('Creating NetCDF file [', Sys.time(), ']')
       ref_time <- as.POSIXct('1970-01-01 00:00:00', tz = 'GMT') # Reference time for netCDF time
@@ -247,7 +273,7 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       }
       names(nc_vars) <- names(temp_list) # Re-assign list names
       
-      fname ='ensemble_output.nc4' # Ensemble output
+      fname = file.path(folder, 'output','ensemble_output.nc4') # Ensemble output
      
       # Create and input data into the netCDF file
       ncout <- nc_create(fname, nc_vars, force_v4 = T)
@@ -282,19 +308,6 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       }, finally = {
         nc_close(ncout) # Close netCDF file
       })
-      
-      
-      # for(i in 1:length(temp_list)){
-      #   mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[3]]$len, ncol = nc_vars[[i]]$dim[[4]]$len)
-      #   
-      #   mat <- as.matrix(temp_list[[i]][,-1])
-      #   
-      #   mat1[1:nrow(mat),1:ncol(mat)] <- mat
-      #   ncvar_put(ncout, nc_vars[[i]], mat1)
-      #   ncatt_put(ncout, nc_vars[[i]], attname = 'coordinates', attval = c('lon lat z'))
-      #   ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
-      # }
-      # nc_close(ncout) # Close netCDF file
       
       message('Finished writing NetCDF file [', Sys.time(), ']')
       
