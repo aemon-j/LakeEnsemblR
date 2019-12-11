@@ -116,6 +116,9 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
     par_file <- list.files(file.path(folder, 'Simstrat'))[grep('par', list.files(file.path(folder, 'Simstrat')))]
     par_file <- file.path(folder, 'Simstrat', par_file)
     
+    # Output wanted every half metre
+    input_json(par_file, "Output", "Depths", 0.5)
+    
     reference_year <- get_json_value(par_file, "Simulation", "Start year")
     start_date_simulation <- lubridate::floor_date(as.POSIXct(start), unit = "days")
     end_date_simulation <- lubridate::ceiling_date(as.POSIXct(stop), unit = "days")
