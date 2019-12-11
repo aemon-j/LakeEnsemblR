@@ -12,7 +12,7 @@
 #' 
 #' @example 
 #' 
-#' @import ncdf4
+#' @import ncdf4, lubridate
 #' 
 #' @export
 run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL, config_file = NULL){
@@ -151,10 +151,17 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
   
   if('Simstrat' %in% model){
     # Need to input start and stop into json par file
-    #Need to input start and stop into nml file
     par_file <- list.files(file.path(folder, 'Simstrat'))[grep('par', list.files(file.path(folder, 'Simstrat')))]
     par_file <- file.path(folder, 'Simstrat', par_file)
-
+    
+    # Output wanted every half metre
+    input_json(par_file, "Output", "Depths", 0.5)
+    
+    reference_year <- get_json_value(par_file, "Simulation", "Start year")
+    start_date_simulation <- lubridate::floor_date(as.POSIXct(start), unit = "days")
+    end_date_simulation <- lubridate::ceiling_date(as.POSIXct(stop), unit = "days")
+    input_json(par_file, "Simulation", "Start d", round(as.numeric(difftime(start_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
+    input_json(par_file, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     
     fils <- list.files('Simstrat/')
     par_file <- fils[grep('par', fils)]
@@ -164,10 +171,28 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
     message('Simstrat run is complete! ', paste0('[', Sys.time(),']'))
     
     if(return_list | create_netcdf){
-      # Input functions to extrat Simstrat output and format for rLake Analyzer
+      ### Extract output
+      sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
+      
+      ### Convert decimal days to yyyy-mm-dd HH:MM:SS
+      par_file <- file.path(folder, 'Simstrat', par_file)
+      timestep <- get_json_value(par_file, "Simulation", "Timestep s")
+      
+      sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
+      # In case sub-hourly time steps are used, rounding might be necessary
+      sim_out[,1] <- lubridate::round_date(sim_out[,1], unit = lubridate::seconds_to_period(timestep))
+      
+      # First column datetime, then depth from shallow to deep
+      sim_out <- sim_out[,c(1,ncol(sim_out):2)]
+      
+      # Remove columns without any value
+      sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
+      
+      # Set column headers
+      str_depths <- abs(as.numeric(colnames(sim_out)[2:ncol(sim_out)]))
+      colnames(sim_out) <- c("datetime", paste0('wtr_',str_depths))
       
     }
-    
   }
   
   if(return_list | create_netcdf){
