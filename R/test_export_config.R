@@ -26,27 +26,28 @@ source('../../R/helper_functions/input_json.R') # Potential function for 'simstr
 source('../../R/helper_functions/get_json_value.R') # Potential function for 'simstrattools'
 source('../../R/helper_functions/input_nml.R') # This versions preserves comments in the nml
 source('../../R/helper_functions/streams_switch.R') # Will be added to gotmtools in the future
-# source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools in the future
+source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools in the future
 source('../../R/helper_functions/get_wtemp_df.R') # Potential function for flaketools
+source('../../R/helper_functions/analyse_strat.R') # Potential function for flaketools
 
 # 1. Example - creates directories with all model setup
-export_config(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.',
+export_config(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.',
               hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9,
               name = 'feeagh', Kw = 1.5)
 
 
 # 2. Create meteo driver files
-export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+export_meteo(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
              meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
 # 3. Create initial conditions
-export_init_cond(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
+export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
                  wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                 date = '1979-01-01 00:00:00', tprof_file = 'HOLDER.dat',
+                 date = '2010-01-01 00:00:00', tprof_file = 'HOLDER.dat',
                  month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), return_list = TRUE, make_output = TRUE, config_file = 'HOLDER.yaml')
+wtemp_list <- run_ensemble(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE, create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', config_file = 'HOLDER.yaml')
 
 
 ####
@@ -67,7 +68,7 @@ vars # Print variables
 
 plist <- list() # Initialize empty list for storing plots of each variable
 for(i in 1:length(vars)){
-  p1 <- gotmtools::plot_vari('ensemble_output.nc4',
+  p1 <- gotmtools::plot_vari(ncdf = 'ensemble_output.nc4',
                              var = vars[i],
                              incl_time = FALSE, 
                              limits = c(0,22),
@@ -85,5 +86,43 @@ g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend
 g1
 ggsave('model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 ####
+
+###
+# Calculate thermocline depth
+###
+t_d <- lapply(1:length(wtemp_list), function(x)rLakeAnalyzer::ts.thermo.depth(wtr = wtemp_list[[x]]))
+names(t_d) <- names(wtemp_list)
+datetime <- t_d[[1]][['datetime']]
+data_sub <- lapply(t_d, function(x) x[["thermo.depth"]])
+td_df <- data.frame(c(list('datetime' = datetime)), data_sub)
+td_df <- reshape::melt(td_df, id.vars = 'datetime')
+
+p2 <- ggplot(td_df, aes(datetime, value, colour = variable))+
+  geom_line()+
+  scale_y_reverse()+
+  theme_bw(base_size = 12)+
+  xlab('')+
+  ylab('Depth (m)')+
+  ggtitle('Thermocline Depth')+
+  guides(colour = guide_legend(override.aes = list(size=4, alpha = 1, shape = 0), title = 'Model'))+
+  theme_bw(base_size = 18)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+p2
+ggsave('model_ensemble_thermodepth.png', p2,  dpi = 300,width = 384,height = 300, units = 'mm')
+####
+
+###
+# Calculate stratification statistics
+strat <- lapply(1:length(wtemp_list), function(x){
+  df = na.exclude(wtemp_list[[x]])
+  # analyse_strat(Ts = wtemp_list[[x]][,2], Tb = wtemp_list[[x]][,ncol(wtemp_list[[x]])], dates = wtemp_list[[x]][,1])
+  dat = analyse_strat(Ts = df[,2], Tb = df[,ncol(df)], dates = df[,1])
+  dat$model <- names(wtemp_list)[x]
+  return(dat)
+})
+names(strat) <- names(wtemp_list)
+strat <- do.call("rbind", strat)
+strat
+
 
 
