@@ -110,6 +110,9 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       depths <- depths[order(depths)]
       # Extract output
       glm_out <- glmtools::get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
+      colnames(glm_out) <- c('datetime',paste('wtr_', depths, sep=""))
+      
+      
     }
     
   }
