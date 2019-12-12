@@ -1,3 +1,8 @@
+#initial clean up
+rm(list = ls())
+graphics.off()
+cat("\f")
+
 setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 setwd('../data/feeagh')
 
@@ -47,7 +52,9 @@ export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
                  month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE, create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', config_file = 'HOLDER.yaml')
+wtemp_list <- run_ensemble(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
+                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+                           config_file = 'HOLDER.yaml')
 
 
 ####
@@ -71,7 +78,7 @@ plist <- list() # Initialize empty list for storing plots of each variable
 for(i in 1:(length(vars)-1)){
   p1 <- gotmtools::plot_vari(ncdf = ens_out,
                              var = vars[i],
-                             incl_time = FALSE, 
+                             incl_time = FALSE,
                              limits = c(0,22),
                              zlab = 'degC')
   p1 <- p1 + scale_y_reverse() + #Reverse y-axis
