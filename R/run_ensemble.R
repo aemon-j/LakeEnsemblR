@@ -317,7 +317,7 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
   }
 
   # Set the timezone back to the original
-  Sys.setenv(tz=original_tz)
+  Sys.setenv(TZ=original_tz)
 
   if(return_list){
     return(temp_list)
