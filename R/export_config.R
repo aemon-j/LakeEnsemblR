@@ -84,7 +84,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     temp_fil <- '../../inst/extdata/glm3_template.nml'
     file.copy(from = temp_fil, to = 'GLM/glm3.nml')
     
-    # Format hpsograph 
+    # Format hypsograph 
     glm_hyp <- hyp
     glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1]
     
@@ -127,6 +127,7 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     
     ## Input light extinction data [To be continued...]
     
+    
     ## Switch off streams
     streams_switch(file = got_yaml, method = 'off')
     
@@ -146,7 +147,6 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     qout_fil <- system.file('extdata/Qout.dat', package= 'SimstratR')
     tin_fil <- system.file('extdata/Tin.dat', package= 'SimstratR')
     sin_fil <- system.file('extdata/Sin.dat', package= 'SimstratR')
-    light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
     file.copy(from = temp_fil, to = file.path(folder, 'Simstrat',paste0(name,'.par')))
     file.copy(from = light_fil, to = file.path(folder, 'Simstrat','light_absorption.dat'))
     file.copy(from = qin_fil, to = file.path(folder, 'Simstrat','Qin.dat'))
@@ -167,7 +167,19 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     input_json(sim_par, 'Output', 'Path', '"output"')
     input_json(sim_par, 'ModelParameters', 'lat', lat)
     
-    ## Input light absorption data [To be continued...]
+    ## Input light absorption data
+    absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
+    # In case Kw is a single value for the whole simulation:
+    absorption_line_2 <- "1"
+    absorption_line_3 <- "-1 -1.00"
+    start_sim <- get_json_value(sim_par, "Simulation", "Start d")
+    end_sim <- get_json_value(sim_par, "Simulation", "End d")
+    absorption_line_4 <- paste(start_sim,Kw)
+    absorption_line_5 <- paste(end_sim,Kw)
+    
+    fileConnection <- file("Simstrat/light_absorption.dat")
+    writeLines(c(absorption_line_1,absorption_line_2,absorption_line_3,absorption_line_4,absorption_line_5), fileConnection)
+    close(fileConnection)
     
     message('Simstrat configuration complete!')
     

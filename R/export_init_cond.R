@@ -73,9 +73,8 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
   #####
   if('GLM' %in% model){
 
-    glm_deps <- abs(deps)
-    glm_deps <- rev(glm_deps)
-    glm_tmp <- rev(tmp)
+    glm_deps <- deps
+    glm_tmp <- tmp
     # Input to nml file
     nml <- glmtools::read_nml(file.path(folder,'GLM','glm3.nml'))
     
@@ -91,8 +90,8 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
   if('GOTM' %in% model){
     yaml = file.path(folder,'GOTM', 'gotm.yaml')
     
-    got_tmp = tmp[order(-deps)]
-    got_deps = deps[order(-deps)]
+    got_tmp = tmp
+    got_deps = -deps
     df <- matrix(NA, nrow =1+ndeps, ncol =2)
     df[1,1] <- date
     df[1,2] <- paste0(ndeps,' ',2)
@@ -111,8 +110,8 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
   
   ## Simstrat
   if('Simstrat' %in% model){
-    sim_deps <- rev(deps)
-    sim_tmp <- rev(tmp)
+    sim_deps <- -deps
+    sim_tmp <- tmp
     
     df2 <- data.frame('Depth [m]' = sim_deps, 'U [m/s]' = 0, 	'V [m/s]' = 0,	'T [deg C]' = sim_tmp,	'k [J/kg]' = 3e-6,	'eps [W/kg]' = 5e-10)
     colnames(df2) <- c('Depth [m]',	'U [m/s]',	'V [m/s]',	'T [deg C]',	'k [J/kg]',	'eps [W/kg]')

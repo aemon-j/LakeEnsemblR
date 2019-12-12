@@ -4,6 +4,7 @@
 #'
 #' @name get_wtemp_df
 #' @param output filepath; to FLake output file
+#' @param depths vector; of numeric values to extract the depths at
 #' @param nml_file filepath; to FLake namelist file
 #' 
 #' @return Dataframe in rLakeAnalyzer format
@@ -12,10 +13,8 @@
 #' df <- get_wtemp_df(output = 'FLake/output/output.dat', folder = 'FLake', nml_file = 'FLake/feeagh.nml')
 #' 
 #' @export
-
-get_wtemp_df <- function(output, folder, nml_file){
+get_wtemp_df <- function(output, depths, folder, nml_file){
   
-  imeandepth <- glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file)
   met_file <- glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file)
   met_file <- file.path(folder, met_file)
   met_file <- gsub(',', '', met_file)
@@ -30,11 +29,10 @@ get_wtemp_df <- function(output, folder, nml_file){
   Tb <- flake_out[['Tb']] # bottom temperature 
   h <- flake_out[['h_ML']] # mixed layer depth
   C <- flake_out[['C_T']] # shape factor
-  D <- imeandepth
-  idepths <- seq(0,imeandepth,by = 0.5)
+  D <- max(depths) # mean depth
   l_wtr <- list()
-  for(kk in 1:length(idepths)){
-    z <-  idepths[kk]
+  for(kk in 1:length(depths)){
+    z <-  depths[kk]
     zeta <- (z - h) / (D - h)
     c1 <- 40 / 3
     c2 <- 20 / 3
@@ -54,7 +52,7 @@ get_wtemp_df <- function(output, folder, nml_file){
   wtr2 <- wtr2[idx,]
   
   # change data format from long to wide
-  wtr4 <- reshape2::dcast(wtr2, dateTime ~ depth)
+  wtr4 <- reshape2::dcast(wtr2, dateTime ~ depth, value.var = 'wtr')
   str_depths <- colnames(wtr4)[2:ncol(wtr4)]
   colnames(wtr4) <- c('datetime',paste('wtr_',str_depths, sep=""))
   wtr4$datetime <- datetime # Input datetime vector
