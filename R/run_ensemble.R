@@ -9,43 +9,43 @@
 #' @param create_netcdf boolean; Create ensemble_output.nc4 file
 #' @param obs_file filepath; to LakeEnsemblR standardised observed water temperature profile data. If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.
 #' @param config_file filepath; to LakeEnsemblr yaml config file. Not active yet!
-#' 
-#' @example 
-#' 
+#'
+#' @example
+#'
 #' @import ncdf4, lubridate
-#' 
+#'
 #' @export
 run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL, config_file = NULL){
-  
+
   # Set all as NULL
   fla_out <- NULL
   glm_out <- NULL
   got_out <- NULL
   sim_out <- NULL
   obs_out <- NULL
-  
+
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
-  original_tz = Sys.getenv("tz")
-  Sys.setenv(tz="GMT")
-  
+  original_tz = Sys.getenv("TZ")
+  Sys.setenv(TZ="GMT")
+
   ## Extract start, stop, lat & lon for netCDF file from config file
   start = '2010-01-01 00:00:00'
   stop = '2011-01-01 00:00:00'
   lat <- 53
   lon <- 9
-  
+
   if(!is.null(obs_file)){
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
-    
+
     # change data format from long to wide
     obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = 'Water_Temperature_celsius')
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
     colnames(obs_out) <- c('datetime',paste('wtr_',str_depths, sep=""))
     obs_out$datetime <- as.POSIXct(obs_out$datetime)
-    
+
   }
-  
+
   if('FLake' %in% model){
     #Need to figure out how to subset data by dates
     nml_file <- list.files(file.path(folder, 'FLake'))[grep('nml', list.files(file.path(folder, 'FLake')))]
@@ -61,46 +61,46 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       warning('Overwriting met file with shorter time series')
     }
     met_sub[,1] <- 1:nrow(met_sub)
-    
+
     # Write to file
     write.table(met_sub, met_file, sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
     input_nml(nml_file, 'SIMULATION_PARAMS', 'time_step_number', nrow(met_sub))
-    
+
     # Select nml file again
     nml_file <- list.files(file.path(folder, 'FLake'))[grep('nml', list.files(file.path(folder, 'FLake')))]
     run_flake(sim_folder = file.path(folder, 'FLake'), nml_file = nml_file)
-    
+
     if(return_list | create_netcdf){
       # Extract output
       fold <- file.path(folder, 'FLake')
       nml_file <- file.path(folder, 'FLake', nml_file)
-      
+
       mean_depth <- glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file)
       depths <- seq(0,mean_depth,by = 0.5)
-      
+
       # Add in obs depths which are not in depths and less than mean depth
       add_deps <- obs_deps[!(obs_deps %in% depths)]
       add_deps <- add_deps[which(add_deps < mean_depth)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
-      
+
       fla_out <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = 'FLake', nml_file = nml_file)
     }
-    
+
     message('FLake run is complete! ', paste0('[', Sys.time(),']'))
   }
-  
+
   if('GLM' %in% model){
     #Need to input start and stop into nml file
     nml_file <- list.files(file.path(folder, 'GLM'))[grep('nml', list.files(file.path(folder, 'GLM')))]
     nml_file <- file.path(folder, 'GLM', nml_file)
     input_nml(nml_file, label = 'time', key = 'start', value = paste0("'",start,"'"))
     input_nml(nml_file, label = 'time', key = 'stop', value = paste0("'",stop,"'"))
-    
+
     run_glm(sim_folder = file.path(folder, 'GLM'))
-    
+
     message('GLM run is complete! ', paste0('[', Sys.time(),']'))
-    
+
     if(return_list | create_netcdf){
       # Add in obs depths which are not in depths and less than mean depth
       depth <- glmtools::get_nml_value(nml_file = file.path(folder, 'GLM', 'glm3.nml'), arg_name = 'lake_depth')
@@ -111,93 +111,93 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       # Extract output
       glm_out <- glmtools::get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
     }
-    
+
   }
-  
+
   if('GOTM' %in% model){
     #Need to input start and stop into yaml file
     yaml_file <- file.path(folder, 'GOTM', 'gotm.yaml')
     input_yaml(yaml_file, label = 'time', key = 'start', value = start)
     input_yaml(yaml_file, label = 'time', key = 'stop', value = stop)
-    
+
     # Extract lat & lon for netCDF file
-    
+
     run_gotm(sim_folder = file.path(folder, 'GOTM'))
-    
+
     message('GOTM run is complete! ', paste0('[', Sys.time(),']'))
-    
+
     if(return_list | create_netcdf){
-      
+
       # Extract output
       temp <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
       z <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
-      
+
       # Add in obs depths which are not in depths and less than mean depth
       depths = seq(0, min(z[1,-1]), by = -0.5)
       obs_dep_neg <- -obs_deps
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-      
+
       got_out <- setmodDepths(temp, z, depths = depths, print = T)
-      
+
       got_out <- reshape2::dcast(got_out, date ~ depths)
       got_out <- got_out[,c(1,(ncol(got_out):2))]
       str_depths <- abs(as.numeric(colnames(got_out)[2:ncol(got_out)]))
       colnames(got_out) <- c('datetime',paste('wtr_',str_depths, sep=""))
     }
-    
+
   }
-  
+
   if('Simstrat' %in% model){
     # Need to input start and stop into json par file
     par_file <- list.files(file.path(folder, 'Simstrat'))[grep('par', list.files(file.path(folder, 'Simstrat')))]
     par_file <- file.path(folder, 'Simstrat', par_file)
-    
+
     # Output wanted every half metre
     input_json(par_file, "Output", "Depths", 0.5)
-    
+
     reference_year <- get_json_value(par_file, "Simulation", "Start year")
     start_date_simulation <- lubridate::floor_date(as.POSIXct(start), unit = "days")
     end_date_simulation <- lubridate::ceiling_date(as.POSIXct(stop), unit = "days")
     input_json(par_file, "Simulation", "Start d", round(as.numeric(difftime(start_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(par_file, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
-    
+
     fils <- list.files('Simstrat/')
     par_file <- fils[grep('par', fils)]
-    
+
     run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
-    
+
     message('Simstrat run is complete! ', paste0('[', Sys.time(),']'))
-    
+
     if(return_list | create_netcdf){
       ### Extract output
       sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
-      
+
       ### Convert decimal days to yyyy-mm-dd HH:MM:SS
       par_file <- file.path(folder, 'Simstrat', par_file)
       timestep <- get_json_value(par_file, "Simulation", "Timestep s")
-      
+
       sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
       sim_out[,1] <- lubridate::round_date(sim_out[,1], unit = lubridate::seconds_to_period(timestep))
-      
+
       # First column datetime, then depth from shallow to deep
       sim_out <- sim_out[,c(1,ncol(sim_out):2)]
-      
+
       # Remove columns without any value
       sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
-      
+
       # Add in obs depths which are not in depths and less than mean depth
       mod_depths = as.numeric(colnames(sim_out)[-1])
       obs_dep_neg <- -obs_deps
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
       depths <- c(add_deps, mod_depths)
       depths <- depths[order(-depths)]
-      
+
       if(length(depths) != (ncol(sim_out)-1)){
         message('Interpolating Simstrat temp to include obs depths')
-        
+
         # Create empty matrix and interpolate to new depths
         wat_mat <- matrix(NA, nrow = nrow(sim_out), ncol = length(depths))
         for(i in 1:nrow(sim_out)){
@@ -216,20 +216,20 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       }
     }
   }
-  
+
   if(return_list | create_netcdf){
-    
+
     temp_list = list('FLake' = fla_out, 'GLM' = glm_out, 'GOTM' = got_out, 'Simstrat' = sim_out, 'Obs' = obs_out)
-    
+
     if(create_netcdf){
-      
+
       temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputa
       mods <- names(temp_list) # Store names as a vector
       lengths <- lapply(temp_list, nrow) # Extract nrows in each output
       lon_list <- which.max(lengths[1:(length(lengths)-1)]) # Select largest time
       time <- temp_list[[lon_list]][,1]  # Extract largest time as vector
       # Loop through and merge dataframes by time
-      temp_list <- lapply(1:length(temp_list), function(x){ 
+      temp_list <- lapply(1:length(temp_list), function(x){
         if(x == lon_list){
           return(temp_list[[x]])
         }else{
@@ -237,17 +237,17 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
         }
         })
       names(temp_list) <- mods # Re-assign names to list
-      
-      
+
+
       lengths <- lapply(temp_list, ncol) # Extract ncols in each output
       lon_list <- which.max(lengths) # Select largest depths
       deps <- rLakeAnalyzer::get.offsets(temp_list[[lon_list]]) # Extract depths
       deps <- deps
-      
+
       # Creat output directory
       message('Creating directory for output: ', file.path(folder, 'output'))
       dir.create(file.path(folder, 'output'), showWarnings = FALSE)
-      
+
       #Create ncdf
       message('Creating NetCDF file [', Sys.time(), ']')
       ref_time <- as.POSIXct('1970-01-01 00:00:00', tz = 'GMT') # Reference time for netCDF time
@@ -257,14 +257,14 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       # Define lon and lat dimensions
       lon1 <- ncdim_def("lon", "degrees_east", vals = as.double(xvals))
       lat2 <- ncdim_def("lat", "degrees_north", vals = as.double(yvals))
-      
+
       #Set dimensions
       depthdim <- ncdim_def("z",units = "meters",vals = as.double(rev(deps)), longname = 'Depth from surface') # Depth dimension
       timedim <- ncdim_def("time",units = 'seconds since 1970-01-01 00:00:00', vals = as.double(nsecs), calendar = 'proleptic_gregorian') # Time dimension
-      
+
       fillvalue <- 1e20 # Fill value
       missvalue <- 1e20 # Missing value
-      
+
       nc_vars <- list() #Initialize empty list to fill netcdf variables
       for(i in 1:length(temp_list)){
         lname <- paste(names(temp_list)[i],'Water temperature') # Long name
@@ -272,30 +272,30 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
         nc_vars[[i]] <- tmp_def # Add to list
       }
       names(nc_vars) <- names(temp_list) # Re-assign list names
-      
+
       fname = file.path(folder, 'output','ensemble_output.nc4') # Ensemble output
-     
+
       # Create and input data into the netCDF file
       ncout <- nc_create(fname, nc_vars, force_v4 = T)
       # Add coordinates attribute for use with gotmtools::get_vari()
       ncatt_put(ncout, 'z', attname = 'coordinates', attval = c('z'))
-      
+
       # Loop through and add each variable
-      
+
       # Add tryCatch ensure that it closes netCDF file
       result <- tryCatch({
         for(i in 1:length(temp_list)){
           mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[3]]$len, ncol = nc_vars[[i]]$dim[[4]]$len)
-          
+
           deps_temp <- rLakeAnalyzer::get.offsets(temp_list[[i]]) # vector of depths to input into the matrix
           mat <- as.matrix(temp_list[[i]][,-1])
-          
+
           for(j in 1:ncol(mat)){
             col = which(deps == deps_temp[j])
             mat1[,col] <- mat[,j]
           }
           # mat1[1:nrow(mat),1:ncol(mat)] <- mat
-          
+
           ncvar_put(ncout, nc_vars[[i]], mat1)
           ncatt_put(ncout, nc_vars[[i]], attname = 'coordinates', attval = c('lon lat z'))
           ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
@@ -308,17 +308,17 @@ run_ensemble <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder =
       }, finally = {
         nc_close(ncout) # Close netCDF file
       })
-      
+
       message('Finished writing NetCDF file [', Sys.time(), ']')
-      
+
     }
-    
-    
+
+
   }
-  
+
   # Set the timezone back to the original
-  Sys.setenv(tz=original_tz)
-  
+  Sys.setenv(TZ=original_tz)
+
   if(return_list){
     return(temp_list)
   }
