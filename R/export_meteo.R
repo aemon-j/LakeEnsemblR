@@ -13,14 +13,14 @@
 #' @export
 
 
-export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
+export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
-  original_tz = Sys.getenv("tz")
-  Sys.setenv(tz="GMT")
+  original_tz = Sys.getenv("TZ")
+  Sys.setenv(TZ="GMT")
 
   # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
-  yaml = file.path(folder,'GOTM', 'gotm.yaml')
+  yaml = file.path(folder,config_file)
 
   # Function to be added to gotmtools
   lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
@@ -158,17 +158,19 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     }
 
     #
-    start = glm_met[1,1]
-    #stop = glm_met[nrow(glm_met),1]
-    stop = '1980-01-01 00:00:00' # Added just for beta testing
+    # Note Jorrit 2019-12-14: : Why is this here? This should be defined in export_config. Removed setting start and stop in nml_list
+    # start = glm_met[1,1]
+    # stop = glm_met[nrow(glm_met),1]
+    # # stop = '1980-01-01 00:00:00' # Added just for beta testing
 
     # Input to nml file
-    nml <- glmtools::read_nml(file.path(folder,'GLM','glm3.nml'))
+    nml_path <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "glm_config"))
+    nml <- glmtools::read_nml(nml_path)
 
-    nml_list <- list('start' = start, 'stop' = stop, 'subdaily' = subdaily, 'lw_type' = lw_type, 'meteo_fl' = 'meteo_file.csv')
+    nml_list <- list('subdaily' = subdaily, 'lw_type' = lw_type, 'meteo_fl' = 'meteo_file.csv')
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
 
-    glmtools::write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))
+    glmtools::write_nml(nml, nml_path)
     message('GLM: Created file ', file.path(folder,"GLM", 'meteo_file.csv'))
 
 
@@ -177,7 +179,7 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   ## GOTM
   if('GOTM' %in% model){
     met_got <- met
-    yaml = file.path(folder,'GOTM', 'gotm.yaml')
+    yaml = file.path(folder,gotmtools::get_yaml_value(config_file, "config_files", "gotm_config"))
 
     # Function to be added to gotmtools
     lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
@@ -258,13 +260,14 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
       gotmtools::input_yaml(file = yaml, label = 'hum', key = 'type', value = 3) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
       gotmtools::input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
     }
-
-    # Set start/stop date - optional could be removed?
-    start <- met_got[1,1]
+    
+    # Note Jorrit 2019-12-14: Why is this here? This should be defined in export_config
+    # # Set start/stop date - optional could be removed?
+    # start <- met_got[1,1]
     # stop <- met_got[nrow(met_got),1]
-    stop = '1980-01-01 00:00:00' # Added just for beta testing
-    gotmtools::input_yaml(file = yaml, label = 'time', key = 'start', value = start)
-    gotmtools::input_yaml(file = yaml, label = 'time', key = 'stop', value = stop)
+    # # stop = '1980-01-01 00:00:00' # Added just for beta testing
+    # gotmtools::input_yaml(file = yaml, label = 'time', key = 'start', value = start)
+    # gotmtools::input_yaml(file = yaml, label = 'time', key = 'stop', value = stop)
 
     message('GOTM: Created file ', file.path(folder,"GOTM", met_outfile))
 
@@ -273,52 +276,18 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
 
   ## Simstrat
   if('Simstrat' %in% model){
-    fils <- list.files('Simstrat/')
-    par_file <- file.path('Simstrat', fils[grep('par', fils)])
+    par_file <- file.path(folder,gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
     met_sim <- met
-
+    
     # Required input file changes depending on the forcing mode in the config file
-    # Ideally; read from Simstrat par-file, now hard-coded
-    if(!is.null(par_file)){
-      par_text = readLines(par_file, warn = F)
-
-      ind_label=grep("ModelConfig",par_text)
-      ind_key = grep("Forcing", par_text)
-
-      ind_key = ind_key[ind_key > ind_label]
-      ind_label = ind_label[ind_key > ind_label]
-      ind_map <- ind_key[which.min(ind_key - ind_label)]
-
-      spl1 <- strsplit(par_text[ind_map], c("!"))[[1]]
-      spl2 <- gsub("\"","",strsplit(spl1[1], ": ")[[1]][2])
-      forcing_mode <- strsplit(spl2[1], ", ")[[1]][1]
-    }else{
-      forcing_mode = "5"
-    }
-    # Optionally, we can check the availability of data to set the forcing mode (5 possible, no? Then 3, then 2, then 1)
-
-
+    forcing_mode <- get_json_value(par_file, "ModelConfig", "Forcing")
+    
     ### Pre-processing
     # Time
     if(datetime){
       # Time in simstrat is in decimal days since a defined start year
-      # Read from par_file. If not possible, hard-coded to 1861 (based on ISIMIP simulations)
-      if(!is.null(par_file)){
-        par_text = readLines(par_file, warn = F)
-
-        ind_label=grep("Simulation",par_text)
-        ind_key = grep("Start year", par_text)
-
-        ind_key = ind_key[ind_key > ind_label]
-        ind_label = ind_label[ind_key > ind_label]
-        ind_map <- ind_key[which.min(ind_key - ind_label)]
-
-        spl1 <- strsplit(par_text[ind_map], c("!"))[[1]]
-        spl2 <- gsub("\"","",strsplit(spl1[1], ": ")[[1]][2])
-        start_year <- strsplit(spl2[1], ", ")[[1]][1]
-      }else{
-        start_year = "1861"
-      }
+      start_year <- get_json_value(par_file, "Simulation", "Start year")
+      
       met_sim$datetime = as.numeric(difftime(met_sim$datetime,as.POSIXct(paste0(start_year,"-01-01")),units = "days"))
     }else{
       stop("Cannot find \"datetime\" column in the input file. Without this column, the model cannot run")
@@ -351,27 +320,11 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
     }
 
     # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
-    # Ideally; read from Simstrat par-file, now hard-coded
-    if(!is.null(par_file)){
-      par_text = readLines(par_file, warn = F)
-
-      ind_label=grep("ModelConfig",par_text)
-      ind_key = grep("SnowModel", par_text)
-
-      ind_key = ind_key[ind_key > ind_label]
-      ind_label = ind_label[ind_key > ind_label]
-      ind_map <- ind_key[which.min(ind_key - ind_label)]
-
-      spl1 <- strsplit(par_text[ind_map], c("!"))[[1]]
-      spl2 <- gsub("\"","",strsplit(spl1[1], ": ")[[1]][2])
-      snow_module <- strsplit(spl2[1], " ")[[1]][1]=="1"
-    }else{
-      snow_module = T
-    }
+    snow_module <- get_json_value(par_file, "ModelConfig", "SnowModel") == 1
     # Optionally, if there is no precipitation/snowfall column, we can set the snow_module to FALSE
-
+    
     if(snow_module & !(precipitation | snowfall)){
-      stop("There is no precipitation data and the snow_module is set to TRUE.")
+      stop("There is no precipitation data and the Simstrat snow_module is set to TRUE.")
     }
 
 
@@ -449,7 +402,7 @@ export_meteo <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_fi
   }
 
   # Set the timezone back to the original
-  Sys.setenv(tz=original_tz)
+  Sys.setenv(TZ=original_tz)
 
 
 }

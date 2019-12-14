@@ -35,26 +35,27 @@ source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools
 source('../../R/helper_functions/get_wtemp_df.R') # Potential function for flaketools
 source('../../R/helper_functions/analyse_strat.R') # Potential function for flaketools
 
-# 1. Example - creates directories with all model setup
-export_config(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.',
-              hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9,
-              name = 'feeagh', Kw = 1.5)
+masterConfigFile <- 'Feeagh_master_config.yaml'
 
+# 1. Example - creates directories with all model setup
+export_config(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.')
 
 # 2. Create meteo driver files
-export_meteo(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
              meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
 # 3. Create initial conditions
+start_date <- gotmtools::get_yaml_value(masterConfigFile, "time", "start")
+start_date <- paste(substring(start_date, 1, 10),substring(start_date, 11, nchar(start_date))) # 2019-12-14: get_yaml_value removes space in format yyyy-mm-dd HH:MM:SS
+
 export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
                  wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                 date = '2010-01-01 00:00:00', tprof_file = 'HOLDER.dat',
+                 date = start_date, tprof_file = 'HOLDER.dat',
                  month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
-                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                           config_file = 'HOLDER.yaml')
+wtemp_list <- run_ensemble(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
+                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
 
 
 ####
