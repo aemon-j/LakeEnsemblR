@@ -95,7 +95,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     ##
     
     # Input parameters
-    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', timestep)
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', 86400) # Hard-code: meteo needs to be in same time step as model. Not yet supported (Jorrit, 2019-12-15)
     input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
@@ -142,7 +142,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
                      'A' = rev(glm_hyp[,2] ), 
                      'start' = start_date,
                      'stop' = stop_date,
-                     'dt' = timestep,
+                     'dt' = 3600, # Hard-code: When choosing dt = 86400, GLM only gives daily output when dt = 3600? (Jorrit, 2019-12-15)
                      'out_dir' = 'output', 
                      'out_fn' = 'output', 
                      'timefmt' = 2)
