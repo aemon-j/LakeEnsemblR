@@ -39,12 +39,12 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   hyp <- read.csv(gotmtools::get_yaml_value(config_file, "location", "hypsograph"))
   # Start date
   start_date <- gotmtools::get_yaml_value(config_file, "time", "start")
-  start_date <- paste(substring(start_date, 1, 10),substring(start_date, 11, nchar(start_date))) # 2019-12-14: get_yaml_value removes space in format yyyy-mm-dd HH:MM:SS
   # Stop date
   stop_date <- gotmtools::get_yaml_value(config_file, "time", "stop")
-  stop_date <- paste(substring(stop_date, 1, 10),substring(stop_date, 11, nchar(stop_date))) # 2019-12-14: get_yaml_value removes space in format yyyy-mm-dd HH:MM:SS
   # Time step
   timestep <- gotmtools::get_yaml_value(config_file, "time", "timestep")
+  # Met time step
+  met_timestep <- gotmtools::get_yaml_value(config_file, "meteo", "timestep")
   # Output depths
   output_depths <- gotmtools::get_yaml_value(config_file, "model_settings", "output_depths")
   # Extinction coefficient
@@ -53,6 +53,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   use_ice <- gotmtools::get_yaml_value(config_file, "ice", "use")
   # Use inflows
   use_inflows <- gotmtools::get_yaml_value(config_file, "inflows", "use")
+  # Output
+  out_tstep <- gotmtools::get_yaml_value(config_file, "output", "time_step")
   
   
   if("FLake" %in% model){
@@ -67,11 +69,14 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Read the FLake config file from config_file, and write it to the FLake directory
     temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "flake_config")
-    if(dirname(temp_fil)=="FLake"){
+    if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
-      file.copy(from = temp_fil, to = paste0('FLake/',basename(temp_fil)))
-      fla_fil <- paste0('FLake/',basename(temp_fil))
+      # This will work once we build the package
+      # template_file <- system.file("extdata/flake_template.nml", package = 'LakeEnsemblR') # packageName()
+      template_file <- '../../inst/extdata/flake_template.nml'
+      file.copy(from = template_file, to = file.path(folder, 'FLake', basename(temp_fil)))
+      fla_fil <- file.path(folder, 'FLake', basename(temp_fil))
     }
     
     
@@ -95,7 +100,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     ##
     
     # Input parameters
-    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', 86400) # Hard-code: meteo needs to be in same time step as model. Not yet supported (Jorrit, 2019-12-15)
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep) # Hard-code: meteo needs to be in same time step as model. Not yet supported (Jorrit, 2019-12-15)
     input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
@@ -118,11 +123,15 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Read the GLM config file from config_file, and write it to the GLM directory
     temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "glm_config")
-    if(dirname(temp_fil)=="GLM"){
+
+    if(file.exists(temp_fil)){
       glm_nml <- temp_fil
     }else{
-      file.copy(from = temp_fil, to = paste0('GLM/',basename(temp_fil)))
-      glm_nml <- paste0('GLM/',basename(temp_fil))
+      # This will work once we build the package
+      # template_file <- system.file("extdata/glm3_template.nml", package = 'LakeEnsemblR') # packageName()
+      template_file <- '../../inst/extdata/glm3_template.nml'
+      file.copy(from = template_file, to = file.path(folder, 'GLM', basename(temp_fil)))
+      glm_nml <- file.path(folder, 'GLM', basename(temp_fil))
     }
     
     # Format hypsograph 
@@ -142,7 +151,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
                      'A' = rev(glm_hyp[,2] ), 
                      'start' = start_date,
                      'stop' = stop_date,
-                     'dt' = 3600, # Hard-code: When choosing dt = 86400, GLM only gives daily output when dt = 3600? (Jorrit, 2019-12-15)
+                     'dt' = timestep, # Hard-code: When choosing dt = 86400, GLM only gives daily output when dt = 3600? (Jorrit, 2019-12-15)
+                     'nsave' = out_tstep,
                      'out_dir' = 'output', 
                      'out_fn' = 'output', 
                      'timefmt' = 2)
@@ -166,11 +176,14 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Read the GOTM config file from config_file, and write it to the GOTM directory
     temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "gotm_config")
-    if(dirname(temp_fil)=="GOTM"){
+    if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
-      file.copy(from = temp_fil, to = paste0('GOTM/',basename(temp_fil)))
-      got_yaml <- paste0('GOTM/',basename(temp_fil))
+      # This will work once we build the package
+      # template_file <- system.file("extdata/gotm_template.yaml", package = 'LakeEnsemblR') # packageName()
+      template_file <- '../../inst/extdata/gotm_template.yaml'
+      file.copy(from = template_file, to = file.path(folder, 'GOTM', basename(temp_fil)))
+      got_yaml <- file.path(folder, 'GOTM', basename(temp_fil))
     }
     
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
@@ -184,6 +197,11 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Set max depth
     gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
+    gotmtools::input_yaml(got_yaml, 'grid', 'nlev', (max_depth/0.5))
+    
+    # Switch on ice model - MyLake
+    gotmtools::input_yaml(got_yaml, 'ice', 'model', 2)
+    
     
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
@@ -198,14 +216,18 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     gotmtools::input_yaml(got_yaml, 'time', 'stop', stop_date)
     gotmtools::input_yaml(got_yaml, 'time', 'dt', timestep)
     
+    # Set GOTM output
+    out_yaml <-file.path(folder, 'GOTM', 'output.yaml')
+    gotmtools::input_yaml(out_yaml, 'output', 'time_step', out_tstep)
+    gotmtools::input_yaml(out_yaml, 'output', 'time_unit', 'hour')
+    
     ## Input light extinction data [To be continued...]
     
     
     ## Switch off streams
     if(!use_inflows){
-      streams_switch(file = got_yaml, method = 'off')
+      gotmtools::streams_switch(file = got_yaml, method = 'off')
     }
-    
     
     message('GOTM configuration complete!')
   }
@@ -222,11 +244,14 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
     temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config")
-    if(dirname(temp_fil)=="Simstrat"){
+    if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
-      file.copy(from = temp_fil, to = paste0('Simstrat/',basename(temp_fil)))
-      sim_par <- paste0('Simstrat/',basename(temp_fil))
+      # This will work once we build the package
+      # template_file <- system.file("extdata/simstrat_template.par", package = 'LakeEnsemblR') # packageName()
+      template_file <- '../../inst/extdata/simstrat_template.par'
+      file.copy(from = template_file, to = file.path(folder, 'Simstrat', basename(temp_fil)))
+      sim_par <- file.path(folder, 'Simstrat', basename(temp_fil))
     }
     
     # Copy in template files from examples folder in the package
@@ -265,6 +290,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     input_json(sim_par, "Simulation", "Start d", round(as.numeric(difftime(start_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(sim_par, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
+    input_json(sim_par, "Output", "Times", out_tstep)
     
     
     # Turn off ice and snow
