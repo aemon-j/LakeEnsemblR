@@ -63,7 +63,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     met$datetime <- as.POSIXct(met$datetime)
     met_sub <- met[(met$datetime >= start & met$datetime <= stop),]
     if(nrow(met_sub) < nrow(met)){
-      warning('Overwriting met file with shorter time series')
+      warning('FLake: Overwriting met file with shorter time series')
     }
     met_sub[,1] <- 1:nrow(met_sub)
 

@@ -145,7 +145,7 @@ error[error$year == 2010,]
 ###
 
 ###
-# Add model diagnostics plot... e.g. lapply(wtemp_list, diag_plot)
+# Model diagnostics plot
 obs <- na.exclude(wtemp_list[[length(wtemp_list)]])
 obs <- reshape2::melt(obs, id.vars = 1)
 obs[,2] <- as.character(obs[,2])
@@ -153,22 +153,27 @@ obs[,2] <- as.numeric(gsub('wtr_','',obs[,2]))
 colnames(obs) <- c('datetime','Depth_meter','Water_Temperature_celsius')
 obs <- obs[order(obs[,1], obs[,2]),]
 
-diag <- lapply(1:(length(wtemp_list)-1), function(x){
-  print(names(wtemp_list)[x])
-  mod <- reshape2::melt(wtemp_list[[x]], id.vars = 1)
+# Loop through each model and calculate diagnostics and generate diagnostic plot
+for(i in 1:(length(wtemp_list)-1)){
+
+  # Convert from wide format to long format - could be a function i.e. incorporated into gotmtools:wide2long()
+  mod <- reshape2::melt(wtemp_list[[i]], id.vars = 1)
   mod[,2] <- as.character(mod[,2])
   mod[,2] <- as.numeric(gsub('wtr_','',mod[,2]))
   colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
-  mod <- mod[order(mod[,1], mod[,2]),]
+  mod <- mod[order(mod[,1], mod[,2]),] # Reorder so datetime and depth increasing 
+  # Check if same dimensions and merge by date and depth
   if(nrow(mod) != nrow(obs)){
     mod <- merge(obs, mod, by = c(1,2), all.x = T)
     mod <- mod[order(mod[,1], mod[,2]),]
     mod <- mod[,c(1,2,4)]
     colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
   }
-  print(dim(mod))
-  print(summary(mod))
-  # diag_plots(mod, obs) # Needs to be sorted
-  return(mod)
-})
+  g2 <- diag_plots(mod, obs, colourblind = F, na.rm = T) # Needs to be sorted
+  ggsave(paste0('output/diag_plot_', names(wtemp_list[i]), '.png'), g2,  dpi = 220,width = 384,height = 216, units = 'mm') 
+  
+  # Print name and output statistics
+  print(names(wtemp_list)[i])
+  print(sum_stat(mod, obs, depth = T))
+}
 ###
