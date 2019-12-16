@@ -118,6 +118,10 @@ export_config <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder 
     # Set max depth
     gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
     
+    # Switch on ice model - MyLake
+    gotmtools::input_yaml(got_yaml, 'ice', 'model', 2)
+    
+    
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
     got_hyp <- hyp
