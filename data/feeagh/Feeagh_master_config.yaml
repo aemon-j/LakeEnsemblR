@@ -8,12 +8,12 @@ location:
 time:
    start: 2010-01-01 00:00:00                   # start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
    stop: 2011-01-01 00:00:00                    # stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
-   timestep: 86400.0                             # time step for integration [s; min=0.0; default=3600.0]
+   timestep: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
 config_files:
    gotm_config: GOTM/gotm.yaml                  # GOTM config file (yaml format)
    glm_config: GLM/glm3.nml                     # GLM config file (nml format)
-   simstrat_config: Simstrat/Feeagh.par         # Simstrat config file (json format)
-   flake_config: FLake/Feeagh.nml               # FLake config file (nml format)
+   simstrat_config: Simstrat/feeagh.par         # Simstrat config file (json format)
+   flake_config: FLake/feeagh.nml               # FLake config file (nml format)
 model_settings:
    output_depths: 0.5                           # vertical resolution of the output [m]
    extinction_coefficient: 1.5                  # light extinction coefficient [m-1]
@@ -22,6 +22,7 @@ observations:
 input:                      
    meteo:
       meteo_file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
+      timestep: 86400.0                         # timestep of meteorological input data [s]
    ice:
       use: true                                 # turn on ice models? [default=true]
       H: 0.0                                    # initial ice thickness [m; default=0.0]
@@ -47,8 +48,8 @@ inflows:
 output:
     output:                                     # path of output file, excluding extension
       format: netcdf                            # format [text, netcdf; default=netcdf]
-      time_unit: day                            # time unit [second, hour, day, month, year, dt=model time step; default=day]
-      time_step: 1                              # number of time units between output [min=1; default=1]
+      time_unit: hour                            # time unit [second, hour, day, month, year, dt=model time step; default=day]
+      time_step: 24                              # number of time units between output [min=1; default=1]
       time_method: mean                         # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
       sync_interval: 0                          # number of output steps between sychronization to disk (<= 0: sync on close only) [default=1]
       variables:

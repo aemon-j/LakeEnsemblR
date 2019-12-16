@@ -15,7 +15,7 @@
 #' @export
 get_wtemp_df <- function(output, depths, folder, nml_file){
   
-  met_file <- glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file)
+  met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
   met_file <- file.path(folder, met_file)
   met_file <- gsub(',', '', met_file)
   
