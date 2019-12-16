@@ -55,7 +55,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     #Need to figure out how to subset data by dates
     nml_file <- gotmtools::get_yaml_value(config_file, "config_files", "flake_config")
     nml_file <- file.path(folder, nml_file)
-    met_file <- glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file)
+    met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
     met_file <- gsub(',','', met_file)
     met_file <- file.path(folder, 'FLake', met_file)
     met <- read.delim(met_file, header = FALSE, stringsAsFactors = F)
@@ -80,7 +80,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       fold <- file.path(folder, 'FLake')
       nml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "flake_config"))
 
-      mean_depth <- glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file)
+      mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
       depths <- seq(0,mean_depth,by = gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
 
       # Add in obs depths which are not in depths and less than mean depth
@@ -107,7 +107,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
     if(return_list | create_netcdf){
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- glmtools::get_nml_value(nml_file = file.path(folder, 'GLM', 'glm3.nml'), arg_name = 'lake_depth')
+      depth <- suppressWarnings(glmtools::get_nml_value(nml_file = file.path(folder, 'GLM', 'glm3.nml'), arg_name = 'lake_depth'))
       depths <- seq(0,depth, by = gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
       add_deps <- obs_deps[!(obs_deps %in% depths)]
       depths <- c(add_deps, depths)
