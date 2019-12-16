@@ -124,9 +124,46 @@ names(strat) <- names(wtemp_list)
 strat <- do.call("rbind", strat) # Bind list into data.frame
 strat
 write.csv(strat, 'output/ensemble_strat_results.csv', row.names = F, quote = F)
+
+if('Obs' %in% strat$model){
+  error <- strat
+  for(i in 1:nrow(strat)){
+    if(strat$model[i] == 'Obs'){
+      next
+    }
+    yr <- strat$year[i]
+    obs <- strat[strat$model == 'Obs' & strat$year == yr,]
+    error[i, -c(1, ncol(error))] <- strat[i,-c(1, ncol(strat))] - obs[1, -c(1, ncol(obs))]
+  }
+}
+error[error$year == 2010,]
 ###
 
 ###
 # Add model diagnostics plot... e.g. lapply(wtemp_list, diag_plot)
+obs <- na.exclude(wtemp_list[[length(wtemp_list)]])
+obs <- reshape2::melt(obs, id.vars = 1)
+obs[,2] <- as.character(obs[,2])
+obs[,2] <- as.numeric(gsub('wtr_','',obs[,2]))
+colnames(obs) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+obs <- obs[order(obs[,1], obs[,2]),]
 
+diag <- lapply(1:(length(wtemp_list)-1), function(x){
+  print(names(wtemp_list)[x])
+  mod <- reshape2::melt(wtemp_list[[x]], id.vars = 1)
+  mod[,2] <- as.character(mod[,2])
+  mod[,2] <- as.numeric(gsub('wtr_','',mod[,2]))
+  colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+  mod <- mod[order(mod[,1], mod[,2]),]
+  if(nrow(mod) != nrow(obs)){
+    mod <- merge(obs, mod, by = c(1,2), all.x = T)
+    mod <- mod[order(mod[,1], mod[,2]),]
+    mod <- mod[,c(1,2,4)]
+    colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+  }
+  print(dim(mod))
+  print(summary(mod))
+  # diag_plots(mod, obs) # Needs to be sorted
+  return(mod)
+})
 ###
