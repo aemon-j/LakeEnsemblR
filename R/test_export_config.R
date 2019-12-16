@@ -8,12 +8,12 @@ setwd('../data/feeagh')
 
 # Install packages - Ensure all packages are up to date - parallel devlopment ongoing (especially gotmtools)
 #install.packages('devtools')
-devtools::install_github('GLEON/GLM3r')
-devtools::install_github('hdugan/glmtools')
-devtools::install_github('aemon-j/FLakeR')
+# devtools::install_github('GLEON/GLM3r')
+# devtools::install_github('hdugan/glmtools')
+# devtools::install_github('aemon-j/FLakeR')
 devtools::install_github('aemon-j/GOTMr')
 devtools::install_github('aemon-j/gotmtools')
-devtools::install_github('aemon-j/SimstratR')
+# devtools::install_github('aemon-j/SimstratR')
 
 
 # Load libraries
@@ -30,31 +30,29 @@ source('../../R/run_ensemble.R')
 source('../../R/helper_functions/input_json.R') # Potential function for 'simstrattools'
 source('../../R/helper_functions/get_json_value.R') # Potential function for 'simstrattools'
 source('../../R/helper_functions/input_nml.R') # This versions preserves comments in the nml
-source('../../R/helper_functions/streams_switch.R') # Will be added to gotmtools in the future
-source('../../R/helper_functions/get_yaml_value.R') # Will be added to gotmtools in the future
 source('../../R/helper_functions/get_wtemp_df.R') # Potential function for flaketools
 source('../../R/helper_functions/analyse_strat.R') # Potential function for flaketools
 
-# 1. Example - creates directories with all model setup
-export_config(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.',
-              hypsograph_file = 'LakeEnsemblR_bathymetry_standard.csv', lat = 53, lon = -9,
-              name = 'feeagh', Kw = 1.5)
+masterConfigFile <- 'Feeagh_master_config.yaml'
 
+# 1. Example - creates directories with all model setup
+export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.')
 
 # 2. Create meteo driver files
-export_meteo(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
              meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
 # 3. Create initial conditions
+start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
+
 export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
                  wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                 date = '2010-01-01 00:00:00', tprof_file = 'HOLDER.dat',
+                 date = start_date, tprof_file = 'HOLDER.dat',
                  month = 1, ndeps = 2, print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
-                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                           config_file = 'HOLDER.yaml')
+wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
+                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
 
 
 ####
@@ -131,9 +129,51 @@ names(strat) <- names(wtemp_list)
 strat <- do.call("rbind", strat) # Bind list into data.frame
 strat
 write.csv(strat, 'output/ensemble_strat_results.csv', row.names = F, quote = F)
+
+if('Obs' %in% strat$model){
+  error <- strat
+  for(i in 1:nrow(strat)){
+    if(strat$model[i] == 'Obs'){
+      next
+    }
+    yr <- strat$year[i]
+    obs <- strat[strat$model == 'Obs' & strat$year == yr,]
+    error[i, -c(1, ncol(error))] <- strat[i,-c(1, ncol(strat))] - obs[1, -c(1, ncol(obs))]
+  }
+}
+error[error$year == 2010,]
 ###
 
 ###
-# Add model diagnostics plot... e.g. lapply(wtemp_list, diag_plot)
+# Model diagnostics plot
+obs <- na.exclude(wtemp_list[[length(wtemp_list)]])
+obs <- reshape2::melt(obs, id.vars = 1)
+obs[,2] <- as.character(obs[,2])
+obs[,2] <- as.numeric(gsub('wtr_','',obs[,2]))
+colnames(obs) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+obs <- obs[order(obs[,1], obs[,2]),]
 
+# Loop through each model and calculate diagnostics and generate diagnostic plot
+for(i in 1:(length(wtemp_list)-1)){
+
+  # Convert from wide format to long format - could be a function i.e. incorporated into gotmtools:wide2long()
+  mod <- reshape2::melt(wtemp_list[[i]], id.vars = 1)
+  mod[,2] <- as.character(mod[,2])
+  mod[,2] <- as.numeric(gsub('wtr_','',mod[,2]))
+  colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+  mod <- mod[order(mod[,1], mod[,2]),] # Reorder so datetime and depth increasing 
+  # Check if same dimensions and merge by date and depth
+  if(nrow(mod) != nrow(obs)){
+    mod <- merge(obs, mod, by = c(1,2), all.x = T)
+    mod <- mod[order(mod[,1], mod[,2]),]
+    mod <- mod[,c(1,2,4)]
+    colnames(mod) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+  }
+  g2 <- diag_plots(mod, obs, colourblind = F, na.rm = T) # Needs to be sorted
+  ggsave(paste0('output/diag_plot_', names(wtemp_list[i]), '.png'), g2,  dpi = 220,width = 384,height = 216, units = 'mm') 
+  
+  # Print name and output statistics
+  print(names(wtemp_list)[i])
+  print(sum_stat(mod, obs, depth = T))
+}
 ###

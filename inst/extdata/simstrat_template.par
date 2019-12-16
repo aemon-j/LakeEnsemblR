@@ -1,0 +1,67 @@
+{
+  "Input" : {
+    "Initial conditions"  : "init_cond.dat",
+    "Grid"                : 92,
+    "Morphology"          : "hypsograph.dat",
+    "Forcing"             : "meteo_file.dat",
+    "Absorption"          : "light_absorption.dat",
+    "Inflow"              : "Qin.dat",
+    "Outflow"             : "Qout.dat",
+    "Inflow temperature"  : "Tin.dat",
+    "Inflow salinity"     : "Sin.dat"
+  },
+  "Output" : {
+    "Path"  : "output",! Path to result folder
+    "Depths" : 0.5,! Output depths can be an integer (interpreted as interval in m), a list with depths or a path to a file (containing an integer or a list)
+    "Times"  : 1,                                       ! Output times can be a number (interpreted as frequency 1/days), a list with times or a path to a file (containing a number or a list)
+    "OutputDepthReference": "surface",                  ! "surface": depth of output variables is referenced to lake level, "bottom": depth of output variables is referenced to lake bottom
+    "All"   : false,                                    ! True: All variables are written out, false: only variables in list "variables" are written
+    "Variables" : ["T"]                                 ! Variables written to file (if "all" = false), example: ["T", "S", "WaterH"]
+  },
+  "ModelConfig" : {
+    "MaxLengthInputData"      : 1000,                   ! Maximum length of input data (initial conditions, bathymetry, grid etc.)
+    "CoupleAED2"              : false,                  ! Switch to turn on/off the biochemical model AED2
+    "TurbulenceModel"         : 1,                      ! 1: k-epsilon, 2: Mellor-Yamada
+    "SplitSeicheParameter"    : false,                   ! True: Use a_seiche if N2 exceeds strat_sumr and a_seiche_w otherwise, False: Always use a_seiche
+    "StabilityFunction"       : 2,                      ! 1: constant, 2: quasi-equilibrium
+    "FluxCondition"           : 1,                      ! 0: Dirichlet condition, 1: no-flux
+    "Forcing"                 : 5,                      ! 1: Wind + Temp + SolRad, 2: 1 + VapP, 3: 2 + Cloud, 4: Wind + HeatFlux + SolRad, 5: 2 + Incoming Long Wave
+    "UserDefinedWaterAlbedo"  : false,                  ! True: Computed monthly water albedo values from Grishchenko are used, False: Water albedo is user defined (below) and constant
+    "UseFilteredWind"         : false,                  ! Switch to activate filtered wind (needs one more column in forcing file)
+    "SeicheNormalization"     : 2,                      ! 1: max N2, 2: integral
+    "WindDragModel"           : 3,                      ! 1: constant, 2: ocean (increasing), 3: lake (Wüest and Lorke, 2003)
+    "InflowPlacement"         : 1,                      ! 0: inflow depths are chosen manually, 1: inflow is density-driven
+    "PressureGradients"       : 0,                      ! 0: off, 1: Svensson 1978
+    "IceModel"                : 1,! /LER/ Switch to turn on/off the ice model
+    "SnowModel"               : 1                       ! /LER/ Switch to turn on/off the snow model (needs ice model and an additional column in forcing)
+  },
+  "Simulation" : {
+    "Timestep s"                  : 86400,! /LER/ Simulation timestep in seconds
+    "Start year"                  : 2010,! /LER/ Starting year
+    "Start d"                     : 0,! /LER/ Simulation start in days since 01.01. of starting year. 
+    "End d"                       : 365,! /LER/ Simulation end: 52959 for full historical simulation from 1861, 
+    "DisplaySimulation"           : 0,                  ! 0: No display, 1: Display when output is written, 2: Display every iteration
+    "Continue from last snapshot" : false               ! If true simulation continues from last snapshot (if present in output folder). Default: false
+  },
+  "ModelParameters" : {
+    "lat"           : 53.9,! /LER/ Latitude in [°]
+    "p_air"         : 1011,                              ! Air pressure in [mbar]
+    "a_seiche"      : 0.001,                            ! Fraction of wind energy which goes into seiche energy [-]
+    "a_seiche_w"    : 0,                                ! Fraction of wind energy which goes into seiche energy in winter [-] (only used if SplitSeicheParameter=true)
+    "strat_sumr"    : 0,                                ! If maximum N2 (Brundt-Vaisala frequency) is below this threshold, a_seiche_w is used instead of a_seiche (only used if SplitSeicheParameter=true)
+    "q_nn"          : 1.0,                             ! Fit parameter for distribution of seiche energy [-]
+    "f_wind"        : 1.0,                              ! Ratio of forcing wind to wind speed at 10 m above lake level [-]
+    "c10"           : 1,                                ! Wind drag coefficient, a physical constant around 0.001 if WindDragModel = 1 and a calibration parameter around 1 if WindDragModel = 2 or 3
+    "cd"            : 0.002,                            ! Bottom drag coefficient [-]
+    "hgeo"          : 0.1,                              ! Geothermal heat flux [W/m2]
+    "k_min"         : 1e-09,
+    "p_sw"          : 1.0,                                ! Fit parameter for absorption of short wave radiation from sky [-]
+    "p_lw"          : 1.0,                              ! Fit parameter for absorption of IR radiation from sky [-]
+    "p_windf"       : 1,                                ! Fit parameter for convective and latent heat fluxes [-]
+    "beta_sol"      : 0.3,                              ! Fraction of short-wave radiation directly absorbed as heat by water [-]
+    "wat_albedo"    : 0.08,                             ! User defined water albedo [-] (only used if UserDefinedWaterAlbedo = true)
+    "p_albedo"      : 1.0,                                ! Fit parameter for albedo of ice, snow-ice and snow [-] (only used if IceModel = 1)
+    "freez_temp"    : 0.00,                             ! Freezing temperature of water [°C] (only used if IceModel = 1)
+    "snow_temp"     : 1                                 ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
+  }
+}
