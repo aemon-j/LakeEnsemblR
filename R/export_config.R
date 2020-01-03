@@ -24,6 +24,13 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   
   # Fix time zone
   original_tz = Sys.getenv("TZ")
+  
+  # this way if the function exits for any reason, success or failure, these are reset:
+  on.exit({
+    setwd(oldwd)
+    Sys.setenv(TZ=original_tz)
+  })
+  
   Sys.setenv(TZ="GMT")
   
   
@@ -114,11 +121,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   if("GLM" %in% model){
     
     # Create directory and output directory, if they do not yet exist
-    if(!dir.exists('GLM')){
-      dir.create('GLM')
-    }
     if(!dir.exists('GLM/output')){
-      dir.create('GLM/output')
+      dir.create('GLM/output', recursive = TRUE)
     }
     
     # Read the GLM config file from config_file, and write it to the GLM directory
@@ -136,7 +140,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Format hypsograph 
     glm_hyp <- hyp
-    glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1]
+    glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1] # this doesn't take into account GLM's lake elevation
     
     # Read in nml and input parameters
     nml <- glmtools::read_nml(glm_nml)
@@ -167,11 +171,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   if("GOTM" %in% model){
     
     # Create directory and output directory, if they do not yet exist
-    if(!dir.exists('GOTM')){
-      dir.create('GOTM')
-    }
     if(!dir.exists('GOTM/output')){
-      dir.create('GOTM/output')
+      dir.create('GOTM/output', recursive = TRUE)
     }
     
     # Read the GOTM config file from config_file, and write it to the GOTM directory
@@ -188,7 +189,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
     out_fil <- system.file('extdata/output.yaml', package= 'GOTMr')
-    file.copy(from = out_fil, to = 'GOTM')
+    file.copy(from = out_fil, to = 'GOTM/output.yaml') # was just "GOTM", does this overwrite the GOTM dir?
     
     # Write input parameters to got_yaml
     gotmtools::input_yaml(got_yaml, 'location', 'name', gotmtools::get_yaml_value(config_file, "location", "name"))
@@ -217,7 +218,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     gotmtools::input_yaml(got_yaml, 'time', 'dt', timestep)
     
     # Set GOTM output
-    out_yaml <-file.path(folder, 'GOTM', 'output.yaml')
+    out_yaml <- file.path(folder, 'GOTM', 'output.yaml')
     gotmtools::input_yaml(out_yaml, 'output', 'time_step', out_tstep)
     gotmtools::input_yaml(out_yaml, 'output', 'time_unit', 'hour')
     
@@ -235,11 +236,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   if("Simstrat" %in% model){
     
     # Create directory and output directory, if they do not yet exist
-    if(!dir.exists('Simstrat')){
-      dir.create('Simstrat')
-    }
     if(!dir.exists('Simstrat/output')){
-      dir.create('Simstrat/output')
+      dir.create('Simstrat/output', recursive = TRUE)
     }
     
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
@@ -273,6 +271,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
     
     # Input parameters
+    # need to source helper_functions/input_json.R for this function: 
     input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
     input_json(sim_par, 'Input', 'Absorption', '"light_absorption.dat"')
     input_json(sim_par, 'Output', 'Path', '"output"')
@@ -306,6 +305,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     # In case Kw is a single value for the whole simulation:
     absorption_line_2 <- "1"
     absorption_line_3 <- "-1 -1.00"
+    # need to source helper_functions/get_json_value.R for this function:
     start_sim <- get_json_value(sim_par, "Simulation", "Start d")
     end_sim <- get_json_value(sim_par, "Simulation", "End d")
     absorption_line_4 <- paste(start_sim,Kw)
@@ -338,7 +338,4 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     message('Simstrat configuration complete!')
     
   }
-  
-  setwd(oldwd)
-  Sys.setenv(TZ=original_tz)
 }
