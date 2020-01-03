@@ -1,3 +1,35 @@
+---
+output: 
+  github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+LakeEnsemblR
+=====
+
+Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) and [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/).
+
+## Installation
+
+You can install `LakeEnsemblR` from Github with:
+
+```{r gh-installation, eval = FALSE}
+# install.packages("devtools")
+devtools::install_github("aemon-j/LakeEnsemblR")
+```
+
+### Visualize
+
+You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-platform NetCDF viewer, for viewing the NetCDF output.
 
 
 How do I contribute new code back to the `LakeEnsemblR` project?
