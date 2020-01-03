@@ -16,6 +16,84 @@ devtools::install_github("aemon-j/LakeEnsemblR")
 
 You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-platform NetCDF viewer, for viewing the NetCDF output.
 
+## Example model run
+```{r gh-installation, eval = FALSE}
+# Install packages - Ensure all packages are up to date - parallel devlopment ongoing
+#install.packages('devtools')
+devtools::install_github('GLEON/GLM3r')
+devtools::install_github('hdugan/glmtools')
+devtools::install_github('aemon-j/FLakeR')
+devtools::install_github('aemon-j/GOTMr')
+devtools::install_github('aemon-j/gotmtools')
+devtools::install_github('aemon-j/SimstratR')
+
+# Load libraries
+library(GOTMr);library(SimstratR);library(GLM3r);library(FLakeR);library(gotmtools);library(glmtools)
+library(lubridate);library(plyr);library(ncdf4); library(ggplot2)
+
+# Copy template folder
+template_folder <- system.file("inst\\extdata\\feeagh", package= 'LakeEnsemblR')
+dir.create('example') # Create example folder
+file.copy(from = template_folder, to = 'example', recursive = TRUE)
+setwd('example/feeagh') # Change working directory to example folder
+
+# Set config file
+masterConfigFile <- 'Feeagh_master_config.yaml'
+
+# 1. Example - creates directories with all model setup
+export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.')
+
+# 2. Create meteo driver files
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+             meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+
+# 3. Create initial conditions
+start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
+
+export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                 wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+                 date = start_date, tprof_file = 'HOLDER.dat',
+                 month = 1, ndeps = 2, print = TRUE)
+
+# 4. Run ensemble lake models
+wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
+                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
+
+```
+
+## Post-processing
+```{r gh-installation, eval = FALSE}
+# Load libraries for post-processing
+library(lubridate);library(plyr);library(ncdf4); library(ggplot2)
+
+## Plot model output using gotmtools/ggplot2
+
+# Extract names of all the variables in netCDF
+ens_out <- 'output/ensemble_output.nc4'
+vars <- gotmtools::list_vars(ens_out)
+vars # Print variables
+
+plist <- list() # Initialize empty list for storing plots of each variable
+for(i in 1:(length(vars)-1)){
+  p1 <- gotmtools::plot_vari(ncdf = ens_out,
+                             var = vars[i],
+                             incl_time = FALSE,
+                             limits = c(0,22),
+                             zlab = 'degC')
+  p1 <- p1 + scale_y_reverse() + #Reverse y-axis
+    ggtitle(vars[i]) + # Add title using variable name
+    xlab('')+ # Remove x-label
+    theme_bw(base_size = 18) # Increase font size of plots
+  plist[[i]] <- p1
+}
+
+# Plot all model simulations
+# install.packages('ggpubr')
+g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = 'right')
+g1
+ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
+
+```
 
 How do I contribute new code back to the `LakeEnsemblR` project?
 ==========================================================
