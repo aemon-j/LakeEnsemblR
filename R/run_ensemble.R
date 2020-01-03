@@ -16,7 +16,7 @@
 #'
 #' @export
 run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL){
-  
+
   # Set all as NULL
   fla_out <- NULL
   glm_out <- NULL
@@ -101,7 +101,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     # input_nml(nml_file, label = 'time', key = 'start', value = paste0("'",start,"'"))
     # input_nml(nml_file, label = 'time', key = 'stop', value = paste0("'",stop,"'"))
 
-    run_glm(sim_folder = file.path(folder, 'GLM'))
+    GLM3r::run_glm(sim_folder = file.path(folder, 'GLM'))
     
     message('GLM run is complete! ', paste0('[', Sys.time(),']'))
 
@@ -127,7 +127,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     # input_yaml(yaml_file, label = 'time', key = 'start', value = start)
     # input_yaml(yaml_file, label = 'time', key = 'stop', value = stop)
     
-    run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file))
+    GOTMr::run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file), verbose = TRUE)
     
     # Copy output.nc to output folder
     file.copy(file.path(folder, "GOTM","output.nc"), file.path(folder, "GOTM","output","output.nc"), overwrite = T)
@@ -147,7 +147,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
 
-      got_out <- setmodDepths(temp, z, depths = depths, print = T)
+      got_out <- gotmtools::setmodDepths(temp, z, depths = depths, print = T)
 
       got_out <- reshape2::dcast(got_out, date ~ depths)
       got_out <- got_out[,c(1,(ncol(got_out):2))]
@@ -161,7 +161,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     # Need to input start and stop into json par file
     par_file <- basename(gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
 
-    run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
+    SimstratR::run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
 
     message('Simstrat run is complete! ', paste0('[', Sys.time(),']'))
 
@@ -251,12 +251,12 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       xvals <- 180 - lon # Convert longitude to degrees east
       yvals <- lat # Latitude
       # Define lon and lat dimensions
-      lon1 <- ncdim_def("lon", "degrees_east", vals = as.double(xvals))
-      lat2 <- ncdim_def("lat", "degrees_north", vals = as.double(yvals))
+      lon1 <- ncdf4::ncdim_def("lon", "degrees_east", vals = as.double(xvals))
+      lat2 <- ncdf4::ncdim_def("lat", "degrees_north", vals = as.double(yvals))
 
       #Set dimensions
-      depthdim <- ncdim_def("z",units = "meters",vals = as.double(rev(deps)), longname = 'Depth from surface') # Depth dimension
-      timedim <- ncdim_def("time",units = 'seconds since 1970-01-01 00:00:00', vals = as.double(nsecs), calendar = 'proleptic_gregorian') # Time dimension
+      depthdim <- ncdf4::ncdim_def("z",units = "meters",vals = as.double(rev(deps)), longname = 'Depth from surface') # Depth dimension
+      timedim <- ncdf4::ncdim_def("time",units = 'seconds since 1970-01-01 00:00:00', vals = as.double(nsecs), calendar = 'proleptic_gregorian') # Time dimension
 
       fillvalue <- 1e20 # Fill value
       missvalue <- 1e20 # Missing value
@@ -264,7 +264,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       nc_vars <- list() #Initialize empty list to fill netcdf variables
       for(i in 1:length(temp_list)){
         lname <- paste(names(temp_list)[i],'Water temperature') # Long name
-        tmp_def <- ncvar_def(paste0(tolower(names(temp_list)[i]), "_watertemp"), "Celsius", list(lon1, lat2, timedim,depthdim), fillvalue, lname, prec="float", compression = 4, shuffle = FALSE) # Define variable
+        tmp_def <- ncdf4::ncvar_def(paste0(tolower(names(temp_list)[i]), "_watertemp"), "Celsius", list(lon1, lat2, timedim,depthdim), fillvalue, lname, prec="float", compression = 4, shuffle = FALSE) # Define variable
         nc_vars[[i]] <- tmp_def # Add to list
       }
       names(nc_vars) <- names(temp_list) # Re-assign list names
@@ -272,9 +272,9 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       fname = file.path(folder, 'output','ensemble_output.nc4') # Ensemble output
 
       # Create and input data into the netCDF file
-      ncout <- nc_create(fname, nc_vars, force_v4 = T)
+      ncout <- ncdf4::nc_create(fname, nc_vars, force_v4 = T)
       # Add coordinates attribute for use with gotmtools::get_vari()
-      ncatt_put(ncout, 'z', attname = 'coordinates', attval = c('z'))
+      ncdf4::ncatt_put(ncout, 'z', attname = 'coordinates', attval = c('z'))
 
       # Loop through and add each variable
 
@@ -292,9 +292,9 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
           }
           # mat1[1:nrow(mat),1:ncol(mat)] <- mat
 
-          ncvar_put(ncout, nc_vars[[i]], mat1)
-          ncatt_put(ncout, nc_vars[[i]], attname = 'coordinates', attval = c('lon lat z'))
-          ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
+          ncdf4::ncvar_put(ncout, nc_vars[[i]], mat1)
+          ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = 'coordinates', attval = c('lon lat z'))
+          ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
         }
       }, warning = function(w) {
         return_val = 'Warning'
@@ -302,7 +302,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
         return_val = 'Error'
         message('Error creating netCDF file!')
       }, finally = {
-        nc_close(ncout) # Close netCDF file
+        ncdf4::nc_close(ncout) # Close netCDF file
       })
 
       message('Finished writing NetCDF file [', Sys.time(), ']')
