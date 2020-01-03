@@ -1,1 +1,0 @@
-Meteorological data from EWEMBI ISIMIP project
