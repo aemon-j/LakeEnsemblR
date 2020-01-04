@@ -11,6 +11,10 @@
 #'
 #' @import ncdf4
 #' @import lubridate
+#' @import FLakeR
+#' @import GLM3r
+#' @import GOTMr
+#' @import SimstratR
 #'
 #' @export
 run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL){
