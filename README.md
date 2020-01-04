@@ -28,8 +28,8 @@ devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
 
 # Load libraries
-library(GOTMr);library(SimstratR);library(GLM3r);library(FLakeR);library(gotmtools);library(glmtools)
-library(lubridate);library(plyr);library(ncdf4); library(ggplot2)
+library(LakeEnsemblR)
+library(gotmtools)
 
 # Copy template folder
 template_folder <- system.file("extdata\\feeagh", package= 'LakeEnsemblR')
@@ -64,7 +64,8 @@ wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'G
 ## Post-processing
 ```{r gh-installation, eval = FALSE}
 # Load libraries for post-processing
-library(lubridate);library(plyr);library(ncdf4); library(ggplot2)
+library(ggpubr)
+library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
 
