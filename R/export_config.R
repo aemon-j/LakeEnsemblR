@@ -77,8 +77,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       fla_fil <- temp_fil
     }else{
       # This will work once we build the package
-      # template_file <- system.file("extdata/flake_template.nml", package = 'LakeEnsemblR') # packageName()
-      template_file <- '../../inst/extdata/flake_template.nml'
+      template_file <- system.file('extdata/flake_template.nml', package = packageName())
       file.copy(from = template_file, to = file.path(folder, 'FLake', basename(temp_fil)))
       fla_fil <- file.path(folder, 'FLake', basename(temp_fil))
     }
@@ -132,8 +131,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       glm_nml <- temp_fil
     }else{
       # This will work once we build the package
-      # template_file <- system.file("extdata/glm3_template.nml", package = 'LakeEnsemblR') # packageName()
-      template_file <- '../../inst/extdata/glm3_template.nml'
+      template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
       file.copy(from = template_file, to = file.path(folder, 'GLM', basename(temp_fil)))
       glm_nml <- file.path(folder, 'GLM', basename(temp_fil))
     }
@@ -184,8 +182,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       got_yaml <- temp_fil
     }else{
       # This will work once we build the package
-      # template_file <- system.file("extdata/gotm_template.yaml", package = 'LakeEnsemblR') # packageName()
-      template_file <- '../../inst/extdata/gotm_template.yaml'
+      template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
       file.copy(from = template_file, to = file.path(folder, 'GOTM', basename(temp_fil)))
       got_yaml <- file.path(folder, 'GOTM', basename(temp_fil))
     }
@@ -252,8 +249,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       sim_par <- temp_fil
     }else{
       # This will work once we build the package
-      # template_file <- system.file("extdata/simstrat_template.par", package = 'LakeEnsemblR') # packageName()
-      template_file <- '../../inst/extdata/simstrat_template.par'
+      template_file <- system.file("extdata/simstrat_template.par", package = packageName())
       file.copy(from = template_file, to = file.path(folder, 'Simstrat', basename(temp_fil)))
       sim_par <- file.path(folder, 'Simstrat', basename(temp_fil))
     }
