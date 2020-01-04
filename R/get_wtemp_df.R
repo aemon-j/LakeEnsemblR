@@ -6,7 +6,8 @@
 #' @param output filepath; to FLake output file
 #' @param depths vector; of numeric values to extract the depths at
 #' @param nml_file filepath; to FLake namelist file
-#'
+#' @param long; Boolean; return data in long form
+   
 #' @return Dataframe in rLakeAnalyzer format
 #' @importFrom reshape2 dcast
 #'
@@ -16,7 +17,7 @@
 #' }
 #'
 #' @export
-get_wtemp_df <- function(output, depths, folder, nml_file){
+get_wtemp_df <- function(output, depths, folder, nml_file, long = FALSE){
 
   met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
   met_file <- file.path(folder, met_file)
@@ -53,12 +54,18 @@ get_wtemp_df <- function(output, depths, folder, nml_file){
   # sort in temporal order
   idx <- sort(wtr2$dateTime, index.return = TRUE)$ix
   wtr2 <- wtr2[idx,]
-
-  # change data format from long to wide
-  wtr4 <- reshape2::dcast(wtr2, dateTime ~ depth, value.var = 'wtr')
-  str_depths <- colnames(wtr4)[2:ncol(wtr4)]
-  colnames(wtr4) <- c('datetime',paste('wtr_',str_depths, sep=""))
-  wtr4$datetime <- datetime # Input datetime vector
-  return(wtr4)
-
+  if(long == TRUE){
+    colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
+    tims = sum((wtr2[,1] == wtr2[1,1]))
+    time_long <- rep(datetime, each = tims)
+    wtr2$datetime <- time_long
+    return(wtr2)
+  }else{
+    # change data format from long to wide
+    wtr4 <- reshape2::dcast(wtr2, dateTime ~ depth, value.var = 'wtr')
+    str_depths <- colnames(wtr4)[2:ncol(wtr4)]
+    colnames(wtr4) <- c('datetime',paste('wtr_',str_depths, sep=""))
+    wtr4$datetime <- datetime # Input datetime vector
+    return(wtr4) 
+  }
 }

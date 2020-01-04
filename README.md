@@ -32,7 +32,7 @@ library(GOTMr);library(SimstratR);library(GLM3r);library(FLakeR);library(gotmtoo
 library(lubridate);library(plyr);library(ncdf4); library(ggplot2)
 
 # Copy template folder
-template_folder <- system.file("inst\\extdata\\feeagh", package= 'LakeEnsemblR')
+template_folder <- system.file("extdata\\feeagh", package= 'LakeEnsemblR')
 dir.create('example') # Create example folder
 file.copy(from = template_folder, to = 'example', recursive = TRUE)
 setwd('example/feeagh') # Change working directory to example folder
@@ -93,6 +93,84 @@ g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend
 g1
 ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 
+```
+
+## Run Latin hypercube sampling
+```{r gh-installation, eval = FALSE}
+masterConfigFile <- 'Feeagh_master_config.yaml'
+
+pars <- c('wind_factor', 'swr_factor', 'lw_factor')
+mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
+df <- as.data.frame(mat)
+rownames(df) <- pars
+df # Print parameter ranges
+
+# Run Latin_hypercube sample
+run_LHC(parRange = df, num = 300,
+obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+param_file = NULL,
+config_file = 'Feeagh_master_config.yaml', model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+
+## View parameter performance
+# Load parameters used
+pars <- read.csv('latin_hypercube_params_FLake_GLM_GOTM_Simstrat_XXXX.csv')
+
+# Load results
+res <- read.csv('output/latin_hypercube_calibration_results_p300_XXXX.csv')
+
+
+## FLake
+dat <- merge(res[res$model == 'FLake',], pars, by = 'par_id')
+dat$model <- 'FLake'
+all_par <- dat
+fla_par <- dat[which.min(dat$RMSE), c(1,2,9:14)]
+
+my.cols = RColorBrewer::brewer.pal(11, "Spectral")
+sub <- which(mlt$variable %in% c('NSE', 'RMSE', 'Pearson_r'))
+p1 <- ggplot(dat, aes(wind_factor, swr_factor, colour = RMSE))+
+  geom_point(size =2)+
+  geom_point(data = dat[which.min(dat$RMSE),], size =4, shape = 21)+
+  scale_color_gradientn(colours = (my.cols))+
+  geom_hline(yintercept = 1, linetype = 'dashed')+
+  geom_vline(xintercept = 1, linetype = 'dashed')+
+  theme_bw(base_size = 24)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+p1
+
+p2 <- ggplot(dat, aes(wind_factor, swr_factor, colour = NSE))+
+  geom_point(size =2)+
+  geom_point(data = dat[which.max(dat$NSE),], size =4, shape = 21)+
+  scale_color_gradientn(colours = rev(my.cols))+
+  geom_hline(yintercept = 1, linetype = 'dashed')+
+  geom_vline(xintercept = 1, linetype = 'dashed')+
+  theme_bw(base_size = 24)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+p3 <- ggplot(dat, aes(wind_factor, swr_factor, colour = Pearson_r))+
+  geom_point(size =2)+
+  geom_point(data = dat[which.max(dat$Pearson_r),], size =4, shape = 21)+
+  scale_color_gradientn(colours = rev(my.cols))+
+  geom_hline(yintercept = 1, linetype = 'dashed')+
+  geom_vline(xintercept = 1, linetype = 'dashed')+
+  theme_bw(base_size = 24)+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
+
+g1 <- ggpubr::ggarrange(p1,p2,p3,nrow=3, align = 'v')
+g1
+ggsave('output/FLake_LHC_plot.png', plot = g1, dpi = 200,width = 324,height = 312, units = 'mm')
+
+
+# Create meteo driver files with best scaling parameters
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+             meteo_file = 'LakeEnsemblR_meteo_standard.csv',
+             lhc_file = 'output/LHC_calibration_results_p300_XXXXXXXXXXXX.csv',
+             metric = 'RMSE')
+
+# Run ensemble lake models with new met file
+wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
+                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
 ```
 
 How do I contribute new code back to the `LakeEnsemblR` project?

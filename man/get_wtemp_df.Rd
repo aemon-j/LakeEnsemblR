@@ -4,7 +4,7 @@
 \alias{get_wtemp_df}
 \title{Extract FLake output as a dataframe}
 \usage{
-get_wtemp_df(output, depths, folder, nml_file)
+get_wtemp_df(output, depths, folder, nml_file, long = FALSE)
 }
 \arguments{
 \item{output}{filepath; to FLake output file}
@@ -12,6 +12,8 @@ get_wtemp_df(output, depths, folder, nml_file)
 \item{depths}{vector; of numeric values to extract the depths at}
 
 \item{nml_file}{filepath; to FLake namelist file}
+
+\item{long;}{Boolean; return data in long form}
 }
 \value{
 Dataframe in rLakeAnalyzer format

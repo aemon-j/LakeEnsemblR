@@ -2,7 +2,7 @@
 #'
 #'Export initial condition files and input into model configuration files.
 #'
-#' @name export_drivers
+#' @name export_init_cond
 #' @param model vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format.
 #' @param date character; Date in "YYYY-mm-dd HH:MM:SS" format to extract the initial profile. If using month, the date to which to set the start date
