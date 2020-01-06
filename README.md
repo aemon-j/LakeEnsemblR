@@ -28,8 +28,8 @@ devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
 
 # Load libraries
-library(LakeEnsemblR)
 library(gotmtools)
+library(LakeEnsemblR)
 
 # Copy template folder
 template_folder <- system.file("extdata\\feeagh", package= 'LakeEnsemblR')
