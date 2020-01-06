@@ -4,7 +4,7 @@ location:
    latitude: 60.37                             # latitude [degrees North; min=-90.0; max=90.0; default=0.0]
    longitude: 9.73                             # longitude [degrees East; min=-360.0; max=360.0; default=0.0]
    depth: 12.0                                 # maximum water depth [m; min=0.0; default=100.0]
-   hypsograph: hypsograph.dat                  # hypsograph [default=]
+   hypsograph: data/mendota/LakeEnsemblR_bathymetry_standard.csv                  # hypsograph [default=]
 time:
    start: 2006-12-01 00:00:00                  # start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
    stop: 2015-01-01 00:00:00                   # stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
@@ -14,8 +14,13 @@ config_files:
    glm_config: GLM/glm3.nml                    # GLM config file (nml format)
    simstrat_config: Simstrat/simstrat.par      # Simstrat config file (json format)
    flake_config: FLake/flake.nml               # FLake config file (nml format)
+model_settings:
+   output_depths: 0.5                           # vertical resolution of the output [m]
+   extinction_coefficient: 1.5                  # light extinction coefficient [m-1]
 input:                      
    meteo:
+      meteo_file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
+      timestep: 86400.0                         # timestep of meteorological input data [s]
       Ten_Meter_Elevation_Wind_Speed_meterPerSecond:                         # wind speed in m/s at 10 m above the surface
          method: 2                 # method [-1 = not available, 0=constant, 2=from file; default=0]
          constant_value: 0.0       # value to use throughout the simulation [m/s; default=0.0]

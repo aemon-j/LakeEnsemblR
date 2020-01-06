@@ -81,6 +81,7 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
     nml_list <- list('num_depths' = ndeps, 'the_depths' = glm_deps, 'the_temps' = glm_tmp, 'the_sals' = rep(0, length(tmp)))
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
     
+    # check for max(the_depths) > lake_depth ??
     glmtools::write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))
     message('GLM: Input initial conditions into ', file.path(folder,"GLM", 'glm3.nml'))
     
