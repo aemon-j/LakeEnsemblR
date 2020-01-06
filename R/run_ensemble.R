@@ -129,7 +129,6 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     # input_yaml(yaml_file, label = 'time', key = 'start', value = start)
     # input_yaml(yaml_file, label = 'time', key = 'stop', value = stop)
 
-    run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file))
 
     # Copy output.nc to output folder
     file.copy(file.path(folder, "GOTM","output.nc"), file.path(folder, "GOTM","output","output.nc"), overwrite = T)

@@ -29,8 +29,8 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   yaml = file.path(folder,config_file)
 
   # Function to be added to gotmtools
-  lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
-  lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
+  lat <- gotmtools::get_yaml_value(file = yaml, label = 'location', key = 'latitude')
+  lon <- gotmtools::get_yaml_value(file = yaml, label = 'location', key = 'longitude')
 
 
   ### Import data
@@ -203,8 +203,8 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     yaml = file.path(folder,gotmtools::get_yaml_value(config_file, "config_files", "gotm_config"))
 
     # Function to be added to gotmtools
-    lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
-    lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
+    lat <- gotmtools::get_yaml_value(file = yaml, label = 'location', key = 'latitude')
+    lon <- gotmtools::get_yaml_value(file = yaml, label = 'location', key = 'longitude')
 
     if(wind_direction){
       direction=270-met_got[[colname_wind_direction]] # Converting the wind direction to the "math" direction
