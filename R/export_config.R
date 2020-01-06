@@ -13,10 +13,8 @@
 #'
 #'@importFrom stats approx
 #'@import lubridate
-#'@importFrom gotmtools get_yaml_value
-#'@importFrom gotmtools streams_switch
-#'@importFrom gotmtools input_yaml
-#'@import glmtools
+#'@importFrom gotmtools get_yaml_value streams_switch input_yaml
+#'@importFrom glmtools read_nml set_nml write_nml
 #'
 #'@export
 

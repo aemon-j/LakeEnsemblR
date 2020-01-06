@@ -14,7 +14,7 @@
 #' export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 #' }
 #' @import gotmtools
-#' @import glmtools
+#' @importFrom glmtools read_nml set_nml write_nml
 #'
 #' @export
 

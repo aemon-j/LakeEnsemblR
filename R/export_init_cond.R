@@ -15,7 +15,7 @@
 #'
 #' @importFrom plyr ddply
 #' @importFrom lubridate month
-#' @import glmtools
+#' @importFrom glmtools read_nml set_nml write_nml
 #'
 #' @export
 
