@@ -95,9 +95,11 @@ g1
 ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 
 ```
+![](images/model_ensemble_watertemp.png)<!-- -->
 
 ## Run Latin hypercube sampling
 ```{r gh-installation, eval = FALSE}
+
 masterConfigFile <- 'Feeagh_master_config.yaml'
 
 pars <- c('wind_factor', 'swr_factor', 'lw_factor')
@@ -136,7 +138,7 @@ Sys.time() # Print start time to console
 
 # Run LHC in parallel
 clusterApply(cl = cl, x = model, fun = run_LHC, parRange = df, 
-             num = 5, 
+             num = 300, 
              param_file = master_param_file,  
              obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', 
              config_file = 'Feeagh_master_config.yaml', 
@@ -185,9 +187,9 @@ p2 <- ggplot(dat, aes(wind_factor, swr_factor, colour = NSE))+
   theme_bw(base_size = 24)+
   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank())
 
-p3 <- ggplot(dat, aes(wind_factor, swr_factor, colour = Pearson_r))+
+p3 <- ggplot(dat, aes(wind_factor, swr_factor, colour = lnlikelihood))+
   geom_point(size =2)+
-  geom_point(data = dat[which.max(dat$Pearson_r),], size =4, shape = 21)+
+  geom_point(data = dat[which.max(dat$lnlikelihood),], size =4, shape = 21)+
   scale_color_gradientn(colours = rev(my.cols))+
   geom_hline(yintercept = 1, linetype = 'dashed')+
   geom_vline(xintercept = 1, linetype = 'dashed')+
@@ -199,6 +201,8 @@ g1
 ggsave('output/FLake_LHC_plot.png', plot = g1, dpi = 200,width = 324,height = 312, units = 'mm')
 
 ```
+![](images/FLake_LHC_plot.png)<!-- -->
+
 
 How do I contribute new code back to the `LakeEnsemblR` project?
 ==========================================================
