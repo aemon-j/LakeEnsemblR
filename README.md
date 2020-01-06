@@ -165,7 +165,6 @@ all_par <- dat
 fla_par <- dat[which.min(dat$RMSE), c(1,2,9:14)]
 
 my.cols = RColorBrewer::brewer.pal(11, "Spectral")
-sub <- which(mlt$variable %in% c('NSE', 'RMSE', 'Pearson_r'))
 p1 <- ggplot(dat, aes(wind_factor, swr_factor, colour = RMSE))+
   geom_point(size =2)+
   geom_point(data = dat[which.min(dat$RMSE),], size =4, shape = 21)+
