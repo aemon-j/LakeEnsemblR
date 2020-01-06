@@ -1,4 +1,4 @@
-#' Run Latin hypercube samplinh
+#' Run Latin hypercube sampling
 #'@description
 #'Run lake models using Latin hypercube sampling for model parameters.
 #'

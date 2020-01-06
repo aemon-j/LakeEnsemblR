@@ -2,7 +2,7 @@
 % Please edit documentation in R/run_LHC.R
 \name{run_LHC}
 \alias{run_LHC}
-\title{Run Latin hypercube samplinh}
+\title{Run Latin hypercube sampling}
 \usage{
 run_LHC(
   parRange,
