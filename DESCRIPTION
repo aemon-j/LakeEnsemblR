@@ -1,0 +1,21 @@
+Package: LakeEnsemblR
+Type: Package
+Title: Run ensemble of lake models
+Version: 0.1.0
+URL: https://github.com/aemon-j/LakeEnsemblR
+Author: Authors@R: c( person("Tadhg", "Moore", role = c("aut","cre"),
+    email = "tadhg.moore@dkit.ie"),
+    person("Robert", "Ladwig", role = "aut",
+    email = "rladwig2@wisc.edu"), 
+    person("Johannes", "Feldbauer", role = "aut", 
+    email = "johannes.feldbauer@tu-dresden.de"),
+    person("Jorrit", "Mesman", role = "aut",
+    email = "jorrit.mesman@unige.ch", role = "aut"))
+Maintainer: The package maintainer <yourself@somewhere.net>
+Description: Run ensemble of lake models cross-platform and tools for analyzing
+  model output.
+License: CCO
+Encoding: UTF-8
+LazyData: true
+LazyLoad: true
+RoxygenNote: 7.0.2
