@@ -113,16 +113,53 @@ param_file = NULL,
 config_file = 'Feeagh_master_config.yaml', model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
 meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 
+```
+## Run Latin hypercube sampling in parallel
+
+```{r gh-installation, eval = FALSE}
+# Load library for running in parallel
+library(parallel)
+
+master_param_file <- sample_LHC(parRange = df, num = 300) # Create parameter file before paralleization
+
+# Select the number of cores to use and opens sockets
+num_cores <- detectCores()
+model = c('FLake', 'GLM', 'GOTM', 'Simstrat')
+if (length(model) < num_cores){
+  cl <- makeCluster(length(model), outfile = 'calib_log.txt')
+} else {
+  cl <- makeCluster(num_cores, outfile = 'calib_log.txt')
+}
+
+
+Sys.time() # Print start time to console
+
+# Run LHC in parallel
+clusterApply(cl = cl, x = model, fun = run_LHC, parRange = df, 
+             num = 5, 
+             param_file = master_param_file,  
+             obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', 
+             config_file = 'Feeagh_master_config.yaml', 
+             meteo_file = 'LakeEnsemblR_meteo_standard.csv', 
+             folder = getwd())
+Sys.time() # Print start time to console
+
+stopCluster(cl) # Close sockets
+
+```
+
+## Evaluate LHC parameter performance
+
+```{r gh-installation, eval = FALSE}
 ## View parameter performance
 # Load parameters used
-pars <- read.csv('latin_hypercube_params_FLake_GLM_GOTM_Simstrat_XXXX.csv')
+pars <- read.csv('latin_hypercube_params_XXXX.csv')
 
 # Load results
-res <- read.csv('output/latin_hypercube_calibration_results_p300_XXXX.csv')
-
+res <- read.csv('FLake/output/latin_hypercube_calibration_results_XXXX.csv')
 
 ## FLake
-dat <- merge(res[res$model == 'FLake',], pars, by = 'par_id')
+dat <- merge(res, pars, by = 'par_id')
 dat$model <- 'FLake'
 all_par <- dat
 fla_par <- dat[which.min(dat$RMSE), c(1,2,9:14)]
@@ -162,16 +199,6 @@ g1 <- ggpubr::ggarrange(p1,p2,p3,nrow=3, align = 'v')
 g1
 ggsave('output/FLake_LHC_plot.png', plot = g1, dpi = 200,width = 324,height = 312, units = 'mm')
 
-
-# Create meteo driver files with best scaling parameters
-export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
-             meteo_file = 'LakeEnsemblR_meteo_standard.csv',
-             lhc_file = 'output/LHC_calibration_results_p300_XXXXXXXXXXXX.csv',
-             metric = 'RMSE')
-
-# Run ensemble lake models with new met file
-wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
-                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
 ```
 
 How do I contribute new code back to the `LakeEnsemblR` project?
