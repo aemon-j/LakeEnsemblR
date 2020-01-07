@@ -11,10 +11,14 @@
 #'
 #' @import ncdf4
 #' @import lubridate
-#' @import FLakeR
-#' @import GLM3r
-#' @import GOTMr
-#' @import SimstratR
+#' @importFrom FLakeR run_flake
+#' @importFrom GLM3r run_glm
+#' @importFrom GOTMr run_gotm
+#' @importFrom SimstratR run_simstrat
+#' @importFrom gotmtools get_yaml_value get_vari
+#' @importFrom rLakeAnalyzer get.offsets
+#' @importFrom reshape2 dcast
+#' @importFrom glmtools get_nml_value get_var
 #'
 #' @export
 run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL){
@@ -31,33 +35,33 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   Sys.setenv(TZ="GMT")
 
   ## Extract start, stop, lat & lon for netCDF file from config file
-  start <- gotmtools::get_yaml_value(config_file, "time", "start")
+  start <- get_yaml_value(config_file, "time", "start")
   start <- paste(substring(start, 1, 10),substring(start, 11, nchar(start))) # 2019-12-14: get_yaml_value removes space in format yyyy-mm-dd HH:MM:SS
-  stop <- gotmtools::get_yaml_value(config_file, "time", "stop")
+  stop <- get_yaml_value(config_file, "time", "stop")
   stop <- paste(substring(stop, 1, 10),substring(stop, 11, nchar(stop))) # 2019-12-14: get_yaml_value removes space in format yyyy-mm-dd HH:MM:SS
-  lat <- gotmtools::get_yaml_value(config_file, "location", "latitude")
-  lon <- gotmtools::get_yaml_value(config_file, "location", "longitude")
+  lat <- get_yaml_value(config_file, "location", "latitude")
+  lon <- get_yaml_value(config_file, "location", "longitude")
 
   if(!is.null(obs_file)){
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
 
     # change data format from long to wide
-    obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = 'Water_Temperature_celsius')
+    obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = 'Water_Temperature_celsius')
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
     colnames(obs_out) <- c('datetime',paste('wtr_',str_depths, sep=""))
     obs_out$datetime <- as.POSIXct(obs_out$datetime)
 
   }else{
     # In case no obs_file is given, say there are observations every metre, in order to avoid errors down the road
-    obs_deps <- 1:(gotmtools::get_yaml_value(config_file, "location", "depth"))
+    obs_deps <- 1:(get_yaml_value(config_file, "location", "depth"))
   }
 
   if('FLake' %in% model){
     #Need to figure out how to subset data by dates
-    nml_file <- gotmtools::get_yaml_value(config_file, "config_files", "flake_config")
+    nml_file <- get_yaml_value(config_file, "config_files", "flake_config")
     nml_file <- file.path(folder, nml_file)
-    met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
+    met_file <- suppressWarnings(get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
     met_file <- gsub(',','', met_file)
     met_file <- file.path(folder, 'FLake', met_file)
     met <- read.delim(met_file, header = FALSE, stringsAsFactors = F)
@@ -74,16 +78,16 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     input_nml(nml_file, 'SIMULATION_PARAMS', 'time_step_number', nrow(met_sub))
 
     # Select nml file again
-    nml_file <- basename(gotmtools::get_yaml_value(config_file, "config_files", "flake_config"))
+    nml_file <- basename(get_yaml_value(config_file, "config_files", "flake_config"))
     run_flake(sim_folder = file.path(folder, 'FLake'), nml_file = nml_file)
 
     if(return_list | create_netcdf){
       # Extract output
       fold <- file.path(folder, 'FLake')
-      nml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "flake_config"))
+      nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "flake_config"))
 
-      mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
-      depths <- seq(0,mean_depth,by = gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
+      mean_depth <- suppressWarnings(get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
+      depths <- seq(0,mean_depth,by = get_yaml_value(config_file,"model_settings", "output_depths"))
 
       # Add in obs depths which are not in depths and less than mean depth
       add_deps <- obs_deps[!(obs_deps %in% depths)]
@@ -99,7 +103,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   if('GLM' %in% model){
     #Need to input start and stop into nml file
-    nml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "glm_config"))
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "glm_config"))
     # input_nml(nml_file, label = 'time', key = 'start', value = paste0("'",start,"'"))
     # input_nml(nml_file, label = 'time', key = 'stop', value = paste0("'",stop,"'"))
 
@@ -109,13 +113,13 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
     if(return_list | create_netcdf){
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(glmtools::get_nml_value(nml_file = file.path(folder, 'GLM', 'glm3.nml'), arg_name = 'lake_depth'))
-      depths <- seq(0,depth, by = gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
+      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, 'GLM', 'glm3.nml'), arg_name = 'lake_depth'))
+      depths <- seq(0,depth, by = get_yaml_value(config_file,"model_settings", "output_depths"))
       add_deps <- obs_deps[!(obs_deps %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
       # Extract output
-      glm_out <- glmtools::get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
+      glm_out <- get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
       colnames(glm_out) <- c('datetime',paste('wtr_', depths, sep=""))
 
 
@@ -125,7 +129,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   if('GOTM' %in% model){
     #Need to input start and stop into yaml file
-    yaml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "gotm_config"))
+    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
     # input_yaml(yaml_file, label = 'time', key = 'start', value = start)
     # input_yaml(yaml_file, label = 'time', key = 'stop', value = stop)
 
@@ -139,11 +143,11 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     if(return_list | create_netcdf){
 
       # Extract output
-      temp <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
-      z <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
+      temp <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
+      z <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
 
       # Add in obs depths which are not in depths and less than mean depth
-      depths = seq(0, min(z[1,-1]), by = -1 * gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
+      depths = seq(0, min(z[1,-1]), by = -1 * get_yaml_value(config_file,"model_settings", "output_depths"))
       obs_dep_neg <- -obs_deps
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
@@ -161,7 +165,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   if('Simstrat' %in% model){
     # Need to input start and stop into json par file
-    par_file <- basename(gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
+    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat_config"))
 
     run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
 
@@ -172,7 +176,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
 
       ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-      par_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
+      par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
       timestep <- get_json_value(par_file, "Simulation", "Timestep s")
       reference_year <- get_json_value(par_file, "Simulation", "Start year")
 
@@ -239,7 +243,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
       lengths <- lapply(temp_list, ncol) # Extract ncols in each output
       lon_list <- which.max(lengths) # Select largest depths
-      deps <- rLakeAnalyzer::get.offsets(temp_list[[lon_list]]) # Extract depths
+      deps <- get.offsets(temp_list[[lon_list]]) # Extract depths
       deps <- deps
 
       # Creat output directory
@@ -275,7 +279,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
       # Create and input data into the netCDF file
       ncout <- nc_create(fname, nc_vars, force_v4 = T)
-      # Add coordinates attribute for use with gotmtools::get_vari()
+      # Add coordinates attribute for use with get_vari()
       ncatt_put(ncout, 'z', attname = 'coordinates', attval = c('z'))
 
       # Loop through and add each variable
@@ -285,7 +289,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
         for(i in 1:length(temp_list)){
           mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[3]]$len, ncol = nc_vars[[i]]$dim[[4]]$len)
 
-          deps_temp <- rLakeAnalyzer::get.offsets(temp_list[[i]]) # vector of depths to input into the matrix
+          deps_temp <- get.offsets(temp_list[[i]]) # vector of depths to input into the matrix
           mat <- as.matrix(temp_list[[i]][,-1])
 
           for(j in 1:ncol(mat)){

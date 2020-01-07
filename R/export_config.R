@@ -13,7 +13,7 @@
 #'
 #'@importFrom stats approx
 #'@import lubridate
-#'@importFrom gotmtools get_yaml_value streams_switch input_yaml
+#'@importFrom gotmtools get_yaml_value streams_switch input_yaml input_nml
 #'@importFrom glmtools read_nml set_nml write_nml
 #'
 #'@export
@@ -26,44 +26,44 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
   # Fix time zone
   original_tz = Sys.getenv("TZ")
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ=original_tz)
   })
-  
+
   Sys.setenv(TZ="GMT")
 
 
   # Read in all information from config_file that needs to be written to the model-specific config files
 
   # Latitude
-  lat <- gotmtools::get_yaml_value(config_file, "location", "latitude")
+  lat <- get_yaml_value(config_file, "location", "latitude")
   # Longitude
-  lon <- gotmtools::get_yaml_value(config_file, "location", "longitude")
+  lon <- get_yaml_value(config_file, "location", "longitude")
   # Maximum Depth
-  max_depth = gotmtools::get_yaml_value(config_file, "location", "depth")
+  max_depth = get_yaml_value(config_file, "location", "depth")
   # Read in hypsograph data
-  hyp <- read.csv(gotmtools::get_yaml_value(config_file, "location", "hypsograph"))
+  hyp <- read.csv(get_yaml_value(config_file, "location", "hypsograph"))
   # Start date
-  start_date <- gotmtools::get_yaml_value(config_file, "time", "start")
+  start_date <- get_yaml_value(config_file, "time", "start")
   # Stop date
-  stop_date <- gotmtools::get_yaml_value(config_file, "time", "stop")
+  stop_date <- get_yaml_value(config_file, "time", "stop")
   # Time step
-  timestep <- gotmtools::get_yaml_value(config_file, "time", "timestep")
+  timestep <- get_yaml_value(config_file, "time", "timestep")
   # Met time step
-  met_timestep <- gotmtools::get_yaml_value(config_file, "meteo", "timestep")
+  met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
   # Output depths
-  output_depths <- gotmtools::get_yaml_value(config_file, "model_settings", "output_depths")
+  output_depths <- get_yaml_value(config_file, "model_settings", "output_depths")
   # Extinction coefficient
-  Kw <- gotmtools::get_yaml_value(config_file, "model_settings", "extinction_coefficient")
+  Kw <- get_yaml_value(config_file, "model_settings", "extinction_coefficient")
   # Use ice
-  use_ice <- gotmtools::get_yaml_value(config_file, "ice", "use")
+  use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
-  use_inflows <- gotmtools::get_yaml_value(config_file, "inflows", "use")
+  use_inflows <- get_yaml_value(config_file, "inflows", "use")
   # Output
-  out_tstep <- gotmtools::get_yaml_value(config_file, "output", "time_step")
+  out_tstep <- get_yaml_value(config_file, "output", "time_step")
 
 
   if("FLake" %in% model){
@@ -77,7 +77,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "flake_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "flake_config")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -127,7 +127,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "glm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "glm_config")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -144,7 +144,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
     # Read in nml and input parameters
     nml <- glmtools::read_nml(glm_nml)
-    inp_list <- list('lake_name' = gotmtools::get_yaml_value(config_file, "location", "name"),
+    inp_list <- list('lake_name' = get_yaml_value(config_file, "location", "name"),
                      'latitude' = lat,
                      'longitude' = lon,
                      'lake_depth' = max_depth,
@@ -176,7 +176,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "gotm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "gotm_config")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -191,16 +191,16 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     file.copy(from = out_fil, to = 'GOTM/output.yaml') # was just "GOTM", does this overwrite the GOTM dir?
 
     # Write input parameters to got_yaml
-    gotmtools::input_yaml(got_yaml, 'location', 'name', gotmtools::get_yaml_value(config_file, "location", "name"))
-    gotmtools::input_yaml(got_yaml, 'location', 'latitude', lat)
-    gotmtools::input_yaml(got_yaml, 'location', 'longitude', lon)
+    input_yaml(got_yaml, 'location', 'name', get_yaml_value(config_file, "location", "name"))
+    input_yaml(got_yaml, 'location', 'latitude', lat)
+    input_yaml(got_yaml, 'location', 'longitude', lon)
 
     # Set max depth
-    gotmtools::input_yaml(got_yaml, 'location', 'depth', max_depth)
-    gotmtools::input_yaml(got_yaml, 'grid', 'nlev', (max_depth/0.5))
+    input_yaml(got_yaml, 'location', 'depth', max_depth)
+    input_yaml(got_yaml, 'grid', 'nlev', (max_depth/0.5))
 
     # Switch on ice model - MyLake
-    gotmtools::input_yaml(got_yaml, 'ice', 'model', 2)
+    input_yaml(got_yaml, 'ice', 'model', 2)
 
 
     # Create GOTM hypsograph file
@@ -209,24 +209,24 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     got_hyp[,1] <- -got_hyp[,1]
     colnames(got_hyp) <- c(as.character(ndeps), '2')
     write.table(got_hyp, 'GOTM/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
-    gotmtools::input_yaml(got_yaml, 'location', 'hypsograph', "hypsograph.dat")
+    input_yaml(got_yaml, 'location', 'hypsograph', "hypsograph.dat")
 
     # Set time settings
-    gotmtools::input_yaml(got_yaml, 'time', 'start', start_date)
-    gotmtools::input_yaml(got_yaml, 'time', 'stop', stop_date)
-    gotmtools::input_yaml(got_yaml, 'time', 'dt', timestep)
+    input_yaml(got_yaml, 'time', 'start', start_date)
+    input_yaml(got_yaml, 'time', 'stop', stop_date)
+    input_yaml(got_yaml, 'time', 'dt', timestep)
 
     # Set GOTM output
     out_yaml <- file.path(folder, 'GOTM', 'output.yaml')
-    gotmtools::input_yaml(out_yaml, 'output', 'time_step', out_tstep)
-    gotmtools::input_yaml(out_yaml, 'output', 'time_unit', 'hour')
+    input_yaml(out_yaml, 'output', 'time_step', out_tstep)
+    input_yaml(out_yaml, 'output', 'time_unit', 'hour')
 
     ## Input light extinction data [To be continued...]
 
 
     ## Switch off streams
     if(!use_inflows){
-      gotmtools::streams_switch(file = got_yaml, method = 'off')
+      streams_switch(file = got_yaml, method = 'off')
     }
 
     message('GOTM configuration complete!')
@@ -240,7 +240,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat_config")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
@@ -269,7 +269,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
 
     # Input parameters
-    # need to source helper_functions/input_json.R for this function: 
+    # need to source helper_functions/input_json.R for this function:
     input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
     input_json(sim_par, 'Input', 'Absorption', '"light_absorption.dat"')
     input_json(sim_par, 'Output', 'Path', '"output"')
