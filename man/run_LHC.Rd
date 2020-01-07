@@ -6,7 +6,7 @@
 \usage{
 run_LHC(
   parRange,
-  num,
+  num = NULL,
   param_file = NULL,
   obs_file,
   config_file,
@@ -18,7 +18,7 @@ run_LHC(
 \arguments{
 \item{parRange}{dataframe; the range (min, max) of the parameters, a data.frame with one row for each parameter, and two columns with the minimum (1st) and maximum (2nd) column.}
 
-\item{num}{integer; the number of random parameter sets to generate.}
+\item{num}{integer; the number of random parameter sets to generate. If param file is provided num = number of parameters in that file.}
 
 \item{param_file}{filepath; to previously created parameter file set. If NULL creates a new parameter set. Defaults to NULL}
 
