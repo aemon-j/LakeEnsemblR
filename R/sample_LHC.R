@@ -1,5 +1,5 @@
 #' Create Latin hypercube sample of parameters
-#' 
+#'
 #' Create CSV file with parameter samples for the LHC runs
 #'
 #' @param parRange dataframe; the range (min, max) of the parameters, a data.frame with one row for each parameter, and two columns with the minimum (1st) and maximum (2nd) column.
@@ -14,6 +14,7 @@
 #'param_file <- sample_LHC(parRange = df, num = 300)
 #'run_Latin_hypercube(param_file = param_file, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', config_file = 'Feeagh_master_config.yaml', model = 'FLake', meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 #' }
+#' @importFrom FME Latinhyper
 #'
 #' @export
 sample_LHC <- function(parRange, num, folder = '.'){
