@@ -26,13 +26,13 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
   # Fix time zone
   original_tz = Sys.getenv("TZ")
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ=original_tz)
   })
-  
+
   Sys.setenv(TZ="GMT")
 
 
@@ -221,8 +221,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     gotmtools::input_yaml(out_yaml, 'output', 'time_step', out_tstep)
     gotmtools::input_yaml(out_yaml, 'output', 'time_unit', 'hour')
 
-    ## Input light extinction data [To be continued...]
-
+    ## Input light extinction data
+    gotmtools::input_yaml(got_yaml, 'g2', 'constant_value',1/Kw)
 
     ## Switch off streams
     if(!use_inflows){
@@ -269,7 +269,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     write.table(sim_hyp, 'Simstrat/hypsograph.dat', quote = FALSE, sep = '\t', row.names = FALSE, col.names = TRUE)
 
     # Input parameters
-    # need to source helper_functions/input_json.R for this function: 
+    # need to source helper_functions/input_json.R for this function:
     input_json(sim_par, 'Input', 'Morphology', '"hypsograph.dat"')
     input_json(sim_par, 'Input', 'Absorption', '"light_absorption.dat"')
     input_json(sim_par, 'Output', 'Path', '"output"')
