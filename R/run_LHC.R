@@ -39,7 +39,8 @@
 #' @export
 
 
-run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
+run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_file,
+                    model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz = Sys.getenv("TZ")
@@ -54,15 +55,15 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
   colnames(obs_out) <- c('datetime',paste('wtr_',str_depths, sep=""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
 
-  # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
+  # get lat and lon from global config file
   yaml = file.path(folder,config_file)
 
   # Function to be added to gotmtools
   lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
   lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
   depth <- get_yaml_value(file = yaml, label = 'location', key = 'depth')
-  start <- get_yaml_value(file = yaml, label = 'time', key = 'start')
-  stop <- get_yaml_value(file = yaml, label = 'location', key = 'stop')
+  start <- as.POSIXct(get_yaml_value(file = yaml, label = 'time', key = 'start'))
+  stop <- as.POSIXct(get_yaml_value(file = yaml, label = 'location', key = 'stop'))
 
   obs <- obs[obs[,1] >= start & obs[,1] < stop,]
 
@@ -75,7 +76,8 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
 
 
   ### Import data
-  # I'd prefer to use a function that can read both comma and tab delimited. data.table::fread does this, but then it's data.table
+  # I'd prefer to use a function that can read both comma and tab delimited.
+  # data.table::fread does this, but then it's data.table
   message('Loading met data...')
   met = read.csv(file.path(folder,meteo_file), stringsAsFactors = F)
   met[,1] <- as.POSIXct(met[,1])
@@ -121,15 +123,41 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
   precipitation = colname_precipitation %in% colnames(met)
   snowfall = colname_snow %in% colnames(met)
 
+  ## read parameter and limits from yaml file
+  par_sw <- tryCatch({par_names <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'parameter')
+  par_upper <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'upper')
+  par_lower <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'lower')
+  GOTM_names <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'name_GOTM')
+  GLM_names <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'name_GLM')
+  Simstrat_names <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'name_Simstrat')
+  FLake_names <- get_yaml_value(file = yaml, label = 'caliLHS', key = 'name_FLake')
+  TRUE},
+  error = function(e)return(FALSE))
+
+  meteo_sw <- tryCatch({
+  meteo_names <- get_yaml_value(file = yaml, label = 'meteoLHS', key = 'vars')
+  meteo_upper <- get_yaml_value(file = yaml, label = 'meteoLHS', key = 'upper')
+  meteo_lower <- get_yaml_value(file = yaml, label = 'meteoLHS', key = 'lower')
+  TRUE},
+  error = function(e)return(FALSE))
+
+  ## needs to be changes to data
+  #var_names_dic <- read.table("var_names_dic.csv",header = TRUE,sep=",",stringsAsFactors = FALSE)
+
   if(is.null(param_file)){
     ## Create Latin hypercube sample of parameters
-    par_names <- row.names(parRange)
+    parRange <- matrix(c(par_lower,meteo_lower,par_upper,meteo_upper),
+                       length(par_names) + length(meteo_names),2)
     params <- Latinhyper(parRange = as.matrix(parRange), num = num)
     params <- signif(params, 4)
-    colnames(params) <- par_names
+    colnames(params) <- c(par_names,meteo_names)
     params <- as.data.frame(params)
     params$par_id <- paste0('p', formatC(1:nrow(params), width = 4, format = "d", flag = "0"))
-    write.csv(params, file = file.path(folder, paste0('latin_hypercube_params_', paste0(model, collapse = '_'), '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    write.csv(params, file = file.path(folder, paste0('latin_hypercube_params_',
+                                                      paste0(model, collapse = '_'),
+                                                      '_', format(Sys.time(),
+                                                                  format = '%Y%m%d%H%M'), '.csv')),
+              quote = FALSE, row.names = FALSE)
   }else{
     params <- read.csv(param_file, stringsAsFactors = FALSE)
     num = nrow(params)
@@ -154,7 +182,9 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
       # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
       # Environmental Modelling & Software, 70, 191-198.
 
-      fla_met[[colname_vapour_pressure]]=fla_met[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * fla_met[[colname_air_temperature]] / (237.3 + fla_met[[colname_air_temperature]]))
+      fla_met[[colname_vapour_pressure]] <- fla_met[[colname_relative_humidity]]/100 *
+        6.11 * exp(17.27 * fla_met[[colname_air_temperature]] /
+                     (237.3 + fla_met[[colname_air_temperature]]))
 
     }
     if(!cloud_cover){
@@ -171,7 +201,10 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
     fla_met$index <- 1:nrow(fla_met)
 
     # Re-organise
-    fla_met <- fla_met[,c('index','Shortwave_Radiation_Downwelling_wattPerMeterSquared','Air_Temperature_celsius', "Vapor_Pressure_milliBar", "Ten_Meter_Elevation_Wind_Speed_meterPerSecond", "Cloud_Cover_decimalFraction", "datetime")]
+    fla_met <- fla_met[,c('index','Shortwave_Radiation_Downwelling_wattPerMeterSquared',
+                          'Air_Temperature_celsius', "Vapor_Pressure_milliBar",
+                          "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
+                          "Cloud_Cover_decimalFraction", "datetime")]
     fla_met$datetime <- format(fla_met$datetime, format = '%Y-%m-%d %H:%M:%S')
     colnames(fla_met)[1] <- paste0('!', colnames(fla_met)[1])
 
@@ -192,15 +225,20 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
     input_nml(nml_file, 'METEO', 'meteofile', paste0("'",'temp_meteo_file.dat',"'"))
 
     for(i in 1:nrow(params)){
+      if(meteo_sw){
+        fla_met2 <- fla_met
+        for (j in 1:length(meteo_names)) {
+          met_name_fla <- var_names_dic$FLake[var_names_dic$Variable==meteo_names[j]]
+          fla_met2[,met_name_fla] <- fla_met2[,met_name_fla] * params[i,meteo_names[j]]
+        }
 
-      fla_met2 <- fla_met
-      fla_met2$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- fla_met2$Ten_Meter_Elevation_Wind_Speed_meterPerSecond * params$wind_factor[i]
-      fla_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- fla_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor[i]
+        # Write to file
+        write.table(fla_met2, file.path(folder, 'FLake', 'temp_meteo_file.dat'), sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
+      }
 
-      # Write to file
-      write.table(fla_met2, file.path(folder, 'FLake', 'temp_meteo_file.dat'), sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
-
-
+      if(par_sw){
+        # change parameter
+      }
       run_flake(sim_folder = file.path(folder, 'FLake'), nml_file = nml_file_run)
 
       # Extract output
@@ -262,7 +300,11 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
     glm_met$Precipitation_meterPerDay <- glm_met$Precipitation_meterPerSecond * 86400
 
     # Subset data
-    glm_met <- glm_met[,c('datetime','Shortwave_Radiation_Downwelling_wattPerMeterSquared', "Longwave_Radiation_Downwelling_wattPerMeterSquared", 'Air_Temperature_celsius', 'Relative_Humidity_percent', "Ten_Meter_Elevation_Wind_Speed_meterPerSecond", "Precipitation_meterPerDay", "Snowfall_meterPerDay")]
+    glm_met <- glm_met[,c('datetime','Shortwave_Radiation_Downwelling_wattPerMeterSquared',
+                          "Longwave_Radiation_Downwelling_wattPerMeterSquared",
+                          'Air_Temperature_celsius', 'Relative_Humidity_percent',
+                          "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
+                          "Precipitation_meterPerDay", "Snowfall_meterPerDay")]
 
     colnames(glm_met) <- c('Date','ShortWave','LongWave','AirTemp','RelHum','WindSpeed','Rain','Snow')
     glm_met[,1] <- format(glm_met[,1], format = '%Y-%m-%d %H:%M:%S')
@@ -291,15 +333,19 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
     depths <- obs_deps
 
     for(i in 1:nrow(params)){
-      glm_met2 <- glm_met
-      glm_met2$WindSpeed <- glm_met2$WindSpeed * params$wind_factor[i]
-      glm_met2$ShortWave <- glm_met2$ShortWave * params$swr_factor[i]
-      glm_met2$LongWave <- glm_met2$LongWave * params$lw_factor[i]
+      if(meteo_sw){
+        glm_met2 <- glm_met
+        for (j in 1:length(meteo_names)) {
+          met_name_glm <- var_names_dic$GLM[var_names_dic$Variable==meteo_names[j]]
+          glm_met2[,met_name_glm] <- glm_met2[,met_name_glm] * params[i,meteo_names[j]]
+        }
 
-      # Write to file
-      write.csv(glm_met2, file.path(folder, 'GLM', 'temp_meteo_file.csv'), quote = FALSE, row.names = FALSE)
-
-
+        # Write to file
+        write.csv(glm_met2, file.path(folder, 'GLM', 'temp_meteo_file.csv'), quote = FALSE, row.names = FALSE)
+      }
+      if(par_sw){
+        ## change parameter
+      }
       run_glm(sim_folder = file.path(folder, 'GLM'))
 
       # Extract output
@@ -449,14 +495,21 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
     obs_got[,2] <- -obs_got[,2]
 
     for(i in 1:nrow(params)){
+      if(meteo_sw){
+        got_met2 <- met_got
+        for (j in 1:length(meteo_names)) {
+          met_name_got <- var_names_dic$GOTM[var_names_dic$Variable==meteo_names[j]]
+          got_met2[,met_name_got] <- got_met2[,met_name_got] * params[i,meteo_names[j]]
+        }
 
-      got_met2 <- met_got
-      got_met2$Uwind_meterPerSecond <- got_met2$Uwind_meterPerSecond * params$wind_factor[i]
-      got_met2$Vwind_meterPerSecond <- got_met2$Vwind_meterPerSecond * params$wind_factor[i]
-      got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor[i]
+        # Write to file
+        write.table(got_met2, file.path('GOTM', met_outfile), quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
+      }
 
-      # Write to file
-      write.table(got_met2, file.path('GOTM', met_outfile), quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
+      if(par_sw){
+        ## change parameter
+
+      }
 
       yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
 
@@ -493,9 +546,15 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
       print(paste0('[',i,'/', nrow(params),']'))
     }
 
-    write.csv(out_stats, file.path(folder, 'GOTM', 'output', paste0('latin_hypercube_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    write.csv(out_stats, file.path(folder, 'GOTM', 'output',
+                                   paste0('latin_hypercube_calibration_results_','p',num, '_',
+                                          format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')),
+              quote = FALSE, row.names = FALSE)
 
-    write.csv(sa_stats, file.path(folder, 'GOTM', 'output', paste0('latin_hypercube_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    write.csv(sa_stats, file.path(folder, 'GOTM', 'output',
+                                  paste0('latin_hypercube_sa_results_','p',num, '_',
+                                         format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')),
+              quote = FALSE, row.names = FALSE)
 
 
     out_stats$model <- 'GOTM'
@@ -652,15 +711,21 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
 
     for(i in 1:nrow(params)){
 
-      sim_met2 <- simstrat_forcing
-      sim_met2$Uwind_meterPerSecond <- sim_met2$Uwind_meterPerSecond * params$wind_factor[i]
-      sim_met2$Vwind_meterPerSecond <- sim_met2$Vwind_meterPerSecond * params$wind_factor[i]
-      sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor[i]
-      sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared * params$lw_factor[i]
+      if(meteo_sw){
+        sim_met2 <- simstrat_forcing
+        for (j in 1:length(meteo_names)) {
+          met_name_sim <- var_names_dic$Simstrat[var_names_dic$Variable==meteo_names[j]]
+          sim_met2[,met_name_sim] <- sim_met2[,met_name_sim] * params[i,meteo_names[j]]
+        }
+        # Write to file
+        write.table(sim_met2, file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
+      }
 
-      # Write to file
-      write.table(sim_met2, file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
+      if(par_sw){
 
+        ## change parameter
+
+      }
       run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
 
       ### Extract output
