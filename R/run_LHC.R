@@ -141,6 +141,18 @@ run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_fi
   TRUE},
   error = function(e)return(FALSE))
 
+  # check if chosen variables are available in all models
+  if(meteo_sw){
+    if(any(is.na(var_names_dic[var_names_dic$Variable %in% meteo_names,]))){
+      modl_fail <- colnames(var_names_dic)[colSums(is.na(var_names_dic[var_names_dic$Variable %in%
+                                                                         meteo_names,])) > 0]
+      vcar_fail <- meteo_names[is.na(var_names_dic[var_names_dic$Variable %in%
+                                                     meteo_names,modl_fail])]
+      stop(paste0("Meteorological variable ",vcar_fail," not available for scaling in model(s) ",
+                  paste0(modl_fail,collapse = " & ")))
+    }
+  }
+
   ## needs to be changes to data
   #var_names_dic <- read.table("var_names_dic.csv",header = TRUE,sep=",",stringsAsFactors = FALSE)
 
