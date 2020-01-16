@@ -283,8 +283,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     input_json(sim_par, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
     input_json(sim_par, "Output", "Times", out_tstep)
-
-
+    
+    
     # Turn off ice and snow
     if(use_ice){
       input_json(sim_par, "ModelConfig", "IceModel", 1)

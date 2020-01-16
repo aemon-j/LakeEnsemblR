@@ -143,7 +143,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       write.table(Kw_GOTM, file.path(folder,"GOTM","LakeEnsemblR_g2_GOTM.dat"),
                   sep = "\t", row.names = F, quote = F)
       
-      gotmtools::input_yaml(got_yaml, 'g2', 'file', "LakeEnsemblR_g2_GOTM.dat")
+      gotmtools::input_yaml(got_yaml, 'g2', 'file', value=" LakeEnsemblR_g2_GOTM.dat")
       gotmtools::input_yaml(got_yaml, 'g2', 'column', 1)
     }
     
@@ -185,11 +185,16 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       writeLines(c(absorption_line_1,absorption_line_2,absorption_line_3,absorption_line_4,absorption_line_5), fileConnection)
       close(fileConnection)
     }else{
-      # Make Simstrat-version of Kw_file and write to Simstrat dat file
-      message("Warning: variable extinction in Simstrat not yet implemented")
+      
+      # Change POSIXct into the Simstrat time format
+      Kw_Simstrat <- Kw_file
+      reference_year <- get_json_value(sim_par, "Simulation", "Start year")
+      Kw_Simstrat$datetime <- as.numeric(difftime(Kw_Simstrat$datetime, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))
+      
+      # Write to light_absorption.dat
+      cat(absorption_line_1,absorption_line_2,absorption_line_3, sep="\n", file = "Simstrat/light_absorption.dat")
+      cat(apply(Kw_Simstrat,1,paste0, collapse=" "), file = "Simstrat/light_absorption.dat", append = T, sep = "\n")
     }
-    
-    
     
   }
 }
