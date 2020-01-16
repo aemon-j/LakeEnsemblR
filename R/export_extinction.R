@@ -131,9 +131,20 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       gotmtools::input_yaml(got_yaml, 'g2', 'method',0)
       gotmtools::input_yaml(got_yaml, 'g2', 'constant_value',1/Kw)
     }else{
-      # Make GOTM-version of Kw_file and write to GOTM yaml (method = 2, etc.)
-      # Then I would need to set method = 2 
-      message("Warning: variable extinction in GOTM not yet implemented")
+      
+      gotmtools::input_yaml(got_yaml, 'g2', 'method',2)
+      
+      # Write GOTM g2 file to the GOTM folder
+      Kw_GOTM <- Kw_file
+      Kw_GOTM$Extinction_Coefficient_perMeter <- 1/Kw_GOTM$Extinction_Coefficient_perMeter
+      colnames(Kw_GOTM)[2] <- "g2"
+      colnames(Kw_GOTM)[1] <- paste0("!",colnames(Kw_GOTM)[1])
+      
+      write.table(Kw_GOTM, file.path(folder,"GOTM","LakeEnsemblR_g2_GOTM.dat"),
+                  sep = "\t", row.names = F, quote = F)
+      
+      gotmtools::input_yaml(got_yaml, 'g2', 'file', "LakeEnsemblR_g2_GOTM.dat")
+      gotmtools::input_yaml(got_yaml, 'g2', 'column', 1)
     }
     
   }
