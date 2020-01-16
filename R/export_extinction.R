@@ -9,10 +9,7 @@
 #'@examples
 #'
 #'
-#'@importFrom stats approx
-#'@import lubridate
 #'@importFrom gotmtools get_yaml_value input_yaml input_nml
-#'@importFrom glmtools read_nml set_nml write_nml
 #'
 #'@export
 
@@ -102,11 +99,34 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
     
     if(constantValue){
-      input_nml(glm_nml, "light", "Kw", Kw)
+      # Write to nml: if any, replace the line with Kw_file and put Kw
+      fileCon <- file(file.path(glm_nml))
+      glm_string <- readLines(fileCon)
+      # find the line with "Kw" in it and write the new line
+      lineNr <- grep("Kw", glm_string)
+      glm_string[lineNr] <- paste("   Kw =", Kw)
+      
+      # Write nml file
+      writeLines(glm_string,glm_nml)
+      close(fileCon)
     }else{
-      # Make GLM-version of Kw_file and write to GLM nml
-      message("Warning: variable extinction in GLM not yet implemented")
+      # Write csv file
+      Kw_GLM <- Kw_file
+      colnames(Kw_GLM) <- c("Date","Kd") # sic
+      write.csv(Kw_GLM, file.path(folder,"GLM","Kw_GLM.csv"), row.names = F, quote = F)
+      
+      # Write to nml: if any, replace the line with Kw and put Kw_file
+      fileCon <- file(file.path(glm_nml))
+      glm_string <- readLines(fileCon)
+      # find the line with "Kw" in it and write the new line
+      lineNr <- grep("Kw", glm_string)
+      glm_string[lineNr] <- "   Kw_file = 'Kw_GLM.csv'"
+      
+      # Write nml file
+      writeLines(glm_string,glm_nml)
+      close(fileCon)
     }
+    
   }
   
   if("GOTM" %in% model){
