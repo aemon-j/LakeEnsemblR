@@ -16,16 +16,11 @@
 
 time_average <- function(timeseries, start, end, n=1000){
   
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-  
   # Fix time zone
   original_tz = Sys.getenv("TZ")
   
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
-    setwd(oldwd)
     Sys.setenv(TZ=original_tz)
   })
   

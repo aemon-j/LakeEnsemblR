@@ -318,5 +318,5 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   }
   
   # Light extinction (Kw) in separate function
-  export_extinction(config_file, model, folder)
+  export_extinction(config_file, model=model, folder=folder)
 }
