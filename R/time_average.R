@@ -10,7 +10,7 @@
 #'
 #'
 #'@importFrom stats approx
-#'@import zoo na.approx
+#'@importFrom zoo na.approx
 #'
 #'@export
 

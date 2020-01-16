@@ -105,7 +105,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       input_nml(glm_nml, "light", "Kw", Kw)
     }else{
       # Make GLM-version of Kw_file and write to GLM nml
-      message("Warning: variable water level in GLM not yet implemented")
+      message("Warning: variable extinction in GLM not yet implemented")
     }
   }
   
@@ -133,7 +133,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }else{
       # Make GOTM-version of Kw_file and write to GOTM yaml (method = 2, etc.)
       # Then I would need to set method = 2 
-      message("Warning: variable water level in GOTM not yet implemented")
+      message("Warning: variable extinction in GOTM not yet implemented")
     }
     
   }
@@ -175,7 +175,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       close(fileConnection)
     }else{
       # Make Simstrat-version of Kw_file and write to Simstrat dat file
-      message("Warning: variable water level in Simstrat not yet implemented")
+      message("Warning: variable extinction in Simstrat not yet implemented")
     }
     
     
