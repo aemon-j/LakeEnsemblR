@@ -145,6 +145,17 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
       dir.create('Simstrat/output', recursive = TRUE)
     }
     
+    # Read the Simstrat config file from config_file, and write it to the Simstrat directory
+    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat_config")
+    if(file.exists(temp_fil)){
+      sim_par <- temp_fil
+    }else{
+      # This will work once we build the package
+      template_file <- system.file("extdata/simstrat_template.par", package = packageName())
+      file.copy(from = template_file, to = file.path(folder, 'Simstrat', basename(temp_fil)))
+      sim_par <- file.path(folder, 'Simstrat', basename(temp_fil))
+    }
+    
     light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
     file.copy(from = light_fil, to = file.path(folder, 'Simstrat','light_absorption.dat'))
     
