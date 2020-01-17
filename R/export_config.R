@@ -34,7 +34,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   })
 
   Sys.setenv(TZ="GMT")
-
+  
+  
+  
+  
 
   # Read in all information from config_file that needs to be written to the model-specific config files
 
@@ -56,8 +59,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
   # Output depths
   output_depths <- get_yaml_value(config_file, "model_settings", "output_depths")
-  # Extinction coefficient
-  Kw <- get_yaml_value(config_file, "model_settings", "extinction_coefficient")
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
@@ -108,11 +109,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     ##
 
     # Input parameters
-    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep) # Hard-code: meteo needs to be in same time step as model. Not yet supported (Jorrit, 2019-12-15)
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep) #meteo needs to be in same time step as model
     input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
-    input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
     input_nml(fla_fil, label = 'METEO', key = 'outputfile', paste0("'output/output.dat'"))
 
     message('FLake configuration complete!')
@@ -148,14 +148,13 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
                      'latitude' = lat,
                      'longitude' = lon,
                      'lake_depth' = max_depth,
-                     'Kw' = Kw,
                      'crest_elev' = max(-(glm_hyp[,1])),
                      'bsn_vals'=length(glm_hyp[,1]) ,
                      'H' = -(glm_hyp[,1]),
                      'A' = rev(glm_hyp[,2] ),
                      'start' = start_date,
                      'stop' = stop_date,
-                     'dt' = timestep, # Hard-code: When choosing dt = 86400, GLM only gives daily output when dt = 3600? (Jorrit, 2019-12-15)
+                     'dt' = timestep,
                      'nsave' = out_tstep,
                      'out_dir' = 'output',
                      'out_fn' = 'output',
@@ -221,8 +220,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     input_yaml(out_yaml, 'output', 'time_step', out_tstep)
     input_yaml(out_yaml, 'output', 'time_unit', 'hour')
 
-    ## Input light extinction data
-    gotmtools::input_yaml(got_yaml, 'g2', 'constant_value',1/Kw)
 
     ## Switch off streams
     if(!use_inflows){
@@ -251,12 +248,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Copy in template files from examples folder in the package
-    light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
     qin_fil <- system.file('extdata/Qin.dat', package= 'SimstratR')
     qout_fil <- system.file('extdata/Qout.dat', package= 'SimstratR')
     tin_fil <- system.file('extdata/Tin.dat', package= 'SimstratR')
     sin_fil <- system.file('extdata/Sin.dat', package= 'SimstratR')
-    file.copy(from = light_fil, to = file.path(folder, 'Simstrat','light_absorption.dat'))
     file.copy(from = qin_fil, to = file.path(folder, 'Simstrat','Qin.dat'))
     file.copy(from = qout_fil, to = file.path(folder, 'Simstrat','Qout.dat'))
     file.copy(from = tin_fil, to = file.path(folder, 'Simstrat','Tin.dat'))
@@ -288,8 +283,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     input_json(sim_par, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
     input_json(sim_par, "Output", "Times", out_tstep)
-
-
+    
+    
     # Turn off ice and snow
     if(use_ice){
       input_json(sim_par, "ModelConfig", "IceModel", 1)
@@ -297,21 +292,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       input_json(sim_par, "ModelConfig", "IceModel", 0)
       input_json(sim_par, "ModelConfig", "SnowModel", 0)
     }
-
-    ## Input light absorption data
-    absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
-    # In case Kw is a single value for the whole simulation:
-    absorption_line_2 <- "1"
-    absorption_line_3 <- "-1 -1.00"
-    # need to source helper_functions/get_json_value.R for this function:
-    start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-    end_sim <- get_json_value(sim_par, "Simulation", "End d")
-    absorption_line_4 <- paste(start_sim,Kw)
-    absorption_line_5 <- paste(end_sim,Kw)
-
-    fileConnection <- file("Simstrat/light_absorption.dat")
-    writeLines(c(absorption_line_1,absorption_line_2,absorption_line_3,absorption_line_4,absorption_line_5), fileConnection)
-    close(fileConnection)
 
     # Turn off inflow
     if(!use_inflows){
@@ -336,4 +316,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     message('Simstrat configuration complete!')
 
   }
+  
+  # Light extinction (Kw) in separate function
+  export_extinction(config_file, model=model, folder=folder)
 }
