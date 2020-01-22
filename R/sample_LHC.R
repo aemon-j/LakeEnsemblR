@@ -17,13 +17,20 @@
 #' @importFrom FME Latinhyper
 #'
 #' @export
-sample_LHC <- function(parRange, num, folder = '.'){
+sample_LHC <- function(parRange, num, folder = '.', file.name = NULL){
   par_names <- row.names(parRange)
   params <- Latinhyper(parRange = as.matrix(parRange), num = num)
   params <- signif(params, 4)
   colnames(params) <- par_names
   params <- as.data.frame(params)
   params$par_id <- paste0('p', formatC(1:nrow(params), width = 4, format = "d", flag = "0"))
-  write.csv(params, file = file.path(folder, paste0('latin_hypercube_params', '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
-  return(paste0('latin_hypercube_params', '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv'))
+  if (is.null(file.name)){
+    write.csv(params, file = file.path(folder, paste0('latin_hypercube_params', '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    return.name = paste0('latin_hypercube_params', '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')
+  } else {
+    write.csv(params, file = file.path(folder, paste0(file.name, '.csv')), quote = FALSE, row.names = FALSE)
+    return.name = file.name
+    }
+  
+  return(paste0(return.name))
 }
