@@ -4,7 +4,7 @@
 #'
 #' @name run_LHC
 #' @param parRange dataframe; the range (min, max) of the parameters, a data.frame with one row for each parameter, and two columns with the minimum (1st) and maximum (2nd) column.
-#' @param num integer; the number of random parameter sets to generate.
+#' @param num integer; the number of random parameter sets to generate. If param file is provided num = number of parameters in that file.
 #' @param param_file filepath; to previously created parameter file set. If NULL creates a new parameter set. Defaults to NULL
 #' @param obs_file filepath; to LakeEnsemblR standardised observed water temperature profile data. If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
@@ -27,21 +27,29 @@
 #'rownames(df) <- pars
 #'run_LHC(parRange = parRange, num = 100, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', config_file = 'Feeagh_master_config.yaml', model = 'FLake', meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 #'@importFrom FME Latinhyper
+#'@importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
+#'@importFrom glmtools get_nml_value
+#'@importFrom reshape2 dcast
+#'@importFrom FLakeR run_flake
+#'@importFrom GLM3r run_glm
+#'@importFrom GOTMr run_gotm
+#'@importFrom SimstratR run_simstrat
+#'@importFrom lubridate round_date seconds_to_period
 #'
 #' @export
 
 
-run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
+run_LHC <- function(parRange, num = NULL, param_file = NULL, obs_file, config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file, folder = '.'){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz = Sys.getenv("TZ")
   Sys.setenv(TZ="GMT")
 
-  obs <- read.csv(obs_file, stringsAsFactors = FALSE)
+  obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
   obs_deps <- unique(obs$Depth_meter)
 
   # change data format from long to wide
-  obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = 'Water_Temperature_celsius')
+  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = 'Water_Temperature_celsius')
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c('datetime',paste('wtr_',str_depths, sep=""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
@@ -52,10 +60,18 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
   # Function to be added to gotmtools
   lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
   lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
+  depth <- get_yaml_value(file = yaml, label = 'location', key = 'depth')
   start <- get_yaml_value(file = yaml, label = 'time', key = 'start')
   stop <- get_yaml_value(file = yaml, label = 'location', key = 'stop')
 
   obs <- obs[obs[,1] >= start & obs[,1] < stop,]
+
+  # Which hemisphere?
+  if(lat > 0){
+    NH = TRUE
+  }else{
+    NH = FALSE
+  }
 
 
   ### Import data
@@ -116,14 +132,19 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     write.csv(params, file = file.path(folder, paste0('latin_hypercube_params_', paste0(model, collapse = '_'), '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
   }else{
     params <- read.csv(param_file, stringsAsFactors = FALSE)
+    num = nrow(params)
   }
 
   all_pars <- NULL
+  all_sa <- NULL
 
   # FLake
   #####
   if('FLake' %in% model){
     fla_met <- met
+
+    # Subset temporally
+    fla_met <- fla_met[(fla_met[,1] >= start & fla_met[,1] < stop),]
 
     # Humidity
     if(!vapour_pressure & relative_humidity){
@@ -138,7 +159,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     }
     if(!cloud_cover){
 
-      fla_met[[colname_cloud_cover]] =  gotmtools::calc_cc(date = fla_met$datetime,
+      fla_met[[colname_cloud_cover]] =  calc_cc(date = fla_met$datetime,
                                                            airt = fla_met$Air_Temperature_celsius,
                                                            relh = fla_met$Relative_Humidity_percent,
                                                            swr = fla_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared,
@@ -155,16 +176,13 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     colnames(fla_met)[1] <- paste0('!', colnames(fla_met)[1])
 
     # Select nml file for running FLake
-    nml_file <- gotmtools::get_yaml_value(config_file, "config_files", "flake_config")
+    nml_file <- get_yaml_value(config_file, "config_files", "flake_config")
     nml_file <- file.path(folder, nml_file)
     # Select nml file again
-    nml_file_run <- basename(gotmtools::get_yaml_value(config_file, "config_files", "flake_config"))
+    nml_file_run <- basename(get_yaml_value(config_file, "config_files", "flake_config"))
 
-    mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
-    depths <- seq(0,mean_depth,by = gotmtools::get_yaml_value(config_file,"model_settings", "output_depths"))
-
-
-    depths <- obs_deps
+    mean_depth <- suppressWarnings(get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
+    depths <- seq(0,mean_depth,by = get_yaml_value(config_file,"model_settings", "output_depths"))
 
     # Input values to nml
     nml_file <- list.files(file.path(folder, 'FLake'))[grep('nml', list.files(file.path(folder, 'FLake')))]
@@ -174,6 +192,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     input_nml(nml_file, 'METEO', 'meteofile', paste0("'",'temp_meteo_file.dat',"'"))
 
     for(i in 1:nrow(params)){
+
       fla_met2 <- fla_met
       fla_met2$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- fla_met2$Ten_Meter_Elevation_Wind_Speed_meterPerSecond * params$wind_factor[i]
       fla_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- fla_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor[i]
@@ -187,21 +206,34 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       # Extract output
       # Add in obs depths which are not in depths and less than mean depth
 
-      fla_out <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = 'FLake', nml_file = nml_file, long = TRUE)
-      stats <- sum_stat(fla_out, obs, depth = TRUE)
+      fla_long <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = 'FLake', nml_file = nml_file, long = TRUE)
+      fla_wide <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = 'FLake', nml_file = nml_file, long = FALSE)
+
+      stats <- sum_stat(fla_long, obs, depth = TRUE)
       stats$par_id <- params$par_id[i]
+
+      # Calculate stats for Sensitivity Analysis
+      sa_res <- analyse_strat(Ts = fla_wide[,2], Tb = fla_wide[,ncol(fla_wide)], dates = fla_wide[,1], NH = NH)
+      sa_res$par_id <- params$par_id[i]
+
 
       if(i == 1){
         out_stats <- stats
+        sa_stats <- sa_res
       }else{
         out_stats <- rbind.data.frame(out_stats, stats)
+        sa_stats <- rbind.data.frame(sa_stats, sa_res)
       }
       print(paste0('[',i,'/', nrow(params),']'))
     }
 
     write.csv(out_stats, file.path(folder, 'Flake', 'output', paste0('latin_hypercube_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
+    write.csv(sa_stats, file.path(folder, 'Flake', 'output', paste0('latin_hypercube_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+
+
     out_stats$model <- 'FLake'
+    sa_stats$model <- 'FLake'
 
     if(is.null(all_pars)){
       all_pars <- out_stats
@@ -209,8 +241,11 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       all_pars <- rbind.data.frame(all_pars, out_stats)
     }
 
-
-
+    if(is.null(all_sa)){
+      all_sa <- sa_stats
+    }else{
+      all_sa <- rbind.data.frame(all_sa, sa_stats)
+    }
 
 
     message('FLake: Finished Latin Hypercube Sampling calibration')
@@ -239,7 +274,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     }
 
     # Input to nml file
-    nml_path <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "glm_config"))
+    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm_config"))
     nml <- glmtools::read_nml(nml_path)
 
     nml_list <- list('subdaily' = subdaily, 'lw_type' = lw_type, 'meteo_fl' = 'temp_meteo_file.csv')
@@ -273,6 +308,9 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       # Extract output
       glm_out <- glmtools::get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
 
+      glm_sa <- glmtools::get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = c(0, depth-1))
+
+
       glm_out <- reshape2::melt(glm_out, id.vars = 1)
       glm_out[,2] <- as.character(glm_out[,2])
       glm_out[,2] <- as.numeric(gsub('temp_','',glm_out[,2]))
@@ -281,17 +319,29 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       stats <- sum_stat(glm_out, obs, depth = TRUE)
       stats$par_id <- params$par_id[i]
 
+      # Calculate stats for Sensitivity Analysis
+      sa_res <- analyse_strat(Ts = glm_sa[,2], Tb = glm_sa[,ncol(glm_sa)], dates = glm_sa[,1], NH = NH)
+
+      sa_res$par_id <- params$par_id[i]
+
+
       if(i == 1){
         out_stats <- stats
+        sa_stats <- sa_res
       }else{
         out_stats <- rbind.data.frame(out_stats, stats)
+        sa_stats <- rbind.data.frame(sa_stats, sa_res)
       }
       print(paste0('[',i,'/', nrow(params),']'))
     }
 
     write.csv(out_stats, file.path(folder, 'GLM', 'output', paste0('latin_hypercube_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
+    write.csv(sa_stats, file.path(folder, 'GLM', 'output', paste0('latin_hypercube_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+
+
     out_stats$model <- 'GLM'
+    sa_stats$model <- 'GLM'
 
     if(is.null(all_pars)){
       all_pars <- out_stats
@@ -299,26 +349,23 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       all_pars <- rbind.data.frame(all_pars, out_stats)
     }
 
-
-
-
+    if(is.null(all_sa)){
+      all_sa <- sa_stats
+    }else{
+      all_sa <- rbind.data.frame(all_sa, sa_stats)
+    }
 
     message('GLM: Finished Latin Hypercube Sampling calibration')
-
-
 
   }
 
   ## GOTM
   if('GOTM' %in% model){
+
     met_got <- met
-    yaml = file.path(folder,gotmtools::get_yaml_value(config_file, "config_files", "gotm_config"))
+    yaml = file.path(folder,get_yaml_value(config_file, "config_files", "gotm_config"))
 
     met_outfile <- 'meteo_file_temp.dat'
-
-    # Function to be added to gotmtools
-    lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
-    lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
 
     if(wind_direction){
       direction=270-met_got[[colname_wind_direction]] # Converting the wind direction to the "math" direction
@@ -335,7 +382,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     if(!cloud_cover){
       # Function from gotmtools
 
-      met_got$Cloud_Cover_decimalFraction <- gotmtools::calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, lon = lon,
+      met_got$Cloud_Cover_decimalFraction <- calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, lon = lon,
                                                                 elev = 14, # Needs to be dynamically added
                                                                 daily = daily)
     }
@@ -354,46 +401,46 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     ## Set gotm.yaml met config
     ######
     #u10
-    gotmtools::input_yaml(file = yaml, label = 'u10', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'u10', key = 'column', value = (which(colnames(met_got) == "Uwind_meterPerSecond")-1))
-    gotmtools::input_yaml(file = yaml, label = 'u10', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'u10', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'u10', key = 'column', value = (which(colnames(met_got) == "Uwind_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'u10', key = 'scale_factor', value = 1)
     #v10
-    gotmtools::input_yaml(file = yaml, label = 'v10', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'v10', key = 'column', value = (which(colnames(met_got) == "Vwind_meterPerSecond")-1))
-    gotmtools::input_yaml(file = yaml, label = 'v10', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'v10', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'v10', key = 'column', value = (which(colnames(met_got) == "Vwind_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'v10', key = 'scale_factor', value = 1)
     #airp
-    gotmtools::input_yaml(file = yaml, label = 'airp', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'airp', key = 'column', value = (which(colnames(met_got) == "Surface_Level_Barometric_Pressure_pascal" )-1))
-    gotmtools::input_yaml(file = yaml, label = 'airp', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'airp', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'airp', key = 'column', value = (which(colnames(met_got) == "Surface_Level_Barometric_Pressure_pascal" )-1))
+    input_yaml(file = yaml, label = 'airp', key = 'scale_factor', value = 1)
     #airt
-    gotmtools::input_yaml(file = yaml, label = 'airt', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'airt', key = 'column', value = (which(colnames(met_got) == "Air_Temperature_celsius")-1))
-    gotmtools::input_yaml(file = yaml, label = 'airt', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'airt', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'airt', key = 'column', value = (which(colnames(met_got) == "Air_Temperature_celsius")-1))
+    input_yaml(file = yaml, label = 'airt', key = 'scale_factor', value = 1)
     #cloud
-    gotmtools::input_yaml(file = yaml, label = 'cloud', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'cloud', key = 'column', value = (which(colnames(met_got) == "Cloud_Cover_decimalFraction" )-1))
-    gotmtools::input_yaml(file = yaml, label = 'cloud', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'cloud', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'cloud', key = 'column', value = (which(colnames(met_got) == "Cloud_Cover_decimalFraction" )-1))
+    input_yaml(file = yaml, label = 'cloud', key = 'scale_factor', value = 1)
     #swr
-    gotmtools::input_yaml(file = yaml, label = 'swr', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'swr', key = 'column', value = (which(colnames(met_got) == "Shortwave_Radiation_Downwelling_wattPerMeterSquared")-1))
-    gotmtools::input_yaml(file = yaml, label = 'swr', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'swr', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'swr', key = 'column', value = (which(colnames(met_got) == "Shortwave_Radiation_Downwelling_wattPerMeterSquared")-1))
+    input_yaml(file = yaml, label = 'swr', key = 'scale_factor', value = 1)
     #precip
-    gotmtools::input_yaml(file = yaml, label = 'precip', key = 'file', value = met_outfile)
-    gotmtools::input_yaml(file = yaml, label = 'precip', key = 'column', value = (which(colnames(met_got) == "Precipitation_meterPerSecond")-1))
-    gotmtools::input_yaml(file = yaml, label = 'precip', key = 'scale_factor', value = 1)
+    input_yaml(file = yaml, label = 'precip', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'precip', key = 'column', value = (which(colnames(met_got) == "Precipitation_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'precip', key = 'scale_factor', value = 1)
     if("Relative_Humidity_percent" %in% colnames(met_got)){
       #hum
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Relative_Humidity_percent")-1))
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'type', value = 1) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
+      input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
+      input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Relative_Humidity_percent")-1))
+      input_yaml(file = yaml, label = 'hum', key = 'type', value = 1) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
+      input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
     }
     if("Dewpoint_Temperature_celsius" %in% colnames(met_got)){
       #hum
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Dewpoint_Temperature_celsius")-1))
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'type', value = 3) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
-      gotmtools::input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
+      input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
+      input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Dewpoint_Temperature_celsius")-1))
+      input_yaml(file = yaml, label = 'hum', key = 'type', value = 3) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
+      input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
     }
 
     # Get depths for comparison
@@ -402,6 +449,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     obs_got[,2] <- -obs_got[,2]
 
     for(i in 1:nrow(params)){
+
       got_met2 <- met_got
       got_met2$Uwind_meterPerSecond <- got_met2$Uwind_meterPerSecond * params$wind_factor[i]
       got_met2$Vwind_meterPerSecond <- got_met2$Vwind_meterPerSecond * params$wind_factor[i]
@@ -410,7 +458,7 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       # Write to file
       write.table(got_met2, file.path('GOTM', met_outfile), quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
 
-      yaml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "gotm_config"))
+      yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
 
       run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file))
 
@@ -418,8 +466,8 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       # Add in obs depths which are not in depths and less than mean depth
 
       # Extract output
-      temp <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
-      z <- gotmtools::get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
+      temp <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
+      z <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
 
 
       got_out <- setmodDepths(temp, z, depths = depths, print = T)
@@ -428,17 +476,30 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       stats <- sum_stat(got_out, obs_got, depth = TRUE)
       stats$par_id <- params$par_id[i]
 
+      # Calculate stats for Sensitivity Analysis
+      sa_res <- analyse_strat(Ts = temp[,2], Tb = temp[,ncol(temp)], dates =  temp[,1], NH = NH)
+
+      sa_res$par_id <- params$par_id[i]
+
+
       if(i == 1){
         out_stats <- stats
+        sa_stats <- sa_res
       }else{
         out_stats <- rbind.data.frame(out_stats, stats)
+        sa_stats <- rbind.data.frame(sa_stats, sa_res)
       }
+
       print(paste0('[',i,'/', nrow(params),']'))
     }
 
     write.csv(out_stats, file.path(folder, 'GOTM', 'output', paste0('latin_hypercube_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
+    write.csv(sa_stats, file.path(folder, 'GOTM', 'output', paste0('latin_hypercube_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+
+
     out_stats$model <- 'GOTM'
+    sa_stats$model <- 'GOTM'
 
     if(is.null(all_pars)){
       all_pars <- out_stats
@@ -446,7 +507,11 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       all_pars <- rbind.data.frame(all_pars, out_stats)
     }
 
-
+    if(is.null(all_sa)){
+      all_sa <- sa_stats
+    }else{
+      all_sa <- rbind.data.frame(all_sa, sa_stats)
+    }
 
     message('GOTM: Finished Latin Hypercube Sampling calibration')
 
@@ -454,7 +519,8 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
 
   ## Simstrat
   if('Simstrat' %in% model){
-    par_file <- file.path(folder,gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
+
+    par_file <- file.path(folder,get_yaml_value(config_file, "config_files", "simstrat_config"))
     met_sim <- met
     met_outfile <- 'meteo_file_temp.dat'
 
@@ -576,15 +642,16 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     input_json(file = par_file, label = 'Input', key = 'Forcing', paste0('"', met_outfile, '"'))
 
     # Need to input start and stop into json par file
-    par_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
     timestep <- get_json_value(par_file, "Simulation", "Timestep s")
     reference_year <- get_json_value(par_file, "Simulation", "Start year")
 
     # par file for running Simstrat
-    par_file <- basename(gotmtools::get_yaml_value(config_file, "config_files", "simstrat_config"))
+    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat_config"))
 
 
     for(i in 1:nrow(params)){
+
       sim_met2 <- simstrat_forcing
       sim_met2$Uwind_meterPerSecond <- sim_met2$Uwind_meterPerSecond * params$wind_factor[i]
       sim_met2$Vwind_meterPerSecond <- sim_met2$Vwind_meterPerSecond * params$wind_factor[i]
@@ -600,14 +667,16 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
 
       ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-
-
       sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      sim_out[,1] <- lubridate::round_date(sim_out[,1], unit = lubridate::seconds_to_period(timestep))
+      sim_out[,1] <- round_date(sim_out[,1], unit = seconds_to_period(timestep))
 
       # First column datetime, then depth from shallow to deep
       sim_out <- sim_out[,c(1,ncol(sim_out):2)]
+      bot_ind <- which(!is.nan(colSums(sim_out[,-1])))
+      bot_ind <- bot_ind[length(bot_ind)] + 1
+
+      sim_sa <- sim_out[,c(1,2,bot_ind)]
 
       # Remove columns without any value
       sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
@@ -637,10 +706,18 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
       stats <- sum_stat(sim_out, obs, depth = TRUE)
       stats$par_id <- params$par_id[i]
 
+      # Calculate stats for Sensitivity Analysis
+      sa_res <- analyse_strat(Ts = sim_sa[,2], Tb = sim_sa[,3], dates =  sim_sa[,1], NH = NH)
+
+      sa_res$par_id <- params$par_id[i]
+
+
       if(i == 1){
         out_stats <- stats
+        sa_stats <- sa_res
       }else{
         out_stats <- rbind.data.frame(out_stats, stats)
+        sa_stats <- rbind.data.frame(sa_stats, sa_res)
       }
 
 
@@ -653,12 +730,22 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
     ### Write the table in the present working directory
     write.csv(out_stats, file.path(folder, 'Simstrat', 'output', paste0('latin_hypercube_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
+    write.csv(sa_stats, file.path(folder, 'Simstrat', 'output', paste0('latin_hypercube_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+
+
     out_stats$model <- 'Simstrat'
+    sa_stats$model <- 'Simstrat'
 
     if(is.null(all_pars)){
       all_pars <- out_stats
     }else{
       all_pars <- rbind.data.frame(all_pars, out_stats)
+    }
+
+    if(is.null(all_sa)){
+      all_sa <- sa_stats
+    }else{
+      all_sa <- rbind.data.frame(all_sa, sa_stats)
     }
 
     message('Simstrat: Finished Latin Hypercube Sampling calibration')
@@ -667,6 +754,8 @@ run_LHC <- function(parRange, num, param_file = NULL, obs_file, config_file, mod
   dir.create(file.path(folder,'output'), showWarnings = FALSE)
 
   write.csv(all_pars, file.path(folder,'output', paste0('LHC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+
+  write.csv(all_sa, file.path(folder,'output', paste0('LHC_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
 }
 

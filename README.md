@@ -8,6 +8,7 @@ Tools for running an ensemble of lake models using standardised input data. Lake
 You can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
+
 # install.packages("devtools")
 devtools::install_github("aemon-j/LakeEnsemblR")
 ```
@@ -63,6 +64,7 @@ wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'G
 
 ## Post-processing
 ```{r gh-installation, eval = FALSE}
+
 # Load libraries for post-processing
 library(ggpubr)
 library(ggplot2)

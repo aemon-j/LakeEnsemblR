@@ -15,7 +15,8 @@
 #'
 #' @importFrom plyr ddply
 #' @importFrom lubridate month
-#' @import glmtools
+#' @importFrom glmtools read_nml set_nml write_nml
+#' @importFrom gotmtools input_yaml
 #'
 #' @export
 
@@ -77,12 +78,12 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
     glm_deps <- deps
     glm_tmp <- tmp
     # Input to nml file
-    nml <- glmtools::read_nml(file.path(folder,'GLM','glm3.nml'))
+    nml <- read_nml(file.path(folder,'GLM','glm3.nml'))
 
     nml_list <- list('num_depths' = ndeps, 'the_depths' = glm_deps, 'the_temps' = glm_tmp, 'the_sals' = rep(0, length(tmp)))
-    nml <- glmtools::set_nml(nml, arg_list = nml_list)
-
-    glmtools::write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))
+    nml <- set_nml(nml, arg_list = nml_list)
+    # check for max(the_depths) > lake_depth ??
+    write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))
     message('GLM: Input initial conditions into ', file.path(folder,"GLM", 'glm3.nml'))
 
   }
@@ -100,9 +101,9 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
     df[(2):(1+ndeps),2] = as.numeric(got_tmp)
     write.table(df, file.path(folder, 'GOTM', 'init_cond.dat'), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
 
-    gotmtools::input_yaml(file = yaml, label = 'temperature', key = 'file', value = 'init_cond.dat')
-    gotmtools::input_yaml(file = yaml, label = 'temperature', key = 'method', value = 2)
-    gotmtools::input_yaml(file = yaml, label = 'temperature', key = 'column', value = 1)
+    input_yaml(file = yaml, label = 'temperature', key = 'file', value = 'init_cond.dat')
+    input_yaml(file = yaml, label = 'temperature', key = 'method', value = 2)
+    input_yaml(file = yaml, label = 'temperature', key = 'column', value = 1)
 
 
     message('GOTM: Created initial conditions file ', file.path(folder,"GOTM", 'init_cond.dat'))
