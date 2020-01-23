@@ -23,6 +23,19 @@
 #' @export
 run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE, obs_file = NULL){
 
+  # It's advisable to set timezone to GMT in order to avoid errors when reading time
+  original_tz = Sys.getenv("TZ")
+  Sys.setenv(TZ="GMT")
+
+  # Set working directory
+  oldwd <- getwd()
+
+  # this way if the function exits for any reason, success or failure, these are reset:
+  on.exit({
+    setwd(oldwd)
+    Sys.setenv(TZ=original_tz)
+  })
+
   # Set all as NULL
   fla_out <- NULL
   glm_out <- NULL
@@ -30,9 +43,6 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   sim_out <- NULL
   obs_out <- NULL
 
-  # It's advisable to set timezone to GMT in order to avoid errors when reading time
-  original_tz = Sys.getenv("TZ")
-  Sys.setenv(TZ="GMT")
 
   ## Extract start, stop, lat & lon for netCDF file from config file
   start <- get_yaml_value(config_file, "time", "start")

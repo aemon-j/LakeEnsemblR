@@ -18,7 +18,7 @@
 #' }
 #'
 #' @export
-get_wtemp_df <- function(output, depths, folder, nml_file, long = FALSE){
+get_wtemp_df <- function(output, depths, folder = '.', nml_file, long = FALSE){
 
   met_file <- suppressWarnings(get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
   met_file <- file.path(folder, met_file)
