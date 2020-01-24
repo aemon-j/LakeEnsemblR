@@ -148,16 +148,21 @@ run_MCMC <- function(parRange, num = NULL, obs_file, config_file, model = c('GOT
   data = obs$Water_Temperature_celsius
   data = subset(obs, Depth_meter %in% c(0.9,2.5,5,8,11))$Water_Temperature_celsius
   data = subset(obs, Depth_meter %in% c(14,16.18,20,22,27,32,42))$Water_Temperature_celsius
-  
-  plot(density(data))
-  plot(density(log10(data)))
-  plot(density(sqrt(data)))
-  plot(density(1/data))
-  plot(density(1/2*log(sinh(3+2*data))))
+
 
   all_pars <- NULL
   all_sa <- NULL
 
+  step_param <- function(curPar, parRange){
+    ready = TRUE
+    while (ready){
+      df = curPar[-length(curPar)] + (runif(1,1,2) *runif(3,-1,1)/(parRange$V2-parRange$V1)/runif(1,1,5))
+      if (all(df > parRange$V1) && all(df < parRange$V2)){
+        ready = FALSE
+      }
+    }
+    return(df)
+  }
 
   # GLM
   #####
@@ -208,16 +213,7 @@ run_MCMC <- function(parRange, num = NULL, obs_file, config_file, model = c('GOT
     colnames(params) = c(var.name)
     params$par_id = seq(1,nrow(params),1)
     
-    step_param <- function(curPar, parRange){
-      ready = TRUE
-      while (ready){
-        df = curPar[-length(curPar)] + (runif(1,1,2) *runif(3,-1,1)/(parRange$V2-parRange$V1)/runif(1,1,5))
-        if (all(df > parRange$V1) && all(df < parRange$V2)){
-          ready = FALSE
-        }
-      }
-      return(df)
-    }
+
     
     glm_met2 <- glm_met
     glm_met2$WindSpeed <- glm_met2$WindSpeed * params$wind_factor[1]
@@ -306,46 +302,13 @@ num=1000
       print(paste0('[',i,'/', num,']'))
     }
 
-  idx = which(out_stats$NSE == max(out_stats$NSE))[1]
-  out_stats[idx,]
-  params[idx,]
-  best.params = as.data.frame(t(params[idx,-c(ncol(params))]))
-  colnames(best.params) = 'best'
-  best.params$parameter = rownames(best.params)
-  library(ggplot2)
-  m.params <- reshape2::melt(params,id.vars= 'par_id')
-  g0=ggplot(m.params, aes(x=par_id, value, col = variable))+
-    geom_line() +
-    theme_bw();g0
-  g1=ggplot(m.params, aes(x=value, fill = variable))+
-    geom_density(alpha=0.4) +
-    # geom_vline(data=best.params, aes(xintercept=best, col =parameter),
-               # linetype="dashed") +
-    theme_bw();g1
-  g2=ggplot(out_stats, aes(par_id, NSE)) +
-    geom_line() +
-    theme_bw();g2
-  g3=ggplot(out_stats, aes(par_id, RMSE)) +
-    geom_line() +
-    theme_bw();g3
-  g4=ggplot(out_stats, aes(NSE, RMSE, col =MAE)) +
-    geom_point() +
-    scale_x_reverse() +
-    theme_bw();g4
-  library(patchwork)
-  p = g0 / g1 / (g2+g3+g4);p
-  
-  ggsave(file='MCMC.png', p, dpi = 300, width = 316, height=216, units='mm')
-  
-
-
     write.csv(out_stats, file.path(folder, 'GLM', 'output', paste0('MCMC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
     write.csv(params, file.path(folder, 'GLM', 'output', paste0('MCMC_params_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
 
     out_stats$model <- 'GLM'
-    sa_stats$model <- 'GLM'
+    params$model <- 'GLM'
 
     if(is.null(all_pars)){
       all_pars <- out_stats
@@ -354,24 +317,574 @@ num=1000
     }
 
     if(is.null(all_sa)){
-      all_sa <- sa_stats
+      all_sa <- params
     }else{
-      all_sa <- rbind.data.frame(all_sa, sa_stats)
+      all_sa <- rbind.data.frame(all_sa, params)
     }
 
-    message('GLM: Finished doing a pseudo MCMC, took me long enough')
+    message('GLM: Finished doing a pseudo MCMC, sorry it took me so long!')
 
   }
 
+  ## GOTM
+  if('GOTM' %in% model){
+    
+    met_got <- met
+    yaml = file.path(folder,get_yaml_value(config_file, "config_files", "gotm_config"))
+    
+    met_outfile <- 'meteo_file_temp.dat'
+    
+    if(wind_direction){
+      direction=270-met_got[[colname_wind_direction]] # Converting the wind direction to the "math" direction
+      rads=direction/180*pi
+      xcomp=met_got[[colname_wind_speed]]*cos(rads)
+      ycomp=met_got[[colname_wind_speed]]*sin(rads)
+      met_got$Uwind = xcomp
+      met_got$Vwind = ycomp
+    }else{
+      met_got$Uwind_meterPerSecond = met_got[[colname_wind_speed]]
+      met_got$Vwind_meterPerSecond = 0
+    }
+    
+    if(!cloud_cover){
+      # Function from gotmtools
+      
+      met_got$Cloud_Cover_decimalFraction <- calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, lon = lon,
+                                                     elev = 14, # Needs to be dynamically added
+                                                     daily = daily)
+    }
+    
+    met_got <- met_got[,c('datetime', 'Uwind_meterPerSecond', 'Vwind_meterPerSecond', 'Surface_Level_Barometric_Pressure_pascal', 'Air_Temperature_celsius', 'Relative_Humidity_percent', 'Cloud_Cover_decimalFraction', 'Shortwave_Radiation_Downwelling_wattPerMeterSquared', 'Precipitation_meterPerSecond')]
+    
+    colnames(met_got)[1] <- paste0('!', colnames(met_got)[1])
+    met_got[,1] <- format(met_got[,1], '%Y-%m-%d %H:%M:%S')
+    
+    #Reduce number of digits
+    met_got[,-1] <- signif(met_got[,-1], digits = 8)
+    
+    
+    
+    # Format gotm.yaml file
+    ## Set gotm.yaml met config
+    ######
+    #u10
+    input_yaml(file = yaml, label = 'u10', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'u10', key = 'column', value = (which(colnames(met_got) == "Uwind_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'u10', key = 'scale_factor', value = 1)
+    #v10
+    input_yaml(file = yaml, label = 'v10', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'v10', key = 'column', value = (which(colnames(met_got) == "Vwind_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'v10', key = 'scale_factor', value = 1)
+    #airp
+    input_yaml(file = yaml, label = 'airp', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'airp', key = 'column', value = (which(colnames(met_got) == "Surface_Level_Barometric_Pressure_pascal" )-1))
+    input_yaml(file = yaml, label = 'airp', key = 'scale_factor', value = 1)
+    #airt
+    input_yaml(file = yaml, label = 'airt', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'airt', key = 'column', value = (which(colnames(met_got) == "Air_Temperature_celsius")-1))
+    input_yaml(file = yaml, label = 'airt', key = 'scale_factor', value = 1)
+    #cloud
+    input_yaml(file = yaml, label = 'cloud', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'cloud', key = 'column', value = (which(colnames(met_got) == "Cloud_Cover_decimalFraction" )-1))
+    input_yaml(file = yaml, label = 'cloud', key = 'scale_factor', value = 1)
+    #swr
+    input_yaml(file = yaml, label = 'swr', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'swr', key = 'column', value = (which(colnames(met_got) == "Shortwave_Radiation_Downwelling_wattPerMeterSquared")-1))
+    input_yaml(file = yaml, label = 'swr', key = 'scale_factor', value = 1)
+    #precip
+    input_yaml(file = yaml, label = 'precip', key = 'file', value = met_outfile)
+    input_yaml(file = yaml, label = 'precip', key = 'column', value = (which(colnames(met_got) == "Precipitation_meterPerSecond")-1))
+    input_yaml(file = yaml, label = 'precip', key = 'scale_factor', value = 1)
+    if("Relative_Humidity_percent" %in% colnames(met_got)){
+      #hum
+      input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
+      input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Relative_Humidity_percent")-1))
+      input_yaml(file = yaml, label = 'hum', key = 'type', value = 1) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
+      input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
+    }
+    if("Dewpoint_Temperature_celsius" %in% colnames(met_got)){
+      #hum
+      input_yaml(file = yaml, label = 'hum', key = 'file', value = met_outfile)
+      input_yaml(file = yaml, label = 'hum', key = 'column', value = (which(colnames(met_got) == "Dewpoint_Temperature_celsius")-1))
+      input_yaml(file = yaml, label = 'hum', key = 'type', value = 3) #1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg)
+      input_yaml(file = yaml, label = 'hum', key = 'scale_factor', value = 1)
+    }
+    
+    # Get depths for comparison
+    depths = -obs_deps
+    obs_got <- obs
+    obs_got[,2] <- -obs_got[,2]
+    
+    params = as.data.frame(matrix(NA, ncol = nrow(parRange), nrow=1)) # initial parameter guesses
+    for (ii in 1:nrow(parRange)){
+      var.name = rownames(parRange)
+      if (parRange$method[ii] == 'uniform'){
+        params[,ii] = runif(1, parRange$V1[ii], parRange$V2[ii]) 
+      } else if (parRange$method[ii] == 'normal') {
+        params[,ii] = rnorm(1, parRange$V1[ii], parRange$V2[ii])
+      }
+    }
+    colnames(params) = c(var.name)
+    params$par_id = seq(1,nrow(params),1)
+    
+    got_met2 <- met_got
+    got_met2$Uwind_meterPerSecond <- got_met2$Uwind_meterPerSecond * params$wind_factor
+    got_met2$Vwind_meterPerSecond <- got_met2$Vwind_meterPerSecond * params$wind_factor
+    got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor
+    
+    # Write to file
+    write.table(got_met2, file.path('GOTM', met_outfile), quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
+    
+    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
+    
+    run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file))
+    
+    # Extract output
+    # Add in obs depths which are not in depths and less than mean depth
+    
+    # Extract output
+    temp <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
+    z <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
+    
+    
+    got_out <- setmodDepths(temp, z, depths = depths, print = T)
+    colnames(got_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+    
+    stats <- sum_stat(got_out, obs_got, depth = TRUE)
+    stats$par_id <- params$par_id
+    new_stats = stats
+    # Calculate stats for Sensitivity Analysis
+    out_stats = new_stats
+    
+    cost_prior = stats$MAE
+    
+    num=1000
 
+    
+    for(i in 2:(num)){
+      
+      params_current = step_param(curPar = params[(i-1),], parRange)
+      got_met2 <- met_got
+      got_met2$Uwind_meterPerSecond <- got_met2$Uwind_meterPerSecond * params_current$wind_factor
+      got_met2$Vwind_meterPerSecond <- got_met2$Vwind_meterPerSecond * params_current$wind_factor
+      got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- got_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params_current$swr_factor
+      
+      # Write to file
+      write.table(got_met2, file.path('GOTM', met_outfile), quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
+      
+      yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
+      
+      run_gotm(sim_folder = file.path(folder, 'GOTM'), yaml_file = basename(yaml_file))
+      
+      # Extract output
+      # Add in obs depths which are not in depths and less than mean depth
+      
+      # Extract output
+      temp <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
+      z <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
+      
+      
+      got_out <- setmodDepths(temp, z, depths = depths, print = T)
+      colnames(got_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+      
+      stats <- sum_stat(got_out, obs_got, depth = TRUE)
+      cost_current = stats$MAE
+      
+      if (runif(1) < exp(-(cost_current-cost_prior))){# (runif(1) < cost_prior/cost_current)
+        params_current$par_id = max(params$par_id) +1
+        params = rbind(params, params_current)
+        cost_prior = cost_current
+        new_stats = stats
+        new_stats$par_id <- max(params$par_id) +1
+        # new_sa_res = sa_res
+      } else {
+        params = rbind(params, params[i-1,])
+      }
+      
 
+        out_stats <- rbind.data.frame(out_stats, new_stats)
+        # sa_stats <- rbind.data.frame(sa_stats, sa_res)
 
+      
+      print(paste0('[',i,'/', (num),']'))
+    }
+    
+    write.csv(out_stats, file.path(folder, 'GOTM', 'output', paste0('MCMC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    
+    write.csv(params, file.path(folder, 'GOTM', 'output', paste0('MCMC_params_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    
+    
+    out_stats$model <- 'GOTM'
+    params$model <- 'GOTM'
+    
+    if(is.null(all_pars)){
+      all_pars <- out_stats
+    }else{
+      all_pars <- rbind.data.frame(all_pars, out_stats)
+    }
+    
+    if(is.null(all_sa)){
+      all_sa <- params
+    }else{
+      all_sa <- rbind.data.frame(all_sa, params)
+    }
+    
+    message('GOTM: Finished building that MCMC chain, what a mess.')
+    
+  }
+
+  ## Simstrat
+  if('Simstrat' %in% model){
+    
+    par_file <- file.path(folder,get_yaml_value(config_file, "config_files", "simstrat_config"))
+    met_sim <- met
+    met_outfile <- 'meteo_file_temp.dat'
+    
+    # Required input file changes depending on the forcing mode in the config file
+    forcing_mode <- get_json_value(par_file, "ModelConfig", "Forcing")
+    
+    ### Pre-processing
+    # Time
+    if(datetime){
+      # Time in simstrat is in decimal days since a defined start year
+      start_year <- get_json_value(par_file, "Simulation", "Start year")
+      
+      met_sim$datetime = as.numeric(difftime(met_sim$datetime,as.POSIXct(paste0(start_year,"-01-01")),units = "days"))
+    }else{
+      stop("Cannot find \"datetime\" column in the input file. Without this column, the model cannot run")
+    }
+    
+    # Wind
+    # If wind direction is provided, U and V wind components are calculated. If not, V wind is set to 0
+    if(wind_direction){
+      direction=270-met_sim[[colname_wind_direction]] # Converting the wind direction to the "math" direction
+      rads=direction/180*pi
+      xcomp=met_sim[[colname_wind_speed]]*cos(rads)
+      ycomp=met_sim[[colname_wind_speed]]*sin(rads)
+      met_sim$Uwind = xcomp
+      met_sim$Vwind = ycomp
+    }else{
+      met_sim$Uwind_meterPerSecond = met_sim[[colname_wind_speed]]
+      met_sim$Vwind_meterPerSecond = 0
+    }
+    
+    # Humidity
+    if(!vapour_pressure & relative_humidity){
+      # Calculate vapour pressure as: relhum * saturated vapour pressure
+      # Used formula for saturated vapour pressure from:
+      # Woolway, R. I., Jones, I. D., Hamilton, D. P., Maberly, S. C., Muraoka, K., Read, J. S., . . . Winslow, L. A. (2015).
+      # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
+      # Environmental Modelling & Software, 70, 191-198.
+      
+      met_sim[[colname_vapour_pressure]]=met_sim[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * met_sim[[colname_air_temperature]] / (237.3 + met_sim[[colname_air_temperature]]))
+      
+    }
+    
+    # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
+    snow_module <- get_json_value(par_file, "ModelConfig", "SnowModel") == 1
+    # Optionally, if there is no precipitation/snowfall column, we can set the snow_module to FALSE
+    
+    if(snow_module & !(precipitation | snowfall)){
+      stop("There is no precipitation data and the Simstrat snow_module is set to TRUE.")
+    }
+    
+    
+    # Precipitation
+    # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
+    if(precipitation){
+      met_sim$`Precipitation_meterPerHour`=met_sim[[colname_precipitation]]*3600
+    }else if(snowfall){
+      met_sim$`Precipitation_meterPerHour`=met_sim[[colname_snow]]/24
+    }
+    
+    
+    
+    
+    ### Build simstrat_forcing file
+    # Boolean to see if there is enough data to write the meteo file
+    enoughData=T
+    
+    
+    # Now build the simstrat forcing file, based on the forcing_mode. If data is not available, an error message is displayed
+    if(forcing_mode == "5"){
+      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & longwave_radiation)){
+        enoughData = F
+      }else{
+        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
+                                       colname_longwave_radiation)]
+        if(snow_module){
+          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+        }
+      }
+    }else if(forcing_mode == "4"){
+      # Forcing mode 4 requires one column with "heat flux" input. LakeEnsemblR does not yet have functionality for this option
+      enoughData = F
+    }else if(forcing_mode == "3"){
+      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & cloud_cover)){
+        enoughData = F
+      }else{
+        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
+                                       colname_cloud_cover)]
+        if(snow_module){
+          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+        }
+      }
+    }else if(forcing_mode == "2"){
+      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity))){
+        enoughData = F
+      }else{
+        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure)]
+        if(snow_module){
+          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+        }
+      }
+    }else if(forcing_mode == "1"){
+      if(!(wind_speed & air_temperature & solar_radiation)){
+        enoughData = F
+      }else{
+        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+                                       colname_air_temperature, colname_solar_radiation)]
+        if(snow_module){
+          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+        }
+      }
+    }
+    
+    if(!enoughData){stop(paste("There is no data to run the model in forcing mode",forcing_mode))}
+    
+    input_json(file = par_file, label = 'Input', key = 'Forcing', paste0('"', met_outfile, '"'))
+    
+    # Need to input start and stop into json par file
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
+    timestep <- get_json_value(par_file, "Simulation", "Timestep s")
+    reference_year <- get_json_value(par_file, "Simulation", "Start year")
+    
+    # par file for running Simstrat
+    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat_config"))
+    
+    params = as.data.frame(matrix(NA, ncol = nrow(parRange), nrow=1)) # initial parameter guesses
+    for (ii in 1:nrow(parRange)){
+      var.name = rownames(parRange)
+      if (parRange$method[ii] == 'uniform'){
+        params[,ii] = runif(1, parRange$V1[ii], parRange$V2[ii]) 
+      } else if (parRange$method[ii] == 'normal') {
+        params[,ii] = rnorm(1, parRange$V1[ii], parRange$V2[ii])
+      }
+    }
+    colnames(params) = c(var.name)
+    params$par_id = seq(1,nrow(params),1)
+    
+    sim_met2 <- simstrat_forcing
+    sim_met2$Uwind_meterPerSecond <- sim_met2$Uwind_meterPerSecond * params$wind_factor
+    sim_met2$Vwind_meterPerSecond <- sim_met2$Vwind_meterPerSecond * params$wind_factor
+    sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params$swr_factor
+    sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared * params$lw_factor
+    
+    # Write to file
+    write.table(sim_met2, file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
+    
+    run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
+    
+    ### Extract output
+    sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
+    
+    ### Convert decimal days to yyyy-mm-dd HH:MM:SS
+    sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
+    # In case sub-hourly time steps are used, rounding might be necessary
+    sim_out[,1] <- round_date(sim_out[,1], unit = seconds_to_period(timestep))
+    
+    # First column datetime, then depth from shallow to deep
+    sim_out <- sim_out[,c(1,ncol(sim_out):2)]
+    bot_ind <- which(!is.nan(colSums(sim_out[,-1])))
+    bot_ind <- bot_ind[length(bot_ind)] + 1
+    
+    sim_sa <- sim_out[,c(1,2,bot_ind)]
+    
+    # Remove columns without any value
+    sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
+    mod_depths = as.numeric(colnames(sim_out)[-1])
+    
+    sim_depths <- -obs_deps
+    message('Interpolating Simstrat temp to include obs depths')
+    
+    # Create empty matrix and interpolate to new depths
+    wat_mat <- matrix(NA, nrow = nrow(sim_out), ncol = length(sim_depths))
+    for(j in 1:nrow(sim_out)){
+      y = as.vector(unlist(sim_out[j,-1]))
+      wat_mat[j,] <- approx(mod_depths, y, sim_depths, rule = 2)$y
+    }
+    df = data.frame(wat_mat)
+    df$datetime <- sim_out[,1]
+    df <- df[,c(ncol(df), 1:(ncol(df)-1))]
+    colnames(df) <- c("datetime", paste0('wtr_',abs(sim_depths)))
+    sim_out <- df
+    
+    
+    sim_out <- reshape2::melt(sim_out, id.vars = 1)
+    sim_out[,2] <- as.character(sim_out[,2])
+    sim_out[,2] <- as.numeric(gsub('wtr_','',sim_out[,2]))
+    colnames(sim_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+    
+    stats <- sum_stat(glm_out, obs, depth = TRUE)
+    stats$par_id <- params$par_id[1]
+    new_stats = stats
+    # Calculate stats for Sensitivity Analysis
+    # sa_res <- analyse_strat(Ts = glm_sa[,2], Tb = glm_sa[,ncol(glm_sa)], dates = glm_sa[,1], NH = NH)
+    
+    # sa_res$par_id <- params$par_id[i]
+    
+    out_stats <- new_stats
+    # sa_stats <- sa_res
+    
+    cost_prior = stats$MAE
+    num=1000
+    
+  
+    
+    for(i in 2:num){
+      params_current = step_param(curPar = params[(i-1),], parRange)
+      sim_met2 <- simstrat_forcing
+      sim_met2$Uwind_meterPerSecond <- sim_met2$Uwind_meterPerSecond * params_current$wind_factor
+      sim_met2$Vwind_meterPerSecond <- sim_met2$Vwind_meterPerSecond * params_current$wind_factor
+      sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Shortwave_Radiation_Downwelling_wattPerMeterSquared * params_current$swr_factor
+      sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared <- sim_met2$Longwave_Radiation_Downwelling_wattPerMeterSquared * params_current$lw_factor
+      
+      # Write to file
+      write.table(sim_met2, file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
+      
+      run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
+      
+      ### Extract output
+      sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
+      
+      ### Convert decimal days to yyyy-mm-dd HH:MM:SS
+      sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
+      # In case sub-hourly time steps are used, rounding might be necessary
+      sim_out[,1] <- round_date(sim_out[,1], unit = seconds_to_period(timestep))
+      
+      # First column datetime, then depth from shallow to deep
+      sim_out <- sim_out[,c(1,ncol(sim_out):2)]
+      bot_ind <- which(!is.nan(colSums(sim_out[,-1])))
+      bot_ind <- bot_ind[length(bot_ind)] + 1
+      
+      sim_sa <- sim_out[,c(1,2,bot_ind)]
+      
+      # Remove columns without any value
+      sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
+      mod_depths = as.numeric(colnames(sim_out)[-1])
+      
+      sim_depths <- -obs_deps
+      message('Interpolating Simstrat temp to include obs depths')
+      
+      # Create empty matrix and interpolate to new depths
+      wat_mat <- matrix(NA, nrow = nrow(sim_out), ncol = length(sim_depths))
+      for(j in 1:nrow(sim_out)){
+        y = as.vector(unlist(sim_out[j,-1]))
+        wat_mat[j,] <- approx(mod_depths, y, sim_depths, rule = 2)$y
+      }
+      df = data.frame(wat_mat)
+      df$datetime <- sim_out[,1]
+      df <- df[,c(ncol(df), 1:(ncol(df)-1))]
+      colnames(df) <- c("datetime", paste0('wtr_',abs(sim_depths)))
+      sim_out <- df
+      
+      
+      sim_out <- reshape2::melt(sim_out, id.vars = 1)
+      sim_out[,2] <- as.character(sim_out[,2])
+      sim_out[,2] <- as.numeric(gsub('wtr_','',sim_out[,2]))
+      colnames(sim_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+      
+      stats <- sum_stat(sim_out, obs, depth = TRUE)
+      
+      cost_current = stats$MAE
+      
+      if (runif(1) < exp(-(cost_current-cost_prior))){# (runif(1) < cost_prior/cost_current)
+        params_current$par_id = max(params$par_id) +1
+        params = rbind(params, params_current)
+        cost_prior = cost_current
+        new_stats = stats
+        new_stats$par_id <- max(params$par_id) +1
+        # new_sa_res = sa_res
+      } else {
+        params = rbind(params, params[i-1,])
+      }
+      
+      out_stats <- rbind.data.frame(out_stats, new_stats)
+      # sa_stats <- rbind.data.frame(sa_stats, new_sa_res)
+      
+      print(paste0('[',i,'/', num,']'))
+    }
+    
+    
+    
+    
+    ### Write the table in the present working directory
+    write.csv(out_stats, file.path(folder, 'Simstrat', 'output', paste0('MCMC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    
+    write.csv(params, file.path(folder, 'Simstrat', 'output', paste0('MCMC_params_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+    
+    
+    out_stats$model <- 'Simstrat'
+    params$model <- 'Simstrat'
+    
+    if(is.null(all_pars)){
+      all_pars <- out_stats
+    }else{
+      all_pars <- rbind.data.frame(all_pars, out_stats)
+    }
+    
+    if(is.null(all_sa)){
+      all_sa <- params
+    }else{
+      all_sa <- rbind.data.frame(all_sa, params)
+    }
+    
+    message('Simstrat: Hopefully that was the last MCMC I have to run today.')
+  }
+  
   dir.create(file.path(folder,'output'), showWarnings = FALSE)
 
-  write.csv(all_pars, file.path(folder,'output', paste0('LHC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+  write.csv(all_pars, file.path(folder,'output', paste0('MCMC_calibration_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
 
-  write.csv(all_sa, file.path(folder,'output', paste0('LHC_sa_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+  write.csv(all_sa, file.path(folder,'output', paste0('MCMC_params_results_','p',num, '_', format(Sys.time(), format = '%Y%m%d%H%M'), '.csv')), quote = FALSE, row.names = FALSE)
+  
+  
+  
 
+  library(ggplot2)
+  # params$NSE <- out_stats$NSE
+  r.params <- data.frame('wind_factor'=all_sa$wind_factor,'swr_factor'=all_sa$swr_factor,
+                            'lw_factor'=all_sa$lw_factor, 'par_id'=all_sa$par_id)
+  m.params <- reshape2::melt(r.params,id.vars= 'par_id')
+  m.params$model = rep(all_sa$model, 3)
+  g0=ggplot(m.params, aes(x=par_id, value, col = variable))+
+    facet_wrap(~model) +
+    geom_line() +
+    theme_bw();g0
+  g1=ggplot(m.params, aes(x=value, fill = variable))+
+    geom_density(alpha=0.4) +
+    facet_wrap(~model) +
+    # geom_vline(data=best.params, aes(xintercept=best, col =parameter),
+    # linetype="dashed") +
+    theme_bw();g1
+  g2=ggplot(all_pars, aes(par_id, NSE, col = model)) +
+    geom_line() +
+    theme_bw();g2
+  g3=ggplot(all_pars, aes(par_id, RMSE, col = model)) +
+    geom_line() +
+    theme_bw();g3
+  g4=ggplot(all_pars, aes(par_id, MAE, col =model)) +
+    geom_line() +
+    # scale_x_reverse() +
+    theme_bw();g4
+  library(patchwork)
+  p = g0 / g1 / (g2+g3+g4);p
+  
+  ggsave(file='output/MCMC.png', p, dpi = 300, width = 316, height=216, units='mm')
+  
 }
 
 
