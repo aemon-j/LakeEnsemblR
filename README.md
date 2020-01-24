@@ -33,7 +33,7 @@ library(gotmtools)
 library(LakeEnsemblR)
 
 # Copy template folder
-template_folder <- system.file("extdata\\feeagh", package= 'LakeEnsemblR')
+template_folder <- system.file("extdata/feeagh", package= 'LakeEnsemblR')
 dir.create('example') # Create example folder
 file.copy(from = template_folder, to = 'example', recursive = TRUE)
 setwd('example/feeagh') # Change working directory to example folder
