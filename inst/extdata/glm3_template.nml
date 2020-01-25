@@ -41,17 +41,17 @@
    out_dir = 'output'
    out_fn = 'output'
    nsave = 24
-   csv_lake_fname = 'lake'
-   csv_point_nlevs = 0
-   csv_point_fname = 'WQ_'
-   csv_point_at = 17
-   csv_point_nvars = 2
-   csv_point_vars = 'temp','salt','OXY_oxy'
-   csv_outlet_allinone = .false.
-   csv_outlet_fname = 'outlet_'
-   csv_outlet_nvars = 3
-   csv_outlet_vars = 'flow','temp','salt','OXY_oxy'
-   csv_ovrflw_fname = 'overflow'
+!   csv_lake_fname = 'lake'
+!   csv_point_nlevs = 0
+!  csv_point_fname = 'WQ_'
+!   csv_point_at = 17
+!   csv_point_nvars = 2
+!   csv_point_vars = 'temp','salt','OXY_oxy'
+!   csv_outlet_allinone = .false.
+!   csv_outlet_fname = 'outlet_'
+!   csv_outlet_nvars = 3
+!   csv_outlet_vars = 'flow','temp','salt','OXY_oxy'
+!   csv_ovrflw_fname = 'overflow'
 /
 &init_profiles
    lake_depth = 46.8
@@ -126,15 +126,15 @@
    crest_width = 100
    crest_factor = 0.61
 /
-&sediment
-   sed_heat_Ksoil = 2
-   sed_temp_depth = 0.2
-   sed_temp_mean = 4.5, 5, 6
-   sed_temp_amplitude = 1, 1, 1
-   sed_temp_peak_doy = 242, 242, 242
-   benthic_mode = 2
-   n_zones = 3
-   zone_heights = 10, 20, 30
-   sed_reflectivity = 0.1, 0.01, 0.01
-   sed_roughness = 0.1, 0.01, 0.01
-/
+!&sediment
+!   sed_heat_Ksoil = 2
+!   sed_temp_depth = 0.2
+!   sed_temp_mean = 4.5, 5, 6
+!   sed_temp_amplitude = 1, 1, 1
+!   sed_temp_peak_doy = 242, 242, 242
+!   benthic_mode = 2
+!   n_zones = 3
+!   zone_heights = 10, 20, 30
+!   sed_reflectivity = 0.1, 0.01, 0.01
+!   sed_roughness = 0.1, 0.01, 0.01
+!/
