@@ -34,10 +34,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   })
 
   Sys.setenv(TZ="GMT")
-  
-  
-  
-  
+
+
+
+
 
   # Read in all information from config_file that needs to be written to the model-specific config files
 
@@ -58,7 +58,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   # Met time step
   met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
   # Output depths
-  output_depths <- get_yaml_value(config_file, "model_settings", "output_depths")
+  output_depths <- get_yaml_value(config_file, "output", "depths")
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
@@ -283,8 +283,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     input_json(sim_par, "Simulation", "End d", round(as.numeric(difftime(end_date_simulation, as.POSIXct(paste0(reference_year,"-01-01")), units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
     input_json(sim_par, "Output", "Times", out_tstep)
-    
-    
+
+
     # Turn off ice and snow
     if(use_ice){
       input_json(sim_par, "ModelConfig", "IceModel", 1)
@@ -316,7 +316,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     message('Simstrat configuration complete!')
 
   }
-  
+
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model=model, folder=folder)
 }
