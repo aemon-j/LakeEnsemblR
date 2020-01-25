@@ -41,6 +41,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   # Function to be added to gotmtools
   lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
   lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
+  meteo_file <- get_yaml_value(file = yaml, label = 'meteo', key = 'file')
 
   ### Import data
   # I'd prefer to use a function that can read both comma and tab delimited. data.table::fread does this, but then it's data.table
@@ -48,6 +49,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = 'meteo', key = 'meteo_file')
   }
+
   met = read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
   met[,1] <- as.POSIXct(met[,1])
   # Check time step
@@ -61,14 +63,26 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     subdaily = FALSE
   }
 
-  # # Is data daily? - For cloud cover calculation
-  # if(sum(tstep != 86400) > 0){
-  #   daily = FALSE
-  #   subdaily = TRUE
-  # }else{
-  #   daily = TRUE
-  #   subdaily = FALSE
-  # }
+
+  if(!is.null(lhc_file)){
+    params <- read.csv(lhc_file)
+    sub <- params[which(params[[metric]] < 2),]
+    wind_factor <- mean(sub$wind_factor)
+    swr_factor <- mean(sub$swr_factor)
+    lw_factor <- mean(sub$lw_factor[sub$model %in% c('GLM', 'Simstrat')])
+
+    message('Applying scaling factors:\nwind factor: ', signif(wind_factor,3), '\nswr factor: ', signif(swr_factor,3), '\nlw factor: ', signif(lw_factor,3))
+
+    met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond * wind_factor
+    met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- met$Shortwave_Radiation_Downwelling_wattPerMeterSquared * swr_factor
+    met$Longwave_Radiation_Downwelling_wattPerMeterSquared * lw_factor
+
+  }
+
+  lat <- get_yaml_value(file = config_file, label = 'location', key = 'latitude')
+  lon <- get_yaml_value(file = config_file, label = 'location', key = 'longitude')
+  elev <- get_yaml_value(file = config_file, label = 'location', key = 'elevation')
+
 
   ### Naming conventions standard input
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
@@ -91,6 +105,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   wind_speed = colname_wind_speed %in% colnames(met)
   wind_direction = colname_wind_direction %in% colnames(met)
   air_temperature = colname_air_temperature %in% colnames(met)
+  dewpoint_temperature = colname_dewpoint_temperature %in% colnames(met)
   solar_radiation = colname_solar_radiation %in% colnames(met)
   vapour_pressure = colname_vapour_pressure %in% colnames(met)
   relative_humidity = colname_relative_humidity %in% colnames(met)
@@ -100,20 +115,72 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   precipitation = colname_precipitation %in% colnames(met)
   snowfall = colname_snow %in% colnames(met)
 
-  if(!is.null(lhc_file)){
-    params <- read.csv(lhc_file)
-    sub <- params[which(params[[metric]] < 2),]
-    wind_factor <- mean(sub$wind_factor)
-    swr_factor <- mean(sub$swr_factor)
-    lw_factor <- mean(sub$lw_factor[sub$model %in% c('GLM', 'Simstrat')])
+  # Calculate other required variables
+  # Relative humidity
+  if(!relative_humidity & air_temperature & dewpoint_temperature){
+    met[[colname_relative_humidity]] <- dewt2relh(met[[colname_dewpoint_temperature]], met[[colname_air_temperature]])
+    relative_humidity <- TRUE
+  }
 
-    message('Applying scaling factors:\nwind factor: ', signif(wind_factor,3), '\nswr factor: ', signif(swr_factor,3), '\nlw factor: ', signif(lw_factor,3))
+  # Vapour pressure
+  if(!vapour_pressure & relative_humidity){
+    # Calculate vapour pressure as: relhum * saturated vapour pressure
+    # Used formula for saturated vapour pressure from:
+    # Woolway, R. I., Jones, I. D., Hamilton, D. P., Maberly, S. C., Muraoka, K., Read, J. S., . . . Winslow, L. A. (2015).
+    # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
+    # Environmental Modelling & Software, 70, 191-198.
 
-    met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond * wind_factor
-    met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- met$Shortwave_Radiation_Downwelling_wattPerMeterSquared * swr_factor
-    met$Longwave_Radiation_Downwelling_wattPerMeterSquared * lw_factor
+    met[[colname_vapour_pressure]]=met[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * met[[colname_air_temperature]] / (237.3 + met[[colname_air_temperature]]))
+    vapour_pressure <- TRUE
 
   }
+
+  # Cloud cover
+  if(!cloud_cover){
+
+    met[[colname_cloud_cover]] =  calc_cc(date = met$datetime,
+                                          airt = met$Air_Temperature_celsius,
+                                          relh = met$Relative_Humidity_percent,
+                                          swr = met$Shortwave_Radiation_Downwelling_wattPerMeterSquared,
+                                          lat = lat, lon = lon,
+                                          elev = elev,
+                                          daily = daily)
+    cloud_cover <- TRUE
+
+  }
+
+  #Snowfall
+  if(!snowfall){
+    met[[colname_snow]] <- 0
+  }
+  # Precipitation
+  # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
+  if(precipitation){
+    met$`Precipitation_meterPerHour`=met[[colname_precipitation]]*3600
+  }else if(snowfall){
+    met$`Precipitation_meterPerHour`=met[[colname_snow]]/24
+  }
+
+  # Long-wave radiation
+  if(!longwave_radiation){
+    met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], dewt = met[[colname_dewpoint_temperature]])
+  }
+
+  # wind direction
+  if(wind_direction){
+    direction=270-met[[colname_wind_direction]] # Converting the wind direction to the "math" direction
+    rads=direction/180*pi
+    xcomp=met[[colname_wind_speed]]*cos(rads)
+    ycomp=met[[colname_wind_speed]]*sin(rads)
+    met$Uwind = xcomp
+    met$Vwind = ycomp
+  }else{
+    met$Uwind_meterPerSecond = met[[colname_wind_speed]]
+    met$Vwind_meterPerSecond = 0
+  }
+
+
+
 
   # Met output file name
   met_outfile <- 'meteo_file.dat'
@@ -180,9 +247,9 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     met_outfile <- 'meteo_file.dat'
 
     met_outfpath <- file.path(folder, 'GOTM', met_outfile)
-    met_got <- format_met(met, model = 'GOTM', daily = daily, config_file = config_file)
+    got_met <- format_met(met, model = 'GOTM', daily = daily, config_file = config_file)
 
-    write.table(met_got, met_outfpath, quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
+    write.table(got_met, met_outfpath, quote = FALSE, row.names = FALSE, sep = '\t', col.names = TRUE)
 
 
     # Format gotm.yaml file
@@ -199,10 +266,10 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     met_outfile <- 'meteo_file.dat'
     par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
 
-    met_sim <- format_met(met = met, model = 'Simstrat', par_file = par_file)
+    sim_met <- format_met(met = met, model = 'Simstrat', par_file = par_file)
 
     ### Write the table in the present working directory
-    write.table(met_sim,file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
+    write.table(sim_met,file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
     input_json(file = par_file, label = 'Input', key = 'Forcing', '"meteo_file.dat"')
 
     message('Simstrat: Created file ', file.path(folder,"Simstrat", met_outfile))

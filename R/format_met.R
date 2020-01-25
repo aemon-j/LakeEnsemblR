@@ -14,7 +14,6 @@
 #' @export
 format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par_file, config_file){
 
-
   ### Naming conventions standard input
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
   colname_time = "datetime"
@@ -36,6 +35,7 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
   wind_speed = colname_wind_speed %in% colnames(met)
   wind_direction = colname_wind_direction %in% colnames(met)
   air_temperature = colname_air_temperature %in% colnames(met)
+  dewpoint_temperature = colname_dewpoint_temperature %in% colnames(met)
   solar_radiation = colname_solar_radiation %in% colnames(met)
   vapour_pressure = colname_vapour_pressure %in% colnames(met)
   relative_humidity = colname_relative_humidity %in% colnames(met)
@@ -45,11 +45,8 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
   precipitation = colname_precipitation %in% colnames(met)
   snowfall = colname_snow %in% colnames(met)
 
-  if('FLake' %in% model){
 
-    lat <- get_yaml_value(file = config_file, label = 'location', key = 'latitude')
-    lon <- get_yaml_value(file = config_file, label = 'location', key = 'longitude')
-    elev <- get_yaml_value(file = config_file, label = 'location', key = 'elevation')
+  if('FLake' %in% model){
 
     # Subset temporally
     if(!is.null(start) & !is.null(stop)){
@@ -58,28 +55,7 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
       fla_met <- met
     }
 
-    # Humidity
-    if(!vapour_pressure & relative_humidity){
-      # Calculate vapour pressure as: relhum * saturated vapour pressure
-      # Used formula for saturated vapour pressure from:
-      # Woolway, R. I., Jones, I. D., Hamilton, D. P., Maberly, S. C., Muraoka, K., Read, J. S., . . . Winslow, L. A. (2015).
-      # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
-      # Environmental Modelling & Software, 70, 191-198.
 
-      fla_met[[colname_vapour_pressure]]=fla_met[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * fla_met[[colname_air_temperature]] / (237.3 + fla_met[[colname_air_temperature]]))
-
-    }
-    if(!cloud_cover){
-
-      fla_met[[colname_cloud_cover]] =  calc_cc(date = fla_met$datetime,
-                                                airt = fla_met$Air_Temperature_celsius,
-                                                relh = fla_met$Relative_Humidity_percent,
-                                                swr = fla_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared,
-                                                lat = lat, lon = lon,
-                                                elev = 14, # Needs to be added dynamically
-                                                daily = daily)
-
-    }
     fla_met$index <- 1:nrow(fla_met)
 
     # Re-organise
@@ -93,10 +69,11 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
   if('GLM' %in% model){
 
     glm_met <- met
+
     # Convert units
     glm_met$Precipitation_meterPerDay <- glm_met$Precipitation_meterPerSecond * 86400
 
-    # Subset data
+
     glm_met <- glm_met[,c('datetime','Shortwave_Radiation_Downwelling_wattPerMeterSquared', "Longwave_Radiation_Downwelling_wattPerMeterSquared", 'Air_Temperature_celsius', 'Relative_Humidity_percent', "Ten_Meter_Elevation_Wind_Speed_meterPerSecond", "Precipitation_meterPerDay", "Snowfall_meterPerDay")]
 
     colnames(glm_met) <- c('Date','ShortWave','LongWave','AirTemp','RelHum','WindSpeed','Rain','Snow')
@@ -107,7 +84,7 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
 
   if('GOTM' %in% model){
 
-    met_got <- met
+    got_met <- met
 
     lat <- get_yaml_value(file = config_file, label = 'location', key = 'latitude')
     lon <- get_yaml_value(file = config_file, label = 'location', key = 'longitude')
@@ -115,79 +92,36 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
 
     met_outfile <- 'LHS_meteo_file.dat'
 
-    if(wind_direction){
-      direction=270-met_got[[colname_wind_direction]] # Converting the wind direction to the "math" direction
-      rads=direction/180*pi
-      xcomp=met_got[[colname_wind_speed]]*cos(rads)
-      ycomp=met_got[[colname_wind_speed]]*sin(rads)
-      met_got$Uwind = xcomp
-      met_got$Vwind = ycomp
-    }else{
-      met_got$Uwind_meterPerSecond = met_got[[colname_wind_speed]]
-      met_got$Vwind_meterPerSecond = 0
-    }
 
-    if(!cloud_cover){
-      # Function from gotmtools
 
-      met_got$Cloud_Cover_decimalFraction <- calc_cc(date = met_got$datetime, airt = met_got$Air_Temperature_celsius, relh = met_got$Relative_Humidity_percent, swr = met_got$Shortwave_Radiation_Downwelling_wattPerMeterSquared, lat = lat, lon = lon,
-                                                     elev = elev,
-                                                     daily = daily)
-    }
 
-    met_got <- met_got[,c('datetime', 'Uwind_meterPerSecond', 'Vwind_meterPerSecond', 'Surface_Level_Barometric_Pressure_pascal', 'Air_Temperature_celsius', 'Relative_Humidity_percent', 'Cloud_Cover_decimalFraction', 'Shortwave_Radiation_Downwelling_wattPerMeterSquared', 'Precipitation_meterPerSecond')]
+    got_met <- got_met[,c('datetime', 'Uwind_meterPerSecond', 'Vwind_meterPerSecond', 'Surface_Level_Barometric_Pressure_pascal', 'Air_Temperature_celsius', 'Relative_Humidity_percent', 'Cloud_Cover_decimalFraction', 'Shortwave_Radiation_Downwelling_wattPerMeterSquared', 'Precipitation_meterPerSecond')]
 
-    colnames(met_got)[1] <- paste0('!', colnames(met_got)[1])
-    met_got[,1] <- format(met_got[,1], '%Y-%m-%d %H:%M:%S')
+    colnames(got_met)[1] <- paste0('!', colnames(got_met)[1])
+    got_met[,1] <- format(got_met[,1], '%Y-%m-%d %H:%M:%S')
 
     #Reduce number of digits
-    met_got[,-1] <- signif(met_got[,-1], digits = 8)
+    got_met[,-1] <- signif(got_met[,-1], digits = 8)
 
-    return(met_got)
+    return(got_met)
   }
 
   if('Simstrat' %in% model){
 
-    met_sim <- met
+    sim_met <- met
 
     # Required input file changes depending on the forcing mode in the config file
     forcing_mode <- get_json_value(par_file, "ModelConfig", "Forcing")
 
     ### Pre-processing
     # Time
-    if(datetime){
+    if('datetime' %in% colnames(sim_met)){
       # Time in simstrat is in decimal days since a defined start year
       start_year <- get_json_value(par_file, "Simulation", "Start year")
 
-      met_sim$datetime = as.numeric(difftime(met_sim$datetime,as.POSIXct(paste0(start_year,"-01-01")),units = "days"))
+      sim_met$datetime = as.numeric(difftime(sim_met$datetime,as.POSIXct(paste0(start_year,"-01-01")),units = "days"))
     }else{
       stop("Cannot find \"datetime\" column in the input file. Without this column, the model cannot run")
-    }
-
-    # Wind
-    # If wind direction is provided, U and V wind components are calculated. If not, V wind is set to 0
-    if(wind_direction){
-      direction=270-met_sim[[colname_wind_direction]] # Converting the wind direction to the "math" direction
-      rads=direction/180*pi
-      xcomp=met_sim[[colname_wind_speed]]*cos(rads)
-      ycomp=met_sim[[colname_wind_speed]]*sin(rads)
-      met_sim$Uwind = xcomp
-      met_sim$Vwind = ycomp
-    }else{
-      met_sim$Uwind_meterPerSecond = met_sim[[colname_wind_speed]]
-      met_sim$Vwind_meterPerSecond = 0
-    }
-
-    # Humidity
-    if(!vapour_pressure & relative_humidity){
-      # Calculate vapour pressure as: relhum * saturated vapour pressure
-      # Used formula for saturated vapour pressure from:
-      # Woolway, R. I., Jones, I. D., Hamilton, D. P., Maberly, S. C., Muraoka, K., Read, J. S., . . . Winslow, L. A. (2015).
-      # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
-      # Environmental Modelling & Software, 70, 191-198.
-
-      met_sim[[colname_vapour_pressure]]=met_sim[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * met_sim[[colname_air_temperature]] / (237.3 + met_sim[[colname_air_temperature]]))
-
     }
 
     # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
@@ -199,18 +133,7 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
     }
 
 
-    # Precipitation
-    # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
-    if(precipitation){
-      met_sim$`Precipitation_meterPerHour`=met_sim[[colname_precipitation]]*3600
-    }else if(snowfall){
-      met_sim$`Precipitation_meterPerHour`=met_sim[[colname_snow]]/24
-    }
-
-
-
-
-    ### Build simstrat_forcing file
+    ### Build sim_met file
     # Boolean to see if there is enough data to write the meteo file
     enoughData=T
 
@@ -220,11 +143,11 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
       if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & longwave_radiation)){
         enoughData = F
       }else{
-        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
                                        colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
                                        colname_longwave_radiation)]
         if(snow_module){
-          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
         }
       }
     }else if(forcing_mode == "4"){
@@ -234,37 +157,37 @@ format_met <- function(met, model, daily = FALSE, start = NULL, stop = NULL, par
       if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & cloud_cover)){
         enoughData = F
       }else{
-        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
                                        colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
                                        colname_cloud_cover)]
         if(snow_module){
-          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
         }
       }
     }else if(forcing_mode == "2"){
       if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity))){
         enoughData = F
       }else{
-        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
                                        colname_air_temperature, colname_solar_radiation, colname_vapour_pressure)]
         if(snow_module){
-          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
         }
       }
     }else if(forcing_mode == "1"){
       if(!(wind_speed & air_temperature & solar_radiation)){
         enoughData = F
       }else{
-        simstrat_forcing = met_sim[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
+        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
                                        colname_air_temperature, colname_solar_radiation)]
         if(snow_module){
-          simstrat_forcing[["Precipitation_meterPerHour"]] = met_sim[["Precipitation_meterPerHour"]]
+          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
         }
       }
     }
 
     if(!enoughData){stop(paste("There is no data to run the model in forcing mode",forcing_mode))}
 
-    return(simstrat_forcing)
+    return(sim_met)
   }
 }
