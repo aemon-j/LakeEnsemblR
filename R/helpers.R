@@ -76,3 +76,24 @@ set_met_config_yaml <- function(met_file, yaml_file){
 
 
 }
+
+#' Convert DewT to RelH
+#'@description
+#' Convert DewT to RelH from weathermetrics package
+#'
+#' @name set_met_config_yaml
+#' @param met_file filepath; to metfile
+#' @param yaml_file filepath; to gotm.yaml
+#' @noRd
+dewt2relh <- function (dewt, airt){
+  if (length(dewt) != length(airt)) {
+    stop("The vectors for temperature('airt') and dewpoint temperature ('dewt') must have the same length.")
+  }
+  if (length(dewt[dewt > airt & !is.na(dewt) & !is.na(airt)]) > 0) {
+    dewt[dewt > airt] <- NA
+    warning("For some observations, dew point temperature was higher than temperature. Since dew point temperature cannot be higher than air temperature, relative humidty for these observations was set to 'NA'.")
+  }
+  beta <- (112 - (0.1 * airt) + dewt)/(112 + (0.9 * airt))
+  relative.humidity <- 100 * beta^8
+  return(relative.humidity)
+}
