@@ -18,12 +18,12 @@ config_files:
    flake_config: FLake/feeagh.nml               # FLake config file (nml format)
 model_settings:
    output_depths: 0.5                           # vertical resolution of the output [m]
-   extinction_coefficient: 0.5                  # light extinction coefficient [m-1]
+   Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
-   observation_file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
+   file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
 input:
    meteo:
-      meteo_file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
+      file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
       timestep: 86400.0                         # timestep of meteorological input data [s]
    ice:
       use: true                                 # turn on ice models? [default=true]
