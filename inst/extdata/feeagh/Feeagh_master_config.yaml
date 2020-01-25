@@ -16,8 +16,7 @@ config_files:
    glm_config: GLM/glm3.nml                     # GLM config file (nml format)
    simstrat_config: Simstrat/feeagh.par         # Simstrat config file (json format)
    flake_config: FLake/feeagh.nml               # FLake config file (nml format)
-model_settings:
-   output_depths: 0.5                           # vertical resolution of the output [m]
+light:
    Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
    file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
@@ -48,14 +47,14 @@ inflows:
          file: inflowchem_kristine.dat          # path to file with time series [default=]
          column: 2                              # index of column to read from [default=1]
 output:
-    output:                                     # path of output file, excluding extension
-      format: netcdf                            # format [text, netcdf; default=netcdf]
-      time_unit: hour                            # time unit [second, hour, day, month, year, dt=model time step; default=day]
-      time_step: 24                              # number of time units between output [min=1; default=1]
-      time_method: mean                         # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
-      sync_interval: 0                          # number of output steps between sychronization to disk (<= 0: sync on close only) [default=1]
-      variables:
-      - source: /*                              # variable name in model
+    file: ensemble_output.nc                    # path of output file, excluding extension
+    format: netcdf                            # format [text, netcdf; default=netcdf]
+    depths: 0.5
+    time_unit: hour                            # time unit [second, hour, day, month, year, dt=model time step; default=day]
+    time_step: 24                              # number of time units between output [min=1; default=1]
+    time_method: mean                         # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
+    sync_interval: 0                          # number of output steps between sychronization to disk (<= 0: sync on close only) [default=1]
+    variables: temp
 biogeochemistry:                                # not yet implemented
     use: false
 FLake:                                          # FLake specific parameters
