@@ -117,7 +117,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method, model = 
   if('FLake' %in% model){
 
     # Format met file
-    fla_met <- format_met(met = met, model = 'FLake', daily = daily, start = start, stop = stop, config_file = config_file)
+    fla_met <- format_met(met = met, model = 'FLake', daily = daily, config_file = config_file)
 
     # Select nml file for running FLake
     nml_file <- get_yaml_value(config_file, "config_files", "flake_config")
@@ -369,7 +369,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method, model = 
     par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat_config"))
     par_fpath <- file.path(folder, 'Simstrat', par_file)
 
-    met_simst <- format_met(met = met, model = 'Simstrat', par_file = par_fpath)
+    met_simst <- format_met(met = met, model = 'Simstrat', config_file = config_file)
 
     met_outfile <- 'LHS_meteo_file.dat'
 
