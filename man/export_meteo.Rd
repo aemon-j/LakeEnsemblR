@@ -7,16 +7,18 @@
 export_meteo(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake"),
-  meteo_file,
+  meteo_file = NULL,
   lhc_file = NULL,
   metric = "RMSE",
   folder = "."
 )
 }
 \arguments{
+\item{config_file}{filepath; to LakeEnsemblr yaml master config file}
+
 \item{model}{vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
 
-\item{meteo_file}{filepath; to met file which is in the standardised LakeEnsemblR format.}
+\item{meteo_file}{filepath; to met file which is in the standardised LakeEnsemblR format. Uses}
 
 \item{lhc_file}{filepath to results from Latin Hypercube sampling from run_Latin_hypercube(). Defaults to NULL}
 
