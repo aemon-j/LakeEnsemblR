@@ -66,7 +66,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -87,7 +87,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -137,7 +137,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -177,7 +177,7 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
