@@ -97,3 +97,18 @@ dewt2relh <- function (dewt, airt){
   relative.humidity <- 100 * beta^8
   return(relative.humidity)
 }
+
+
+#' Calculate wind direction (degrees) from u and v vectors
+#'@description
+#' Calculate wind direction (degrees) from u and v vectors. Idea from: http://colaweb.gmu.edu/dev/clim301/lectures/wind/wind-uv
+#'
+#' @name calc_windDir
+#' @param met_file filepath; to metfile
+#' @param yaml_file filepath; to gotm.yaml
+#' @noRd
+calc_windDir <- function(u, v) {
+  ws = atan2(v,u)*(180/pi)
+  ws = ws +180
+  return(ws)
+}
