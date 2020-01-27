@@ -51,14 +51,15 @@ export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'))
 # 3. Create initial conditions
 start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
 
-export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
-                 wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                 date = start_date, tprof_file = 'HOLDER.dat',
-                 month = 1, ndeps = 2, print = TRUE)
+export_init_cond(config_file = masterConfigFile, 
+                 model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                 date = start_date,
+                 print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
-                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
+wtemp_list <- run_ensemble(config_file = masterConfigFile,
+                           model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                           return_list = TRUE)
 
 ```
 
@@ -72,7 +73,7 @@ library(ggplot2)
 ## Plot model output using gotmtools/ggplot2
 
 # Extract names of all the variables in netCDF
-ens_out <- 'output/ensemble_output.nc4'
+ens_out <- 'output/ensemble_output.nc'
 vars <- gotmtools::list_vars(ens_out)
 vars # Print variables
 
