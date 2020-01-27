@@ -15,10 +15,9 @@
 #' }
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
+#' @importFrom zoo na.approx
 #'
 #' @export
-
-
 export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = NULL, lhc_file = NULL, metric = 'RMSE', folder = '.'){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
@@ -35,13 +34,14 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   })
 
 
-  # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
+
   yaml = file.path(folder,config_file)
 
-  # Function to be added to gotmtools
-  lat <- get_yaml_value(file = yaml, label = 'location', key = 'latitude')
-  lon <- get_yaml_value(file = yaml, label = 'location', key = 'longitude')
   meteo_file <- get_yaml_value(file = yaml, label = 'meteo', key = 'file')
+  # Check if file exists
+  if(!file.exists(meteo_file)){
+    stop(meteo_file, ' does not exist. Check filepath in ', config_file)
+  }
 
   ### Import data
   # I'd prefer to use a function that can read both comma and tab delimited. data.table::fread does this, but then it's data.table
@@ -49,7 +49,6 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = 'meteo', key = 'meteo_file')
   }
-
   met = read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
   met[,1] <- as.POSIXct(met[,1])
   # Check time step
@@ -88,6 +87,8 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
   colname_time = "datetime"
   colname_wind_speed = "Ten_Meter_Elevation_Wind_Speed_meterPerSecond"
+  colname_u_wind = "Uwind_meterPerSecond"
+  colname_v_wind = "Vwind_meterPerSecond"
   colname_wind_direction = "Ten_Meter_Elevation_Wind_Direction_degree"
   colname_air_temperature = "Air_Temperature_celsius"
   colname_dewpoint_temperature = "Dewpoint_Temperature_celsius"
@@ -103,6 +104,8 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   ### Check what met data is available, as this determines what model forcing option to use (in the simstrat config file)
   datetime = colname_time %in% colnames(met)
   wind_speed = colname_wind_speed %in% colnames(met)
+  u_wind = colname_u_wind %in% colnames(met)
+  v_wind = colname_v_wind %in% colnames(met)
   wind_direction = colname_wind_direction %in% colnames(met)
   air_temperature = colname_air_temperature %in% colnames(met)
   dewpoint_temperature = colname_dewpoint_temperature %in% colnames(met)
@@ -118,7 +121,12 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   # Calculate other required variables
   # Relative humidity
   if(!relative_humidity & air_temperature & dewpoint_temperature){
+    # The function is in helpers.R the formula is from the weathermetrics package
     met[[colname_relative_humidity]] <- dewt2relh(met[[colname_dewpoint_temperature]], met[[colname_air_temperature]])
+    if(is.na(sum(met[[colname_relative_humidity]]))){
+      met[[colname_relative_humidity]] <- na.approx(met[[colname_relative_humidity]])
+      message('Interpolated NAs')
+    }
     relative_humidity <- TRUE
   }
 
@@ -152,38 +160,47 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   #Snowfall
   if(!snowfall){
     met[[colname_snow]] <- 0
+    snowfall <- TRUE
   }
   # Precipitation
   # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
   if(precipitation){
     met$`Precipitation_meterPerHour`=met[[colname_precipitation]]*3600
-  }else if(snowfall){
-    met$`Precipitation_meterPerHour`=met[[colname_snow]]/24
-  }
+  }#else if(snowfall){
+  #  met$`Precipitation_meterPerHour`=met[[colname_snow]]/24
+  #}
 
   # Long-wave radiation
   if(!longwave_radiation){
     met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], dewt = met[[colname_dewpoint_temperature]])
   }
 
+  # wind speed
+  if(!wind_speed & u_wind & v_wind){
+    met[[colname_wind_speed]] <- sqrt(met[[colname_u_wind]]^2 + met[[colname_v_wind]]^2)
+  }
+
   # wind direction
-  if(wind_direction){
-    direction=270-met[[colname_wind_direction]] # Converting the wind direction to the "math" direction
-    rads=direction/180*pi
-    xcomp=met[[colname_wind_speed]]*cos(rads)
-    ycomp=met[[colname_wind_speed]]*sin(rads)
-    met$Uwind = xcomp
-    met$Vwind = ycomp
-  }else{
-    met$Uwind_meterPerSecond = met[[colname_wind_speed]]
-    met$Vwind_meterPerSecond = 0
+  if(!wind_direction & u_wind & v_wind){
+    met[[colname_wind_direction]] = calc_windDir(met[[colname_u_wind]], met[[colname_v_wind]])
+    wind_direction <- TRUE
+  }
+
+  # u and v wind vectors
+  if(!u_wind & !v_wind & wind_speed & wind_direction){
+    rads = met[[colname_wind_direction]]/180*pi
+    met[[colname_u_wind]] = met[[colname_wind_speed]]*cos(rads)
+    met[[colname_v_wind]] = met[[colname_wind_speed]]*sin(rads)
+  }
+
+  if(!u_wind & !v_wind & wind_speed & !wind_direction){
+    met[[colname_u_wind]] = met[[colname_wind_speed]]
+    met[[colname_v_wind]] = 0
   }
 
 
-
-
   # Met output file name
-  met_outfile <- 'meteo_file.dat'
+  met_outfile <- 'all_meteo_file.dat'
 
   # FLake
   #####
@@ -227,7 +244,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     # # stop = '1980-01-01 00:00:00' # Added just for beta testing
 
     # Input to nml file
-    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm_config"))
+    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
     nml <- glmtools::read_nml(nml_path)
 
     nml_list <- list('subdaily' = subdaily, 'lw_type' = lw_type, 'meteo_fl' = 'meteo_file.csv')
@@ -242,7 +259,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   ## GOTM
   if('GOTM' %in% model){
 
-    yaml = file.path(folder,get_yaml_value(config_file, "config_files", "gotm_config"))
+    yaml = file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
 
     met_outfile <- 'meteo_file.dat'
 
@@ -264,9 +281,9 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   ## Simstrat
   if('Simstrat' %in% model){
     met_outfile <- 'meteo_file.dat'
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
 
-    sim_met <- format_met(met = met, model = 'Simstrat', par_file = par_file)
+    sim_met <- format_met(met = met, model = 'Simstrat', config_file = config_file)
 
     ### Write the table in the present working directory
     write.table(sim_met,file = file.path(folder,"Simstrat", met_outfile),sep = "\t",quote = F,row.names = F)
