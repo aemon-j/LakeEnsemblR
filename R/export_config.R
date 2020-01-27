@@ -41,6 +41,11 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
   # Read in all information from config_file that needs to be written to the model-specific config files
 
+  # Check if file exists
+  if(!file.exists(config_file)){
+    stop(config_file, ' does not exist.')
+  }
+
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
   # Longitude
@@ -48,7 +53,11 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   # Maximum Depth
   max_depth = get_yaml_value(config_file, "location", "depth")
   # Read in hypsograph data
-  hyp <- read.csv(get_yaml_value(config_file, "location", "hypsograph"))
+  hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
+  if(!file.exists(hyp_file)){
+    stop(hyp_file, ' does not exist. Check filepath in ', config_file)
+  }
+  hyp <- read.csv(hyp_file)
   # Start date
   start_date <- get_yaml_value(config_file, "time", "start")
   # Stop date
@@ -78,7 +87,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -127,7 +136,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -175,7 +184,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -237,7 +246,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
