@@ -35,7 +35,17 @@ get_wtemp_df <- function(output, depths, folder = '.', nml_file, long = FALSE){
   h <- flake_out[['h_ML']] # mixed layer depth
   C <- flake_out[['C_T']] # shape factor
   D <- max(depths) # mean depth
-  l_wtr <- list()
+
+  if(long){
+    l_wtr <- list()
+  }else{
+    mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
+  }
+
+  # Make sure dates are ordered
+  depths <- depths[order(depths)]
+
+
   for(kk in 1:length(depths)){
     z <-  depths[kk]
     zeta <- (z - h) / (D - h)
@@ -45,28 +55,30 @@ get_wtemp_df <- function(output, depths, folder = '.', nml_file, long = FALSE){
     c4 <- 10 / 3
     is.in.ML <- z <= h
     Tz <- ifelse(is.in.ML,Ts,zeta*(c1*C-c2+zeta*(18-30*C+zeta*(20*C-12+zeta*(c3-c4*C))))*(Tb-Ts)+Ts)
-    dd <- data.frame(dateTime = flake_out$time,
-                     depth = z,
-                     wtr = Tz)
-    l_wtr[[kk]] <- dd
+    if(long){
+      dd <- data.frame(dateTime = flake_out$time,
+                       depth = z,
+                       wtr = Tz)
+      l_wtr[[kk]] <- dd
+    }else{
+      mat[,kk] <- Tz
+    }
   }
-  wtr2 <- do.call("rbind",l_wtr)
+  if(long){
+    wtr2 <- do.call("rbind",l_wtr)
 
-  # sort in temporal order
-  idx <- sort(wtr2$dateTime, index.return = TRUE)$ix
-  wtr2 <- wtr2[idx,]
-  if(long == TRUE){
+    # sort in temporal order
+    idx <- sort(wtr2$dateTime, index.return = TRUE)$ix
+    wtr2 <- wtr2[idx,]
     colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
     tims = sum((wtr2[,1] == wtr2[1,1]))
     time_long <- rep(datetime, each = tims)
     wtr2$datetime <- time_long
-    return(wtr2)
   }else{
-    # change data format from long to wide
-    wtr4 <- dcast(wtr2, dateTime ~ depth, value.var = 'wtr')
-    str_depths <- colnames(wtr4)[2:ncol(wtr4)]
-    colnames(wtr4) <- c('datetime',paste('wtr_',str_depths, sep=""))
-    wtr4$datetime <- datetime # Input datetime vector
-    return(wtr4)
+    wtr2 <- as.data.frame(mat)
+    wtr2$datetime <- datetime
+    wtr2 <- wtr2[,c(ncol(wtr2), 1:(ncol(wtr2)-1))]
+    colnames(wtr2) <- c('datetime',paste('wtr_',depths, sep=""))
   }
+  return(wtr2)
 }
