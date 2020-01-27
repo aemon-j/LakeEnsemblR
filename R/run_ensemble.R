@@ -59,6 +59,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   if(format == 'netcdf'){
     create_netcdf = TRUE
+    compression <- get_yaml_value(config_file, "output", "compression")
   }
 
   # Create output time vector
@@ -67,6 +68,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
 
   if(obs_file != 'NULL'){
+    message('Loading obs_file...')
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
 
@@ -78,6 +80,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
     # Subset to out_time
     obs_out <- obs_out[obs_out$datetime %in% out_time$datetime,]
+    obs_out <- merge(out_time, obs_out, by = 'datetime', all.x = TRUE)
 
   }else{
     obs_deps <- NULL
@@ -85,33 +88,43 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
 
   if('FLake' %in% model){
+
     #Need to figure out how to subset data by dates
-    nml_file <- get_yaml_value(config_file, "config_files", "flake_config")
+    nml_file <- get_yaml_value(config_file, "config_files", "flake")
     nml_file <- file.path(folder, nml_file)
-    met_file <- suppressWarnings(get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
-    met_file <- gsub(',','', met_file)
-    met_file <- file.path(folder, 'FLake', met_file)
+    if(file.exists(file.path(folder, 'FLake', 'all_meteo_file.dat'))){
+      met_file <- file.path(folder, 'FLake', 'all_meteo_file.dat')
+      met_outfile <- file.path(folder, 'FLake', 'meteo_file_tmp.dat')
+    }else{
+      met_file <- suppressWarnings(get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
+      met_file <- gsub(',','', met_file)
+      met_file <- file.path(folder, 'FLake', met_file)
+      met_outfile <- file.path(folder, 'FLake', met_file)
+    }
+    message('FLake: Loading ', met_file)
     met <- read.delim(met_file, header = FALSE, stringsAsFactors = F)
     colnames(met)[ncol(met)] <- 'datetime'
-    met$datetime <- as.POSIXct(met$datetime)
+    met$datetime <- as.POSIXct(met$datetime, tz = tz)
     met_sub <- met[(met$datetime >= start & met$datetime <= stop),]
     if(nrow(met_sub) < nrow(met)){
-      warning('FLake: Overwriting met file with shorter time series')
+      warning('FLake: Writing new met file with shorter time series: ', met_outfile)
     }
     met_sub[,1] <- 1:nrow(met_sub)
 
     # Write to file
-    write.table(met_sub, met_file, sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
+    write.table(met_sub, met_outfile, sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
+    met_outfile <- basename(met_outfile)
     input_nml(nml_file, 'SIMULATION_PARAMS', 'time_step_number', nrow(met_sub))
+    input_nml(nml_file, 'METEO', 'meteofile', paste0("'",met_outfile,"'"))
 
     # Select nml file again
-    nml_file <- basename(get_yaml_value(config_file, "config_files", "flake_config"))
+    nml_file <- basename(get_yaml_value(config_file, "config_files", "flake"))
     run_flake(sim_folder = file.path(folder, 'FLake'), nml_file = nml_file)
 
     if(return_list | create_netcdf){
       # Extract output
       fold <- file.path(folder, 'FLake')
-      nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "flake_config"))
+      nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "flake"))
 
       mean_depth <- suppressWarnings(get_nml_value(arg_name = 'depth_w_lk', nml_file = nml_file))
       depths <- seq(0, mean_depth, by = out_depths)
@@ -122,7 +135,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
 
-      fla_out <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = 'FLake', nml_file = nml_file)
+      fla_out <- get_wtemp_df(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, folder = fold, nml_file = nml_file)
 
       # Ensure FLake is on the same time step for output
       if(nrow(fla_out) != nrow(out_time)){
@@ -136,7 +149,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   if('GLM' %in% model){
 
     #Need to input start and stop into nml file
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "glm_config"))
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
     input_nml(nml_file, label = 'time', key = 'start', value = paste0("'",start,"'"))
     input_nml(nml_file, label = 'time', key = 'stop', value = paste0("'",stop,"'"))
 
@@ -169,7 +182,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   if('GOTM' %in% model){
     #Need to input start and stop into yaml file
-    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm_config"))
+    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
     input_yaml(yaml_file, label = 'time', key = 'start', value = start)
     input_yaml(yaml_file, label = 'time', key = 'stop', value = stop)
 
@@ -220,22 +233,23 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   if('Simstrat' %in% model){
 
     # Need to input start and stop into json par file
-    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat_config"))
+    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat"))
 
     run_simstrat(sim_folder = file.path(folder, 'Simstrat'), par_file = par_file, verbose = FALSE)
 
     message('Simstrat run is complete! ', paste0('[', Sys.time(),']'))
 
     if(return_list | create_netcdf){
+
       ### Extract output
       sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
 
       ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-      par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat_config"))
+      par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
       timestep <- get_json_value(par_file, "Simulation", "Timestep s")
       reference_year <- get_json_value(par_file, "Simulation", "Start year")
 
-      sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year,"-01-01"))
+      sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = start)
       # In case sub-hourly time steps are used, rounding might be necessary
       sim_out[,1] <- lubridate::round_date(sim_out[,1], unit = lubridate::seconds_to_period(timestep))
 
@@ -275,6 +289,10 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
         str_depths <- abs(as.numeric(colnames(sim_out)[2:ncol(sim_out)]))
         colnames(sim_out) <- c("datetime", paste0('wtr_',str_depths))
       }
+      # Ensure Simstrat is on the same time step for output
+      if(nrow(sim_out) != nrow(out_time)){
+        sim_out <- merge(sim_out, out_time, by = 'datetime', all.y = T)
+      }
     }
   }
 
@@ -285,19 +303,19 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     if(create_netcdf){
 
       temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputa
-      mods <- names(temp_list) # Store names as a vector
-      lengths <- lapply(temp_list, nrow) # Extract nrows in each output
-      lon_list <- which.max(lengths[1:(length(lengths)-1)]) # Select largest time
-      time <- temp_list[[lon_list]][,1]  # Extract largest time as vector
-      # Loop through and merge dataframes by time
-      temp_list <- lapply(1:length(temp_list), function(x){
-        if(x == lon_list){
-          return(temp_list[[x]])
-        }else{
-          merge(data.frame(time = time),temp_list[[x]], by = 1, all.x = T)
-        }
-        })
-      names(temp_list) <- mods # Re-assign names to list
+      # mods <- names(temp_list) # Store names as a vector
+      # lengths <- lapply(temp_list, nrow) # Extract nrows in each output
+      # lon_list <- which.max(lengths[1:(length(lengths)-1)]) # Select largest time
+      # time <- temp_list[[lon_list]][,1]  # Extract largest time as vector
+      # # Loop through and merge dataframes by time
+      # temp_list <- lapply(1:length(temp_list), function(x){
+      #   if(x == lon_list){
+      #     return(temp_list[[x]])
+      #   }else{
+      #     merge(data.frame(time = time),temp_list[[x]], by = 1, all.x = T)
+      #   }
+      #   })
+      # names(temp_list) <- mods # Re-assign names to list
 
 
       lengths <- lapply(temp_list, ncol) # Extract ncols in each output
@@ -312,7 +330,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       #Create ncdf
       message('Creating NetCDF file [', Sys.time(), ']')
       ref_time <- as.POSIXct('1970-01-01 00:00:00', tz = 'GMT') # Reference time for netCDF time
-      nsecs <- as.numeric(difftime(time, ref_time, units = 'secs')) # Calculate seconds since reference time
+      nsecs <- as.numeric(difftime(out_time$datetime, ref_time, units = 'secs')) # Calculate seconds since reference time
       xvals <- 180 - lon # Convert longitude to degrees east
       yvals <- lat # Latitude
       # Define lon and lat dimensions
@@ -329,7 +347,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       nc_vars <- list() #Initialize empty list to fill netcdf variables
       for(i in 1:length(temp_list)){
         lname <- paste(names(temp_list)[i],'Water temperature') # Long name
-        tmp_def <- ncvar_def(paste0(tolower(names(temp_list)[i]), "_watertemp"), "Celsius", list(lon1, lat2, timedim,depthdim), fillvalue, lname, prec="float", compression = 4, shuffle = FALSE) # Define variable
+        tmp_def <- ncvar_def(paste0(tolower(names(temp_list)[i]), "_watertemp"), "Celsius", list(lon1, lat2, timedim,depthdim), fillvalue, lname, prec="float", compression = compression, shuffle = FALSE) # Define variable
         nc_vars[[i]] <- tmp_def # Add to list
       }
       names(nc_vars) <- names(temp_list) # Re-assign list names
@@ -365,7 +383,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
         return_val = 'Warning'
       }, error = function(e) {
         return_val = 'Error'
-        message('Error creating netCDF file!')
+        warning('Error creating netCDF file!')
       }, finally = {
         nc_close(ncout) # Close netCDF file
       })
