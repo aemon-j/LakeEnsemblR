@@ -16,6 +16,8 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
   colname_time = "datetime"
   colname_wind_speed = "Ten_Meter_Elevation_Wind_Speed_meterPerSecond"
+  colname_u_wind = "Uwind_meterPerSecond"
+  colname_v_wind = "Vwind_meterPerSecond"
   colname_wind_direction = "Ten_Meter_Elevation_Wind_Direction_degree"
   colname_air_temperature = "Air_Temperature_celsius"
   colname_dewpoint_temperature = "Dewpoint_Temperature_celsius"
@@ -31,6 +33,8 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
   ### Check what met data is available, as this determines what model forcing option to use (in the simstrat config file)
   datetime = colname_time %in% colnames(met)
   wind_speed = colname_wind_speed %in% colnames(met)
+  u_wind = colname_u_wind %in% colnames(met)
+  v_wind = colname_v_wind %in% colnames(met)
   wind_direction = colname_wind_direction %in% colnames(met)
   air_temperature = colname_air_temperature %in% colnames(met)
   dewpoint_temperature = colname_dewpoint_temperature %in% colnames(met)
@@ -42,6 +46,7 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
   # Availability of precipitation data only used for snow module
   precipitation = colname_precipitation %in% colnames(met)
   snowfall = colname_snow %in% colnames(met)
+  heat_flux = FALSE
 
 
   if('FLake' %in% model){
@@ -49,6 +54,9 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
     ## Extract start, stop, lat & lon for netCDF file from config file
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
+    met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
+    fla_fil <- get_yaml_value(config_file, "config_files", "flake")
+    fla_fil <- file.path(folder, fla_fil)
 
 
     # Subset temporally
@@ -58,6 +66,8 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
       fla_met <- met
     }
 
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep)
+
 
     fla_met$index <- 1:nrow(fla_met)
 
@@ -65,6 +75,9 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
     fla_met <- fla_met[,c('index','Shortwave_Radiation_Downwelling_wattPerMeterSquared','Air_Temperature_celsius', "Vapor_Pressure_milliBar", "Ten_Meter_Elevation_Wind_Speed_meterPerSecond", "Cloud_Cover_decimalFraction", "datetime")]
     fla_met$datetime <- format(fla_met$datetime, format = '%Y-%m-%d %H:%M:%S')
     colnames(fla_met)[1] <- paste0('!', colnames(fla_met)[1])
+
+    #Reduce number of digits
+    fla_met[,-c(1, ncol(fla_met))] <- signif(fla_met[,-c(1, ncol(fla_met))], digits = 8)
 
     return(fla_met)
   }
@@ -81,6 +94,9 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
 
     colnames(glm_met) <- c('Date','ShortWave','LongWave','AirTemp','RelHum','WindSpeed','Rain','Snow')
     glm_met[,1] <- format(glm_met[,1], format = '%Y-%m-%d %H:%M:%S')
+
+    #Reduce number of digits
+    glm_met[,-1] <- signif(glm_met[,-1], digits = 8)
 
     return(glm_met)
   }
@@ -113,8 +129,14 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
     par_file <- get_yaml_value(config_file, 'config_files', 'simstrat')
     par_file <- file.path(folder, par_file)
 
-    # Required input file changes depending on the forcing mode in the config file
-    forcing_mode <- get_json_value(par_file, "ModelConfig", "Forcing")
+    # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
+    if("Precipitation_meterPerHour" %in% colnames(sim_met)){
+      snow_module = TRUE
+      input_json(par_file, "ModelConfig", "SnowModel", 1)
+    }else{
+      snow_module = FALSE
+      input_json(par_file, "ModelConfig", "SnowModel", 0)
+    }
 
     ### Pre-processing
     # Time
@@ -127,69 +149,55 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
       stop("Cannot find \"datetime\" column in the input file. Without this column, the model cannot run")
     }
 
-    # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
-    snow_module <- get_json_value(par_file, "ModelConfig", "SnowModel") == 1
-    # Optionally, if there is no precipitation/snowfall column, we can set the snow_module to FALSE
+    # Determine forcing mode based on available met data
+    if(datetime & u_wind & v_wind & air_temperature & solar_radiation & vapour_pressure & longwave_radiation){
+      forcing_mode = 5
+      sim_met = sim_met[, c(colname_time, colname_u_wind, colname_v_wind,
+                            colname_air_temperature, colname_solar_radiation,
+                            colname_vapour_pressure, colname_longwave_radiation)]
+      if(snow_module){
+        sim_met[["Precipitation_meterPerHour"]] = met[["Precipitation_meterPerHour"]]
+      }
 
-    if(snow_module & !(precipitation | snowfall)){
-      stop("There is no precipitation data and the Simstrat snow_module is set to TRUE.")
+    }else if(datetime & u_wind & v_wind & heat_flux & solar_radiation){
+      forcing_mode = 4
+      stop('Simstrat: Forcing mode 4 currently not supported.')
+    }else if(datetime & u_wind & v_wind & air_temperature & solar_radiation & vapour_pressure & cloud){
+
+      forcing_mode = 3
+      sim_met = sim_met[, c(colname_time, colname_u_wind, colname_v_wind,
+                            colname_air_temperature, colname_solar_radiation,
+                            colname_vapour_pressure, colname_cloud_cover)]
+      if(snow_module){
+        sim_met[["Precipitation_meterPerHour"]] = met[["Precipitation_meterPerHour"]]
+      }
+
+    }else if(datetime & u_wind & v_wind & air_temperature & solar_radiation & vapour_pressure){
+      forcing_mode = 2
+
+      sim_met = sim_met[, c(colname_time, colname_u_wind, colname_v_wind,
+                            colname_air_temperature, colname_solar_radiation,
+                            colname_vapour_pressure)]
+      if(snow_module){
+        sim_met[["Precipitation_meterPerHour"]] = met[["Precipitation_meterPerHour"]]
+      }
+
+    }else if(datetime & u_wind & v_wind & air_temperature & solar_radiation){
+      forcing_mode = 1
+      sim_met = sim_met[, c(colname_time, colname_u_wind, colname_v_wind,
+                            colname_air_temperature, colname_solar_radiation)]
+      if(snow_module){
+        sim_met[["Precipitation_meterPerHour"]] = met[["Precipitation_meterPerHour"]]
+      }
+    }else{
+      stop(paste("Simstrat: There is not enough data to run the model in any forcing mode"))
     }
 
+    # Set the forcing mode
+    input_json(par_file, "ModelConfig", "Forcing", forcing_mode)
 
-    ### Build sim_met file
-    # Boolean to see if there is enough data to write the meteo file
-    enoughData=T
-
-
-    # Now build the simstrat forcing file, based on the forcing_mode. If data is not available, an error message is displayed
-    if(forcing_mode == "5"){
-      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & longwave_radiation)){
-        enoughData = F
-      }else{
-        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
-                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
-                                       colname_longwave_radiation)]
-        if(snow_module){
-          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
-        }
-      }
-    }else if(forcing_mode == "4"){
-      # Forcing mode 4 requires one column with "heat flux" input. LakeEnsemblR does not yet have functionality for this option
-      enoughData = F
-    }else if(forcing_mode == "3"){
-      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity) & cloud_cover)){
-        enoughData = F
-      }else{
-        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
-                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure,
-                                       colname_cloud_cover)]
-        if(snow_module){
-          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
-        }
-      }
-    }else if(forcing_mode == "2"){
-      if(!(wind_speed & air_temperature & solar_radiation & (vapour_pressure | relative_humidity))){
-        enoughData = F
-      }else{
-        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
-                                       colname_air_temperature, colname_solar_radiation, colname_vapour_pressure)]
-        if(snow_module){
-          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
-        }
-      }
-    }else if(forcing_mode == "1"){
-      if(!(wind_speed & air_temperature & solar_radiation)){
-        enoughData = F
-      }else{
-        sim_met = sim_met[, c(colname_time, "Uwind_meterPerSecond", "Vwind_meterPerSecond",
-                                       colname_air_temperature, colname_solar_radiation)]
-        if(snow_module){
-          sim_met[["Precipitation_meterPerHour"]] = sim_met[["Precipitation_meterPerHour"]]
-        }
-      }
-    }
-
-    if(!enoughData){stop(paste("There is no data to run the model in forcing mode",forcing_mode))}
+    #Reduce number of digits
+    sim_met[,-1] <- signif(sim_met[,-1],8)
 
     return(sim_met)
   }
