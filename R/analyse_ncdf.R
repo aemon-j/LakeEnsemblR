@@ -9,15 +9,27 @@
 #' @examples
 #' \dontrun{
 #' }
-#' @importFrom gotmtools list_vars get_vari wide2long sum_stat
+#' @importFrom gotmtools list_vars get_vari wide2long sum_stat analyse_strat
 #'
 #' @export
 analyse_ncdf <- function(ncdf, spin_up = NULL){
 
   vars <- list_vars(ncdf)
   vars # Print variables
+  temp_vars <- grep('watertemp', vars, value = TRUE)
+  ice_vars <- grep('ice_height', vars, value = TRUE)
 
-  if(!'obs_watertemp' %in% vars){
+  # Extract latitude for determining hemisphere
+  lat <- get_1d(ncdf, 'lat')
+  if(lat > 0){
+    NH <- TRUE
+  }else{
+    NH <- FALSE
+  }
+
+
+
+  if(!'obs_watertemp' %in% temp_vars){
     stop('Obs water temp is not in ', ncdf)
   }
 
@@ -30,28 +42,66 @@ analyse_ncdf <- function(ncdf, spin_up = NULL){
     obs <- obs[obs[,1] >= spin_date,]
   }
 
+  # Remove obs_watertemp
+  temp_vars <- temp_vars[-grep('obs', temp_vars)]
+
   colnames(obs)[3] <- 'obs'
-  obs_strat <- analyse_strat(data = obs, NH = T)
+  if(length(ice_vars) > 0){
+    obs_strat <- analyse_strat(data = obs, NH = NH, H_ice = rep(0, length(unique(obs[,1]))))
+  }else{
+    obs_strat <- analyse_strat(data = obs, NH = NH)
+  }
   obs_strat$model <- 'obs'
 
   out_df <- NULL
   out_stats <- NULL
   out_strat <- NULL
 
-  for(i in 1:(length(vars)-1)){
-    model = strsplit(vars[i], '_')[[1]][1]
-    l1 <- get_vari(ncdf = ncdf,
-                              var = vars[i])
-    l1 <- wide2long(l1,z)
-    if(sum(is.na(l1))/nrow(l1) > 0.75){
-      warning('NAs > 75% of data in ', vars[i],'! - Skipping analysis...')
+  for(i in 1:(length(temp_vars))){
+
+    # Extract the model for assigning
+    model = strsplit(temp_vars[i], '_')[[1]][1]
+
+
+
+    temp1 <- get_vari(ncdf = ncdf,
+                              var = temp_vars[i])
+    temp <- wide2long(temp1,z)
+    if(sum(is.na(temp))/nrow(temp) > 0.75){
+      warning('NAs > 75% of data in ', temp_vars[i],'! - Skipping analysis...')
       next
     }
 
-    stats <- sum_stat(l1, obs, depth = T)
-    df <- merge(obs, l1, by = c(1,2))
+    stats <- sum_stat(temp, obs, depth = T)
+    df <- merge(obs, temp, by = c(1,2))
     df <- na.exclude(df)
-    strat <- analyse_strat(df[,c(1,2,4)])
+
+    if(length(ice_vars) > 1){
+      i_var <- grep(model, ice_vars, value = TRUE)
+      if(length(i_var) == 0){
+        i_var <- NULL
+        warning('No ice output for ', model)
+      }else{
+        ice <- get_vari(ncdf = ncdf, var = i_var)
+        ice <- ice[ice[,1] >= df[1,1],]
+        if(sum(is.na(ice[,2])) == nrow(ice)){
+          message(i_var, ' is all NA values - Setting to 0...')
+          ice[,2] <- 0
+        }
+      }
+    }
+
+    if(!is.null(spin_up)){
+      spin_date <- obs[1,1] + spin_up*(24*60*60)
+      temp <- temp[temp[,1] >= spin_date,]
+      ice <- ice[ice[,1] >= spin_date,]
+    }
+
+    if(!is.null(i_var)){
+      strat <- analyse_strat(data = temp, H_ice = ice[,2], NH = NH)
+    }else{
+      strat <- analyse_strat(data = temp, NH = NH)
+    }
     df$res <- df[,4] - df[,3]
     df$model <- model
     stats$model <- model
