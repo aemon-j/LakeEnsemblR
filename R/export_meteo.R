@@ -117,6 +117,7 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   # Availability of precipitation data only used for snow module
   precipitation = colname_precipitation %in% colnames(met)
   snowfall = colname_snow %in% colnames(met)
+  heat_flux = FALSE
 
   # Calculate other required variables
   # Relative humidity
@@ -159,7 +160,11 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   #Snowfall
   if(!snowfall){
+    freez_ind <- which(met[[colname_air_temperature]] < 0)
     met[[colname_snow]] <- 0
+    met[[colname_snow]][freez_ind] <- met[[colname_precipitation]][freez_ind]
+    met[[colname_precipitation]][freez_ind] <- 0
+    met[[colname_snow]] <- met[[colname_snow]] * 86400 # m s-1 to m d-1
     snowfall <- TRUE
   }
   # Precipitation
@@ -171,8 +176,10 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   #}
 
   # Long-wave radiation
-  if(!longwave_radiation){
+  if(!longwave_radiation & dewpoint_temperature){
     met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], dewt = met[[colname_dewpoint_temperature]])
+  }else if(!longwave_radiation & !dewpoint_temperature & relative_humidity){
+    met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], relh = met[[colname_relative_humidity]])
   }
 
   # wind speed
@@ -191,11 +198,15 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     rads = met[[colname_wind_direction]]/180*pi
     met[[colname_u_wind]] = met[[colname_wind_speed]]*cos(rads)
     met[[colname_v_wind]] = met[[colname_wind_speed]]*sin(rads)
+    u_wind <- TRUE
+    v_wind <- TRUE
   }
 
   if(!u_wind & !v_wind & wind_speed & !wind_direction){
     met[[colname_u_wind]] = met[[colname_wind_speed]]
     met[[colname_v_wind]] = 0
+    u_wind <- TRUE
+    v_wind <- TRUE
   }
 
 
