@@ -20,10 +20,12 @@ light:
    Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
    file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
+   timezone: CET                        # R timezone measured file is in [default=UTC]
 input:
    meteo:
       file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
       timestep: 86400.0                         # timestep of meteorological input data [s]
+      timezone: CET                             # R timezone measured file is in [default=UTC]
    ice:
       use: true                                 # turn on ice models? [default=true]
       H: 0.0                                    # initial ice thickness [m; default=0.0]
@@ -54,7 +56,9 @@ output:
     time_unit: hour                             # time unit [second, hour, day, month, year, dt=model time step; default=day]
     time_step: 24                               # number of time units between output [min=1; default=1]
     time_method: mean                           # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
-    variables: temp
+    variables:
+      - temp
+      - ice_height
 biogeochemistry:                                # not yet implemented
     use: false
 FLake:                                          # FLake specific parameters
@@ -72,15 +76,19 @@ calibration:                                    # Calibration section
       - wind_speed
       - solar_radiation
       - k_min
+      - coef_mix_hyp
    upper:                                       # Upper bounds of scaling factors
       - 2
       - 1.5
       - 1e-5
+      - 2
    lower:                                       # Lower bounds of scaling factors
       - 0.5
       - 0.5
       - 1e-5
+      - 0.1
    log:
       - false
       - false
       - true
+      - false
