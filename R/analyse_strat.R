@@ -4,7 +4,11 @@
 #'length of summer, winter stratification and ice duration.
 #'NOTE: summer strat periods are allocated to the year in which the period starts. Winter stratification and ice periods are allocated to the year in which they end.
 #'
-#' @param data dataframe; water temperature data in long format with date, depths, value
+#' @param data dataframe; water temperature data in long format with date, depths, value. Defaults to NULL
+#' @param Ts vector;  of surface temperatures which corresponds to date vector
+#' @param Tb vector; of bottom temperatures which corresponds to date vector
+#' @param H_ice vector; of ice thickness which corresponds to date vector, set to NULL if analysis not required. Defaults to NULL
+#' @param dates vector; of POSIX style date corresponding to rows of Ts and Tb.
 #' @param H_ice vector; of ice thickness which corresponds to date vector, set to NULL if analysis not required. Defaults to NULL
 #' @param drho numeric; density difference between top and bottom indicating stratificaiton [kg m^-3]
 #' @param NH boolean; northern hemisphere? TRUE or FALSE. Defaults to true
@@ -17,54 +21,59 @@
 #'
 #' @export
 
-analyse_strat <- function(data, H_ice = NULL, drho = 0.1, NH = TRUE){
+analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE){
 
-  data[,2] <- abs(data[,2])
-  depths <- unique(data[,2])
-  depths <- depths[order(depths)]
+  if(!is.null(data)){
+    data[,2] <- abs(data[,2])
+    depths <- unique(data[,2])
+    depths <- depths[order(depths)]
 
-  # Find closest depth near the surface without NA
-  for(i in 1:length(depths)){
-    Ts = data[data[,2] == depths[i],3]
-    if(sum(is.na(Ts))/length(Ts) < 0.25){
-      if(i != 1){
-        message('Warning: Using ', depths[i], ' as the surface.')
+    # Find closest depth near the surface without NA
+    for(i in 1:length(depths)){
+      Ts = data[data[,2] == depths[i],3]
+      if(sum(is.na(Ts))/length(Ts) < 0.25){
+        if(i != 1){
+          message('Warning: Using ', depths[i], ' as the surface.')
+        }
+        break
       }
-      break
+    }
+    # Find closest depth near the bottom without NA
+    for(i in length(depths):1){
+      Tb = data[data[,2] == depths[i],3]
+      if(sum(is.na(Tb))/length(Tb) < 0.25){
+        if(i != 1){
+          message('Warning: Using ', depths[i], ' as the bottom.')
+        }
+        break
+      }
+    }
+
+
+
+    dates = unique(data[,1])
+
+    # Put into data frame and remove NA's
+    if(!is.null(H_ice)){
+      df <- data.frame(dates, Ts, Tb, H_ice)
+    }else{
+      df <- data.frame(dates, Ts, Tb)
+    }
+    df <- na.exclude(df)
+    if(nrow(df) == 0){
+      message('Not enough data to calculate statification and/or ice statistics')
+      return()
+    }
+    dates <- df$dates
+    Ts <- df$Ts
+    Tb <- df$Tb
+
+    if(!is.null(H_ice)){
+      H_ice <- df$H_ice
     }
   }
-  # Find closest depth near the bottom without NA
-  for(i in length(depths):1){
-    Tb = data[data[,2] == depths[i],3]
-    if(sum(is.na(Tb))/length(Tb) < 0.25){
-      if(i != 1){
-        message('Warning: Using ', depths[i], ' as the bottom.')
-      }
-      break
-    }
-  }
 
 
-
-  dates = unique(data[,1])
-
-  # Put into data frame and remove NA's
-  if(!is.null(H_ice)){
-    df <- data.frame(dates, Ts, Tb, H_ice)
-  }else{
-    df <- data.frame(dates, Ts, Tb)
-  }
-  df <- na.exclude(df)
-  if(nrow(df) == 0){
-    message('Not enough data to calculate statification and/or ice statistics')
-    return()
-  }
-  dates <- df$dates
-  Ts <- df$Ts
-  Tb <- df$Tb
-  if(!is.null(H_ice)){
-    H_ice <- df$H_ice
-  }
 
 
 
