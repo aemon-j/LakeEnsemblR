@@ -65,9 +65,9 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   # Stop date
   stop_date <- get_yaml_value(config_file, "time", "stop")
   # Time step
-  timestep <- get_yaml_value(config_file, "time", "timestep")
+  timestep <- get_yaml_value(config_file, "time", "time_step")
   # Met time step
-  met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
+  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
   # Output depths
   output_depths <- get_yaml_value(config_file, "output", "depths")
   # Use ice
