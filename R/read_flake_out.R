@@ -7,8 +7,9 @@
 #' @param vars vector; variables to extract from FLake output. Currently just temp and ice
 #' @param depths vector; of numeric values to extract the depths at. Only used if extracting water temp
 #' @param nml_file filepath; to FLake namelist file
-#' @param long; Boolean; return data in long form
-
+#' @param long Boolean; return data in long form
+#' @param out_time vector; of output time values to subset data by.
+#' @param out_hour numeric; hour of output time values to subset data. Only used for FLake if model time step is 86400s.
 #' @return Dataframe if only one variable otherwise a list
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value
@@ -19,17 +20,17 @@
 #' }
 #'
 #' @export
-read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long = FALSE){
+read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long = FALSE, out_time, out_hour = 0){
 
   met_file <- suppressWarnings(get_nml_value(arg_name = 'meteofile', nml_file = nml_file))
   met_file <- file.path(folder, met_file)
   met_file <- gsub(',', '', met_file)
 
   met <- read.delim(met_file, header = FALSE)
-  datetime <- as.POSIXct(met[,ncol(met)], tz = 'UTC')
+  datetime <- as.POSIXct(met[,ncol(met)], tz = 'UTC') + (out_hour * 60*60)
 
   # Code from R. I. Woolway FLake Workshop
-  flake_out <- read.table(output, header = TRUE, skip = 1)
+  flake_out <- read.table(output, header = TRUE, skip = 1, stringsAsFactors = FALSE)
 
   out_list <- list()
   if('temp' %in% vars){
@@ -60,7 +61,7 @@ read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long =
       is.in.ML <- z <= h
       Tz <- ifelse(is.in.ML,Ts,zeta*(c1*C-c2+zeta*(18-30*C+zeta*(20*C-12+zeta*(c3-c4*C))))*(Tb-Ts)+Ts)
       if(long){
-        dd <- data.frame(dateTime = flake_out$time,
+        dd <- data.frame(dateTime = 1:length(Tz),
                          depth = z,
                          wtr = Tz)
         l_wtr[[kk]] <- dd
@@ -68,12 +69,12 @@ read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long =
         mat[,kk] <- Tz
       }
     }
+
     if(long){
       wtr2 <- do.call("rbind",l_wtr)
 
       # sort in temporal order
-      idx <- sort(wtr2$dateTime, index.return = TRUE)$ix
-      wtr2 <- wtr2[idx,]
+      wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth),]
       colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
       tims = sum((wtr2[,1] == wtr2[1,1]))
       time_long <- rep(datetime, each = tims)
@@ -84,6 +85,7 @@ read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long =
       wtr2 <- wtr2[,c(ncol(wtr2), 1:(ncol(wtr2)-1))]
       colnames(wtr2) <- c('datetime',paste('wtr_',depths, sep=""))
     }
+    wtr2 <- wtr2[which(wtr2$datetime %in% out_time$datetime),]
     out_list[[length(out_list)+1]] <- wtr2
     names(out_list)[length(out_list)] <- 'temp'
   }
@@ -97,7 +99,7 @@ read_flake_out <- function(output, vars, depths,  folder = '.', nml_file, long =
   }
 
   if(length(out_list) == 1){
-    out_list <- out_list[1]
+    out_list <- out_list[[1]]
   }
 
   return(out_list)
