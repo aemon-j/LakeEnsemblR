@@ -4,7 +4,16 @@
 \alias{read_flake_out}
 \title{Extract FLake output}
 \usage{
-read_flake_out(output, vars, depths, folder = ".", nml_file, long = FALSE)
+read_flake_out(
+  output,
+  vars,
+  depths,
+  folder = ".",
+  nml_file,
+  long = FALSE,
+  out_time,
+  out_hour = 0
+)
 }
 \arguments{
 \item{output}{filepath; to FLake output file}
@@ -15,7 +24,11 @@ read_flake_out(output, vars, depths, folder = ".", nml_file, long = FALSE)
 
 \item{nml_file}{filepath; to FLake namelist file}
 
-\item{long;}{Boolean; return data in long form}
+\item{long}{Boolean; return data in long form}
+
+\item{out_time}{vector; of output time values to subset data by.}
+
+\item{out_hour}{numeric; hour of output time values to subset data. Only used for FLake if model time step is 86400s.}
 }
 \value{
 Dataframe if only one variable otherwise a list
