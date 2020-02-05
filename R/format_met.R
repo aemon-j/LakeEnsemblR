@@ -12,6 +12,10 @@
 #' @export
 format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
 
+
+  lat <- get_yaml_value(file = config_file, label = 'location', key = 'latitude')
+  lon <- get_yaml_value(file = config_file, label = 'location', key = 'longitude')
+  elev <- get_yaml_value(file = config_file, label = 'location', key = 'elevation')
   ### Naming conventions standard input
   # Depending on the setup of the standard config file, we can omit reading exact titles and read column numbers
   colname_time = "datetime"
@@ -49,12 +53,103 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
   heat_flux = FALSE
 
 
+  # Calculate other required variables
+  # Relative humidity
+  if(!relative_humidity & air_temperature & dewpoint_temperature){
+    # The function is in helpers.R the formula is from the weathermetrics package
+    met[[colname_relative_humidity]] <- dewt2relh(met[[colname_dewpoint_temperature]], met[[colname_air_temperature]])
+    if(is.na(sum(met[[colname_relative_humidity]]))){
+      met[[colname_relative_humidity]] <- na.approx(met[[colname_relative_humidity]])
+      message('Interpolated NAs')
+    }
+    relative_humidity <- TRUE
+  }
+
+  # Vapour pressure
+  if(!vapour_pressure & relative_humidity){
+    # Calculate vapour pressure as: relhum * saturated vapour pressure
+    # Used formula for saturated vapour pressure from:
+    # Woolway, R. I., Jones, I. D., Hamilton, D. P., Maberly, S. C., Muraoka, K., Read, J. S., . . . Winslow, L. A. (2015).
+    # Automated calculation of surface energy fluxes with high-frequency lake buoy data.
+    # Environmental Modelling & Software, 70, 191-198.
+
+    met[[colname_vapour_pressure]]=met[[colname_relative_humidity]]/100 * 6.11 * exp(17.27 * met[[colname_air_temperature]] / (237.3 + met[[colname_air_temperature]]))
+    vapour_pressure <- TRUE
+
+  }
+
+  # Cloud cover
+  if(!cloud_cover){
+
+    met[[colname_cloud_cover]] =  calc_cc(date = met$datetime,
+                                          airt = met$Air_Temperature_celsius,
+                                          relh = met$Relative_Humidity_percent,
+                                          swr = met$Shortwave_Radiation_Downwelling_wattPerMeterSquared,
+                                          lat = lat, lon = lon,
+                                          elev = elev,
+                                          daily = daily)
+    cloud_cover <- TRUE
+
+  }
+
+  #Snowfall
+  if(!snowfall){
+    freez_ind <- which(met[[colname_air_temperature]] < 0)
+    met[[colname_snow]] <- 0
+    met[[colname_snow]][freez_ind] <- met[[colname_precipitation]][freez_ind]
+    met[[colname_precipitation]][freez_ind] <- 0
+    met[[colname_snow]] <- met[[colname_snow]] * 86400 # m s-1 to m d-1
+    snowfall <- TRUE
+  }
+  # Precipitation
+  # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
+  if(precipitation){
+    met$`Precipitation_meterPerHour`=met[[colname_precipitation]]*3600
+  }#else if(snowfall){
+  #  met$`Precipitation_meterPerHour`=met[[colname_snow]]/24
+  #}
+
+  # Long-wave radiation
+  if(!longwave_radiation & dewpoint_temperature){
+    met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], dewt = met[[colname_dewpoint_temperature]])
+  }else if(!longwave_radiation & !dewpoint_temperature & relative_humidity){
+    met[[colname_longwave_radiation]] <- calc_in_lwr(cc = met[[colname_cloud_cover]], airt = met[[colname_air_temperature]], relh = met[[colname_relative_humidity]])
+  }
+
+  # wind speed
+  if(!wind_speed & u_wind & v_wind){
+    met[[colname_wind_speed]] <- sqrt(met[[colname_u_wind]]^2 + met[[colname_v_wind]]^2)
+  }
+
+  # wind direction
+  if(!wind_direction & u_wind & v_wind){
+    met[[colname_wind_direction]] = calc_windDir(met[[colname_u_wind]], met[[colname_v_wind]])
+    wind_direction <- TRUE
+  }
+
+  # u and v wind vectors
+  if(!u_wind & !v_wind & wind_speed & wind_direction){
+    rads = met[[colname_wind_direction]]/180*pi
+    met[[colname_u_wind]] = met[[colname_wind_speed]]*cos(rads)
+    met[[colname_v_wind]] = met[[colname_wind_speed]]*sin(rads)
+    u_wind <- TRUE
+    v_wind <- TRUE
+  }
+
+  if(!u_wind & !v_wind & wind_speed & !wind_direction){
+    met[[colname_u_wind]] = met[[colname_wind_speed]]
+    met[[colname_v_wind]] = 0
+    u_wind <- TRUE
+    v_wind <- TRUE
+  }
+
+
   if('FLake' %in% model){
 
     ## Extract start, stop, lat & lon for netCDF file from config file
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
-    met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
+    met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
     fla_fil <- get_yaml_value(config_file, "config_files", "flake")
     fla_fil <- file.path(folder, fla_fil)
 
@@ -162,7 +257,7 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = '.'){
     }else if(datetime & u_wind & v_wind & heat_flux & solar_radiation){
       forcing_mode = 4
       stop('Simstrat: Forcing mode 4 currently not supported.')
-    }else if(datetime & u_wind & v_wind & air_temperature & solar_radiation & vapour_pressure & cloud){
+    }else if(datetime & u_wind & v_wind & air_temperature & solar_radiation & vapour_pressure & cloud_cover){
 
       forcing_mode = 3
       sim_met = sim_met[, c(colname_time, colname_u_wind, colname_v_wind,
