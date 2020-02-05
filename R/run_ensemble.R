@@ -46,7 +46,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   ## Extract start, stop, lat & lon for netCDF file from config file
   start <- get_yaml_value(config_file, "time", "start")
   stop <- get_yaml_value(config_file, "time", "stop")
-  met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
+  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
   lat <- get_yaml_value(config_file, "location", "latitude")
   lon <- get_yaml_value(config_file, "location", "longitude")
   obs_file <- get_yaml_value(config_file, "observations", "file")
@@ -64,13 +64,15 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     compression <- get_yaml_value(config_file, "output", "compression")
   }
 
-  if(met_timestep == 86400){
-    out_hour <- hour(start)
-  }
 
   # Create output time vector
   out_time <- seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz), by = paste(time_step, time_unit))
   out_time <- data.frame(datetime = out_time)
+  if(met_timestep == 86400){
+    out_hour <- hour(start) #Used for FLake output
+  }else{
+    out_hour = 0
+  }
 
 
   if(obs_file != 'NULL'){
@@ -136,15 +138,15 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     if(return_list | create_netcdf){
 
       # Extract output
-      fla_out <- get_output(config_file = config_file, model = 'FLake', vars = out_vars, obs_depths = obs_deps, folder = folder)
+      fla_out <- get_output(config_file = config_file, model = 'FLake', vars = out_vars, obs_depths = obs_deps, folder = folder, out_time = out_time, out_hour = out_hour)
 
-      # Add hour to daily output to match with out_ti
-      if(met_timestep == 86400){
-        for(i in 1:length(fla_out)){
-          fla_out[[i]][,1] <- fla_out[[i]][,1] + out_hour * 60 * 60
-
-        }
-      }
+      # # Add hour to daily output to match with out_ti
+      # if(met_timestep == 86400){
+      #   for(i in 1:length(fla_out)){
+      #     fla_out[[i]][,1] <- fla_out[[i]][,1] + out_hour * 60 * 60
+      #
+      #   }
+      # }
 
 
       # Ensure FLake is on the same time step for output
