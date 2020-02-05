@@ -3,10 +3,10 @@
 #'Export initial condition files and input into model configuration files.
 #'
 #' @name export_init_cond
+#' @param config_file filepath; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
-#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format.
+#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format. If NULL it uses the file from config_file. Defaults to NULL.
 #' @param date character; Date in "YYYY-mm-dd HH:MM:SS" format to extract the initial profile. If using month, the date to which to set the start date
-#' @param tprof_file filepath; For the new initial temperature profile file.
 #' @param month numeric;select a month if you want to use an 'average profile from a particular month. Defaults to NULL.
 #' @param ndeps numeric; number of depths to extract from the monthly average profile. Defaults to 2 (surface and bottom)
 #' @param btm_depth numeric; Depth to extract the bottom temperature from, must be negative. If none provided uses the max depth in the observed file. Defaults to NULL
@@ -20,8 +20,14 @@
 #'
 #' @export
 
-export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file, date, tprof_file, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
+export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
 
+  if(is.null(wtemp_file)){
+    wtemp_file <- get_yaml_value(config_file, 'observations', 'file')
+    wtemp_file <- file.path(folder, wtemp_file)
+  }
+
+  message('Loading wtemp_file...')
   obs <- read.csv(wtemp_file)
 
   if(!is.null(month)){
