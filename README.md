@@ -27,6 +27,7 @@ devtools::install_github('aemon-j/FLakeR')
 devtools::install_github('aemon-j/GOTMr')
 devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
+devtools::install_github('aemon-j/LakeEnsemblR')
 
 # Load libraries
 library(gotmtools)
@@ -45,20 +46,20 @@ masterConfigFile <- 'Feeagh_master_config.yaml'
 export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.')
 
 # 2. Create meteo driver files
-export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
-             meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'))
 
 # 3. Create initial conditions
 start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
 
-export_init_cond(model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
-                 wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-                 date = start_date, tprof_file = 'HOLDER.dat',
-                 month = 1, ndeps = 2, print = TRUE)
+export_init_cond(config_file = masterConfigFile, 
+                 model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                 date = start_date,
+                 print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), return_list = TRUE,
-                           create_netcdf = TRUE, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv')
+wtemp_list <- run_ensemble(config_file = masterConfigFile,
+                           model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                           return_list = TRUE)
 
 ```
 
@@ -72,7 +73,7 @@ library(ggplot2)
 ## Plot model output using gotmtools/ggplot2
 
 # Extract names of all the variables in netCDF
-ens_out <- 'output/ensemble_output.nc4'
+ens_out <- 'output/ensemble_output.nc'
 vars <- gotmtools::list_vars(ens_out)
 vars # Print variables
 
@@ -104,53 +105,46 @@ ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height 
 
 masterConfigFile <- 'Feeagh_master_config.yaml'
 
-pars <- c('wind_factor', 'swr_factor', 'lw_factor')
-mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
-df <- as.data.frame(mat)
-rownames(df) <- pars
-df # Print parameter ranges
+param_file <- sample_LHC(config_file = masterConfigFile, num = 10, method = 'met')
 
-# Run Latin_hypercube sample
-run_LHC(parRange = df, num = 300,
-obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
-param_file = NULL,
-config_file = 'Feeagh_master_config.yaml', model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
-meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+model = c('FLake', 'GLM', 'GOTM', 'Simstrat')
+# Run Latin_hypercube sample sequentially
+for(i in 1:length(model)){
+  run_LHC(config_file = masterConfigFile, param_file = param_file, method = 'met', model = model[i])
+}
 
 ```
-## Run Latin hypercube sampling in parallel
+## Run Latin hypercube sampling in parallel - [in beta]
 
 ```{r gh-installation, eval = FALSE}
+
 # Load library for running in parallel
 library(parallel)
 
-master_param_file <- sample_LHC(parRange = df, num = 300) # Create parameter file before paralleization
+master_param_file <- sample_LHC(config_file = masterConfigFile, num = 10, method = 'met') # Create parameter file before paralleization
 
 # Select the number of cores to use and opens sockets
 num_cores <- detectCores()
 model = c('FLake', 'GLM', 'GOTM', 'Simstrat')
 if (length(model) < num_cores){
-  cl <- makeCluster(length(model), outfile = 'calib_log.txt')
+  cl <- makeCluster(length(model))
 } else {
   cl <- makeCluster(num_cores, outfile = 'calib_log.txt')
 }
 
 
 Sys.time() # Print start time to console
-
 # Run LHC in parallel
-clusterApply(cl = cl, x = model, fun = run_LHC, parRange = df, 
-             num = 300, 
-             param_file = master_param_file,  
-             obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', 
-             config_file = 'Feeagh_master_config.yaml', 
-             meteo_file = 'LakeEnsemblR_meteo_standard.csv', 
+clusterApply(cl = cl, x = model, fun = run_LHC, 
+             config_file = masterConfigFile,
+             param_file = master_param_file,
+             method = 'met', 
              folder = getwd())
 Sys.time() # Print start time to console
 
 stopCluster(cl) # Close sockets
 
-```
+  ```
 
 ## Evaluate LHC parameter performance
 
