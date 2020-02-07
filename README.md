@@ -27,7 +27,7 @@ devtools::install_github('aemon-j/FLakeR')
 devtools::install_github('aemon-j/GOTMr')
 devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
-devtools::install_github('aemon-j/LakeEnsemblR', ref = 'atom')
+devtools::install_github('aemon-j/LakeEnsemblR')
 
 # Load libraries
 library(gotmtools)
