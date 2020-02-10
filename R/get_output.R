@@ -199,7 +199,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
       
       depths <- res$zz
       
-      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.Date((as.numeric(res$tt) - 719529), origin = "1970-01-01"),
+      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01"),
                                                        t(res$Tzt))
       colnames(mylake_out[[length(mylake_out)]]) <- c('datetime',paste('wtr_', depths, sep=""))
       names(mylake_out)[length(mylake_out)] <- 'temp'
@@ -210,7 +210,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
       
       depths <- res$zz
       
-      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.Date((as.numeric(res$tt) - 719529), origin = "1970-01-01"),
+      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01"),
                                                        'ice_height' = res$His[1,])
       names(mylake_out)[length(mylake_out)] <- 'ice_height'
       
