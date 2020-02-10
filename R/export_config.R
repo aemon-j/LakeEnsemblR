@@ -368,7 +368,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
     
     # Load in template config file MyLakeR requires to fill in from yaml
-    mylake_path <- system.file(package="MyLakeR")
+    mylake_path <- system.file(package="LakeEnsemblR")
     load(file.path(mylake_path,"extdata","mylake_config_template.Rdata"))
     
     # update MyLakeR config file
