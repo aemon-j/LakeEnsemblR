@@ -296,7 +296,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       
       ### Extract output
       mylake_out <- get_output(config_file = config_file, model = 'MyLake', vars = out_vars, obs_depths = obs_deps, folder = folder)
-  
+      
       if(!is.list(mylake_out)){
         mylake_out <- merge(mylake_out, out_time, by = 'datetime', all.y = T)
       }else{
