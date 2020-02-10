@@ -150,7 +150,7 @@ export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', '
     temp_interp1 <- dplyr::full_join(deps_Az,
                                      data.frame("Depth_meter"=deps,
                                                 "Water_Temperature_celsius"=tmp),
-                                     by=c("Depth_meter","Water_Temperature_celsius"))
+                                     by=c("Depth_meter"))
     temp_interp2 <- dplyr::arrange(temp_interp1,Depth_meter)
     temp_interp3 <- dplyr::mutate(temp_interp2,
                                   TempInterp=approx(x=Depth_meter,
