@@ -222,5 +222,6 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
     }
     
     return(mylake_out)
-
+    
+  }
 }
