@@ -20,7 +20,7 @@
 #'
 #' @export
 
-export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
+export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
 
   if(is.null(wtemp_file)){
     wtemp_file <- get_yaml_value(config_file, 'observations', 'file')
@@ -134,6 +134,49 @@ export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', '
     message('Simstrat: Created initial conditions file ', file.path(folder,"Simstrat", 'init_cond.dat'))
 
   }
+  
+  ## MyLake
+  if('MyLake' %in% model){
+    load("./MyLake/mylake_config_final.Rdata")
+    
+    mylake_init <- list()
+    
+    # configure initial depth profile
+    deps_Az <- data.frame("Depth_meter"=mylake_config[["In.Z"]],
+                          "Az"=mylake_config[["In.Az"]])
+    
+    # configure initial temperature profile
+    # depth MUST match those from hyposgraph -- interpolate here as needed
+    temp_interp1 <- dplyr::full_join(deps_Az,
+                                     data.frame("Depth_meter"=deps,
+                                                "Water_Temperature_celsius"=tmp))
+    temp_interp2 <- dplyr::arrange(temp_interp1,Depth_meter)
+    temp_interp3 <- dplyr::mutate(temp_interp2,
+                                  TempInterp=approx(x=Depth_meter,
+                                                    y=Water_Temperature_celsius,
+                                                    xout=Depth_meter,
+                                                    yleft=dplyr::first(na.omit(Water_Temperature_celsius)),
+                                                    yright=dplyr::last(na.omit(Water_Temperature_celsius)))$y)
+    temp_interp <- dplyr::filter(temp_interp3, !is.na(Az))
+    
+    # fill in depths and temperature in iniital profile RData file
+    mylake_init[["In.Tz"]]=as.matrix(temp_interp$TempInterp)
+    
+    mylake_init[["In.Z"]]=as.matrix(temp_interp$Depth_meter)
+    
+    # save initial profile data
+    save(mylake_init,file=file.path(folder,"MyLake","mylake_init.Rdata"))
+    
+    # update config parameter with initial depth differences
+    mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
+    
+    # save revised config file
+    save(mylake_config,file=file.path(folder,"MyLake","mylake_config_final.Rdata"))
+    
+    message('MyLake: Created initial conditions file ', file.path(folder,"MyLake", 'mylake_config_final.Rdata'))
+    
+  }
+  
   if(print == TRUE){
     print(df)
   }
