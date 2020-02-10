@@ -147,9 +147,10 @@ export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', '
     
     # configure initial temperature profile
     # depth MUST match those from hyposgraph -- interpolate here as needed
-    temp_interp1 <- suppressMessages(dplyr::full_join(deps_Az,
+    temp_interp1 <- dplyr::full_join(deps_Az,
                                      data.frame("Depth_meter"=deps,
-                                                "Water_Temperature_celsius"=tmp)))
+                                                "Water_Temperature_celsius"=tmp),
+                                     by=c("Depth_meter","Water_Temperature_celsius"))
     temp_interp2 <- dplyr::arrange(temp_interp1,Depth_meter)
     temp_interp3 <- dplyr::mutate(temp_interp2,
                                   TempInterp=approx(x=Depth_meter,
