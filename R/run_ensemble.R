@@ -19,7 +19,7 @@
 #' @importFrom lubridate year round_date seconds_to_period
 #'
 #' @export
-run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE){
+run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), folder = '.', return_list = FALSE, create_netcdf = TRUE){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz = Sys.getenv("TZ")
@@ -40,6 +40,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   glm_out <- NULL
   gotm_out <- NULL
   sim_out <- NULL
+  mylake_out <- NULL
   obs_out <- NULL
 
 
@@ -284,15 +285,38 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     }
   }
 
+  ## MyLake
+  if('MyLake' %in% model){
+    
+    run_mylake(sim_folder = folder)
+    
+    message('MyLake run is complete! ', paste0('[', Sys.time(),']'))
+    
+    if(return_list | create_netcdf){
+      
+      ### Extract output
+      mylake_out <- get_output(config_file = config_file, model = 'MyLake', vars = out_vars, obs_depths = obs_deps, folder = folder)
+  
+      if(!is.list(mylake_out)){
+        mylake_out <- merge(mylake_out, out_time, by = 'datetime', all.y = T)
+      }else{
+        mylake_out <- lapply(1:length(mylake_out), function(x){
+          merge(mylake_out[[x]], out_time, by = 1, all.y = T)
+        })
+        names(mylake_out) <- out_vars # Re-assign names to list
+      }
+    }
+  }
+  
   if(return_list | create_netcdf){
 
     if('temp' %in% out_vars){
-      temp_list = list('FLake_watertemp' = fla_out[['temp']], 'GLM_watertemp' = glm_out[['temp']], 'GOTM_watertemp' = gotm_out[['temp']], 'Simstrat_watertemp' = sim_out[['temp']], 'Obs_watertemp' = obs_out)
+      temp_list = list('FLake_watertemp' = fla_out[['temp']], 'GLM_watertemp' = glm_out[['temp']], 'GOTM_watertemp' = gotm_out[['temp']], 'Simstrat_watertemp' = sim_out[['temp']], 'MyLake_watertemp' = mylake_out[['temp']], 'Obs_watertemp' = obs_out)
       temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
     if('ice_height' %in% out_vars){
-      ice_list = list('FLake_ice_height' = fla_out[['ice_height']], 'GLM_ice_height' = glm_out[['ice_height']], 'GOTM_ice_height' = gotm_out[['ice_height']], 'Simstrat_ice_height' = sim_out[['ice_height']])
+      ice_list = list('FLake_ice_height' = fla_out[['ice_height']], 'GLM_ice_height' = glm_out[['ice_height']], 'GOTM_ice_height' = gotm_out[['ice_height']], 'Simstrat_ice_height' = sim_out[['ice_height']], 'MyLake_ice_height' = mylake_out[['ice_height']])
       ice_list <- Filter(Negate(is.null), ice_list) # Remove NULL outputs
     }
 
