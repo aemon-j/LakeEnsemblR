@@ -288,7 +288,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
   ## MyLake
   if('MyLake' %in% model){
     
-    run_mylake(sim_folder = folder)
+    MyLakeR::run_mylake(sim_folder = folder)
     
     message('MyLake run is complete! ', paste0('[', Sys.time(),']'))
     
