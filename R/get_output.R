@@ -216,7 +216,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
       
       mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = dates, temp_interp)
       colnames(mylake_out[[length(mylake_out)]]) <- c('datetime',
-                                                      paste('wtr_', 0, max(depths), by = output_depths), sep = ""))
+                                                      paste('wtr_', seq(0, max(depths), by = output_depths), sep = ""))
       
       names(mylake_out)[length(mylake_out)] <- 'temp'
       
