@@ -197,11 +197,25 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
     
     if('temp' %in% vars){
       
-      depths <- res$zz
+      output_depths <- get_yaml_value(config_file, "output", "depths")
       
-      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01"),
-                                                       t(res$Tzt))
-      colnames(mylake_out[[length(mylake_out)]]) <- c('datetime',paste('wtr_', depths, sep=""))
+      depths <- res$zz
+      temps <- res$Tzt
+      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+      
+      temp_interp <- matrix(NA,nrow=length(dates),ncol=length(seq(min(depths),max(depths),by=output_depths)))
+      for(i in 1:ncol(temps)){
+        temp_interp[i,] <- approx(x=depths,
+                                  y=temps[,i],
+                                  xout=seq(min(depths),max(depths),by=output_depths),
+                                  yleft=dplyr::first(na.omit(temps)),
+                                  yright=dplyr::last(na.omit(temps)))$y
+      }
+      
+      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = dates, temp_interp)
+      colnames(mylake_out[[length(mylake_out)]]) <- c('datetime',
+                                                      paste('wtr_', seq(min(depths),max(depths),by=output_depths), sep=""))
+      
       names(mylake_out)[length(mylake_out)] <- 'temp'
       
     }
