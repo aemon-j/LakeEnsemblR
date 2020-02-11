@@ -200,8 +200,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
       output_depths <- get_yaml_value(config_file, "output", "depths")
       
       init_depths <- res$zz
-      add_deps <- obs_depths[!(obs_depths %in% depths)]
-      depths <- c(add_deps, depths)
+      add_deps <- obs_depths[!(obs_depths %in% init_depths)]
+      depths <- c(add_deps, init_depths)
       depths <- depths[order(depths)]
       
       temps <- res$Tzt
