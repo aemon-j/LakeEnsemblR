@@ -8,7 +8,6 @@ Tools for running an ensemble of lake models using standardised input data. Lake
 You can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
-
 # install.packages("devtools")
 devtools::install_github("aemon-j/LakeEnsemblR")
 ```
