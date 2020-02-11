@@ -18,7 +18,7 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.'){
+export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), folder = '.'){
 
   # Set working directory
   oldwd <- getwd()
@@ -347,6 +347,58 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
     message('Simstrat configuration complete!')
 
+  }
+  
+  ## MyLake
+  if("MyLake" %in% model){
+    
+    # Extinction coefficient (swa_b1)
+    ext_coef <- gotmtools::get_yaml_value(config_file, "light", "Kw")
+    
+    # wind sheltering coefficient (C_shelter)
+    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
+    
+    if(is.na(as.numeric(c_shelter))){
+      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
+    }
+    
+    # Create directory and output directory, if they do not yet exist
+    if(!dir.exists('MyLake')){
+      dir.create('MyLake')
+    }
+    
+    # Load in template config file MyLakeR requires to fill in from yaml
+    mylake_path <- system.file(package="LakeEnsemblR")
+    load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+    
+    # update MyLakeR config file
+    mylake_config[["M_start"]] <- start_date
+    mylake_config[["M_stop"]] <- stop_date
+    mylake_config[["Phys.par"]][5] <- c_shelter
+    mylake_config[["Phys.par"]][6] <- lat
+    mylake_config[["Phys.par"]][7] <- lon
+    mylake_config[["Bio.par"]][2] <- ext_coef
+    mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
+    mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
+    mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(hyp)), ncol=1)
+    mylake_config[["In.Chlz.sed"]] <- matrix(rep(196747, nrow(hyp)), ncol=1)
+    mylake_config[["In.TPz.sed"]] <- matrix(rep(756732, nrow(hyp)), ncol=1)
+    mylake_config[["In.DOCz"]] <- matrix(rep(3000, nrow(hyp)), ncol=1)
+    mylake_config[["In.Chlz"]] <- matrix(rep(7, nrow(hyp)), ncol=1)
+    mylake_config[["In.DOPz"]] <- matrix(rep(7, nrow(hyp)), ncol=1)
+    mylake_config[["In.TPz"]] <- matrix(rep(21, nrow(hyp)), ncol=1)
+    mylake_config[["In.Sz"]] <- matrix(rep(0, nrow(hyp)), ncol=1)
+    mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(hyp)), ncol=1)
+    
+    if(!use_inflows){
+        mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.Date(from = as.Date(start_date), to = as.Date(stop_date), by="day"))),
+                                      ncol = 8)
+    }
+    
+    # save lake-specific config file for MyLake
+    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    
+    message('MyLake configuration complete!')
   }
 
   # Light extinction (Kw) in separate function

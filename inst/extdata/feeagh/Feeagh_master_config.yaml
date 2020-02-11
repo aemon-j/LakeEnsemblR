@@ -71,6 +71,8 @@ GOTM:
    k_min: 3.6E-6                                # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
 Simstrat:
    a_seiche: 0.001                              # Fraction of wind energy which goes into seiche energy [-]
+MyLake:
+   C_shelter: 0.15				# wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
 calibration:                                    # Calibration section
    parameter:                                  # Parameters to be calibrated
       - wind_speed

@@ -17,7 +17,7 @@
 #' @importFrom zoo na.approx
 #'
 #' @export
-export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), meteo_file = NULL, scale_param = NULL, folder = '.'){
+export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), meteo_file = NULL, scale_param = NULL, folder = '.'){
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz = Sys.getenv("TZ")
@@ -319,7 +319,38 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
     message('Simstrat: Created file ', file.path(folder,"Simstrat", met_outfile))
   }
+  
+  ## MyLake
+  if('MyLake' %in% model){
 
+    met_outfile <- 'meteo_file.dat'
+    mylake_met <- met
+    
+    if(!solar_radiation){
+      mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- 0
+    }
+    
+    mylake_met <- mylake_met[,c(colname_time,
+                                colname_solar_radiation,
+                                colname_cloud_cover,
+                                colname_air_temperature,
+                                colname_relative_humidity,
+                                colname_surface_pressure,
+                                colname_wind_speed,
+                                colname_precipitation)]
+    
+    # scale for units accepted in MyLake
+    mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared * 0.0864
+    mylake_met$Surface_Level_Barometric_Pressure_pascal <- mylake_met$Surface_Level_Barometric_Pressure_pascal * 0.01
+    mylake_met$Precipitation_meterPerSecond <- mylake_met$Precipitation_meterPerSecond * 86400000
+    mylake_met$datetime <- as.matrix(floor((as.numeric(as.POSIXct(mylake_met$datetime)) / 86400) + 719529))
+
+    # write met file for MyLake
+    write.table(mylake_met, file.path(folder, 'MyLake', met_outfile), col.names = FALSE, row.names = FALSE)
+    
+    message('MyLake: Created file ', file.path(folder, "MyLake", met_outfile))
+  }
+  
   # Set the timezone back to the original
   Sys.setenv(TZ=original_tz)
 

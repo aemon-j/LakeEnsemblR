@@ -188,6 +188,59 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
     return(sim_out)
 
   }
-
-
+  
+  if('MyLake' %in% model){
+    
+    mylake_out <- list()
+    
+    load(file.path(folder, "MyLake", "output", "output.RData"))
+    
+    if('temp' %in% vars){
+      
+      output_depths <- get_yaml_value(config_file, "output", "depths")
+      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      
+      init_depths <- res$zz
+      seq_depths <- seq(0, max(init_depths), by = output_depths)
+      add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
+      depths <- c(add_deps, seq_depths)
+      depths <- depths[order(depths)]
+      
+      temps <- res$Tzt
+      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+      
+      temp_interp <- matrix(NA, nrow = length(dates),
+                            ncol = length(depths))
+      
+      for(i in 1:ncol(temps)){
+        temp_interp[i,] <- approx(x=init_depths,
+                                  y=temps[,i],
+                                  xout=depths,
+                                  yleft=dplyr::first(na.omit(temps)),
+                                  yright=dplyr::last(na.omit(temps)))$y
+      }
+      
+      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = dates, temp_interp)
+      colnames(mylake_out[[length(mylake_out)]]) <- c('datetime',
+                                                      paste('wtr_', depths, sep = ""))
+      
+      names(mylake_out)[length(mylake_out)] <- 'temp'
+      
+    }
+    
+    if('ice_height' %in% vars){
+      
+      mylake_out[[length(mylake_out)+1]] <- data.frame('datetime' = as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01"),
+                                                       'ice_height' = res$His[1,])
+      names(mylake_out)[length(mylake_out)] <- 'ice_height'
+      
+    }
+    
+    # If only one variable return a dataframe
+    if(length(mylake_out) == 1){
+      mylake_out <- mylake_out[1]
+    }
+    
+    return(mylake_out)
+  }
 }
