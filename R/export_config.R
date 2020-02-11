@@ -374,6 +374,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     # update MyLakeR config file
     mylake_config[["M_start"]]=start_date
     mylake_config[["M_stop"]]=stop_date
+    mylake_config[["Phys.par"]][1]=output_depths
     mylake_config[["Phys.par"]][5]=c_shelter
     mylake_config[["Phys.par"]][6]=lat
     mylake_config[["Phys.par"]][7]=lon
