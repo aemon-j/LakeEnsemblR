@@ -340,15 +340,15 @@ export_meteo <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
                                 colname_precipitation)]
     
     # scale for units accepted in MyLake
-    mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared*0.0864
-    mylake_met$Surface_Level_Barometric_Pressure_pascal <- mylake_met$Surface_Level_Barometric_Pressure_pascal*0.01
-    mylake_met$Precipitation_meterPerSecond <- mylake_met$Precipitation_meterPerSecond*86400000
-    mylake_met$datetime <- as.matrix(floor((as.numeric(as.POSIXct(mylake_met$datetime))/86400)+719529))
+    mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared <- mylake_met$Shortwave_Radiation_Downwelling_wattPerMeterSquared * 0.0864
+    mylake_met$Surface_Level_Barometric_Pressure_pascal <- mylake_met$Surface_Level_Barometric_Pressure_pascal * 0.01
+    mylake_met$Precipitation_meterPerSecond <- mylake_met$Precipitation_meterPerSecond * 86400000
+    mylake_met$datetime <- as.matrix(floor((as.numeric(as.POSIXct(mylake_met$datetime)) / 86400) + 719529))
 
     # write met file for MyLake
-    write.table(mylake_met, file.path(folder,'MyLake',met_outfile), col.names = FALSE,row.names = FALSE)
+    write.table(mylake_met, file.path(folder, 'MyLake', met_outfile), col.names = FALSE, row.names = FALSE)
     
-    message('MyLake: Created file ', file.path(folder,"MyLake", met_outfile))
+    message('MyLake: Created file ', file.path(folder, "MyLake", met_outfile))
   }
   
   # Set the timezone back to the original
