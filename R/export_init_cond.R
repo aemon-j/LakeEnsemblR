@@ -169,7 +169,7 @@ export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', '
     save(mylake_init,file=file.path(folder,"MyLake","mylake_init.Rdata"))
     
     # update config parameter with initial depth differences
-    mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
+    # mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
     
     # save revised config file
     save(mylake_config,file=file.path(folder,"MyLake","mylake_config_final.Rdata"))
