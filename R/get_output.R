@@ -205,7 +205,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = '.'
       depths <- depths[order(depths)]
       
       temps <- res$Tzt
-      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01", tz = "GMT")
       
       temp_interp <- matrix(NA, nrow = length(dates),
                             ncol = length(depths))
