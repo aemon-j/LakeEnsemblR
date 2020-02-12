@@ -12,6 +12,7 @@
 #' @importFrom GLM3r run_glm
 #' @importFrom GOTMr run_gotm
 #' @importFrom SimstratR run_simstrat
+#' @importFrom MyLakeR run_mylake
 #' @importFrom gotmtools get_yaml_value get_vari
 #' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 dcast
@@ -287,16 +288,16 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
 
   ## MyLake
   if('MyLake' %in% model){
-    
-    MyLakeR::run_mylake(sim_folder = folder)
-    
+
+    run_mylake(sim_folder = folder)
+
     message('MyLake run is complete! ', paste0('[', Sys.time(),']'))
-    
+
     if(return_list | create_netcdf){
-      
+
       ### Extract output
       mylake_out <- get_output(config_file = config_file, model = 'MyLake', vars = out_vars, obs_depths = obs_deps, folder = folder)
-      
+
       if(!is.list(mylake_out)){
         mylake_out <- merge(mylake_out, out_time, by = 'datetime', all.y = T)
       }else{
@@ -307,7 +308,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
       }
     }
   }
-  
+
   if(return_list | create_netcdf){
 
     if('temp' %in% out_vars){

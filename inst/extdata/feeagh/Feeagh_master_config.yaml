@@ -10,7 +10,7 @@ location:
 time:
    start: 2010-01-01 00:00:00                   # start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
    stop: 2011-01-01 00:00:00                    # stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
-   timestep: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
+   time_step: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
 config_files:
    gotm: GOTM/gotm.yaml                  # GOTM config file (yaml format)
    glm: GLM/glm3.nml                     # GLM config file (nml format)

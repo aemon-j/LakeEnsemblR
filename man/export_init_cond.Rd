@@ -6,7 +6,7 @@
 \usage{
 export_init_cond(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   wtemp_file = NULL,
   date,
   month = NULL,

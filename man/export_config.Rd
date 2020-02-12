@@ -6,7 +6,7 @@
 \usage{
 export_config(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   folder = "."
 )
 }
