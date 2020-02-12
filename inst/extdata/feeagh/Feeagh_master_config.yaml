@@ -16,6 +16,7 @@ config_files:
    glm: GLM/glm3.nml                     # GLM config file (nml format)
    simstrat: Simstrat/feeagh.par         # Simstrat config file (json format)
    flake: FLake/feeagh.nml               # FLake config file (nml format)
+   mylake: MyLake/mylake_config_template.Rdata       # MyLake config file (Rdata format)
 light:
    Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
