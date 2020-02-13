@@ -217,4 +217,28 @@ export_extinction <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 
     }
 
   }
+  
+  if("MyLake" %in% model){
+    
+    # Create directory and output directory, if they do not yet exist
+    if(!dir.exists('MyLake')){
+      dir.create('MyLake')
+    }
+    if(!dir.exists('MyLake/output')){
+      dir.create('MyLake/output')
+    }
+    
+    if(!constantValue){
+      message("MyLake does not accept varying extinction coefficient over time. Average is used instead.")
+    }
+    
+    # Read the MyLake config file from config_file, and write it to the MyLake directory
+    mylake_path <- system.file(package="LakeEnsemblR")
+    load(file.path(mylake_path, "extdata", "mylake_config_final.Rdata"))
+    
+    mylake_config[["Bio.par"]][2] <- Kw
+    
+    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    
+  }
 }

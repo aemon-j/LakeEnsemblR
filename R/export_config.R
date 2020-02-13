@@ -354,9 +354,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   ## MyLake
   if("MyLake" %in% model){
 
-    # Extinction coefficient (swa_b1)
-    ext_coef <- gotmtools::get_yaml_value(config_file, "light", "Kw")
-
     # wind sheltering coefficient (C_shelter)
     c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
 
@@ -379,7 +376,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     mylake_config[["Phys.par"]][5] <- c_shelter
     mylake_config[["Phys.par"]][6] <- lat
     mylake_config[["Phys.par"]][7] <- lon
-    mylake_config[["Bio.par"]][2] <- ext_coef
     mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
     mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
     mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(hyp)), ncol=1)
@@ -406,3 +402,4 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model=model, folder=folder)
 }
+mod
