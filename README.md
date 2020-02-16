@@ -1,14 +1,13 @@
 LakeEnsemblR
 =====
 
-Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) and [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/).
+Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
 
 ## Installation
 
 You can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
-
 # install.packages("devtools")
 devtools::install_github("aemon-j/LakeEnsemblR")
 ```
@@ -28,6 +27,7 @@ devtools::install_github('aemon-j/GOTMr')
 devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
 devtools::install_github('aemon-j/LakeEnsemblR')
+devtools::install_github('aemon-j/MyLakeR')
 
 # Load libraries
 library(gotmtools)
@@ -43,22 +43,22 @@ setwd('example/feeagh') # Change working directory to example folder
 masterConfigFile <- 'Feeagh_master_config.yaml'
 
 # 1. Example - creates directories with all model setup
-export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'), folder = '.')
+export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'), folder = '.')
 
 # 2. Create meteo driver files
-export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat'))
+export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'))
 
 # 3. Create initial conditions
 start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
 
 export_init_cond(config_file = masterConfigFile, 
-                 model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                 model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
                  date = start_date,
                  print = TRUE)
 
 # 4. Run ensemble lake models
 wtemp_list <- run_ensemble(config_file = masterConfigFile,
-                           model = c('FLake', 'GLM', 'GOTM', 'Simstrat'),
+                           model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
                            return_list = TRUE)
 
 ```
@@ -98,7 +98,7 @@ g1
 ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
 
 ```
-![](images/model_ensemble_watertemp.png)<!-- -->
+![](images/model_ensemble_watertemp-wMyLake.jpg)<!-- -->
 
 ## Run Latin hypercube sampling
 ```{r gh-installation, eval = FALSE}
