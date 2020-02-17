@@ -7,21 +7,15 @@
 #'
 #' @import lintr
 
-run_lint <- function (file)
-{
-  LER_linters <- lintr::with_defaults(line_length_linter = line_length_linter(100), 
-                               commented_code_linter = NULL, 
-                               cyclocomp_linter = NULL, 
-                               paren_brace_linter = NULL, 
+run_lint <- function (file){
+  LER_linters <- lintr::with_defaults(line_length_linter = line_length_linter(100),
+                               commented_code_linter = NULL,
+                               cyclocomp_linter = NULL,
+                               paren_brace_linter = NULL,
                                spaces_left_parentheses_linter = NULL)
-  
-  file_location <- system.file(paste0("R/",file), package = packageName())
+    
+  file_location <- system.file(paste0("R/", file), package = packageName())
   
   # Call to the function, shows lines in "Markers" tab
-  lintr::lint("./R/export_meteo.R", linters = LER_linters)
+  lintr::lint(file_location, linters = LER_linters)
 }
-
-
-
-
-
