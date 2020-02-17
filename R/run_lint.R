@@ -5,7 +5,7 @@
 #' @examples
 #'run_lint(file = "export_config.R")
 #'
-#' @importFrom lintr with_defaults lint
+#' @import lintr
 
 run_lint <- function (file)
 {
@@ -18,7 +18,7 @@ run_lint <- function (file)
   file_location <- system.file(paste0("R/",file), package = packageName())
   
   # Call to the function, shows lines in "Markers" tab
-  lintr::lint("./R/export_meteo.R", linters = LER_linters)
+  lintr::lint(file_location, linters = LER_linters)
 }
 
 
