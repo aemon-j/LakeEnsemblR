@@ -5,7 +5,7 @@
 #' @examples
 #'run_lint(file = "export_config.R")
 #'
-#' @importFrom lintr with_defaults lint
+#' @import lintr
 
 run_lint <- function (file)
 {
