@@ -6,7 +6,7 @@
 \usage{
 run_ensemble(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   folder = ".",
   return_list = FALSE,
   create_netcdf = TRUE
