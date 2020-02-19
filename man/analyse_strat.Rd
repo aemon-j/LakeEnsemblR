@@ -4,16 +4,18 @@
 \alias{analyse_strat}
 \title{Returns stratification statstics}
 \usage{
-analyse_strat(Ts, Tb, H_ice = NULL, dates, drho = 0.1, NH = TRUE)
+analyse_strat(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE)
 }
 \arguments{
+\item{data}{dataframe; water temperature data in long format with date, depths, value. Defaults to NULL}
+
 \item{Ts}{vector;  of surface temperatures which corresponds to date vector}
 
 \item{Tb}{vector; of bottom temperatures which corresponds to date vector}
 
-\item{H_ice}{vector; of ice thickness which corresponds to date vector, set to NULL if analysis not required. Defaults to NULL}
-
 \item{dates}{vector; of POSIX style date corresponding to rows of Ts and Tb.}
+
+\item{H_ice}{vector; of ice thickness which corresponds to date vector, set to NULL if analysis not required. Defaults to NULL}
 
 \item{drho}{numeric; density difference between top and bottom indicating stratificaiton [kg m^-3]}
 

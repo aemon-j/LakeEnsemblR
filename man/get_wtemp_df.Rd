@@ -4,7 +4,7 @@
 \alias{get_wtemp_df}
 \title{Extract FLake output as a dataframe}
 \usage{
-get_wtemp_df(output, depths, folder, nml_file, long = FALSE)
+get_wtemp_df(output, depths, folder = ".", nml_file, long = FALSE)
 }
 \arguments{
 \item{output}{filepath; to FLake output file}

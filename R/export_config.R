@@ -18,7 +18,7 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), folder = '.'){
+export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), folder = '.'){
 
   # Set working directory
   oldwd <- getwd()
@@ -36,34 +36,48 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
   Sys.setenv(TZ="GMT")
 
 
+
+
+
   # Read in all information from config_file that needs to be written to the model-specific config files
+
+  # Check if file exists
+  if(!file.exists(config_file)){
+    stop(config_file, ' does not exist.')
+  }
 
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
   # Longitude
   lon <- get_yaml_value(config_file, "location", "longitude")
+  # Elevation
+  elev <- get_yaml_value(config_file, "location", "elevation")
   # Maximum Depth
   max_depth = get_yaml_value(config_file, "location", "depth")
   # Read in hypsograph data
-  hyp <- read.csv(get_yaml_value(config_file, "location", "hypsograph"))
+  hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
+  if(!file.exists(hyp_file)){
+    stop(hyp_file, ' does not exist. Check filepath in ', config_file)
+  }
+  hyp <- read.csv(hyp_file)
   # Start date
   start_date <- get_yaml_value(config_file, "time", "start")
   # Stop date
   stop_date <- get_yaml_value(config_file, "time", "stop")
   # Time step
-  timestep <- get_yaml_value(config_file, "time", "timestep")
+  timestep <- get_yaml_value(config_file, "time", "time_step")
   # Met time step
-  met_timestep <- get_yaml_value(config_file, "meteo", "timestep")
+  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
   # Output depths
-  output_depths <- get_yaml_value(config_file, "model_settings", "output_depths")
-  # Extinction coefficient
-  Kw <- get_yaml_value(config_file, "model_settings", "extinction_coefficient")
+  output_depths <- get_yaml_value(config_file, "output", "depths")
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
-  # Output
+  # Output timestep
   out_tstep <- get_yaml_value(config_file, "output", "time_step")
+  # Output unit
+  out_unit <- get_yaml_value(config_file, "output", "time_unit")
 
 
   if("FLake" %in% model){
@@ -77,7 +91,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -108,11 +122,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     ##
 
     # Input parameters
-    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep) # Hard-code: meteo needs to be in same time step as model. Not yet supported (Jorrit, 2019-12-15)
+    input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'del_time_lk', met_timestep) #meteo needs to be in same time step as model
     input_nml(fla_fil, label = 'SIMULATION_PARAMS', key = 'h_ML_in', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'depth_w_lk', mean_depth)
     input_nml(fla_fil, label = 'LAKE_PARAMS', key = 'latitude_lk', lat)
-    input_nml(fla_fil, label = 'TRANSPARENCY', key = 'extincoef_optic', Kw)
     input_nml(fla_fil, label = 'METEO', key = 'outputfile', paste0("'output/output.dat'"))
 
     message('FLake configuration complete!')
@@ -127,7 +140,9 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
+    bsn_len <- get_yaml_value(config_file, "config_files", "bsn_len")
+    bsn_wid <- get_yaml_value(config_file, "config_files", "bsn_wid")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -140,28 +155,46 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
 
     # Format hypsograph
     glm_hyp <- hyp
-    glm_hyp[,1] <- glm_hyp[nrow(glm_hyp),1] - glm_hyp[,1] # this doesn't take into account GLM's lake elevation
+    glm_hyp[,1] <- elev - glm_hyp[,1] # this doesn't take into account GLM's lake elevation
+
+    # Calculate bsn_len & bsn_wid if none provided
+    if(bsn_len == 'NULL' | bsn_wid == 'NULL'){
+      # Calculate basin dims assume ellipse with width is twice the length
+      Ao <- max(glm_hyp[,2])
+      bsn_wid = sqrt((2*Ao)/pi)
+      bsn_len = 2*bsn_wid
+    }
 
     # Read in nml and input parameters
-    nml <- glmtools::read_nml(glm_nml)
+    nml <- read_nml(glm_nml)
+
+    # Calculate max number of layers
+    min_layer_thick <- get_nml_value(nml, 'min_layer_thick')
+    max_layers <- round(max_depth/min_layer_thick)
+
+
     inp_list <- list('lake_name' = get_yaml_value(config_file, "location", "name"),
                      'latitude' = lat,
                      'longitude' = lon,
                      'lake_depth' = max_depth,
-                     'Kw' = Kw,
-                     'crest_elev' = max(-(glm_hyp[,1])),
+                     'crest_elev' = max((glm_hyp[,1])),
                      'bsn_vals'=length(glm_hyp[,1]) ,
-                     'H' = -(glm_hyp[,1]),
+                     'H' = rev(glm_hyp[,1]),
                      'A' = rev(glm_hyp[,2] ),
                      'start' = start_date,
                      'stop' = stop_date,
-                     'dt' = timestep, # Hard-code: When choosing dt = 86400, GLM only gives daily output when dt = 3600? (Jorrit, 2019-12-15)
+                     'dt' = timestep,
+                     'bsn_len' = bsn_len,
+                     'bsn_wid' = bsn_wid,
+                     'max_layers' = max_layers,
+                     'max_layer_thick' = 1.0,
                      'nsave' = out_tstep,
                      'out_dir' = 'output',
                      'out_fn' = 'output',
-                     'timefmt' = 2)
+                     'timefmt' = 2,
+                     'timezone' = 0)
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
-    glmtools::write_nml(nml, glm_nml)
+    write_nml(nml, glm_nml)
 
 
     message('GLM configuration complete!')
@@ -176,7 +209,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -219,10 +252,8 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     # Set GOTM output
     out_yaml <- file.path(folder, 'GOTM', 'output.yaml')
     input_yaml(out_yaml, 'output', 'time_step', out_tstep)
-    input_yaml(out_yaml, 'output', 'time_unit', 'hour')
+    input_yaml(out_yaml, 'output', 'time_unit', out_unit)
 
-    ## Input light extinction data
-    gotmtools::input_yaml(got_yaml, 'g2', 'constant_value',1/Kw)
 
     ## Switch off streams
     if(!use_inflows){
@@ -240,7 +271,7 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat_config")
+    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
@@ -251,12 +282,10 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     }
 
     # Copy in template files from examples folder in the package
-    light_fil <- system.file('extdata/absorption_langtjern.dat', package= 'SimstratR')
     qin_fil <- system.file('extdata/Qin.dat', package= 'SimstratR')
     qout_fil <- system.file('extdata/Qout.dat', package= 'SimstratR')
     tin_fil <- system.file('extdata/Tin.dat', package= 'SimstratR')
     sin_fil <- system.file('extdata/Sin.dat', package= 'SimstratR')
-    file.copy(from = light_fil, to = file.path(folder, 'Simstrat','light_absorption.dat'))
     file.copy(from = qin_fil, to = file.path(folder, 'Simstrat','Qin.dat'))
     file.copy(from = qout_fil, to = file.path(folder, 'Simstrat','Qout.dat'))
     file.copy(from = tin_fil, to = file.path(folder, 'Simstrat','Tin.dat'))
@@ -298,21 +327,6 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
       input_json(sim_par, "ModelConfig", "SnowModel", 0)
     }
 
-    ## Input light absorption data
-    absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
-    # In case Kw is a single value for the whole simulation:
-    absorption_line_2 <- "1"
-    absorption_line_3 <- "-1 -1.00"
-    # need to source helper_functions/get_json_value.R for this function:
-    start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-    end_sim <- get_json_value(sim_par, "Simulation", "End d")
-    absorption_line_4 <- paste(start_sim,Kw)
-    absorption_line_5 <- paste(end_sim,Kw)
-
-    fileConnection <- file("Simstrat/light_absorption.dat")
-    writeLines(c(absorption_line_1,absorption_line_2,absorption_line_3,absorption_line_4,absorption_line_5), fileConnection)
-    close(fileConnection)
-
     # Turn off inflow
     if(!use_inflows){
       ## Set Qin and Qout to 0 inflow
@@ -336,4 +350,55 @@ export_config <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLa
     message('Simstrat configuration complete!')
 
   }
+
+  ## MyLake
+  if("MyLake" %in% model){
+
+    # wind sheltering coefficient (C_shelter)
+    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
+
+    if(is.na(as.numeric(c_shelter))){
+      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
+    }
+
+    # Create directory and output directory, if they do not yet exist
+    if(!dir.exists('MyLake')){
+      dir.create('MyLake')
+    }
+
+    # Load in template config file MyLakeR requires to fill in from yaml
+    mylake_path <- system.file(package="LakeEnsemblR")
+    load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+
+    # update MyLakeR config file
+    mylake_config[["M_start"]] <- start_date
+    mylake_config[["M_stop"]] <- stop_date
+    mylake_config[["Phys.par"]][5] <- c_shelter
+    mylake_config[["Phys.par"]][6] <- lat
+    mylake_config[["Phys.par"]][7] <- lon
+    mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
+    mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
+    mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(hyp)), ncol=1)
+    mylake_config[["In.Chlz.sed"]] <- matrix(rep(196747, nrow(hyp)), ncol=1)
+    mylake_config[["In.TPz.sed"]] <- matrix(rep(756732, nrow(hyp)), ncol=1)
+    mylake_config[["In.DOCz"]] <- matrix(rep(3000, nrow(hyp)), ncol=1)
+    mylake_config[["In.Chlz"]] <- matrix(rep(7, nrow(hyp)), ncol=1)
+    mylake_config[["In.DOPz"]] <- matrix(rep(7, nrow(hyp)), ncol=1)
+    mylake_config[["In.TPz"]] <- matrix(rep(21, nrow(hyp)), ncol=1)
+    mylake_config[["In.Sz"]] <- matrix(rep(0, nrow(hyp)), ncol=1)
+    mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(hyp)), ncol=1)
+
+    if(!use_inflows){
+        mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.Date(from = as.Date(start_date), to = as.Date(stop_date), by="day"))),
+                                      ncol = 8)
+    }
+
+    # save lake-specific config file for MyLake
+    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+
+    message('MyLake configuration complete!')
+  }
+
+  # Light extinction (Kw) in separate function
+  export_extinction(config_file, model=model, folder=folder)
 }

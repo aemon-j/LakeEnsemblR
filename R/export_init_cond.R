@@ -3,10 +3,10 @@
 #'Export initial condition files and input into model configuration files.
 #'
 #' @name export_init_cond
+#' @param config_file filepath; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
-#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format.
+#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format. If NULL it uses the file from config_file. Defaults to NULL.
 #' @param date character; Date in "YYYY-mm-dd HH:MM:SS" format to extract the initial profile. If using month, the date to which to set the start date
-#' @param tprof_file filepath; For the new initial temperature profile file.
 #' @param month numeric;select a month if you want to use an 'average profile from a particular month. Defaults to NULL.
 #' @param ndeps numeric; number of depths to extract from the monthly average profile. Defaults to 2 (surface and bottom)
 #' @param btm_depth numeric; Depth to extract the bottom temperature from, must be negative. If none provided uses the max depth in the observed file. Defaults to NULL
@@ -20,8 +20,14 @@
 #'
 #' @export
 
-export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file, date, tprof_file, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
+export_init_cond <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake'), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
 
+  if(is.null(wtemp_file)){
+    wtemp_file <- get_yaml_value(config_file, 'observations', 'file')
+    wtemp_file <- file.path(folder, wtemp_file)
+  }
+
+  message('Loading wtemp_file...')
   obs <- read.csv(wtemp_file)
 
   if(!is.null(month)){
@@ -128,6 +134,53 @@ export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtem
     message('Simstrat: Created initial conditions file ', file.path(folder,"Simstrat", 'init_cond.dat'))
 
   }
+  
+  ## MyLake
+  if('MyLake' %in% model){
+    load("./MyLake/mylake_config_final.Rdata")
+    
+    mylake_init <- list()
+    
+    # configure initial depth profile
+    deps_Az <- data.frame("Depth_meter" = mylake_config[["In.Z"]],
+                          "Az" = mylake_config[["In.Az"]])
+    
+    # configure initial temperature profile
+    # depth MUST match those from hyposgraph -- interpolate here as needed
+    temp_interp1 <- dplyr::full_join(deps_Az,
+                                     data.frame("Depth_meter" = deps,
+                                                "Water_Temperature_celsius" = tmp),
+                                     by = c("Depth_meter"))
+    
+    temp_interp2 <- dplyr::arrange(temp_interp1, Depth_meter)
+    
+    temp_interp3 <- dplyr::mutate(temp_interp2,
+                                  TempInterp=approx(x=Depth_meter,
+                                                    y=Water_Temperature_celsius,
+                                                    xout=Depth_meter,
+                                                    yleft=dplyr::first(na.omit(Water_Temperature_celsius)),
+                                                    yright=dplyr::last(na.omit(Water_Temperature_celsius)))$y)
+    
+    temp_interp <- dplyr::filter(temp_interp3, !is.na(Az))
+    
+    # fill in depths and temperature in iniital profile RData file
+    mylake_init[["In.Tz"]] <- as.matrix(temp_interp$TempInterp)
+    
+    mylake_init[["In.Z"]] <- as.matrix(temp_interp$Depth_meter)
+    
+    # save initial profile data
+    save(mylake_init, file = file.path(folder, "MyLake", "mylake_init.Rdata"))
+    
+    # update config parameter with initial depth differences
+    # mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
+    
+    # save revised config file
+    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    
+    message('MyLake: Created initial conditions file ', file.path(folder,'MyLake', 'mylake_config_final.Rdata'))
+    
+  }
+  
   if(print == TRUE){
     print(df)
   }

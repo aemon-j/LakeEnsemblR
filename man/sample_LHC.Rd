@@ -4,12 +4,14 @@
 \alias{sample_LHC}
 \title{Create Latin hypercube sample of parameters}
 \usage{
-sample_LHC(parRange, num, folder = ".")
+sample_LHC(config_file, num, method = NULL, folder = ".", file.name = NULL)
 }
 \arguments{
-\item{parRange}{dataframe; the range (min, max) of the parameters, a data.frame with one row for each parameter, and two columns with the minimum (1st) and maximum (2nd) column.}
+\item{config_file}{filepath; to LakeEnsemblr yaml master config file}
 
 \item{num}{integer; the number of random parameter sets to generate.}
+
+\item{method}{character; Method for calibration. Can be 'met', 'model' or 'both'. Needs to be specified by the user.}
 }
 \description{
 Create CSV file with parameter samples for the LHC runs
