@@ -32,7 +32,7 @@ outputfile    = 'output/output.dat',
 &LAKE_PARAMS
 depth_w_lk  = 16.05,! /LER/ Lake depth [m]
 fetch_lk    = 2.0E+03,      ! Typical wind fetch [m] 
-!sediments_on = .TRUE.	    ! .FALSE. if the sediments layer is switched off
+sediments_on = .TRUE.	    ! .FALSE. if the sediments layer is switched off
 depth_bs_lk =  5.0,         ! Depth of the thermally active layer of the bottom sediments [m]
 T_bs_lk     =  4.0,         ! Temperature at the outer edge of the thermally active layer of the bottom sediments [C]
 latitude_lk = 53.9,! /LER/ Geographical latitude [dgr]
@@ -48,9 +48,3 @@ nband_optic =     1        ! Number of wave-length bands
 frac_optic =      1        ! Fractions of total radiation flux 
 extincoef_optic = 1.5,! /LER/ Extinction coefficients      
 /
-
-&inflow
-DTinflow = 0.0, 
-DTfixed  = .true., 
-QS       = 0.0     ! m/s 
-/ 
