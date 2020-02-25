@@ -16,7 +16,7 @@
 #'
 #' @examples
 #' \dontrun{
-#' df <- get_wtemp_df(output = "FLake/output/output.dat", folder = "FLake", nml_file = "FLake/feeagh.nml")
+#' df <- read_flake_out(output = "FLake/output/output.dat", folder = "FLake", nml_file = "FLake/feeagh.nml")
 #' }
 #'
 #' @export
