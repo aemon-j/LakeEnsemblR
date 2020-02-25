@@ -9,27 +9,26 @@
 #'Tadhg Moore, Jorrit Mesman
 #' @examples
 #' \dontrun{
-#' input_json(file = 'samp.par', label = 'ModelParameters', key = 'f_wind', value = 1.2, out_file = NULL)
+#' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 #' }
 
-get_json_value <- function (file, label, key, out_file = NULL)
-{
+get_json_value <- function(file, label, key, out_file = NULL){
   yml <- readLines(file)
   if (is.null(out_file)) {
-    out_file = file
+    out_file <- file
   }
-  label_id <- paste0('"',label, '"')
+  label_id <- paste0('"', label, '"')
   ind_label <- grep(label_id, yml)
   if (length(ind_label) == 0) {
     stop(label, " not found in ", file)
   }
   key_id <- paste0('"', key, '"')
-  ind_key = grep(key_id, yml)
+  ind_key <- grep(key_id, yml)
   if (length(ind_key) == 0) {
     stop(key, " not found in ", label, " in ",
          file)
   }
-  ind_key = ind_key[ind_key > ind_label]
+  ind_key <- ind_key[ind_key > ind_label]
   ind_map <- ind_key[which.min(ind_key - ind_label)]
   if (length(ind_map) == 0) {
     stop(key, " not found in ", label, " in ",
@@ -42,18 +41,18 @@ get_json_value <- function (file, label, key, out_file = NULL)
 
   val2 <- NULL
 
-  if(val == 'false'){
-    val2 = FALSE
+  if(val == "false"){
+    val2 <- FALSE
   }
-  if(val == 'true'){
-    val2 = TRUE
+  if(val == "true"){
+    val2 <- TRUE
   }
   flg <- !is.na(as.numeric(val))
   if(flg){
-    val2 = as.numeric(val)
+    val2 <- as.numeric(val)
   }
   if(is.null(val2)){
-    val2 <- gsub('\"',"", val)
+    val2 <- gsub('\"', "", val)
     val2 <- as.character(val2)
   }
 
