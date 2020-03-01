@@ -68,8 +68,8 @@ scale_met <- function(met, pars, model, out_file = NULL){
     par_nams <- names(pars)
 
     if('wind_speed' %in% par_nams){
-      met$Uwind_meterPerSecond <- met$Uwind_meterPerSecond * pars$wind_speed
-      met$Vwind_meterPerSecond <- met$Vwind_meterPerSecond * pars$wind_speed
+      met$Ten_Meter_Uwind_vector_meterPerSecond <- met$Ten_Meter_Uwind_vector_meterPerSecond * pars$wind_speed
+      met$Ten_Meter_Uwind_vector_meterPerSecond <- met$Ten_Meter_Uwind_vector_meterPerSecond * pars$wind_speed
     }
 
     if('solar_radiation' %in% par_nams){
@@ -81,7 +81,7 @@ scale_met <- function(met, pars, model, out_file = NULL){
     }
 
     # Write to file
-    write.table(met, file = out_file,sep = "\t",quote = F,row.names = F)
+    write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE)
 
   }
 

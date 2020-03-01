@@ -198,7 +198,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     }
 
     ### Write the table in the present working directory
-    input_json(file = par_file, label = "Input", key = "Forcing", "'meteo_file.dat'")
+    input_json(file = par_file, label = "Input", key = "Forcing", "\"meteo_file.dat\"")
 
     message("Simstrat: Created file ", file.path(folder, "Simstrat", met_outfile))
   }
