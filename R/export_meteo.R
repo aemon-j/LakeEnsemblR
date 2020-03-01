@@ -179,7 +179,6 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   ## Simstrat
   if("Simstrat" %in% model){
 
-    cat(paste("Timemzone is ",Sys.getenv("TZ"),"\n"))
     met_outfile <- "meteo_file.dat"
     par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
 
