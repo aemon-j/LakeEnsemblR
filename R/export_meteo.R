@@ -179,15 +179,14 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   ## Simstrat
   if("Simstrat" %in% model){
 
+    cat(paste("Timemzone is ",Sys.getenv("TZ"),"\n"))
     met_outfile <- "meteo_file.dat"
     par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
 
     met_outfpath <- file.path(folder, "Simstrat", met_outfile)
-
-
-
+    
     sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
-
+    
     #Scale met
     if(!is.null(scale_param)){
       scale_met(sim_met, pars = scale_param, model = "Simstrat", out_file = met_outfpath)
@@ -207,26 +206,21 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if("MyLake" %in% model){
 
     met_outfile <- "meteo_file.dat"
+    met_outfpath <- file.path(folder, "MyLake", met_outfile)
     mylake_met <- format_met(met = met, model = "MyLake", config_file = config_file, daily = daily)
+    #Scale met
+    if(!is.null(scale_param)){
+      scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
+      } else {
+      # Write to file
+      write.table(mylake_met, met_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+                  col.names = FALSE)
+      }
+      message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
+    }
 
-    # write met file for MyLake
-    write.table(mylake_met, file.path(folder, "MyLake", met_outfile), col.names = FALSE,
-                row.names = FALSE)
-
-    message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
-  }
-
-  #Scale met
-  if(!is.null(scale_param)){
-    scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
-  } else {
-    # Write to file
-    write.table(mylake_met, met_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
-                col.names = TRUE)
-  }
-
-  # Set the timezone back to the original
-  Sys.setenv(TZ = original_tz)
+    # Set the timezone back to the original
+    Sys.setenv(TZ = original_tz)
 
 
 }
