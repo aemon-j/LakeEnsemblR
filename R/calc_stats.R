@@ -16,15 +16,20 @@
 #' @export
 #' @importFrom glmtools get_var
 #' @importFrom reshape2 melt
-calc_stats <- function(obs, model, depths, folder = '.', NH, flake_nml, out_time, par_file, start, out_hour = 0){
+calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time, par_file, start, out_hour = 0){
 
-  if('FLake' %in% model){
-    fla_long <- read_flake_out(output = file.path(folder, 'FLake', 'output', 'output.dat'), depths = depths, vars = 'temp', folder = 'FLake', nml_file = flake_nml, long = TRUE, out_time = out_time, out_hour = out_hour)
+  if("FLake" %in% model){
+    fla_long <- read_flake_out(output = file.path(folder, "FLake", "output", "output.dat"),
+                               depths = depths, vars = "temp", folder = "FLake",
+                               nml_file = flake_nml, long = TRUE,
+                               out_time = out_time, out_hour = out_hour)
 
     stats <- sum_stat(fla_long, obs, depth = TRUE, strat = FALSE)
 
     # Calculate stats for Sensitivity Analysis
-    strat <- analyse_strat(Ts = fla_long[fla_long$Depth_meter == min(fla_long$Depth_meter),3], Tb = fla_long[fla_long$Depth_meter == max(fla_long$Depth_meter),3], dates = unique(fla_long[,1]), NH = NH)
+    strat <- analyse_strat(Ts = fla_long[fla_long$Depth_meter == min(fla_long$Depth_meter), 3],
+                           Tb = fla_long[fla_long$Depth_meter == max(fla_long$Depth_meter), 3],
+                           dates = unique(fla_long[, 1]), NH = NH)
 
     # if(return_index){
     #   out <- list(fit = stats, strat = strat, index = index)
@@ -34,18 +39,20 @@ calc_stats <- function(obs, model, depths, folder = '.', NH, flake_nml, out_time
 
   }
 
-  if('GLM' %in% model){
+  if("GLM" %in% model){
 
-    glm_out <- get_var(file = file.path(folder, 'GLM', 'output', 'output.nc'), var_name = 'temp', reference = 'surface', z_out = depths)
+    glm_out <- get_var(file = file.path(folder, "GLM", "output", "output.nc"),
+                       var_name = "temp", reference = "surface", z_out = depths)
 
     # Calculate stats for Sensitivity Analysis
-    strat <- analyse_strat(Ts = glm_out[,2], Tb = glm_out[,ncol(glm_out)], dates = glm_out[,1], NH = NH)
+    strat <- analyse_strat(Ts = glm_out[, 2], Tb = glm_out[, ncol(glm_out)],
+                           dates = glm_out[, 1], NH = NH)
 
 
     glm_out <- melt(glm_out, id.vars = 1)
-    glm_out[,2] <- as.character(glm_out[,2])
-    glm_out[,2] <- as.numeric(gsub('temp_','',glm_out[,2]))
-    colnames(glm_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+    glm_out[, 2] <- as.character(glm_out[, 2])
+    glm_out[, 2] <- as.numeric(gsub("temp_", "", glm_out[, 2]))
+    colnames(glm_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
     stats <- sum_stat(glm_out, obs, depth = TRUE)
 
@@ -53,69 +60,73 @@ calc_stats <- function(obs, model, depths, folder = '.', NH, flake_nml, out_time
 
   }
 
-  if('GOTM' %in% model){
+  if("GOTM" %in% model){
 
     # Format obs for GOTM
     obs_got <- obs
-    obs_got[,2] <- -obs_got[,2]
+    obs_got[, 2] <- -obs_got[, 2]
 
     # Extract output
-    temp <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'temp', print = FALSE)
-    z <- get_vari(ncdf = file.path(folder, 'GOTM', 'output', 'output.nc'), var = 'z', print = FALSE)
+    temp <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"),
+                     var = "temp", print = FALSE)
+    z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"),
+                  var = "z", print = FALSE)
 
-    got_out <- setmodDepths(temp, z, depths = depths, print = T)
-    colnames(got_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+    got_out <- setmodDepths(temp, z, depths = depths, print = TRUE)
+    colnames(got_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
     stats <- sum_stat(got_out, obs_got, depth = TRUE)
 
     # Calculate stats for Sensitivity Analysis
-    strat <- analyse_strat(Ts = temp[,2], Tb = temp[,ncol(temp)], dates =  temp[,1], NH = NH)
+    strat <- analyse_strat(Ts = temp[, 2], Tb = temp[, ncol(temp)], dates =  temp[, 1], NH = NH)
 
     out <- list(fit = stats, strat = strat)
   }
 
-  if('Simstrat' %in% model){
+  if("Simstrat" %in% model){
 
     ### Extract output
-    sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = T, sep=",", check.names = F)
+    sim_out <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"),
+                          header = TRUE, sep = ",", check.names = FALSE)
 
     timestep <- get_json_value(par_file, "Simulation", "Timestep s")
     reference_year <- get_json_value(par_file, "Simulation", "Start year")
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    sim_out[,1] <- as.POSIXct(sim_out[,1]*3600*24, origin = paste0(reference_year, '-01-01'))
+    sim_out[, 1] <- as.POSIXct(sim_out[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
     # In case sub-hourly time steps are used, rounding might be necessary
-    sim_out[,1] <- round_date(sim_out[,1], unit = seconds_to_period(timestep))
+    sim_out[, 1] <- round_date(sim_out[, 1], unit = seconds_to_period(timestep))
 
     # First column datetime, then depth from shallow to deep
-    sim_out <- sim_out[,c(1,ncol(sim_out):2)]
+    sim_out <- sim_out[, c(1, ncol(sim_out):2)]
 
     # Remove columns without any value
-    sim_out <- sim_out[,colSums(is.na(sim_out))<nrow(sim_out)]
-    mod_depths = as.numeric(colnames(sim_out)[-1])
+    sim_out <- sim_out[, colSums(is.na(sim_out)) < nrow(sim_out)]
+    mod_depths <- as.numeric(colnames(sim_out)[-1])
 
     sim_depths <- depths
-    message('Interpolating Simstrat temp to include obs depths')
+    message("Interpolating Simstrat temp to include obs depths")
 
     # Create empty matrix and interpolate to new depths
     wat_mat <- matrix(NA, nrow = nrow(sim_out), ncol = length(sim_depths))
-    for(j in 1:nrow(sim_out)){
-      y = as.vector(unlist(sim_out[j,-1]))
-      wat_mat[j,] <- approx(mod_depths, y, sim_depths, rule = 2)$y
+    for(j in seq_len(nrow(sim_out))){
+      y <- as.vector(unlist(sim_out[j, -1]))
+      wat_mat[j, ] <- approx(mod_depths, y, sim_depths, rule = 2)$y
     }
-    df = data.frame(wat_mat)
-    df$datetime <- sim_out[,1]
-    df <- df[,c(ncol(df), 1:(ncol(df)-1))]
-    colnames(df) <- c("datetime", paste0('wtr_',abs(sim_depths)))
+    df <- data.frame(wat_mat)
+    df$datetime <- sim_out[, 1]
+    df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
+    colnames(df) <- c("datetime", paste0("wtr_", abs(sim_depths)))
     sim_out <- df
 
     # Calculate stats for Sensitivity Analysis
-    strat <- analyse_strat(Ts = sim_out[,2], Tb = sim_out[,ncol(sim_out)], dates =  sim_out[,1], NH = NH)
+    strat <- analyse_strat(Ts = sim_out[, 2], Tb = sim_out[, ncol(sim_out)],
+                           dates =  sim_out[, 1], NH = NH)
 
     sim_out <- melt(sim_out, id.vars = 1)
-    sim_out[,2] <- as.character(sim_out[,2])
-    sim_out[,2] <- as.numeric(gsub('wtr_','',sim_out[,2]))
-    colnames(sim_out) <- c('datetime','Depth_meter','Water_Temperature_celsius')
+    sim_out[, 2] <- as.character(sim_out[, 2])
+    sim_out[, 2] <- as.numeric(gsub("wtr_", "", sim_out[, 2]))
+    colnames(sim_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
     stats <- sum_stat(mod = sim_out, obs, depth = TRUE)
 
