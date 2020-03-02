@@ -50,7 +50,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   ## Extract start, stop, lat & lon for netCDF file from config file
   start <- get_yaml_value(config_file, "time", "start")
   stop <- get_yaml_value(config_file, "time", "stop")
-  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
   lat <- get_yaml_value(config_file, "location", "latitude")
   lon <- get_yaml_value(config_file, "location", "longitude")
   obs_file <- get_yaml_value(config_file, "observations", "file")
@@ -59,7 +58,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   out_file <- get_yaml_value(config_file, "output", "file")
   out_depths <- get_yaml_value(config_file, "output", "depths")
   format <- get_yaml_value(config_file, "output", "format")
-  time_method <- get_yaml_value(config_file, "output", "time_method")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
   time_step <- get_yaml_value(config_file, "output", "time_step")
   out_vars <- get_yaml_value(config_file, "output", "variables")
@@ -70,14 +68,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   # Create output time vector
-  out_time <- seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz),
-                         by = paste(time_step, time_unit))
-  out_time <- data.frame(datetime = out_time)
-  if(met_timestep == 86400){
-    out_hour <- hour(start) #Used for FLake output
-  }else{
-    out_hour  <-  0
-  }
+  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz),
+                         by = paste(time_step, time_unit)))
 
 
   if(obs_file != "NULL"){
@@ -86,7 +78,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_deps <- unique(obs$Depth_meter)
 
     # change data format from long to wide
-    obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
+    obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
     colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
     obs_out$datetime <- as.POSIXct(obs_out$datetime, tz = tz)
@@ -99,229 +91,21 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_deps <- NULL
   }
 
-
-  if("FLake" %in% model){
-
-    #Need to figure out how to subset data by dates
-    nml_file <- get_yaml_value(config_file, "config_files", "flake")
-    nml_file <- file.path(folder, nml_file)
-    if(file.exists(file.path(folder, "FLake", "all_meteo_file.dat"))){
-      met_file <- file.path(folder, "FLake", "all_meteo_file.dat")
-      met_outfile <- file.path(folder, "FLake", "meteo_file_tmp.dat")
-    }else{
-      met_file <- suppressWarnings(get_nml_value(arg_name = "meteofile", nml_file = nml_file))
-      met_file <- gsub(",", "", met_file)
-      met_file <- file.path(folder, "FLake", met_file)
-      met_outfile <- file.path(folder, "FLake", met_file)
-    }
-    message("FLake: Loading ", met_file)
-    met <- read.delim(met_file, header = FALSE, stringsAsFactors = FALSE)
-    colnames(met)[ncol(met)] <- "datetime"
-    met$datetime <- as.POSIXct(met$datetime, tz = tz)
-    met_sub <- met[(met$datetime >= start & met$datetime <= stop), ]
-    if(nrow(met_sub) < nrow(met)){
-      warning("FLake: Writing new met file with shorter time series: ", met_outfile)
-    }
-    met_sub[, 1] <- seq_len(nrow(met_sub))
-
-    # Write to file
-    write.table(met_sub, met_outfile, sep = "\t", quote = FALSE, col.names = FALSE,
-                row.names = FALSE)
-    met_outfile <- basename(met_outfile)
-    input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(met_sub))
-    input_nml(nml_file, "METEO", "meteofile", paste0("'", met_outfile, "'"))
-
-    # Select nml file again
-    nml_file <- basename(get_yaml_value(config_file, "config_files", "flake"))
-
-    #Delete previous output
-    old_output <- list.files(file.path(folder, "FLake", "output"))
-    unlink(file.path(folder, "FLake", "output", old_output), recursive = TRUE)
-
-
-    run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file)
-
-    if(return_list | create_netcdf){
-
-      # Extract output
-      fla_out <- get_output(config_file = config_file, model = "FLake", vars = out_vars,
-                            obs_depths = obs_deps, folder = folder, out_time = out_time,
-                            out_hour = out_hour)
-
-      # # Add hour to daily output to match with out_ti
-      # if(met_timestep == 86400){
-      #   for(i in 1:length(fla_out)){
-      #     fla_out[[i]][,1] <- fla_out[[i]][,1] + out_hour * 60 * 60
-      #
-      #   }
-      # }
-
-
-      # Ensure FLake is on the same time step for output
-      if(!is.list(fla_out)) {
-        fla_out <- merge(fla_out, out_time, by = "datetime", all.y = TRUE)
-      } else {
-        fla_out <- lapply(seq_len(length(fla_out)), function(x){
-          merge(fla_out[[x]], out_time, by = 1, all.y = TRUE)
-        })
-        names(fla_out) <- out_vars # Re-assign names to list
-      }
-    }
-
-    message("FLake run is complete! ", paste0("[", Sys.time(), "]"))
-  }
-
-  if("GLM" %in% model) {
-
-    #Need to input start and stop into nml file
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
-    input_nml(nml_file, label = "time", key = "start", value = paste0("'", start, "'"))
-    input_nml(nml_file, label = "time", key = "stop", value = paste0("'", stop, "'"))
-
-    # Update model output
-    input_nml(nml_file, label = "output", key = "nsave", value = time_step)
-
-    #Delete previous output
-    # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
-    old_output <- list.files(file.path(folder, "GLM", "output"))
-    unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
-
-    run_glm(sim_folder = file.path(folder, "GLM"))
-
-    message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
-
-    if(return_list | create_netcdf) {
-
-      # Extract output
-      glm_out <- get_output(config_file = config_file, model = "GLM", vars = out_vars,
-                            obs_depths = obs_deps, folder = folder)
-
-      # Ensure GLM is on the same time step for output
-      if(!is.list(glm_out)) {
-        glm_out <- merge(glm_out, out_time, by = "datetime", all.y = TRUE)
-      } else {
-        glm_out <- lapply(seq_len(length(glm_out)), function(x){
-          merge(glm_out[[x]], out_time, by = 1, all.y = TRUE)
-        })
-        names(glm_out) <- out_vars # Re-assign names to list
-      }
-
-    }
-
-  }
-
-  if("GOTM" %in% model){
-    # Need to input start and stop into yaml file
-    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
-    input_yaml(yaml_file, label = "time", key = "start", value = start)
-    input_yaml(yaml_file, label = "time", key = "stop", value = stop)
-
-    #output yaml
-    out_yaml <- file.path(folder, "GOTM", "output.yaml")
-    input_yaml(out_yaml, label = "output", key = "time_method", value = time_method)
-    input_yaml(out_yaml, label = "output", key = "time_unit", value = time_unit)
-    input_yaml(out_yaml, label = "output", key = "time_step", value = time_step)
-    input_yaml(out_yaml, label = "output", key = "format", value = "netcdf")
-
-    #Delete previous output
-    old_output <- list.files(file.path(folder, "GOTM", "output"))
-    unlink(file.path(folder, "GOTM", "output", old_output), recursive = TRUE)
-
-    run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file))
-
-    message("GOTM run is complete! ", paste0("[", Sys.time(), "]"))
-
-    if(return_list | create_netcdf){
-
-      # Extract output
-      gotm_out <- get_output(config_file = config_file, model = "GOTM", vars = out_vars,
-                             obs_depths = obs_deps, folder = folder)
-
-      # Ensure GOTM is on the same time step for output
-      if(!is.list(gotm_out)) {
-        gotm_out <- merge(gotm_out, out_time, by = "datetime", all.y = T)
-      } else {
-        gotm_out <- lapply(seq_len(length(gotm_out)), function(x){
-          merge(gotm_out[[x]], out_time, by = 1, all.y = T)
-        })
-        names(gotm_out) <- out_vars # Re-assign names to list
-      }
-    }
-
-  }
-
-  if("Simstrat" %in% model){
-
-    sim_par <- get_yaml_value(config_file, "config_files", "simstrat")
-
-    # Set times
-    reference_year <- year(as.POSIXct(start))
-    input_json(sim_par, "Simulation", "Start year", reference_year)
-    start_date_simulation <- as.POSIXct(start, format = "%Y-%m-%d %H:%M:%S", tz = tz)
-    end_date_simulation <- as.POSIXct(stop, format = "%Y-%m-%d %H:%M:%S", tz = tz)
-    input_json(sim_par, "Simulation", "Start d",
-               as.numeric(difftime(start_date_simulation,
-                                   as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
-    input_json(sim_par, "Simulation", "End d",
-               as.numeric(difftime(end_date_simulation,
-                                   as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
-    input_json(sim_par, "Output", "Times", time_step)
-
-    # Need to input start and stop into json par file
-    par_fpath <- get_yaml_value(config_file, "config_files", "simstrat")
-    par_file <- basename(par_fpath)
-
-    #Delete previous output
-    # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = "Output", "Path")
-    old_output <- list.files(file.path(folder, "Simstrat", "output"))
-    unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
-
-
-    run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = FALSE)
-
-    message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
-
-    if(return_list | create_netcdf){
-
-      ### Extract output
-      sim_out <- get_output(config_file = config_file, model = "Simstrat", vars = out_vars,
-                            obs_depths = obs_deps, folder = folder)
-
-      # Ensure Simstrat is on the same time step for output
-      if(!is.list(sim_out)) {
-        sim_out <- merge(sim_out, out_time, by = "datetime", all.y = T)
-      } else {
-        sim_out <- lapply(seq_len(length(sim_out)), function(x){
-          merge(sim_out[[x]], out_time, by = 1, all.y = T)
-        })
-        names(sim_out) <- out_vars # Re-assign names to list
-      }
-    }
-  }
-
-  ## MyLake
-  if("MyLake" %in% model){
-
-    run_mylake(sim_folder = folder)
-
-    message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
-
-    if(return_list | create_netcdf){
-
-      ### Extract output
-      mylake_out <- get_output(config_file = config_file, model = "MyLake", vars = out_vars,
-                               obs_depths = obs_deps, folder = folder)
-
-      if(!is.list(mylake_out)) {
-        mylake_out <- merge(mylake_out, out_time, by = "datetime", all.y = T)
-      } else {
-        mylake_out <- lapply(seq_len(length(mylake_out)), function(x){
-          merge(mylake_out[[x]], out_time, by = 1, all.y = T)
-        })
-        names(mylake_out) <- out_vars # Re-assign names to list
-      }
-    }
-  }
+  run_model_args <- list(config_file = config_file,
+                         folder = folder, 
+                         return_list = return_list, 
+                         create_netcdf = create_netcdf, 
+                         tz = tz, 
+                         start = start,
+                         stop = stop, 
+                         obs_deps = obs_deps, 
+                         out_time = out_time,
+                         out_vars = out_vars, 
+                         time_step = time_step)
+  
+  model_out <- lapply(model, function(mod_name) do.call(paste0('.run_', mod_name), 
+                                                        run_model_args))
+  browser()
 
   if(return_list | create_netcdf){
 
@@ -489,4 +273,227 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list){
     return(temp_list)
   }
+}
+
+
+#' @keywords internal
+.run_GLM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_hour, out_vars, time_step){
+  #Need to input start and stop into nml file
+  nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
+  input_nml(nml_file, label = "time", key = "start", value = paste0("'", start, "'"))
+  input_nml(nml_file, label = "time", key = "stop", value = paste0("'", stop, "'"))
+  
+  # Update model output
+  input_nml(nml_file, label = "output", key = "nsave", value = time_step)
+  
+  #Delete previous output
+  # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
+  old_output <- list.files(file.path(folder, "GLM", "output"))
+  unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
+  
+  run_glm(sim_folder = file.path(folder, "GLM"))
+  
+  message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
+  
+  if(return_list | create_netcdf) {
+    
+    # Extract output
+    glm_out <- get_output(config_file = config_file, model = "GLM", vars = out_vars,
+                          obs_depths = obs_deps, folder = folder)
+    
+    # Ensure GLM is on the same time step for output
+    if(!is.list(glm_out)) {
+      glm_out <- merge(glm_out, out_time, by = "datetime", all.y = TRUE)
+    } else {
+      glm_out <- lapply(seq_len(length(glm_out)), function(x){
+        merge(glm_out[[x]], out_time, by = 1, all.y = TRUE)
+      })
+      names(glm_out) <- out_vars # Re-assign names to list
+    }
+    
+  }
+  return(glm_out)
+}
+
+#' @keywords internal
+.run_FLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_hour, out_vars, time_step){
+  #Need to figure out how to subset data by dates
+  nml_file <- get_yaml_value(config_file, "config_files", "flake")
+  nml_file <- file.path(folder, nml_file)
+  if(file.exists(file.path(folder, "FLake", "all_meteo_file.dat"))){
+    met_file <- file.path(folder, "FLake", "all_meteo_file.dat")
+    met_outfile <- file.path(folder, "FLake", "meteo_file_tmp.dat")
+  }else{
+    met_file <- suppressWarnings(get_nml_value(arg_name = "meteofile", nml_file = nml_file))
+    met_file <- gsub(",", "", met_file)
+    met_file <- file.path(folder, "FLake", met_file)
+    met_outfile <- file.path(folder, "FLake", met_file)
+  }
+  message("FLake: Loading ", met_file)
+  met <- read.delim(met_file, header = FALSE, stringsAsFactors = FALSE)
+  colnames(met)[ncol(met)] <- "datetime"
+  met$datetime <- as.POSIXct(met$datetime, tz = tz)
+  met_sub <- met[(met$datetime >= start & met$datetime <= stop), ]
+  if(nrow(met_sub) < nrow(met)){
+    warning("FLake: Writing new met file with shorter time series: ", met_outfile)
+  }
+  met_sub[, 1] <- seq_len(nrow(met_sub))
+  
+  # Write to file
+  write.table(met_sub, met_outfile, sep = "\t", quote = FALSE, col.names = FALSE,
+              row.names = FALSE)
+  met_outfile <- basename(met_outfile)
+  input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(met_sub))
+  input_nml(nml_file, "METEO", "meteofile", paste0("'", met_outfile, "'"))
+  
+  # Select nml file again
+  nml_file <- basename(get_yaml_value(config_file, "config_files", "flake"))
+  
+  #Delete previous output
+  old_output <- list.files(file.path(folder, "FLake", "output"))
+  unlink(file.path(folder, "FLake", "output", old_output), recursive = TRUE)
+  
+  
+  run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file)
+  
+  if(return_list | create_netcdf){
+    
+    met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+    out_hour <- ifelse(met_timestep == 86400, hour(start), 0) #Used for FLake output
+
+    # Extract output
+    fla_out <- get_output(config_file = config_file, model = "FLake", vars = out_vars,
+                          obs_depths = obs_deps, folder = folder, out_time = out_time,
+                          out_hour = out_hour)
+    
+    # Ensure FLake is on the same time step for output
+    if(!is.list(fla_out)) {
+      fla_out <- merge(fla_out, out_time, by = "datetime", all.y = TRUE)
+    } else {
+      fla_out <- lapply(seq_len(length(fla_out)), function(x){
+        merge(fla_out[[x]], out_time, by = 1, all.y = TRUE)
+      })
+      names(fla_out) <- out_vars # Re-assign names to list
+    }
+  }
+  message("FLake run is complete! ", paste0("[", Sys.time(), "]"))
+  return(fla_out)
+  
+}
+
+.run_GOTM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
+  
+  # Need to input start and stop into yaml file
+  time_method <- get_yaml_value(config_file, "output", "time_method")
+  time_unit <- get_yaml_value(config_file, "output", "time_unit")
+  
+  yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
+  input_yaml(yaml_file, label = "time", key = "start", value = start)
+  input_yaml(yaml_file, label = "time", key = "stop", value = stop)
+  
+  #output yaml
+  out_yaml <- file.path(folder, "GOTM", "output.yaml")
+  input_yaml(out_yaml, label = "output", key = "time_method", value = time_method)
+  input_yaml(out_yaml, label = "output", key = "time_unit", value = time_unit)
+  input_yaml(out_yaml, label = "output", key = "time_step", value = time_step)
+  input_yaml(out_yaml, label = "output", key = "format", value = "netcdf")
+  
+  #Delete previous output
+  old_output <- list.files(file.path(folder, "GOTM", "output"))
+  unlink(file.path(folder, "GOTM", "output", old_output), recursive = TRUE)
+  
+  run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file))
+  
+  message("GOTM run is complete! ", paste0("[", Sys.time(), "]"))
+  
+  if(return_list | create_netcdf){
+    
+    # Extract output
+    gotm_out <- get_output(config_file = config_file, model = "GOTM", vars = out_vars,
+                           obs_depths = obs_deps, folder = folder)
+    
+    # Ensure GOTM is on the same time step for output
+    if(!is.list(gotm_out)) {
+      gotm_out <- merge(gotm_out, out_time, by = "datetime", all.y = T)
+    } else {
+      gotm_out <- lapply(seq_len(length(gotm_out)), function(x){
+        merge(gotm_out[[x]], out_time, by = 1, all.y = T)
+      })
+      names(gotm_out) <- out_vars # Re-assign names to list
+    }
+  }
+  
+  return(gotm_out)
+}
+
+.run_Simstrat <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
+  sim_par <- get_yaml_value(config_file, "config_files", "simstrat")
+  
+  # Set times
+  reference_year <- year(as.POSIXct(start))
+  input_json(sim_par, "Simulation", "Start year", reference_year)
+  start_date_simulation <- as.POSIXct(start, format = "%Y-%m-%d %H:%M:%S", tz = tz)
+  end_date_simulation <- as.POSIXct(stop, format = "%Y-%m-%d %H:%M:%S", tz = tz)
+  input_json(sim_par, "Simulation", "Start d",
+             as.numeric(difftime(start_date_simulation,
+                                 as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
+  input_json(sim_par, "Simulation", "End d",
+             as.numeric(difftime(end_date_simulation,
+                                 as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
+  input_json(sim_par, "Output", "Times", time_step)
+  
+  # Need to input start and stop into json par file
+  par_fpath <- get_yaml_value(config_file, "config_files", "simstrat")
+  par_file <- basename(par_fpath)
+  
+  #Delete previous output
+  # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = "Output", "Path")
+  old_output <- list.files(file.path(folder, "Simstrat", "output"))
+  unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
+  
+  
+  run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = FALSE)
+  
+  message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
+  
+  if(return_list | create_netcdf){
+    
+    ### Extract output
+    sim_out <- get_output(config_file = config_file, model = "Simstrat", vars = out_vars,
+                          obs_depths = obs_deps, folder = folder)
+    
+    # Ensure Simstrat is on the same time step for output
+    if(!is.list(sim_out)) {
+      sim_out <- merge(sim_out, out_time, by = "datetime", all.y = T)
+    } else {
+      sim_out <- lapply(seq_len(length(sim_out)), function(x){
+        merge(sim_out[[x]], out_time, by = 1, all.y = T)
+      })
+      names(sim_out) <- out_vars # Re-assign names to list
+    }
+  }
+  return(sim_out)
+}
+
+.run_MyLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
+  run_mylake(sim_folder = folder)
+  
+  message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
+  
+  if(return_list | create_netcdf){
+    
+    ### Extract output
+    mylake_out <- get_output(config_file = config_file, model = "MyLake", vars = out_vars,
+                             obs_depths = obs_deps, folder = folder)
+    
+    if(!is.list(mylake_out)) {
+      mylake_out <- merge(mylake_out, out_time, by = "datetime", all.y = T)
+    } else {
+      mylake_out <- lapply(seq_len(length(mylake_out)), function(x){
+        merge(mylake_out[[x]], out_time, by = 1, all.y = T)
+      })
+      names(mylake_out) <- out_vars # Re-assign names to list
+    }
+  }
+  return(mylake_out)
 }
