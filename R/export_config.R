@@ -231,7 +231,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Set max depth
     input_yaml(got_yaml, "location", "depth", max_depth)
-    input_yaml(got_yaml, "grid", "nlev", (max_depth / 0.5))
+    input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
     # Switch on ice model - MyLake
     input_yaml(got_yaml, "ice", "model", 2)
