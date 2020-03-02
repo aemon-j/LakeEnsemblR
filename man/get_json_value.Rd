@@ -18,7 +18,7 @@ Extracts values from a json file by locating the label and key within the json f
 }
 \examples{
 \dontrun{
-input_json(file = 'samp.par', label = 'ModelParameters', key = 'f_wind', value = 1.2, out_file = NULL)
+input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 }
 }
 \author{
