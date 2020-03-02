@@ -10,8 +10,8 @@ set_met_config_yaml <- function(met_file, yaml_file){
 
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
-  names(l_names) <- met_var_dic$short.name
-  
+  names(l_names) <- met_var_dic$short_name
+
   if(file.exists(met_file)){
     df <- read.delim(met_file, sep = "\t", nrows = 3)
   }else{

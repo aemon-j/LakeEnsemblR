@@ -21,10 +21,10 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = "."){
   ### Check what met data is available, as this determines what model forcing option to use
   # (in the simstrat config file)
   chck_met <- lapply(met_var_dic$standard_name, function(x)x %in% colnames(met))
-  names(chck_met) <- met_var_dic$short.name
+  names(chck_met) <- met_var_dic$short_name
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
-  names(l_names) <- met_var_dic$short.name
+  names(l_names) <- met_var_dic$short_name
   # heat flux
   heat_flux <- FALSE
 
