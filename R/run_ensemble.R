@@ -103,30 +103,27 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          out_vars = out_vars, 
                          time_step = time_step)
   
-  model_out <- lapply(model, function(mod_name) do.call(paste0('.run_', mod_name), 
-                                                        run_model_args))
-  browser()
+  model_out <- setNames(
+    lapply(model, function(mod_name) do.call(paste0('.run_', mod_name), 
+                                             run_model_args)),
+    model
+  )
 
   if(return_list | create_netcdf){
 
     if("temp" %in% out_vars){
-      temp_list  <- list("FLake_watertemp" = fla_out[["temp"]],
-                        "GLM_watertemp" = glm_out[["temp"]],
-                        "GOTM_watertemp" = gotm_out[["temp"]],
-                        "Simstrat_watertemp" = sim_out[["temp"]],
-                        "MyLake_watertemp" = mylake_out[["temp"]], "Obs_watertemp" = obs_out)
-      temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+      temp_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][['temp']]),
+        paste0(model,'_watertemp')
+      )
     }
 
     if("ice_height" %in% out_vars){
-      ice_list <- list("FLake_ice_height" = fla_out[["ice_height"]],
-                       "GLM_ice_height" = glm_out[["ice_height"]],
-                       "GOTM_ice_height" = gotm_out[["ice_height"]],
-                       "Simstrat_ice_height" = sim_out[["ice_height"]],
-                       "MyLake_ice_height" = mylake_out[["ice_height"]])
-      ice_list <- Filter(Negate(is.null), ice_list) # Remove NULL outputs
+      ice_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][['ice_height']]),
+        paste0(model,'_ice_height')
+      )
     }
-
 
     if(create_netcdf){
 
@@ -381,6 +378,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   
 }
 
+#' @keywords internal
 .run_GOTM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
   
   # Need to input start and stop into yaml file
@@ -426,6 +424,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   return(gotm_out)
 }
 
+#' @keywords internal
 .run_Simstrat <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
   sim_par <- get_yaml_value(config_file, "config_files", "simstrat")
   
@@ -475,6 +474,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   return(sim_out)
 }
 
+#' @keywords internal
 .run_MyLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
   run_mylake(sim_folder = folder)
   
