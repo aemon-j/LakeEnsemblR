@@ -26,7 +26,7 @@
 #"mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
 #"df <- as.data.frame(mat)
 #"rownames(df) <- pars
-#"run_LHC(parRange = parRange, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
+#"run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
 #"config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
 #""LakeEnsemblR_meteo_standard.csv")
 #" }
@@ -34,7 +34,7 @@
 #"mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
 #"df <- as.data.frame(mat)
 #"rownames(df) <- pars
-#"run_LHC(parRange = parRange, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
+#"run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
 #"config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
 #""LakeEnsemblR_meteo_standard.csv")
 #"@importFrom FME Latinhyper
