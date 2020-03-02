@@ -35,7 +35,7 @@
 #'@importFrom SimstratR run_simstrat
 #'@importFrom lubridate round_date seconds_to_period
 #'
-#' @export
+
 
 library(gotmtools)
 library(reshape2)
@@ -883,7 +883,7 @@ num=1000
   library(patchwork)
   p = g0 / g1 / (g2+g3+g4);p
   
-  ggsave(file='output/MCMC.png', p, dpi = 300, width = 316, height=216, units='mm')
+  ggsave(file='output/MCMC_newGLM.png', p, dpi = 300, width = 316, height=216, units='mm')
   
 }
 
