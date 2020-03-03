@@ -44,7 +44,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
       }
     }
     # Find closest depth near the bottom without NA
-    for(i in seq_len((length(depths)):1)){
+    for(i in rev(seq_len(length(depths)))){
       Tb <- data[data[, 2] == depths[i], 3]
       if(sum(is.na(Tb)) / length(Tb) < 0.25){
         if(i != 1){
