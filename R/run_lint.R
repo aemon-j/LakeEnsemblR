@@ -7,7 +7,7 @@
 #'
 #' @import lintr
 
-run_lint <- function (file){
+run_lint <- function(file){
   LER_linters <- lintr::with_defaults(line_length_linter = line_length_linter(100),
                                commented_code_linter = NULL,
                                cyclocomp_linter = NULL,

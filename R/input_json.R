@@ -10,26 +10,25 @@
 #' @author
 #'Tadhg Moore, Jorrit Mesman
 #' @examples
-#'input_json(file = 'samp.par', label = 'ModelParameters', key = 'f_wind', value = 1.2, out_file = NULL)
+#'input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 
-input_json <- function (file, label, key, value, out_file = NULL)
-{
+input_json <- function(file, label, key, value, out_file = NULL){
   yml <- readLines(file)
   if (is.null(out_file)) {
-    out_file = file
+    out_file <- file
   }
-  label_id <- paste0('"',label, '"')
+  label_id <- paste0('"', label, '"')
   ind_label <- grep(label_id, yml)
   if (length(ind_label) == 0) {
     stop(label, " not found in ", file)
   }
   key_id <- paste0('"', key, '"')
-  ind_key = grep(key_id, yml)
+  ind_key <- grep(key_id, yml)
   if (length(ind_key) == 0) {
     stop(key, " not found in ", label, " in ",
          file)
   }
-  ind_key = ind_key[ind_key > ind_label]
+  ind_key <- ind_key[ind_key > ind_label]
   ind_map <- ind_key[which.min(ind_key - ind_label)]
   if (length(ind_map) == 0) {
     stop(key, " not found in ", label, " in ",
@@ -40,7 +39,7 @@ input_json <- function (file, label, key, value, out_file = NULL)
     comment <- spl1[2]
   }
   spl2 <- strsplit(spl1[1], ": ")[[1]][2]
-  sub = paste0(value,',' )
+  sub <- paste0(value, ",")
   yml[ind_map] <- gsub(pattern = spl2, replacement = sub, x = yml[ind_map])
   writeLines(yml, out_file)
   old_val <- gsub(" ", "", spl2, fixed = TRUE)
