@@ -4,7 +4,15 @@
 \alias{sample_LHC}
 \title{Create Latin hypercube sample of parameters}
 \usage{
-sample_LHC(config_file, num, method = NULL, folder = ".", file.name = NULL)
+sample_LHC(
+  config_file,
+  num,
+  method = NULL,
+  folder = ".",
+  file.name = NULL,
+  MCMC = FALSE,
+  mcmc_sample = "uniform"
+)
 }
 \arguments{
 \item{config_file}{filepath; to LakeEnsemblr yaml master config file}
@@ -13,6 +21,10 @@ sample_LHC(config_file, num, method = NULL, folder = ".", file.name = NULL)
 
 \item{method}{character; Method for calibration. Can be 'met', 'model' or 'both'. Needs to be
 specified by the user.}
+
+\item{MCMC}{boolean; TRUE will run MCMC instead of LHC calibration, default is FALSE}
+
+\item{mcmc_sample}{character; method for distribution of parameters used in MCMC}
 }
 \description{
 Create CSV file with parameter samples for the LHC runs

@@ -6,6 +6,8 @@
 #' @param num integer; the number of random parameter sets to generate.
 #' @param method character; Method for calibration. Can be 'met', 'model' or 'both'. Needs to be
 #' specified by the user.
+#' @param MCMC boolean; TRUE will run MCMC instead of LHC calibration, default is FALSE
+#' @param mcmc_sample character; method for distribution of parameters used in MCMC
 #'
 #' @examples
 #' \dontrun{
@@ -23,7 +25,8 @@
 #' @importFrom gotmtools get_yaml_value
 #'
 #' @export
-sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name = NULL){
+sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name = NULL,
+                       MCMC = FALSE, mcmc_sample = 'uniform'){
 
   # Load dictionary
   var_names_dic <- load_dic()
@@ -48,21 +51,27 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
   print("Parameters used:")
   print(par_range)
 
-
-  params <- Latinhyper(parRange = as.matrix(par_range), num = num)
-  params <- signif(params, 4)
-  colnames(params) <- par_names[ind]
-  params <- as.data.frame(params)
-  params$par_id <- paste0("p", formatC(seq_len(params), width = 4, format = "d", flag = "0"))
-  if (is.null(file.name)){
-    return.name <- paste0("LHS_params_", format(Sys.time(), format = "%Y%m%d%H%M"), ".csv")
-    return.name <- file.path(folder, return.name)
-    write.csv(params, file <- return.name, quote = FALSE, row.names = FALSE)
-
-  } else {
-    return.name <- file.path(folder, paste0(file.name, ".csv"))
-    write.csv(params, file = return.name, quote = FALSE, row.names = FALSE)
+  if (isFALSE(MCMC)){
+    params <- Latinhyper(parRange = as.matrix(par_range), num = num)
+    params <- signif(params, 4)
+    colnames(params) <- par_names[ind]
+    params <- as.data.frame(params)
+    params$par_id <- paste0("p", formatC(seq_len(params), width = 4, format = "d", flag = "0"))
+    if (is.null(file.name)){
+      return_name <- paste0("LHS_params_", format(Sys.time(), format = "%Y%m%d%H%M"), ".csv")
+      return_name <- file.path(folder, return_name)
+      write.csv(params, file <- return_name, quote = FALSE, row.names = FALSE)
+      
+    } else {
+      return_name <- file.path(folder, paste0(file.name, ".csv"))
+      write.csv(params, file = return_name, quote = FALSE, row.names = FALSE)
     }
-
-  return(paste0(return.name))
+    return(paste0(return_name))
+  } else {
+    return_name <- data.frame(par_range)
+    if (mcmc_sample == 'uniform'){
+      return_name$method <- rep('uniform', nrow(return_name))
+      return(return_name)
+    }
+  }
 }
