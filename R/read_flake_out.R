@@ -53,19 +53,17 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
 
     for(kk in seq_len(length(depths))){
       z <- depths[kk]
-      zeta <- (z - h[kk]) / (D - h[kk])
+      zeta <- (z - h) / (D - h)
       c1 <- 40 / 3
       c2 <- 20 / 3
       c3 <- 5 / 3
       c4 <- 10 / 3
-      is_in_ML <- z <= h[kk]
-      if(is_in_ML){
-        Tz <- Ts
-      }else{
-        Tz <- zeta * (c1 * C - c2 + zeta *
-                        (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
+      is_in_ML <- z <= h
+      Tz <- ifelse(is_in_ML, Ts, {
+        zeta * (c1 * C - c2 + zeta *
+                  (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
           (Tb - Ts) + Ts
-      }
+      })
       
       if(long){
         dd <- data.frame(dateTime = seq_len(length(Tz)),
