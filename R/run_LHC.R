@@ -424,7 +424,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     met_outfile <- "LHS_meteo_file.dat"
 
 
-    input_json(file = par_fpath, label = "Input", key = "Forcing", paste0("'", met_outfile, "'"))
+    input_json(file = par_fpath, label = "Input", key = "Forcing", paste0('"', met_outfile, '"'))
 
     # Need to input start and stop into json par file
     reference_year <- get_json_value(par_fpath, "Simulation", "Start year")

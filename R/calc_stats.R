@@ -24,7 +24,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
                                nml_file = flake_nml, long = TRUE,
                                out_time = out_time, out_hour = out_hour)
 
-    stats <- sum_stat(fla_long, obs, depth = TRUE, strat = FALSE)
+    stats <- sum_stat(fla_long, obs, depth = TRUE)
 
     # Calculate stats for Sensitivity Analysis
     strat <- analyse_strat(Ts = fla_long[fla_long$Depth_meter == min(fla_long$Depth_meter), 3],
