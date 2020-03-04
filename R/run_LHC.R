@@ -54,6 +54,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   original_tz <- Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
   tz <- "UTC"
+
   # Set working directory
   oldwd <- getwd()
 
@@ -62,7 +63,6 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
   })
-
 
 
   # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
@@ -141,8 +141,10 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     subdaily <- FALSE
   }
 
+
   if(is.null(param_file)){
     param_file <- sample_LHC(config_file = config_file, num = num, method = method, folder = folder)
+
   }
   params <- read.csv(param_file, stringsAsFactors = FALSE)
   num <- nrow(params)
@@ -156,6 +158,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
     # Format met file
     fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
+
 
     # Select nml file for running FLake
     nml_file <- get_yaml_value(config_file, "config_files", "flake")
