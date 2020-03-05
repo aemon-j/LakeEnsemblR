@@ -119,7 +119,7 @@ run_ensemble <- function(config_file, model = c('GOTM', 'GLM', 'Simstrat', 'FLak
     if(nrow(met_sub) < nrow(met)){
       warning('FLake: Writing new met file with shorter time series: ', met_outfile)
     }
-    met_sub[,1] <- 1:nrow(met_sub)
+    # met_sub[,1] <- 1:nrow(met_sub)
 
     # Write to file
     write.table(met_sub, met_outfile, sep = '\t', quote = FALSE, col.names = FALSE, row.names = FALSE)
