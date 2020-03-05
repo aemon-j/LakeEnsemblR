@@ -7,7 +7,7 @@
 #' @param out_time data frame; data frame with column ("datetime"),
 #' describing at what times output should be generated
 #' @import ncdf4
-#' @importFrom rLakeAnalyzer get_offsets
+#' @importFrom rLakeAnalyzer get.offsets
 #'
 #' @export
 
