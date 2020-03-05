@@ -330,7 +330,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                         "GLM_watertemp" = glm_out[["temp"]],
                         "GOTM_watertemp" = gotm_out[["temp"]],
                         "Simstrat_watertemp" = sim_out[["temp"]],
-                        "MyLake_watertemp" = mylake_out[["temp"]], "Obs_watertemp" = obs_out)
+                        "MyLake_watertemp" = mylake_out[["temp"]],
+                        "Obs_watertemp" = obs_out)
       temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
@@ -342,145 +343,18 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                        "MyLake_ice_height" = mylake_out[["ice_height"]])
       ice_list <- Filter(Negate(is.null), ice_list) # Remove NULL outputs
     }
-
-
+    
+    # Put all lists with output into a single, named list
+    all_lists <- NULL
+    if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
+    if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
+    
     if(create_netcdf){
-
-      if("temp" %in% out_vars){
-        lengths <- lapply(temp_list, ncol) # Extract ncols in each output
-        lon_list <- which.max(lengths) # Select largest depths
-        deps <- get.offsets(temp_list[[lon_list]]) # Extract depths
-        deps <- deps
-      }
-
-      # Creat output directory
-      message("Creating directory for output: ", file.path(folder, "output"))
-      dir.create(file.path(folder, "output"), showWarnings = FALSE)
-
-      #Create ncdf
-      message("Creating NetCDF file [", Sys.time(), "]")
-      ref_time <- as.POSIXct("1970-01-01 00:00:00", tz = "GMT") # Reference time for netCDF time
-      # Calculate seconds since reference time
-      nsecs <- as.numeric(difftime(out_time$datetime, ref_time, units = "secs"))
-      xvals <- 180 - lon # Convert longitude to degrees east
-      yvals <- lat # Latitude
-      # Define lon and lat dimensions
-      lon1 <- ncdim_def("lon", "degrees_east", vals = as.double(xvals))
-      lat2 <- ncdim_def("lat", "degrees_north", vals = as.double(yvals))
-
-      # Set dimensions
-      # Time dimension
-      timedim <- ncdim_def("time", units = "seconds since 1970-01-01 00:00:00",
-                           vals = as.double(nsecs), calendar = "proleptic_gregorian")
-      if("temp" %in% out_vars){
-        # Depth dimension
-        depthdim <- ncdim_def("z", units = "meters", vals = as.double(rev(deps)),
-                              longname = "Depth from surface")
-      }
-
-      fillvalue <- 1e20 # Fill value
-      missvalue <- 1e20 # Missing value
-
-      nc_vars <- list() #Initialize empty list to fill netcdf variables
-
-      if("temp" %in% out_vars){
-        for(i in seq_len(length(temp_list))) {
-
-          model_name <- strsplit(names(temp_list)[i], "_")[[1]][1]
-
-          lname <- paste(model_name, "Water temperature") # Long name
-          # Define variable
-          tmp_def <- ncvar_def(paste0(tolower(names(temp_list)[i])), "Celsius",
-                               list(lon1, lat2, timedim, depthdim), fillvalue, lname,
-                               prec = "float", compression = compression, shuffle = FALSE)
-          nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
-        }
-        names(nc_vars)[(length(nc_vars) - length(temp_list) + 1):length(nc_vars)] <-
-          paste0(names(temp_list), "_temp") # Re-assign list names
-      }
-
-      if("ice_height" %in% out_vars){
-        for(i in seq_len(length(ice_list))) {
-          model_name <- strsplit(names(ice_list)[i], "_")[[1]][1]
-          # Long name
-          lname <- paste(model_name, "Ice height")
-          # Define variable
-          tmp_def <- ncvar_def(paste0(tolower(names(ice_list)[i])), "m", list(lon1, lat2, timedim),
-                               fillvalue, lname, prec = "float", compression = compression,
-                               shuffle = FALSE)
-          nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
-        }
-        # Re-assign list names
-        names(nc_vars)[(length(nc_vars) - length(ice_list) + 1):length(nc_vars)] <-
-          paste0(names(ice_list), "_ice_height")
-      }
-
-      # Create file name for output file
-      fname <- file.path(folder, "output", out_file) # Ensemble output filename
-
-      # If file exists - delete it
-      if(file.exists(fname)){
-        unlink(fname, recursive = TRUE)
-      }
-
-      # Create and input data into the netCDF file
-      ncout <- nc_create(fname, nc_vars, force_v4 = T)
-      # Add coordinates attribute for use with get_vari()
-      ncatt_put(ncout, "z", attname = "coordinates", attval = c("z"))
-
-
-      # Loop through and add each variable
-
-      # Add tryCatch ensure that it closes netCDF file
-      result <- tryCatch({
-
-        if("temp" %in% out_vars){
-          for(i in seq_len(length(temp_list))) {
-            mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[3]]$len, ncol = nc_vars[[i]]$dim[[4]]$len)
-
-            deps_temp <- get.offsets(temp_list[[i]]) # vector of depths to input into the matrix
-            mat <- as.matrix(temp_list[[i]][, -1])
-
-            for(j in seq_len(ncol(mat))) {
-              col <- which(deps == deps_temp[j])
-              mat1[, col] <- mat[, j]
-            }
-            # mat1[1:nrow(mat),1:ncol(mat)] <- mat
-
-            ncvar_put(ncout, nc_vars[[i]], mat1)
-            ncatt_put(ncout, nc_vars[[i]], attname = "coordinates", attval = c("lon lat z"))
-            ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
-          }
-        }
-
-        if("ice_height" %in% out_vars){
-          for(i in seq_len(length(ice_list))) {
-
-            mat <- as.matrix(ice_list[[i]][, -1])
-
-            #Create index for nc_vars
-            nc_idx <- length(nc_vars) - length(ice_list) + i
-
-            ncvar_put(ncout, nc_vars[[nc_idx]], mat)
-            ncatt_put(ncout, nc_vars[[nc_idx]], attname = "coordinates", attval = c("lon lat"))
-            ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
-          }
-        }
-
-      }, warning = function(w) {
-        return_val <- "Warning"
-      }, error = function(e) {
-        return_val <- "Error"
-        warning("Error creating netCDF file!")
-      }, finally = {
-        nc_close(ncout) # Close netCDF file
-      })
-
-      message("Finished writing NetCDF file [", Sys.time(), "]")
-
+      # Pass all_lists to the netcdf function to create netcdf output
+      create_netcdf_output(all_lists, folder = folder, out_time = out_time,
+                           longitude = lon, latitude = lat, compression = compression,
+                           out_file = out_file)
     }
-
-
   }
 
   # Set the timezone back to the original
