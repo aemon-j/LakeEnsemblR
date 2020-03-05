@@ -149,12 +149,9 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = "."){
     fla_met$index <- seq_len(nrow(fla_met))
 
     # Re-organise
-    fla_met <- fla_met[, c("index", "Shortwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
-                           "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
-                           "Cloud_Cover_decimalFraction", "datetime")]
-    fla_met$datetime <- format(fla_met$datetime, format = "%Y-%m-%d %H:%M:%S")
-    colnames(fla_met)[1] <- paste0("!", colnames(fla_met)[1])
+    fla_met <- fla_met[,c('Shortwave_Radiation_Downwelling_wattPerMeterSquared','Air_Temperature_celsius', "Vapor_Pressure_milliBar", "Ten_Meter_Elevation_Wind_Speed_meterPerSecond", "Cloud_Cover_decimalFraction", "datetime")]
+    fla_met$datetime <- format(fla_met$datetime, format = '%Y-%m-%d %H:%M:%S')
+    colnames(fla_met)[1] <- paste0('!', colnames(fla_met)[1])
 
     #Reduce number of digits
     fla_met[, -c(1, ncol(fla_met))] <- signif(fla_met[, -c(1, ncol(fla_met))], digits = 8)
