@@ -114,12 +114,12 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
       
       if(ncol(output_lists[[i]][[1]]) == 2){
         # Add 2D variable
-        for(j in seq_len(length(ice_list))) {
+        for(j in seq_len(length(output_lists[[i]]))) {
           
-          mat <- as.matrix(ice_list[[j]][, -1])
+          mat <- as.matrix(output_lists[[i]][[j]][, -1])
           
           #Create index for nc_vars
-          nc_idx <- length(nc_vars) - length(ice_list) + j
+          nc_idx <- length(nc_vars) - length(output_lists[[i]]) + j
           
           ncdf4::ncvar_put(ncout, nc_vars[[nc_idx]], mat)
           ncdf4::ncatt_put(ncout, nc_vars[[nc_idx]], attname = "coordinates", attval = c("lon lat"))
