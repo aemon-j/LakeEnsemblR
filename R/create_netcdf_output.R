@@ -153,7 +153,7 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
     return_val <- "Error"
     warning("Error creating netCDF file!")
   }, finally = {
-    nc_close(ncout) # Close netCDF file
+    ncdf4::nc_close(ncout) # Close netCDF file
   })
   
   message("Finished writing NetCDF file [", Sys.time(), "]")
