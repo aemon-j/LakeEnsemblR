@@ -12,7 +12,8 @@ analyse_ncdf(ncdf, spin_up = NULL)
 \item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
 }
 \value{
-list with the dataframes used for comparison, statistics on model performanc, stratification
+list with the dataframes used for comparison, statistics on model performance,
+stratification
 }
 \description{
 Analyse the LER output neCDF and produce summary statistics

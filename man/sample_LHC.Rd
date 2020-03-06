@@ -4,14 +4,27 @@
 \alias{sample_LHC}
 \title{Create Latin hypercube sample of parameters}
 \usage{
-sample_LHC(config_file, num, method = NULL, folder = ".", file.name = NULL)
+sample_LHC(
+  config_file,
+  num,
+  method = NULL,
+  folder = ".",
+  file.name = NULL,
+  MCMC = FALSE,
+  mcmc_sample = "uniform"
+)
 }
 \arguments{
 \item{config_file}{filepath; to LakeEnsemblr yaml master config file}
 
 \item{num}{integer; the number of random parameter sets to generate.}
 
-\item{method}{character; Method for calibration. Can be 'met', 'model' or 'both'. Needs to be specified by the user.}
+\item{method}{character; Method for calibration. Can be 'met', 'model' or 'both'. Needs to be
+specified by the user.}
+
+\item{MCMC}{boolean; TRUE will run MCMC instead of LHC calibration, default is FALSE}
+
+\item{mcmc_sample}{character; method for distribution of parameters used in MCMC}
 }
 \description{
 Create CSV file with parameter samples for the LHC runs
@@ -22,7 +35,10 @@ pars <- c('wind_factor', 'swr_factor', 'lw_factor')
 mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
 df <- as.data.frame(mat)
 rownames(df) <- pars
-param_file <- sample_LHC(parRange = df, num = 300)
-run_Latin_hypercube(param_file = param_file, obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv', config_file = 'Feeagh_master_config.yaml', model = 'FLake', meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+param_file <- sample_LHC(par_range = df, num = 300)
+run_Latin_hypercube(param_file = param_file,
+obs_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+config_file = 'Feeagh_master_config.yaml', model = 'FLake',
+meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 }
 }

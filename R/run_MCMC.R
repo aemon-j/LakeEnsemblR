@@ -1,13 +1,12 @@
-#' Run Latin hypercube sampling
-#' 
-#' Run lake models using Latin hypercube sampling for model parameters.
+#' Run pseudo-MCMC sampling
 #'
+#' Run lake models using a pseudo Markov Chain Monte Carlo algorithm.
+#'
+#' @name run_MCMC
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
-#' @param num integer; the number of random parameter sets to generate. If param file is provided
-#' num = number of parameters in that file.
-#' @param param_file filepath; to previously created parameter file set. If NULL creates a new
-#' parameter set. Defaults to NULL
-#' #' @param method character; Method for calibration. Can be "met", "model" or "both". Needs to be
+#' @param num integer; the number of iterations the algorithm should run
+#' @param param_file filepath; defaults to NULL
+#' @param method character; Method for calibration. Can be "met", "model" or "both". Needs to be
 #' specified by the user.
 #' @param obs_file filepath; to LakeEnsemblR standardised observed water temperature profile data.
 #' If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.
@@ -21,22 +20,10 @@
 #'
 #' @examples
 #' \dontrun{
-#'pars <- c("wind_factor", "swr_factor", "lw_factor")
-#'mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
-#'df <- as.data.frame(mat)
-#'rownames(df) <- pars
-#'run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
-#'config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
-#'"LakeEnsemblR_meteo_standard.csv")
-#' }
-#'pars <- c("wind_factor", "swr_factor", "lw_factor")
-#'mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
-#'df <- as.data.frame(mat)
-#'rownames(df) <- pars
-#'run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
-#'config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
-#'"LakeEnsemblR_meteo_standard.csv")
-#' @importFrom FME Latinhyper
+#' run_MCMC(config_file = 'Feeagh_master_config.yaml', num = 100,
+#' param_file = NULL, method = 'met', model = c("FLake", "GLM", "GOTM", "Simstrat"),
+#' folder = ".", spin_up = NULL)
+#'
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast
@@ -47,9 +34,8 @@
 #' @importFrom lubridate round_date seconds_to_period
 #'
 #' @export
-run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
-                    model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL){
-
+run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
+                     model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL){
   # It"s advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
@@ -142,10 +128,37 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   }
 
   if(is.null(param_file)){
-    param_file <- sample_LHC(config_file = config_file, num = num, method = method, folder = folder)
+    par_range <- sample_LHC(config_file = config_file, num = num, method = method,
+                            folder = folder, MCMC = TRUE, mcmc_sample = "uniform")
   }
-  params <- read.csv(param_file, stringsAsFactors = FALSE)
-  num <- nrow(params)
+  param_file <- paste0("MCMC_params_", format(Sys.time(), format = "%Y%m%d%H%M"), ".csv")
+
+  .get_init_value <- function(par_range){
+    params <- as.data.frame(matrix(NA, ncol = nrow(par_range), nrow = 1))
+    for (ii in seq_len(nrow(par_range))){
+      var_name <- rownames(par_range)
+      if (par_range$method[ii] == "uniform"){
+        params[, ii] <- runif(1, par_range$lb[ii], par_range$ub[ii])
+      }
+    }
+    colnames(params) <- c(var_name)
+    params$par_id <- seq(1, nrow(params), 1)
+    return(params)
+  }
+
+  .step_param <- function(cur_par, par_range){
+    ready <- TRUE
+    len_cur_par <- ncol(cur_par[-length(cur_par)])
+    while (ready){
+      df <- cur_par[-length(cur_par)] + (runif(len_cur_par, 1, 2) * runif(len_cur_par, -1, 1) /
+                                          (par_range$ub - par_range$lb) / runif(len_cur_par, 1, 5))
+      if (all(df > par_range$lb) && all(df < par_range$ub)){
+        ready <- FALSE
+      }
+    }
+    df$par_id <- cur_par$par_id + 1
+    return(df)
+  }
 
   all_pars <- NULL
   all_strat <- NULL
@@ -153,279 +166,333 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   # FLake
   #####
   if("FLake" %in% model){
-
+  
     # Format met file
     fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
-
+  
     # Select nml file for running FLake
     nml_file <- get_yaml_value(config_file, "config_files", "flake")
     nml_file <- file.path(folder, nml_file)
     # Select nml file again
     nml_file_run <- basename(get_yaml_value(config_file, "config_files", "flake"))
-
+  
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
     depths <- seq(0, mean_depth, by = get_yaml_value(config_file, "output", "depths"))
-
+  
     # Input values to nml
     nml_file <- list.files(file.path(folder, "FLake"))[grep("nml",
                                                             list.files(file.path(folder, "FLake")))]
     nml_file <- file.path(folder, "FLake", nml_file)
-
+  
     input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(fla_met))
     input_nml(nml_file, "METEO", "meteofile", paste0("'", "LHS_meteo_file.dat", "'"))
-
+  
     tmp_met_file <- file.path(folder, "FLake", "LHS_meteo_file.dat")
-
+  
     # Add in obs depths which are not in depths and less than mean depth
     add_deps <- obs_deps[!(obs_deps %in% depths)]
     add_deps <- add_deps[which(add_deps < mean_depth)]
     depths <- c(add_deps, depths)
     depths <- depths[order(depths)]
-
-    for(i in seq_len(nrow(params))){
-
+  
+    params <- .get_init_value(par_range = par_range)
+  
+    for(i in seq_len(num + 1)){
+    
+      if (i > 1){
+        params <- rbind(params, c(NA, nrow(params)))
+        params[i, ] <- .step_param(cur_par = params[(i - 1), ], par_range)
+      
+      }
+    
       if(method %in% c("met", "both")){
-
+      
         scale_met(met = fla_met, pars = params[i, ], model = "FLake", out_file = tmp_met_file)
       }
-
+    
       run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file_run)
-
+    
       # Extract output
-
+    
       out <- calc_stats(obs, model = "FLake", depths = depths, NH = NH, flake_nml = nml_file,
                         out_time = out_time, out_hour = out_hour)
-
+    
       fit <- out$fit
       strat <- out$strat
-
+    
       fit$par_id <- params$par_id[i]
       strat$par_id <- params$par_id[i]
-
-
+    
+      if (i > 1){
+        cost_current <- fit$MAE
+      
+        if (runif(1) < exp(-(cost_current - cost_prior))){
+          cost_prior <- cost_current
+        } else {
+          params[i, ] <- params[i - 1, ]
+        }
+      } else {
+        cost_prior <- fit$MAE
+      }
+    
       if(i == 1){
-        fit_stats <- fit
+        fit_stats <- cbind(fit, params[i, ])
         strat_stats <- strat
       }else{
-        fit_stats <- rbind.data.frame(fit_stats, fit)
+        fit_stats <- rbind.data.frame(fit_stats, cbind(fit, params[i, ]))
         strat_stats <- rbind.data.frame(strat_stats, strat)
       }
-      print(paste0("[", i, "/", nrow(params), "]"))
+      print(paste0("[", i, "/", num, "]"))
     }
-
+  
     fit_file <- gsub("params", "fitness", param_file)
     strat_file <- gsub("params", "strat", param_file)
-
-
+  
+  
     write.csv(fit_stats, file.path(folder, "FLake", "output", fit_file), quote = FALSE,
               row.names = FALSE)
     write.csv(strat_stats, file.path(folder, "FLake", "output", strat_file), quote = FALSE,
               row.names = FALSE)
-
-
+  
+  
     fit_stats$model <- "FLake"
     strat_stats$model <- "FLake"
-
+  
     if(is.null(all_pars)){
       all_pars <- fit_stats
     }else{
       all_pars <- rbind.data.frame(all_pars, fit_stats)
     }
-
+  
     if(is.null(all_strat)){
       all_strat <- strat_stats
     }else{
       all_strat <- rbind.data.frame(all_strat, strat_stats)
     }
-
-    message("FLake: Finished Latin Hypercube Sampling calibration")
-
+  
+    message("FLake: Finished pseudo MCMC calibration")
+  
   }
 
   # GLM
   #####
   if("GLM" %in% model){
     glm_met <- format_met(met = met, model = "GLM", config_file = config_file, daily = daily)
-
+  
     if("LongWave" %in% colnames(glm_met)){
       lw_type <- "LW_IN"
     }else{
       lw_type <- "LW_IN" ### Needs to be developed catch if no LW
     }
-
+  
     # Input to nml file
     nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
     nml <- glmtools::read_nml(nml_path)
-
+  
     nml_list <- list("subdaily" = subdaily, "lw_type" = lw_type, "meteo_fl" = "temp_meteo_file.csv")
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
-
+  
     glmtools::write_nml(nml, nml_path)
-
+  
     # Input values to nml
     nml_file <- file.path(folder, "GLM", "glm3.nml")
-
+  
     input_nml(nml_file, "meteorology", "meteo_fl", paste0("'", "LHS_meteo_file.csv", "'"))
-
+  
     # Get depths for comparison
     depths <- obs_deps
-
+  
     tmp_met_file <- file.path(folder, "GLM", "LHS_meteo_file.csv")
 
-
-    for(i in seq_len(nrow(params))){
-
-
+    params <- .get_init_value(par_range = par_range)
+  
+    for(i in seq_len(num + 1)){
+    
+      if (i > 1){
+        params <- rbind(params, c(NA, nrow(params)))
+        params[i, ] <- .step_param(cur_par = params[(i - 1), ], par_range)
+      
+      }
+    
       scale_met(met = glm_met, pars = params[i, ], model = "GLM", out_file = tmp_met_file)
-
+    
       run_glm(sim_folder = file.path(folder, "GLM"))
-
+    
       # Extract output
       # Add in obs depths which are not in depths and less than mean depth
-
+    
       # Extract output
       out <- calc_stats(obs, model = "GLM", depths = depths, NH = NH)
-
+    
       fit <- out$fit
       strat <- out$strat
-
+    
       fit$par_id <- params$par_id[i]
       strat$par_id <- params$par_id[i]
-
-
+    
+      if (i > 1){
+        cost_current <- fit$MAE
+      
+        if (runif(1) < exp(-(cost_current - cost_prior))){
+          cost_prior <- cost_current
+        } else {
+          params[i, ] <- params[i - 1, ]
+        }
+      } else {
+        cost_prior <- fit$MAE
+      }
+    
       if(i == 1){
-        fit_stats <- fit
+        fit_stats <- cbind(fit, params[i, ])
         strat_stats <- strat
       }else{
-        fit_stats <- rbind.data.frame(fit_stats, fit)
+        fit_stats <- rbind.data.frame(fit_stats,  cbind(fit, params[i, ]))
         strat_stats <- rbind.data.frame(strat_stats, strat)
       }
-      print(paste0("[", i, "/", nrow(params), "]"))
+      print(paste0("[", i, "/", num, "]"))
     }
-
+  
     fit_file <- gsub("params", "fitness", param_file)
     strat_file <- gsub("params", "strat", param_file)
-
-
+  
+  
     write.csv(fit_stats, file.path(folder, "GLM", "output", fit_file), quote = FALSE,
               row.names = FALSE)
     write.csv(strat_stats, file.path(folder, "GLM", "output", strat_file), quote = FALSE,
               row.names = FALSE)
-
+  
     fit_stats$model <- "GLM"
     strat_stats$model <- "GLM"
-
+  
     if(is.null(all_pars)){
       all_pars <- fit_stats
     }else{
       all_pars <- rbind.data.frame(all_pars, fit_stats)
     }
-
+  
     if(is.null(all_strat)){
       all_strat <- strat_stats
     }else{
       all_strat <- rbind.data.frame(all_strat, strat_stats)
     }
-
-    message("GLM: Finished Latin Hypercube Sampling calibration")
-
+  
+    message("GLM: Finished pseudo MCMC calibration")
+  
   }
 
   ## GOTM
   if("GOTM" %in% model){
-
+  
     met_got <- format_met(met = met, model = "GOTM", daily = daily, config_file = config_file)
-
+  
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
-
+  
     met_outfile <- "LHS_meteo_file.dat"
-
+  
     # Get depths for comparison
     depths <- -obs_deps
     obs_got <- obs
     obs_got[, 2] <- -obs_got[, 2]
-
+  
     out_file <- file.path(folder, "GOTM", met_outfile)
-
+  
     yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
-
-    for(i in seq_len(nrow(params))){
-
+  
+    params <- .get_init_value(par_range = par_range)
+  
+    for(i in seq_len(num + 1)){
+    
+      if (i > 1){
+        params <- rbind(params, c(NA, nrow(params)))
+        params[i, ] <- .step_param(cur_par = params[(i - 1), ], par_range)
+      }
+    
       scale_met(met = met_got, pars = params[i, ], model = "GOTM", out_file = out_file)
-
+    
       if(i == 1){
         # Helper function
         set_met_config_yaml(met = out_file, yaml_file = got_yaml)
       }
-
+    
       run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file))
-
-
+    
+    
       # Extract output
       out <- calc_stats(obs, model = "GOTM", depths = depths, NH = NH)
-
+    
       fit <- out$fit
       strat <- out$strat
-
+    
       fit$par_id <- params$par_id[i]
       strat$par_id <- params$par_id[i]
-
-
+    
+      if (i > 1){
+        cost_current <- fit$MAE
+      
+        if (runif(1) < exp(-(cost_current - cost_prior))){# (runif(1) < cost_prior/cost_current)
+          cost_prior <- cost_current
+        } else {
+          params[i, ] <- params[i - 1, ]
+        }
+      } else {
+        cost_prior <- fit$MAE
+      }
+    
       if(i == 1){
-        fit_stats <- fit
+        fit_stats <- cbind(fit, params[i, ])
         strat_stats <- strat
       }else{
-        fit_stats <- rbind.data.frame(fit_stats, fit)
+        fit_stats <- rbind.data.frame(fit_stats, cbind(fit, params[i, ]))
         strat_stats <- rbind.data.frame(strat_stats, strat)
       }
-
-      print(paste0("[", i, "/", nrow(params), "]"))
+    
+      print(paste0("[", i, "/", num, "]"))
     }
-
+  
     fit_file <- gsub("params", "fitness", param_file)
     strat_file <- gsub("params", "strat", param_file)
-
+  
     write.csv(fit_stats, file.path(folder, "GOTM", "output", fit_file), quote = FALSE,
               row.names = FALSE)
     write.csv(strat_stats, file.path(folder, "GOTM", "output", strat_file), quote = FALSE,
               row.names = FALSE)
-
+  
     fit_stats$model <- "GOTM"
     strat_stats$model <- "GOTM"
-
+  
     if(is.null(all_pars)){
       all_pars <- fit_stats
     }else{
       all_pars <- rbind.data.frame(all_pars, fit_stats)
     }
-
+  
     if(is.null(all_strat)){
       all_strat <- strat_stats
     }else{
       all_strat <- rbind.data.frame(all_strat, strat_stats)
     }
-
-    message("GOTM: Finished Latin Hypercube Sampling calibration")
-
+  
+    message("GOTM: Finished pseudo MCMC calibration")
+  
   }
 
   ## Simstrat
   if("Simstrat" %in% model){
-
+  
     # par file for running Simstrat
     par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat"))
     par_fpath <- file.path(folder, "Simstrat", par_file)
-
+  
     met_simst <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
-
+  
     met_outfile <- "LHS_meteo_file.dat"
-
-
+  
+  
     input_json(file = par_fpath, label = "Input", key = "Forcing", paste0('"', met_outfile, '"'))
-
+  
     # Need to input start and stop into json par file
     reference_year <- get_json_value(par_fpath, "Simulation", "Start year")
-
+  
     # Set times
     reference_year <- year(as.POSIXct(start))
     input_json(par_fpath, "Simulation", "Start year", reference_year)
@@ -433,72 +500,94 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     end_date_simulation <- as.POSIXct(stop, format = "%Y-%m-%d %H:%M:%S", tz = tz)
     input_json(par_fpath, "Simulation", "Start d",
                as.numeric(difftime(start_date_simulation,
-               as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
+                                   as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
     input_json(par_fpath, "Simulation", "End d",
                as.numeric(difftime(end_date_simulation,
                                    as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
     input_json(par_fpath, "Output", "Times", time_step)
-
+  
     #depths
     depths <- -obs_deps
-
-
+  
+  
     out_file <- file.path(folder, "Simstrat", met_outfile)
-
-    for(i in seq_len(nrow(params))){
-
+  
+    params <- .get_init_value(par_range = par_range)
+  
+    for(i in seq_len(num + 1)){
+    
+      if (i > 1){
+        params <- rbind(params, c(NA, nrow(params)))
+        params[i, ] <- .step_param(cur_par = params[(i - 1), ], par_range)
+      
+      }
+    
       scale_met(met = met_simst, pars = params[i, ], model = "Simstrat", out_file = out_file)
-
+    
       run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = FALSE)
-
+    
       # Extract output
       out <- calc_stats(obs, model = "Simstrat", depths = depths, NH = NH, par_file = par_fpath,
                         start = start)
-
-
+    
+    
       fit <- out$fit
       strat <- out$strat
-
+    
       fit$par_id <- params$par_id[i]
       strat$par_id <- params$par_id[i]
-
-
+    
+      fit$par_id <- params$par_id[i]
+      strat$par_id <- params$par_id[i]
+    
+      if (i > 1){
+        cost_current <- fit$MAE
+      
+        if (runif(1) < exp(-(cost_current - cost_prior))){
+          cost_prior <- cost_current
+        } else {
+          params[i, ] <- params[i - 1, ]
+        }
+      } else {
+        cost_prior <- fit$MAE
+      }
+    
       if(i == 1){
-        fit_stats <- fit
+        fit_stats <- cbind(fit, params[i, ])
         strat_stats <- strat
       }else{
-        fit_stats <- rbind.data.frame(fit_stats, fit)
+        fit_stats <- rbind.data.frame(fit_stats, cbind(fit, params[i, ]))
         strat_stats <- rbind.data.frame(strat_stats, strat)
       }
-
-
-      print(paste0("[", i, "/", nrow(params), "]"))
+      
+    
+      print(paste0("[", i, "/", num, "]"))
     }
-
+  
     fit_file <- gsub("params", "fitness", param_file)
     strat_file <- gsub("params", "strat", param_file)
-
+  
     write.csv(fit_stats, file.path(folder, "Simstrat", "output", fit_file), quote = FALSE,
               row.names = FALSE)
     write.csv(strat_stats, file.path(folder, "Simstrat", "output", strat_file), quote = FALSE,
               row.names = FALSE)
-
+  
     fit_stats$model <- "Simstrat"
     strat_stats$model <- "Simstrat"
-
+  
     if(is.null(all_pars)){
       all_pars <- fit_stats
     }else{
       all_pars <- rbind.data.frame(all_pars, fit_stats)
     }
-
+  
     if(is.null(all_strat)){
       all_strat <- strat_stats
     }else{
       all_strat <- rbind.data.frame(all_strat, strat_stats)
     }
-
-    message("Simstrat: Finished Latin Hypercube Sampling calibration")
+  
+    message("Simstrat: Finished pseudo MCMC calibration")
   }
 
   dir.create(file.path(folder, "output"), showWarnings = FALSE)

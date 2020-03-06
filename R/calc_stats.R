@@ -24,7 +24,8 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
                                nml_file = flake_nml, long = TRUE,
                                out_time = out_time, out_hour = out_hour)
 
-    stats <- sum_stat(fla_long, obs, depth = TRUE, strat = FALSE)
+
+    stats <- gotmtools::sum_stat(fla_long, obs, depth = TRUE)
 
     # Calculate stats for Sensitivity Analysis
     strat <- analyse_strat(Ts = fla_long[fla_long$Depth_meter == min(fla_long$Depth_meter), 3],
@@ -54,7 +55,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
     glm_out[, 2] <- as.numeric(gsub("temp_", "", glm_out[, 2]))
     colnames(glm_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
-    stats <- sum_stat(glm_out, obs, depth = TRUE)
+    stats <- gotmtools::sum_stat(glm_out, obs, depth = TRUE)
 
     out <- list(fit = stats, strat = strat)
 
@@ -75,7 +76,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
     got_out <- setmodDepths(temp, z, depths = depths, print = TRUE)
     colnames(got_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
-    stats <- sum_stat(got_out, obs_got, depth = TRUE)
+    stats <- gotmtools::sum_stat(got_out, obs_got, depth = TRUE)
 
     # Calculate stats for Sensitivity Analysis
     strat <- analyse_strat(Ts = temp[, 2], Tb = temp[, ncol(temp)], dates =  temp[, 1], NH = NH)
@@ -128,7 +129,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
     sim_out[, 2] <- as.numeric(gsub("wtr_", "", sim_out[, 2]))
     colnames(sim_out) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
 
-    stats <- sum_stat(mod = sim_out, obs, depth = TRUE)
+    stats <- gotmtools::sum_stat(mod = sim_out, obs, depth = TRUE)
 
     out <- list(fit = stats, strat = strat)
 
