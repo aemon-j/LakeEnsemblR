@@ -149,7 +149,7 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = "."){
     fla_met$index <- seq_len(nrow(fla_met))
 
     # Re-organise
-    fla_met <- fla_met[, c("index", "Shortwave_Radiation_Downwelling_wattPerMeterSquared",
+    fla_met <- fla_met[, c("Shortwave_Radiation_Downwelling_wattPerMeterSquared",
                            "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
                            "Cloud_Cover_decimalFraction", "datetime")]
