@@ -6,7 +6,7 @@
 \usage{
 export_meteo(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  model = c("GOTM", "GLM", "Simstrat", "FLake"),
   meteo_file = NULL,
   scale_param = NULL,
   folder = "."
