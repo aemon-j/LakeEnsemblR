@@ -128,16 +128,16 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
         
       }else if(ncol(output_lists[[i]][[1]]) > 2){
         # Add 3D variable
-        for(j in seq_len(length(temp_list))) {
+        for(j in seq_len(length(output_lists[[i]]))) {
           mat1 <- matrix(NA, nrow = nc_vars[[j]]$dim[[3]]$len, ncol = nc_vars[[j]]$dim[[4]]$len)
           
           # vector of depths to input into the matrix
-          deps_temp <- rLakeAnalyzer::get.offsets(temp_list[[j]])
+          deps_tmp <- rLakeAnalyzer::get.offsets(output_lists[[i]][[j]])
           
-          mat <- as.matrix(temp_list[[j]][, -1])
+          mat <- as.matrix(output_lists[[i]][[j]][, -1])
           
           for(k in seq_len(ncol(mat))) {
-            col <- which(deps == deps_temp[k])
+            col <- which(deps == deps_tmp[k])
             mat1[, col] <- mat[, k]
           }
           
