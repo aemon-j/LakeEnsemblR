@@ -1,4 +1,4 @@
-standard_name,short name
+standard_name,short_name
 datetime,time
 Longwave_Radiation_Downwelling_wattPerMeterSquared,lwr
 Shortwave_Radiation_Downwelling_wattPerMeterSquared,swr
