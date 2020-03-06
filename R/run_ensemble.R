@@ -103,6 +103,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     model
   )
 
+
   if(return_list | create_netcdf){
 
     if("temp" %in% out_vars){
