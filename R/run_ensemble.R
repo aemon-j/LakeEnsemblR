@@ -106,15 +106,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list | create_netcdf){
 
     if("temp" %in% out_vars){
-<<<<<<< HEAD
-      temp_list  <- list("FLake_watertemp" = fla_out[["temp"]],
-                        "GLM_watertemp" = glm_out[["temp"]],
-                        "GOTM_watertemp" = gotm_out[["temp"]],
-                        "Simstrat_watertemp" = sim_out[["temp"]],
-                        "MyLake_watertemp" = mylake_out[["temp"]],
-                        "Obs_watertemp" = obs_out)
-      temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
-=======
       temp_list <- setNames(
         lapply(model, function(mod_name) model_out[[mod_name]][['temp']]),
         paste0(model,'_watertemp')
@@ -122,8 +113,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       if(!is.null(obs_deps)){
         temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
       }
-
->>>>>>> remotes/upstream/master
+      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
     if("ice_height" %in% out_vars){
@@ -132,16 +122,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         paste0(model,'_ice_height')
       )
     }
-<<<<<<< HEAD
-    
+
     # Put all lists with output into a single, named list
     all_lists <- NULL
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
     if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
-    
-=======
 
->>>>>>> remotes/upstream/master
     if(create_netcdf){
       # Pass all_lists to the netcdf function to create netcdf output
       create_netcdf_output(all_lists, folder = folder, out_time = out_time,
@@ -157,8 +143,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     return(temp_list)
   }
 }
-<<<<<<< HEAD
-=======
 
 
 #' @keywords internal
@@ -384,4 +368,3 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }
   return(mylake_out)
 }
->>>>>>> remotes/upstream/master
