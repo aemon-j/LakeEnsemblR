@@ -17,6 +17,22 @@ Description: Run ensemble of lake models cross-platform and tools for analyzing
 License: CCO
 Depends:
     R (>= 3.5)
+Imports:
+    FLakeR,
+    FME,
+    GLM3r,
+    GOTMr,
+    MyLakeR,
+    SimstratR,
+    glmtools,
+    gotmtools,
+    lintr,
+    lubridate,
+    ncdf4,
+    plyr,
+    rLakeAnalyzer,
+    reshape2,
+    zoo
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
