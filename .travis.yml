@@ -7,6 +7,10 @@ language: r
 cache: packages
 sudo: true
 
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc
+
 warnings_are_errors: false
 
 r_github_packages:
