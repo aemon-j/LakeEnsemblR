@@ -15,6 +15,8 @@ Maintainer: The package maintainer <yourself@somewhere.net>
 Description: Run ensemble of lake models cross-platform and tools for analyzing
   model output.
 License: CCO
+Depends:
+    R (>= 3.5)
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
