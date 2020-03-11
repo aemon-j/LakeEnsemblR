@@ -7,6 +7,9 @@ language: r
 cache: packages
 sudo: true
 
+repos:
+  CRAN: https://cran.rstudio.com
+  
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc
