@@ -92,7 +92,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
+    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -141,7 +141,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
     bsn_len <- get_yaml_value(config_file, "config_files", "bsn_len")
     bsn_wid <- get_yaml_value(config_file, "config_files", "bsn_wid")
 
@@ -210,7 +210,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -273,11 +273,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
+    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
       file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
       sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
@@ -377,10 +376,16 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       dir.create("MyLake")
     }
 
-    # Load in template config file MyLakeR requires to fill in from yaml
-    mylake_path <- system.file(package = "LakeEnsemblR")
-    load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
-
+    # Load config file MyLake
+    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    if(file.exists(temp_fil)){
+      load(temp_fil)
+    }else{
+      # Load template config file from extdata
+      mylake_path <- system.file(package = "LakeEnsemblR")
+      load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+    }
+    
     # update MyLakeR config file
     mylake_config[["M_start"]] <- start_date
     mylake_config[["M_stop"]] <- stop_date
