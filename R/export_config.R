@@ -142,8 +142,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Read the GLM config file from config_file, and write it to the GLM directory
     temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
-    bsn_len <- get_yaml_value(config_file, "config_files", "bsn_len")
-    bsn_wid <- get_yaml_value(config_file, "config_files", "bsn_wid")
+    bsn_len <- get_yaml_value(config_file, "model_parameters", "bsn_len")
+    bsn_wid <- get_yaml_value(config_file, "model_parameters", "bsn_wid")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil

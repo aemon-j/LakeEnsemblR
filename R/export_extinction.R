@@ -67,7 +67,7 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
+    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
@@ -88,7 +88,7 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -138,7 +138,7 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
@@ -178,7 +178,7 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
+    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
@@ -240,8 +240,15 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
               "Average is used instead.")
     }
     
-    # Read the MyLake config file from config_file, and write it to the MyLake directory
-    load(file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    # Load MyLake config file
+    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    if(file.exists(temp_fil)){
+      load(temp_fil)
+    }else{
+      # Load template config file from extdata
+      mylake_path <- system.file(package = "LakeEnsemblR")
+      load(file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    }
     
     mylake_config[["Bio.par"]][2] <- Kw
     
