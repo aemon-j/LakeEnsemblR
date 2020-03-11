@@ -25,17 +25,17 @@
 #'mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
 #'df <- as.data.frame(mat)
 #'rownames(df) <- pars
-#'run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
+#'run_LHC(num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
+#'config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
+#'"LakeEnsemblR_meteo_standard.csv")
+#'pars <- c("wind_factor", "swr_factor", "lw_factor")
+#'mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = TRUE)
+#'df <- as.data.frame(mat)
+#'rownames(df) <- pars
+#'run_LHC(num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
 #'config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
 #'"LakeEnsemblR_meteo_standard.csv")
 #' }
-#'pars <- c("wind_factor", "swr_factor", "lw_factor")
-#'mat <- matrix(data = c(0.5,2,0.5,1.5,0.5,1.5), nrow = 3, byrow = T)
-#'df <- as.data.frame(mat)
-#'rownames(df) <- pars
-#'run_LHC(par_range = par_range, num = 100, obs_file = "LakeEnsemblR_wtemp_profile_standard.csv",
-#'config_file = "Feeagh_master_config.yaml", model = "FLake", meteo_file =
-#'"LakeEnsemblR_meteo_standard.csv")
 #' @importFrom FME Latinhyper
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
