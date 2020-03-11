@@ -21,7 +21,10 @@ input_json(file, label, key, value, out_file = NULL)
 Inputs values into json file by locating the label and key within the json file. Preserves comments (!) if present. NOTE: this does not use a json parser so if there are json formatting errors this function will not pick them up.
 }
 \examples{
+
+\dontrun{
 input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
+}
 }
 \author{
 Tadhg Moore, Jorrit Mesman
