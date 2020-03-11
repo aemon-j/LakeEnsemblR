@@ -10,8 +10,10 @@
 #' @author
 #'Tadhg Moore, Jorrit Mesman
 #' @examples
-#'input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
-
+#' 
+#' \dontrun{
+#' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
+#' }
 input_json <- function(file, label, key, value, out_file = NULL){
   yml <- readLines(file)
   if (is.null(out_file)) {

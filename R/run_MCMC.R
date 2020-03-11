@@ -23,7 +23,7 @@
 #' run_MCMC(config_file = 'Feeagh_master_config.yaml', num = 100,
 #' param_file = NULL, method = 'met', model = c("FLake", "GLM", "GOTM", "Simstrat"),
 #' folder = ".", spin_up = NULL)
-#'
+#' }
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast
