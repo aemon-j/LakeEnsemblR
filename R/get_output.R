@@ -50,7 +50,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     if("temp" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, "GLM", "glm3.nml"),
+      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")),
                                               arg_name = "lake_depth"))
       depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]

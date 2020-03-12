@@ -49,9 +49,7 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
     Sys.setenv(TZ = original_tz)
   })
 
-
-
-  # get lat and lon - currently hack getting from GOTM but maybe could be in global config file?
+  
   yaml <- file.path(folder, config_file)
 
   # Function to be added to gotmtools
@@ -171,17 +169,15 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
     fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
   
     # Select nml file for running FLake
-    nml_file <- get_yaml_value(config_file, "config_files", "FLake")
-    nml_file <- file.path(folder, nml_file)
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     # Select nml file again
-    nml_file_run <- basename(get_yaml_value(config_file, "config_files", "FLake"))
+    nml_file_run <- basename(nml_file)
   
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
     depths <- seq(0, mean_depth, by = get_yaml_value(config_file, "output", "depths"))
   
     # Input values to nml
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
-
+    
     input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(fla_met))
     input_nml(nml_file, "METEO", "meteofile", paste0("'", "LHS_meteo_file.dat", "'"))
   
@@ -293,8 +289,8 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
     glmtools::write_nml(nml, nml_path)
   
     # Input values to nml
-    nml_file <- file.path(folder, "GLM", "glm3.nml")
-  
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
+
     input_nml(nml_file, "meteorology", "meteo_fl", paste0("'", "LHS_meteo_file.csv", "'"))
   
     # Get depths for comparison
@@ -394,8 +390,6 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
   
   out_file <- file.path(folder, "GOTM", met_outfile)
   
-  yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
-  
   params <- .get_init_value(par_range = par_range)
   
   for(i in seq_len(num + 1)){
@@ -412,7 +406,7 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
       set_met_config_yaml(met = out_file, yaml_file = got_yaml)
     }
     
-    run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file))
+    run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(got_yaml))
     
     
     # Extract output
@@ -478,13 +472,12 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
   if("Simstrat" %in% model){
   
     # par file for running Simstrat
-    par_file <- basename(get_yaml_value(config_file, "config_files", "Simstrat"))
-    par_fpath <- file.path(folder, "Simstrat", par_file)
-  
+    par_fpath <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- basename(par_fpath)
+    
     met_simst <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
   
     met_outfile <- "LHS_meteo_file.dat"
-  
   
     input_json(file = par_fpath, label = "Input", key = "Forcing", paste0('"', met_outfile, '"'))
   

@@ -187,8 +187,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 #' @keywords internal
 .run_FLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_hour, out_vars, time_step){
   #Need to figure out how to subset data by dates
-  nml_file <- get_yaml_value(config_file, "config_files", "FLake")
-  nml_file <- file.path(folder, nml_file)
+  nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
   if(file.exists(file.path(folder, "FLake", "all_meteo_file.dat"))){
     met_file <- file.path(folder, "FLake", "all_meteo_file.dat")
     met_outfile <- file.path(folder, "FLake", "meteo_file_tmp.dat")

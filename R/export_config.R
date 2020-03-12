@@ -96,10 +96,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "FLake", basename(temp_fil)))
-      fla_fil <- file.path(folder, "FLake", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
 
 
@@ -150,8 +149,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, "GLM", basename(temp_fil)))
-      glm_nml <- file.path(folder, "GLM", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
     # Format hypsograph
@@ -212,12 +211,12 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     # Read the GOTM config file from config_file, and write it to the GOTM directory
     temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
-      got_yaml <- temp_fil
+      got_yaml <- file.path(folder, temp_fil) 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "GOTM", basename(temp_fil)))
-      got_yaml <- file.path(folder, "GOTM", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
@@ -278,8 +277,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       sim_par <- temp_fil
     }else{
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
-      sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 
     # Copy in template files from examples folder in the package

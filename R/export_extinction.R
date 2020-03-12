@@ -73,8 +73,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "FLake", basename(temp_fil)))
-      fla_fil <- file.path(folder, "FLake", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
 
     input_nml(fla_fil, label = "TRANSPARENCY", key = "extincoef_optic", Kw)
@@ -95,8 +95,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, "GLM", basename(temp_fil)))
-      glm_nml <- file.path(folder, "GLM", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
     if(constant_value){
@@ -144,8 +144,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "GOTM", basename(temp_fil)))
-      got_yaml <- file.path(folder, "GOTM", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
     if(constant_value){
@@ -184,8 +184,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
-      sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
+      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")

@@ -67,9 +67,7 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
   #####
   if("FLake" %in% model){
     # Input values to nml
-    nml_file <- list.files(file.path(folder, "FLake"))[
-                          grep("nml", list.files(file.path(folder, "FLake")))]
-    nml_file <- file.path(folder, "FLake", nml_file)
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     input_nml(nml_file, "SIMULATION_PARAMS", "T_wML_in", tmp[length(tmp)])
     input_nml(nml_file, "SIMULATION_PARAMS", "T_bot_in", tmp[1])
@@ -85,21 +83,21 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
     glm_deps <- deps
     glm_tmp <- tmp
     # Input to nml file
-    nml <- read_nml(file.path(folder, "GLM", "glm3.nml"))
+    nml <- read_nml(file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
 
     nml_list <- list("num_depths" = ndeps, "the_depths" = glm_deps,
                      "the_temps" = glm_tmp, "the_sals" = rep(0, length(tmp)))
     nml <- set_nml(nml, arg_list = nml_list)
     # check for max(the_depths) > lake_depth ??
-    write_nml(nml, file.path(folder, "GLM", "glm3.nml"))
-    message("GLM: Input initial conditions into ", file.path(folder, "GLM", "glm3.nml"))
+    write_nml(nml, file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))))
+    message("GLM: Input initial conditions into ", file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
 
   }
 
   ## GOTM
   if("GOTM" %in% model){
-    yaml <- file.path(folder, "GOTM", "gotm.yaml")
-
+    yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    
     got_tmp <- tmp
     got_deps <- -deps
     df <- matrix(NA, nrow = 1 + ndeps, ncol = 2)
@@ -131,9 +129,7 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
     write.table(df2, file.path(folder, "Simstrat", "init_cond.dat"),
                 sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
-    par_file <- list.files(file.path(folder, "Simstrat"))[
-      grep("par", list.files(file.path(folder, "Simstrat")))]
-    par_file <- file.path(folder, "Simstrat", par_file)
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
 
     input_json(par_file, "Input", "Initial conditions", '"init_cond.dat"')
 
