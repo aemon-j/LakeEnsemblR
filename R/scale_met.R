@@ -12,9 +12,6 @@
 #' @export
 scale_met <- function(met, pars, model, out_file = NULL) {
   
-  # In order to run run_LHC in parallel, the dictionary needs to be loaded in the function
-  load(system.file("data/met_var_dic.rda", package = packageName()))
-  
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
   names(l_names) <- met_var_dic$short_name
