@@ -23,6 +23,7 @@
 #' }
 #' @importFrom FME Latinhyper
 #' @importFrom gotmtools get_yaml_value
+#' @importFrom configr read.config
 #'
 #' @export
 sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name = NULL,
@@ -30,13 +31,23 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
 
   # Load dictionary
   var_names_dic <- load_dic()
-
-
-  par_names <- get_yaml_value(file = config_file, label = "calibration", key = "parameter")
-  lb <- get_yaml_value(file = config_file, label = "calibration", key = "lower")
-  ub <- get_yaml_value(file = config_file, label = "calibration", key = "upper")
-
-
+  
+  configr_master_config <- configr::read.config(file.path(folder, config_file))
+  
+  if(method == "met"){
+    cal_section <- configr_master_config[["calibration"]][["met"]]
+  }else if(method == "model"){
+    stop("Method == model currently not supported")
+  }else if(method == "both"){
+    stop("Method == both currently not supported")
+  }else{
+    stop("Select method either 'met', 'model' or 'both'.")
+  }
+  
+  par_names <- names(cal_section)
+  lw <- unlist(lapply(cal_section, `[`, "lower"), use.names = F)
+  ub <- unlist(lapply(cal_section, `[`, "upper"), use.names = F)
+  
   if(method == "met"){
     ind <- which(par_names %in% var_names_dic$Variable)
   }else if(method == "model"){
