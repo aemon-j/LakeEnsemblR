@@ -29,9 +29,6 @@
 sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name = NULL,
                        MCMC = FALSE, mcmc_sample = "uniform"){
 
-  # Load dictionary
-  var_names_dic <- load_dic()
-  
   configr_master_config <- configr::read.config(file.path(folder, config_file))
   
   if(method == "met"){
@@ -49,7 +46,7 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
   ub <- unlist(lapply(cal_section, `[`, "upper"), use.names = F)
   
   if(method == "met"){
-    ind <- which(par_names %in% var_names_dic$Variable)
+    ind <- which(par_names %in% met_var_dic$Variable)
   }else if(method == "model"){
     stop("Currently not supported")
   }else if(method == "both"){
