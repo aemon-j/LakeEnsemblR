@@ -89,7 +89,7 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
                      "the_temps" = glm_tmp, "the_sals" = rep(0, length(tmp)))
     nml <- set_nml(nml, arg_list = nml_list)
     # check for max(the_depths) > lake_depth ??
-    write_nml(nml, file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))))
+    write_nml(nml, file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
     message("GLM: Input initial conditions into ", file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
 
   }
