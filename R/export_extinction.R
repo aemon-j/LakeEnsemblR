@@ -3,7 +3,8 @@
 #'Exports extinction coefficients for each model based on a master LakeEnsemblR config file
 #'
 #'@param config_file name of the master LakeEnsemblR config file
-#'@param model vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'@param model vector; model to export configuration file.
+#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
 #'@keywords methods
 #'@examples
@@ -73,7 +74,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
       fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
 
@@ -95,7 +97,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
       glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
@@ -144,7 +147,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
       got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
@@ -184,7 +188,8 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
       sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 

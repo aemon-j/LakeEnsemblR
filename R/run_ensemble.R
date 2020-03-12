@@ -24,7 +24,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          folder = ".", return_list = FALSE, create_netcdf = TRUE) {
 
   if(any(duplicated(model))){
-    stop('model input argument cannot contain duplicates')
+    stop("model input argument cannot contain duplicates")
   }
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
@@ -61,8 +61,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   # Create output time vector
-  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz),
-                         by = paste(time_step, time_unit)))
+  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start, tz = tz),
+                                               as.POSIXct(stop, tz = tz),
+                                               by = paste(time_step, time_unit)))
 
 
   if(obs_file != "NULL"){
@@ -97,7 +98,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          time_step = time_step)
 
   model_out <- setNames(
-    lapply(model, function(mod_name) do.call(paste0('.run_', mod_name),
+    lapply(model, function(mod_name) do.call(paste0(".run_", mod_name),
                                              run_model_args)),
     model
   )
@@ -107,8 +108,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if("temp" %in% out_vars){
       temp_list <- setNames(
-        lapply(model, function(mod_name) model_out[[mod_name]][['temp']]),
-        paste0(model,'_watertemp')
+        lapply(model, function(mod_name) model_out[[mod_name]][["temp"]]),
+        paste0(model, "_watertemp")
       )
       if(!is.null(obs_deps)){
         temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
@@ -118,8 +119,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if("ice_height" %in% out_vars){
       ice_list <- setNames(
-        lapply(model, function(mod_name) model_out[[mod_name]][['ice_height']]),
-        paste0(model,'_ice_height')
+        lapply(model, function(mod_name) model_out[[mod_name]][["ice_height"]]),
+        paste0(model, "_ice_height")
       )
     }
 
