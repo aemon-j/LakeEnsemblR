@@ -14,7 +14,7 @@ scale_met <- function(met, pars, model, out_file = NULL) {
 
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
-  names(l_names) <- met_var_dic$short.name
+  names(l_names) <- met_var_dic$short_name
 
   if("FLake" %in% model) {
     par_nams <- names(pars)
@@ -23,8 +23,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met[[l_names$wind_speed]] <- met[[l_names$wind_speed]] * pars$wind_speed
     }
 
-    if("solar_radiation" %in% par_nams) {
-      met[[l_names$swr]] <- met[[l_names$swr]] * pars$solar_radiation
+    if("swr" %in% par_nams) {
+      met[[paste0("!", l_names$swr)]] <- met[[paste0("!", l_names$swr)]] * pars$swr
     }
 
     # Write to file
@@ -39,12 +39,12 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met$WindSpeed <- met$WindSpeed * pars$wind_speed
     }
 
-    if("solar_radiation" %in% par_nams) {
-      met$ShortWave <- met$ShortWave * pars$solar_radiation
+    if("swr" %in% par_nams) {
+      met$ShortWave <- met$ShortWave * pars$swr
     }
 
-    if("longwave_radiation" %in% par_nams) {
-      met$LongWave <- met$LongWave * pars$longwave_radiation
+    if("lwr" %in% par_nams) {
+      met$LongWave <- met$LongWave * pars$lwr
     }
 
     # Write to file
@@ -60,8 +60,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met[[l_names$v10]] <- met[[l_names$v10]] * pars$wind_speed
     }
 
-    if("solar_radiation" %in% par_nams) {
-      met[[l_names$swr]] <- met[[l_names$swr]] * pars$solar_radiation
+    if("swr" %in% par_nams) {
+      met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
 
     # Write to file
@@ -78,12 +78,12 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met[[l_names$v10]] <- met[[l_names$v10]] * pars$wind_speed
     }
 
-    if("solar_radiation" %in% par_nams) {
-      met[[l_names$swr]] <- met[[l_names$swr]] * pars$solar_radiation
+    if("swr" %in% par_nams) {
+      met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
 
-    if("longwave_radiation" %in% par_nams) {
-      met[[l_names$lwr]] <- met[[l_names$jwr]] * pars$longwave_radiation
+    if("lwr" %in% par_nams) {
+      met[[l_names$lwr]] <- met[[l_names$jwr]] * pars$lwr
     }
 
     # Write to file
@@ -98,8 +98,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met[[l_names$wind_speed]] <- met[[l_names$wind_speed]] * pars$wind_speed
     }
 
-    if("solar_radiation" %in% par_nams) {
-      met[[l_names$swr]] <- met[[l_names$swr]] * pars$solar_radiation
+    if("swr" %in% par_nams) {
+      met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
 
 

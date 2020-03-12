@@ -124,8 +124,6 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
 
   ### Import data
-  # I"d prefer to use a function that can read both comma and tab delimited. data.table::freaddoes
-  # this, but then it"s data.table
   message("Loading met data...")
   met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
   message("Finished!")
