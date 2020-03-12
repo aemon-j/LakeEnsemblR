@@ -45,7 +45,7 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
   }
   
   par_names <- names(cal_section)
-  lw <- unlist(lapply(cal_section, `[`, "lower"), use.names = F)
+  lb <- unlist(lapply(cal_section, `[`, "lower"), use.names = F)
   ub <- unlist(lapply(cal_section, `[`, "upper"), use.names = F)
   
   if(method == "met"){
