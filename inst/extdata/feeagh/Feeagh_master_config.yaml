@@ -59,7 +59,7 @@ model_parameters:
    MyLake:                                     # MyLake specific parameters
       C_shelter: 0.15				              # wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
 calibration:                                   # Calibration section
-   meteo:
+   met:
       wind_speed:
          lower: 0.5
          upper: 2
