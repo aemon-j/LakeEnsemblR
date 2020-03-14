@@ -132,9 +132,7 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = "."){
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
     met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
-    fla_fil <- get_yaml_value(config_file, "config_files", "flake")
-    fla_fil <- file.path(folder, fla_fil)
-
+    fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     # Subset temporally
     if(!is.null(start) & !is.null(stop)){
@@ -216,8 +214,7 @@ format_met <- function(met, model, daily = FALSE, config_file, folder = "."){
 
     sim_met <- met
 
-    par_file <- get_yaml_value(config_file, "config_files", "simstrat")
-    par_file <- file.path(folder, par_file)
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
 
     # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
     if("Precipitation_meterPerHour" %in% colnames(sim_met)){
