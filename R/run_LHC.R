@@ -48,8 +48,7 @@
 #'
 #' @export
 run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
-                    model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".",
-                    spin_up = NULL, met_var_dic = met_var_dic){
+                    model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL){
 
   # It"s advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
