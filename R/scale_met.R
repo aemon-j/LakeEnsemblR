@@ -13,8 +13,8 @@
 scale_met <- function(met, pars, model, out_file = NULL) {
   
   ## list with long standard names
-  l_names <- as.list(met_var_dic$standard_name)
-  names(l_names) <- met_var_dic$short_name
+  l_names <- as.list(LakeEnsemblR::met_var_dic$standard_name)
+  names(l_names) <- LakeEnsemblR::met_var_dic$short_name
 
   if("FLake" %in% model) {
     par_nams <- names(pars)

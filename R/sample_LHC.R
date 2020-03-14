@@ -47,7 +47,7 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
   
   
   if(method == "met"){
-    ind <- which(par_names %in% met_var_dic$short_name)
+    ind <- which(par_names %in% LakeEnsemblR::met_var_dic$short_name)
   }else if(method == "model"){
     stop("Currently not supported")
   }else if(method == "both"){
