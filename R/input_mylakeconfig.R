@@ -35,7 +35,7 @@ input_mylakeconfig <- function(file, label, key, value, out_file = NULL){
   mylake_config[[label]][ind_key] <- value
   
   # Save the configuration file as out_file
-  save(mylake_config, out_file)
+  save(mylake_config, file = out_file)
   
   message("Replaced ", label, " ", key, " ",
           old_val, " with ", value)
