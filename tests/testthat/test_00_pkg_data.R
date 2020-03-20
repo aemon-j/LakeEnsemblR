@@ -36,10 +36,8 @@ test_that("run model ensemble", {
                    date = start_date, 
                    month = 1, ndeps = 2, print = TRUE)
   
-  # 4. Run ensemble lake models
-  wtemp_list <- run_ensemble(config_file = masterConfigFile,
-                             model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                             return_list = TRUE, create_netcdf = TRUE)
   
-  testthat::expect_true(file.exists("output/ensemble_output.nc"))
+  testthat::expect_true((file.exists("FLake/feeagh.nml") & file.exists("GLM/glm3.nml") &
+                          file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/feeagh.par") &
+                          file.exists("MyLake/mylake_config_template.Rdata")))
 })
