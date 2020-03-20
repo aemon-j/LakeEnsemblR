@@ -77,7 +77,7 @@ MyLake:
 calibration:                                    # Calibration section
    parameter:                                  # Parameters to be calibrated
       - wind_speed
-      - solar_radiation
+      - swr
       - k_min
       - coef_mix_hyp
    upper:                                       # Upper bounds of scaling factors

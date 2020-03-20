@@ -24,6 +24,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
                                nml_file = flake_nml, long = TRUE,
                                out_time = out_time, out_hour = out_hour)
 
+
     stats <- gotmtools::sum_stat(fla_long, obs, depth = TRUE)
 
     # Calculate stats for Sensitivity Analysis

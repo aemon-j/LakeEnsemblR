@@ -39,3 +39,10 @@ If included adds observed data to netCDF and list if they are set to TRUE. Defau
 \description{
 Run lake models using a pseudo Markov Chain Monte Carlo algorithm.
 }
+\examples{
+\dontrun{
+run_MCMC(config_file = 'Feeagh_master_config.yaml', num = 100,
+param_file = NULL, method = 'met', model = c("FLake", "GLM", "GOTM", "Simstrat"),
+folder = ".", spin_up = NULL)
+}
+}
