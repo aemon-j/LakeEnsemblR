@@ -3,6 +3,6 @@ test_that("test data can be created", {
   testthat::skip_on_cran()
   library(LakeEnsemblR)
   
-  testthat::expect_error(run_ensemble(model = c('GLM','GLM')), 
-                         'model input argument cannot contain duplicates')
+  testthat::expect_error(run_ensemble(model = c("GRE")), 
+                         'Unknown model: GRE in input argument "model"')
 })
