@@ -19,8 +19,19 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), folder = "."){
+export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+                          folder = ".") {
 
+  # Check if config file exists
+  if(!file.exists(config_file)){
+    stop(config_file, " does not exist.")
+  }
+  
+  # check the master config file
+  check_master_config(config_file, exp_cnf = TRUE)
+  # check model input
+  model <- check_models(model)
+  
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -37,16 +48,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   Sys.setenv(TZ = "GMT")
 
 
-
-
-
   # Read in all information from config_file that needs to be
   # written to the model-specific config files
-
-  # Check if file exists
-  if(!file.exists(config_file)){
-    stop(config_file, " does not exist.")
-  }
 
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
@@ -415,8 +418,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                       ncol = 8)
     }
 
+    temp_fil <- gsub(".*/", "", temp_fil)
     # save lake-specific config file for MyLake
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
 
     message("MyLake configuration complete!")
   }

@@ -252,12 +252,13 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }else{
       # Load template config file from extdata
       mylake_path <- system.file(package = "LakeEnsemblR")
-      load(file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+      cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+      load(file.path(folder, "MyLake", cnf_name))
     }
     
     mylake_config[["Bio.par"]][2] <- Kw
-    
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+    save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
     
   }
 }

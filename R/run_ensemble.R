@@ -23,9 +23,10 @@
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = ".", return_list = FALSE, create_netcdf = TRUE) {
 
-  if(any(duplicated(model))){
-    stop("model input argument cannot contain duplicates")
-  }
+  # check the master config file
+  check_master_config(config_file)
+  # check model input
+  model <- check_models(model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
@@ -147,7 +148,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
 #' @keywords internal
-.run_GLM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_hour, out_vars, time_step){
+.run_GLM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
+                     out_time, out_hour, out_vars, time_step){
   #Need to input start and stop into nml file
   nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
   input_nml(nml_file, label = "time", key = "start", value = paste0("'", start, "'"))
@@ -186,7 +188,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_FLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_hour, out_vars, time_step){
+.run_FLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
+                       out_time, out_hour, out_vars, time_step){
   #Need to figure out how to subset data by dates
   nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
   if(file.exists(file.path(folder, "FLake", "all_meteo_file.dat"))){
@@ -250,7 +253,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_GOTM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
+.run_GOTM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
+                      out_time, out_vars, time_step){
 
   # Need to input start and stop into yaml file
   time_method <- get_yaml_value(config_file, "output", "time_method")
@@ -296,7 +300,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_Simstrat <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
+.run_Simstrat <- function(config_file, folder, return_list, create_netcdf, tz, start, stop,
+                          obs_deps, out_time, out_vars, time_step){
   sim_par <- get_yaml_value(config_file, "config_files", "Simstrat")
 
   # Set times
@@ -346,8 +351,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_MyLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps, out_time, out_vars, time_step){
-  run_mylake(sim_folder = folder)
+.run_MyLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
+                        out_time, out_vars, time_step){
+  
+  cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+  run_mylake(sim_folder = folder, config_dat = cnfg_file)
 
   message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
 
