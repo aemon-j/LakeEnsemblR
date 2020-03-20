@@ -28,6 +28,11 @@
 
 export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = "."){
 
+  # check the master config file
+  check_master_config(config_file)
+  # check model input
+  model <- check_models(model)
+  
   if(is.null(wtemp_file)){
     wtemp_file <- get_yaml_value(config_file, "observations", "file")
     wtemp_file <- file.path(folder, wtemp_file)
@@ -147,7 +152,8 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
   
   ## MyLake
   if("MyLake" %in% model){
-    load("./MyLake/mylake_config_final.Rdata")
+    
+    load(file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "MyLake")))
     
     mylake_init <- list()
     
@@ -185,10 +191,11 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
     # mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
     
     # save revised config file
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+    save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
     
     message("MyLake: Created initial conditions file ",
-            file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+            file.path(folder, "MyLake", cnf_name))
     
   }
   

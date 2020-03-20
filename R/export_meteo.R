@@ -23,6 +23,11 @@
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          meteo_file = NULL, scale_param = NULL, folder = "."){
 
+  # check the master config file
+  check_master_config(config_file)
+  # check model input
+  model <- check_models(model)
+  
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
