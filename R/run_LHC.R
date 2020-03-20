@@ -124,8 +124,6 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
 
   ### Import data
-  # I"d prefer to use a function that can read both comma and tab delimited. data.table::freaddoes
-  # this, but then it"s data.table
   message("Loading met data...")
   met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
   message("Finished!")
@@ -161,19 +159,15 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
 
     # Select nml file for running FLake
-    nml_file <- get_yaml_value(config_file, "config_files", "flake")
-    nml_file <- file.path(folder, nml_file)
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     # Select nml file again
-    nml_file_run <- basename(get_yaml_value(config_file, "config_files", "flake"))
+    nml_file_run <- basename(get_yaml_value(config_file, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
     depths <- seq(0, mean_depth, by = get_yaml_value(config_file, "output", "depths"))
 
     # Input values to nml
-    nml_file <- list.files(file.path(folder, "FLake"))[grep("nml",
-                                                            list.files(file.path(folder, "FLake")))]
-    nml_file <- file.path(folder, "FLake", nml_file)
-
+    
     input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(fla_met))
     input_nml(nml_file, "METEO", "meteofile", paste0("'", "LHS_meteo_file.dat", "'"))
 
@@ -257,18 +251,18 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     }
 
     # Input to nml file
-    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
+    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     nml <- glmtools::read_nml(nml_path)
 
-    nml_list <- list("subdaily" = subdaily, "lw_type" = lw_type, "meteo_fl" = "temp_meteo_file.csv")
+    nml_list <- list("subdaily" = subdaily,
+                     "lw_type" = lw_type,
+                     "meteo_fl" = "temp_meteo_file.csv")
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
 
     glmtools::write_nml(nml, nml_path)
 
     # Input values to nml
-    nml_file <- file.path(folder, "GLM", "glm3.nml")
-
-    input_nml(nml_file, "meteorology", "meteo_fl", paste0("'", "LHS_meteo_file.csv", "'"))
+    input_nml(nml_path, "meteorology", "meteo_fl", paste0("'", "LHS_meteo_file.csv", "'"))
 
     # Get depths for comparison
     depths <- obs_deps
@@ -339,7 +333,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
     met_got <- format_met(met = met, model = "GOTM", daily = daily, config_file = config_file)
 
-    got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
+    got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
 
     met_outfile <- "LHS_meteo_file.dat"
 
@@ -350,8 +344,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
     out_file <- file.path(folder, "GOTM", met_outfile)
 
-    yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
-
+    
     for(i in seq_len(nrow(params))){
 
       scale_met(met = met_got, pars = params[i, ], model = "GOTM", out_file = out_file)
@@ -361,7 +354,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
         set_met_config_yaml(met = out_file, yaml_file = got_yaml)
       }
 
-      run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file))
+      run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(got_yaml))
 
 
       # Extract output
@@ -416,13 +409,12 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   if("Simstrat" %in% model){
 
     # par file for running Simstrat
-    par_file <- basename(get_yaml_value(config_file, "config_files", "simstrat"))
-    par_fpath <- file.path(folder, "Simstrat", par_file)
+    par_fpath <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- basename(par_fpath)
 
     met_simst <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
 
     met_outfile <- "LHS_meteo_file.dat"
-
 
     input_json(file = par_fpath, label = "Input", key = "Forcing", paste0('"', met_outfile, '"'))
 
@@ -444,7 +436,6 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
 
     #depths
     depths <- -obs_deps
-
 
     out_file <- file.path(folder, "Simstrat", met_outfile)
 

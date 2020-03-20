@@ -13,7 +13,8 @@ export_extinction(
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+\item{model}{vector; model to export configuration file.
+Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
 
 \item{folder}{folder}
 }
