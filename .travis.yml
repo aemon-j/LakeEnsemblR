@@ -12,7 +12,10 @@ repos:
   
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc libgfortran3 libgfortran4 libgfortran5
+  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc libgfortran3
+  - sudo add-apt-repository ppa:jonathonf/gcc-7.1
+  - sudo apt-get update
+  - sudo apt install gcc-7
 
 warnings_are_errors: false
 
