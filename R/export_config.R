@@ -146,8 +146,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Read the GLM config file from config_file, and write it to the GLM directory
     temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
-    bsn_len <- get_yaml_value(config_file, "model_parameters", "bsn_len")
-    bsn_wid <- get_yaml_value(config_file, "model_parameters", "bsn_wid")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -163,13 +161,12 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     glm_hyp <- hyp
     glm_hyp[, 1] <- elev - glm_hyp[, 1] # this doesn't take into account GLM's lake elevation
 
-    # Calculate bsn_len & bsn_wid if none provided
-    if(bsn_len == "NULL" | bsn_wid == "NULL"){
-      # Calculate basin dims assume ellipse with width is twice the length
-      Ao <- max(glm_hyp[, 2])
-      bsn_wid <- sqrt((2 * Ao) / pi)
-      bsn_len <- 2 * bsn_wid
-    }
+    # Calculate bsn_len & bsn_wid:
+    # Calculate basin dims assume ellipse with width is twice the length
+    Ao <- max(glm_hyp[, 2])
+    bsn_wid <- sqrt((2 * Ao) / pi)
+    bsn_len <- 2 * bsn_wid
+    # Can be overwritten by providing values in the model_parameters section of config_file
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -427,4 +424,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined model-specific parameters
+  export_model_parameters(config_file, model = model, folder = folder)
 }
