@@ -4,5 +4,5 @@ test_that("test data can be created", {
   library(LakeEnsemblR)
   
   testthat::expect_error(run_ensemble(model = c("GRE")), 
-                         'Unknown model: GRE in input argument "model"')
+                         'Unknown model: "GRE" in input argument "model"')
 })
