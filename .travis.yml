@@ -12,7 +12,7 @@ repos:
   
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc
+  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc libgfortran3 libgfortran4 libgfortran5
 
 warnings_are_errors: false
 
