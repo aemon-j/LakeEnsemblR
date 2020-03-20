@@ -5,10 +5,10 @@
 \title{Export initial conditions into each model setup from the LakeEnsemblR standardized input for observed temperature profile}
 \usage{
 export_init_cond(
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
-  wtemp_file,
+  config_file,
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  wtemp_file = NULL,
   date,
-  tprof_file,
   month = NULL,
   ndeps = 2,
   btm_depth = NULL,
@@ -17,13 +17,13 @@ export_init_cond(
 )
 }
 \arguments{
+\item{config_file}{filepath; to LakeEnsemblr yaml master config file}
+
 \item{model}{vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
 
-\item{wtemp_file}{filepath; to met file which is in the standardised LakeEnsemblR format.}
+\item{wtemp_file}{filepath; to met file which is in the standardised LakeEnsemblR format. If NULL it uses the file from config_file. Defaults to NULL.}
 
 \item{date}{character; Date in "YYYY-mm-dd HH:MM:SS" format to extract the initial profile. If using month, the date to which to set the start date}
-
-\item{tprof_file}{filepath; For the new initial temperature profile file.}
 
 \item{month}{numeric;select a month if you want to use an 'average profile from a particular month. Defaults to NULL.}
 

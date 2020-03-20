@@ -3,10 +3,10 @@
 #'Export initial condition files and input into model configuration files.
 #'
 #' @name export_init_cond
+#' @param config_file filepath; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
-#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format.
+#' @param wtemp_file filepath; to met file which is in the standardised LakeEnsemblR format. If NULL it uses the file from config_file. Defaults to NULL.
 #' @param date character; Date in "YYYY-mm-dd HH:MM:SS" format to extract the initial profile. If using month, the date to which to set the start date
-#' @param tprof_file filepath; For the new initial temperature profile file.
 #' @param month numeric;select a month if you want to use an 'average profile from a particular month. Defaults to NULL.
 #' @param ndeps numeric; number of depths to extract from the monthly average profile. Defaults to 2 (surface and bottom)
 #' @param btm_depth numeric; Depth to extract the bottom temperature from, must be negative. If none provided uses the max depth in the observed file. Defaults to NULL
@@ -20,114 +20,175 @@
 #'
 #' @export
 
-export_init_cond <- function(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'), wtemp_file, date, tprof_file, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = '.'){
+export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = "."){
 
+  if(is.null(wtemp_file)){
+    wtemp_file <- get_yaml_value(config_file, "observations", "file")
+    wtemp_file <- file.path(folder, wtemp_file)
+  }
+
+  message("Loading wtemp_file...")
   obs <- read.csv(wtemp_file)
 
   if(!is.null(month)){
-    obs[,1] <- as.POSIXct(obs[,1], tz = 'UTC')
-    obs$month <- month(obs[,1])
-    sub = obs[(obs$month == month),]
+    obs[, 1] <- as.POSIXct(obs[, 1], tz = "UTC")
+    obs$month <- month(obs[, 1])
+    sub <- obs[(obs$month == month), ]
     if(nrow(sub) == 0){
-      stop('No measurements for that month. Select a different month')
+      stop("No measurements for that month. Select a different month")
     }
-    sub$fdepth <- factor(sub[,2])
+    sub$fdepth <- factor(sub[, 2])
     sub2 <- ddply(sub, 2, function(df) {
-      mn = mean(df[,3], na.rm = T)
+      mn <- mean(df[, 3], na.rm = T)
       return(mn)
     })
-    sub2[,1] <- as.numeric(as.character(sub2[,1]))
+    sub2[, 1] <- as.numeric(as.character(sub2[, 1]))
     if(is.null(btm_depth)){
-      btm = min(sub2[,1])
+      btm <- min(sub2[, 1])
     }else{
-      btm = btm_depth
+      btm <- btm_depth
     }
-    top = max(sub2[,1])
-    deps = seq(btm, top, length.out = ndeps)
-    avg_prof = approx(x = sub2[,1], y = sub2[,2], xout = deps)
-    deps = avg_prof$x
-    tmp = avg_prof$y
+    top <- max(sub2[, 1])
+    deps <- seq(btm, top, length.out = ndeps)
+    avg_prof <- approx(x = sub2[, 1], y = sub2[, 2], xout = deps)
+    deps <- avg_prof$x
+    tmp <- avg_prof$y
   }else{
     #obs[,1] <- as.POSIXct(obs[,1], tz = 'UTC')
-    dat = which(obs[,1] == date)
-    ndeps = length(dat)
-    deps = obs[dat,2]
-    tmp = obs[dat,3]
+    dat <- which(obs[, 1] == date)
+    ndeps <- length(dat)
+    deps <- obs[dat, 2]
+    tmp <- obs[dat, 3]
   }
-  deps <- signif(deps,4)
-  tmp <- signif(tmp,4)
+  deps <- signif(deps, 4)
+  tmp <- signif(tmp, 4)
 
   # FLake
   #####
-  if('FLake' %in% model){
+  if("FLake" %in% model){
     # Input values to nml
-    nml_file <- list.files(file.path(folder, 'FLake'))[grep('nml', list.files(file.path(folder, 'FLake')))]
-    nml_file <- file.path(folder, 'FLake', nml_file)
+    nml_file <- list.files(file.path(folder, "FLake"))[
+                          grep("nml", list.files(file.path(folder, "FLake")))]
+    nml_file <- file.path(folder, "FLake", nml_file)
 
-    input_nml(nml_file, 'SIMULATION_PARAMS', 'T_wML_in', tmp[length(tmp)])
-    input_nml(nml_file, 'SIMULATION_PARAMS', 'T_bot_in', tmp[1])
+    input_nml(nml_file, "SIMULATION_PARAMS", "T_wML_in", tmp[length(tmp)])
+    input_nml(nml_file, "SIMULATION_PARAMS", "T_bot_in", tmp[1])
 
-    message('FLake: Input initial conditions into ', file.path(folder,"FLake"))
+    message("FLake: Input initial conditions into ", file.path(folder, "FLake"))
 
   }
 
   # GLM
   #####
-  if('GLM' %in% model){
+  if("GLM" %in% model){
 
     glm_deps <- deps
     glm_tmp <- tmp
     # Input to nml file
-    nml <- read_nml(file.path(folder,'GLM','glm3.nml'))
+    nml <- read_nml(file.path(folder, "GLM", "glm3.nml"))
 
-    nml_list <- list('num_depths' = ndeps, 'the_depths' = glm_deps, 'the_temps' = glm_tmp, 'the_sals' = rep(0, length(tmp)))
+    nml_list <- list("num_depths" = ndeps, "the_depths" = glm_deps,
+                     "the_temps" = glm_tmp, "the_sals" = rep(0, length(tmp)))
     nml <- set_nml(nml, arg_list = nml_list)
     # check for max(the_depths) > lake_depth ??
-    write_nml(nml, file.path(folder, 'GLM', 'glm3.nml'))
-    message('GLM: Input initial conditions into ', file.path(folder,"GLM", 'glm3.nml'))
+    write_nml(nml, file.path(folder, "GLM", "glm3.nml"))
+    message("GLM: Input initial conditions into ", file.path(folder, "GLM", "glm3.nml"))
 
   }
 
   ## GOTM
-  if('GOTM' %in% model){
-    yaml = file.path(folder,'GOTM', 'gotm.yaml')
+  if("GOTM" %in% model){
+    yaml <- file.path(folder, "GOTM", "gotm.yaml")
 
-    got_tmp = tmp
-    got_deps = -deps
-    df <- matrix(NA, nrow =1+ndeps, ncol =2)
-    df[1,1] <- date
-    df[1,2] <- paste0(ndeps,' ',2)
-    df[(2):(1+ndeps),1] = as.numeric(got_deps)
-    df[(2):(1+ndeps),2] = as.numeric(got_tmp)
-    write.table(df, file.path(folder, 'GOTM', 'init_cond.dat'), quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
+    got_tmp <- tmp
+    got_deps <- -deps
+    df <- matrix(NA, nrow = 1 + ndeps, ncol = 2)
+    df[1, 1] <- date
+    df[1, 2] <- paste(ndeps, " ", 2)
+    df[(2):(1 + ndeps), 1] <- as.numeric(got_deps)
+    df[(2):(1 + ndeps), 2] <- as.numeric(got_tmp)
+    write.table(df, file.path(folder, "GOTM", "init_cond.dat"),
+                quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
 
-    input_yaml(file = yaml, label = 'temperature', key = 'file', value = 'init_cond.dat')
-    input_yaml(file = yaml, label = 'temperature', key = 'method', value = 2)
-    input_yaml(file = yaml, label = 'temperature', key = 'column', value = 1)
+    input_yaml(file = yaml, label = "temperature", key = "file", value = "init_cond.dat")
+    input_yaml(file = yaml, label = "temperature", key = "method", value = 2)
+    input_yaml(file = yaml, label = "temperature", key = "column", value = 1)
 
 
-    message('GOTM: Created initial conditions file ', file.path(folder,"GOTM", 'init_cond.dat'))
+    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"))
 
   }
 
   ## Simstrat
-  if('Simstrat' %in% model){
+  if("Simstrat" %in% model){
     sim_deps <- -deps
     sim_tmp <- tmp
 
-    df2 <- data.frame('Depth [m]' = sim_deps, 'U [m/s]' = 0, 	'V [m/s]' = 0,	'T [deg C]' = sim_tmp,	'k [J/kg]' = 3e-6,	'eps [W/kg]' = 5e-10)
-    colnames(df2) <- c('Depth [m]',	'U [m/s]',	'V [m/s]',	'T [deg C]',	'k [J/kg]',	'eps [W/kg]')
+    df2 <- data.frame("Depth [m]" = sim_deps, "U [m/s]" = 0, 	"V [m/s]" = 0,
+                      "T [deg C]" = sim_tmp,	"k [J/kg]" = 3e-6,	"eps [W/kg]" = 5e-10)
+    colnames(df2) <- c("Depth [m]",	"U [m/s]",	"V [m/s]",	"T [deg C]",	"k [J/kg]",	"eps [W/kg]")
 
-    write.table(df2, file.path(folder, 'Simstrat', 'init_cond.dat'), sep = '\t', col.names = TRUE, row.names = FALSE, quote = FALSE)
+    write.table(df2, file.path(folder, "Simstrat", "init_cond.dat"),
+                sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 
-    par_file <- list.files(file.path(folder, 'Simstrat'))[grep('par', list.files(file.path(folder, 'Simstrat')))]
-    par_file <- file.path(folder, 'Simstrat', par_file)
+    par_file <- list.files(file.path(folder, "Simstrat"))[
+      grep("par", list.files(file.path(folder, "Simstrat")))]
+    par_file <- file.path(folder, "Simstrat", par_file)
 
-    input_json(par_file, 'Input', 'Initial conditions', '"init_cond.dat"')
+    input_json(par_file, "Input", "Initial conditions", '"init_cond.dat"')
 
-    message('Simstrat: Created initial conditions file ', file.path(folder,"Simstrat", 'init_cond.dat'))
+    message("Simstrat: Created initial conditions file ",
+            file.path(folder, "Simstrat", "init_cond.dat"))
 
   }
+  
+  ## MyLake
+  if("MyLake" %in% model){
+    load("./MyLake/mylake_config_final.Rdata")
+    
+    mylake_init <- list()
+    
+    # configure initial depth profile
+    deps_Az <- data.frame("Depth_meter" = mylake_config[["In.Z"]],
+                          "Az" = mylake_config[["In.Az"]])
+    
+    # configure initial temperature profile
+    # depth MUST match those from hyposgraph -- interpolate here as needed
+    temp_interp1 <- dplyr::full_join(deps_Az,
+                                     data.frame("Depth_meter" = deps,
+                                                "Water_Temperature_celsius" = tmp),
+                                     by = c("Depth_meter"))
+    
+    temp_interp2 <- dplyr::arrange(temp_interp1, Depth_meter)
+    
+    temp_interp3 <- dplyr::mutate(temp_interp2,
+                                  TempInterp = approx(x = Depth_meter,
+                                                    y = Water_Temperature_celsius,
+                                                    xout = Depth_meter,
+                                                    yleft = dplyr::first(na.omit(Water_Temperature_celsius)),
+                                                    yright = dplyr::last(na.omit(Water_Temperature_celsius)))$y)
+    
+    temp_interp <- dplyr::filter(temp_interp3, !is.na(Az))
+    
+    # fill in depths and temperature in iniital profile RData file
+    mylake_init[["In.Tz"]] <- as.matrix(temp_interp$TempInterp)
+    
+    mylake_init[["In.Z"]] <- as.matrix(temp_interp$Depth_meter)
+    
+    # save initial profile data
+    save(mylake_init, file = file.path(folder, "MyLake", "mylake_init.Rdata"))
+    
+    # update config parameter with initial depth differences
+    # mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
+    
+    # save revised config file
+    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    
+    message("MyLake: Created initial conditions file ",
+            file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    
+  }
+  
   if(print == TRUE){
     print(df)
   }

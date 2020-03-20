@@ -3,26 +3,30 @@ location:
    name: Feeagh                                 # station name used in output [default=GOTM site]
    latitude: 53.9                               # latitude [degrees North; min=-90.0; max=90.0; default=0.0]
    longitude: -9.5                              # longitude [degrees East; min=-360.0; max=360.0; default=0.0]
-   depth: 46.0                                  # maximum water depth [m; min=0.0; default=100.0]
+   elevation: 15                                # elevation of lake surface above sea level [m]
+   depth: 46.8                                  # maximum water depth [m; min=0.0; default=100.0]
    hypsograph: LakeEnsemblR_bathymetry_standard.csv                 # hypsograph [default=]
+   init_depth: 46.8                              # initial height of lake surface relative to the bottom [m]
 time:
    start: 2010-01-01 00:00:00                   # start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
    stop: 2011-01-01 00:00:00                    # stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
-   timestep: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
+   time_step: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
 config_files:
-   gotm_config: GOTM/gotm.yaml                  # GOTM config file (yaml format)
-   glm_config: GLM/glm3.nml                     # GLM config file (nml format)
-   simstrat_config: Simstrat/feeagh.par         # Simstrat config file (json format)
-   flake_config: FLake/feeagh.nml               # FLake config file (nml format)
-model_settings:
-   output_depths: 0.5                           # vertical resolution of the output [m]
-   extinction_coefficient: 1.5                  # light extinction coefficient [m-1]
+   gotm: GOTM/gotm.yaml                  # GOTM config file (yaml format)
+   glm: GLM/glm3.nml                     # GLM config file (nml format)
+   simstrat: Simstrat/feeagh.par         # Simstrat config file (json format)
+   flake: FLake/feeagh.nml               # FLake config file (nml format)
+   mylake: MyLake/mylake_config_template.Rdata       # MyLake config file (Rdata format)
+light:
+   Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
-   observation_file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
-input:                      
+   file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
+   timezone: CET                        # R timezone measured file is in [default=UTC]
+input:
    meteo:
-      meteo_file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
-      timestep: 86400.0                         # timestep of meteorological input data [s]
+      file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
+      time_step: 86400.0                         # timestep of meteorological input data [s]
+      time_zone: UTC                             # R timezone measured file is in [default=UTC]
    ice:
       use: true                                 # turn on ice models? [default=true]
       H: 0.0                                    # initial ice thickness [m; default=0.0]
@@ -39,20 +43,55 @@ inflows:
          constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
          file: inputQ_kristine.dat              # path to file with time series [default=]
          column: 1                              # index of column to read from [default=1]
-         scale_factor: 2                        # 2 to compensate for ungauged area 
+         scale_factor: 2                        # 2 to compensate for ungauged area
       temp:                                     # flow temperature
          method: 2                              # method [0=constant, 2=from file; default=0]
          constant_value: -1.0                   # value to use throughout the simulation [Celcius; default=-1.0]
          file: inflowchem_kristine.dat          # path to file with time series [default=]
          column: 2                              # index of column to read from [default=1]
 output:
-    output:                                     # path of output file, excluding extension
-      format: netcdf                            # format [text, netcdf; default=netcdf]
-      time_unit: hour                            # time unit [second, hour, day, month, year, dt=model time step; default=day]
-      time_step: 24                              # number of time units between output [min=1; default=1]
-      time_method: mean                         # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
-      sync_interval: 0                          # number of output steps between sychronization to disk (<= 0: sync on close only) [default=1]
-      variables:
-      - source: /*                              # variable name in model
+    file: ensemble_output.nc                    # path of output file, excluding extension
+    format: netcdf                              # format [text, netcdf; default=netcdf]
+    depths: 0.5                                 # depths to extract output [m; default=0.5]
+    compression: 4                              # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
+    time_unit: hour                             # time unit [second, hour, day, month, year, dt=model time step; default=day]
+    time_step: 24                               # number of time units between output [min=1; default=1]
+    time_method: mean                           # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
+    variables:
+      - temp
+      - ice_height
 biogeochemistry:                                # not yet implemented
     use: false
+FLake:                                          # FLake specific parameters
+    fetch_lk: 2.0E+03                           # Typical wind fetch [m]
+    sediments_on: true                          # false if the sediments layer is switched off
+GLM:                                            # GLM specific parameters
+   bsn_len: 3678                                # Length of the lake basin, at crest height [m; default=NULL]
+   bsn_wid: 944                                 # Width of the lake basin, at crest height [m; default=NULL]
+GOTM:
+   k_min: 3.6E-6                                # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
+Simstrat:
+   a_seiche: 0.001                              # Fraction of wind energy which goes into seiche energy [-]
+MyLake:
+   C_shelter: 0.15				# wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
+calibration:                                    # Calibration section
+   parameter:                                  # Parameters to be calibrated
+      - wind_speed
+      - swr
+      - k_min
+      - coef_mix_hyp
+   upper:                                       # Upper bounds of scaling factors
+      - 2
+      - 1.5
+      - 1e-5
+      - 2
+   lower:                                       # Lower bounds of scaling factors
+      - 0.5
+      - 0.5
+      - 1e-5
+      - 0.1
+   log:                                         # Is the parameter logarithmic [true/false]
+      - false
+      - false
+      - true
+      - false
