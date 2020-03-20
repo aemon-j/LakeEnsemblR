@@ -33,6 +33,6 @@ input_config_value <- function(model, file, label, key, value, out_file = NULL){
     return(input_mylakeconfig(file = file, label = label, key = key,
                               value = value, out_file = out_file))
   }else{
-    stop("\"",model, "\" is not recognised as a valid model argument by input_config_value")
+    stop("\"", model, "\" is not recognised as a valid model argument by input_config_value")
   }
 }

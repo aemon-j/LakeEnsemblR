@@ -28,6 +28,6 @@ get_config_value <- function(model, file, label, key){
   }else if(model == "MyLake"){
     return(get_mylakeconfig_value(file = file, label = label, key = key))
   }else{
-    stop("\"",model, "\" is not recognised as a valid model argument by get_config_value.")
+    stop("\"", model, "\" is not recognised as a valid model argument by get_config_value.")
   }
 }

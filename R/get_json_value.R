@@ -24,7 +24,7 @@ get_json_value <- function(file, label, key, out_file = NULL){
     ind_label <- grep(label_id, par)
     
     if(length(ind_label) == 0){
-      stop(label, ' not found in ', file)
+      stop(label, " not found in ", file)
     }
   }
   key_id <- paste0('"', key, '"')

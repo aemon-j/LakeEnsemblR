@@ -369,11 +369,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   if("MyLake" %in% model){
 
     # wind sheltering coefficient (C_shelter)
-    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
-
-    if(is.na(as.numeric(c_shelter))){
-      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
-    }
+    c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
 
     # Create directory and output directory, if they do not yet exist
     if(!dir.exists("MyLake")){

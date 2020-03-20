@@ -1,11 +1,16 @@
 #' Input values into json file
 #'
-#'Inputs values into json file by locating the label and key within the json file. Preserves comments (!) if present. NOTE: this does not use a json parser so if there are json formatting errors this function will not pick them up.
+#'Inputs values into json file by locating the label and key within the json file.
+#'  Preserves comments (!) if present.
+#'  NOTE: this does not use a json parser so if there are json formatting errors
+#'  this function will not pick them up.
 #' @param file filepath; to json file which you wish to edit
 #' @param label string; which corresponds to section where the key is located
 #' @param key string; name of key in which to input the value
-#' @param value string; to be input into the key/value pair. Note boolean values must be input as 'true'/'false' as per the json format
-#' @param out_file filepath; to write the output json file (optional); defaults to overwriting file if not specified
+#' @param value string; to be input into the key/value pair.
+#'   Note boolean values must be input as 'true'/'false' as per the json format
+#' @param out_file filepath; to write the output json file (optional);
+#'   defaults to overwriting file if not specified
 #' @export
 #' @author
 #'Tadhg Moore, Jorrit Mesman
@@ -26,7 +31,7 @@ input_json <- function(file, label, key, value, out_file = NULL){
     ind_label <- grep(label_id, par)
     
     if(length(ind_label) == 0){
-      stop(label, ' not found in ', file)
+      stop(label, " not found in ", file)
     }
   }
   key_id <- paste0('"', key, '"')

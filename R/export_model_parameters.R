@@ -69,7 +69,7 @@ export_model_parameters <- function(config_file,
       error = function(e){
         return_val <- "Error"
         warning(paste("Could not replace the value of", j,
-                      "in the",i,"configuration file. "))
+                      "in the", i, "configuration file. "))
       })
     }
   }
