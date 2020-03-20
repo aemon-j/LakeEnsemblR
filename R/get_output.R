@@ -25,7 +25,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     # Extract output
     fold <- file.path(folder, "FLake")
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "flake"))
+    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
     out_depths <- get_yaml_value(config_file, "output", "depths")
@@ -50,7 +50,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     if("temp" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, "GLM", "glm3.nml"),
+      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")),
                                               arg_name = "lake_depth"))
       depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
@@ -134,7 +134,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
   if("Simstrat" %in% model){
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
     reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Start year")
 

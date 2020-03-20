@@ -23,22 +23,31 @@
 #' }
 #' @importFrom FME Latinhyper
 #' @importFrom gotmtools get_yaml_value
+#' @importFrom configr read.config
 #'
 #' @export
 sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name = NULL,
                        MCMC = FALSE, mcmc_sample = "uniform"){
 
-  # Load dictionary
-  var_names_dic <- load_dic()
-
-
-  par_names <- get_yaml_value(file = config_file, label = "calibration", key = "parameter")
-  lb <- get_yaml_value(file = config_file, label = "calibration", key = "lower")
-  ub <- get_yaml_value(file = config_file, label = "calibration", key = "upper")
-
-
+  configr_master_config <- configr::read.config(file.path(folder, config_file))
+  
   if(method == "met"){
-    ind <- which(par_names %in% var_names_dic$Variable)
+    cal_section <- configr_master_config[["calibration"]][["met"]]
+  }else if(method == "model"){
+    stop("Method == model currently not supported")
+  }else if(method == "both"){
+    stop("Method == both currently not supported")
+  }else{
+    stop("Select method either 'met', 'model' or 'both'.")
+  }
+  
+  par_names <- names(cal_section)
+  lb <- unlist(lapply(cal_section, `[`, "lower"), use.names = F)
+  ub <- unlist(lapply(cal_section, `[`, "upper"), use.names = F)
+  
+  
+  if(method == "met"){
+    ind <- which(par_names %in% met_var_dic$short_name)
   }else if(method == "model"){
     stop("Currently not supported")
   }else if(method == "both"){
@@ -51,23 +60,23 @@ sample_LHC <- function(config_file, num, method = NULL, folder = ".", file.name 
   print("Parameters used:")
   print(par_range)
 
-  if (isFALSE(MCMC)){
+  if(isFALSE(MCMC)){
     params <- Latinhyper(parRange = as.matrix(par_range), num = num)
     params <- signif(params, 4)
     colnames(params) <- par_names[ind]
     params <- as.data.frame(params)
     params$par_id <- paste0("p", formatC(seq_len(nrow(params)), width = 4, format = "d",
                                          flag = "0"))
-    if (is.null(file.name)){
+    if(is.null(file.name)){
       return_name <- paste0("LHS_params_", format(Sys.time(), format = "%Y%m%d%H%M"), ".csv")
       return_name <- file.path(folder, return_name)
       write.csv(params, file <- return_name, quote = FALSE, row.names = FALSE)
-    } else {
+    }else{
       return_name <- file.path(folder, paste0(file.name, ".csv"))
       write.csv(params, file = return_name, quote = FALSE, row.names = FALSE)
     }
     return(paste0(return_name))
-  } else {
+  }else{
     return_name <- data.frame(par_range)
     if (mcmc_sample == "uniform"){
       return_name$method <- rep("uniform", nrow(return_name))
