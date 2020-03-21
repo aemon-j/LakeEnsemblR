@@ -13,6 +13,7 @@ run_lint(file)
 Runs lintr::lint function, using the settings agreed upon for LakeEnsemblR
 }
 \examples{
+\dontrun{
 run_lint(file = "export_config.R")
-
+}
 }

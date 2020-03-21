@@ -3,7 +3,8 @@
 #'Exports extinction coefficients for each model based on a master LakeEnsemblR config file
 #'
 #'@param config_file name of the master LakeEnsemblR config file
-#'@param model vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'@param model vector; model to export configuration file.
+#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
 #'@keywords methods
 #'@examples
@@ -67,14 +68,15 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
+    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "FLake", basename(temp_fil)))
-      fla_fil <- file.path(folder, "FLake", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
 
     input_nml(fla_fil, label = "TRANSPARENCY", key = "extincoef_optic", Kw)
@@ -88,15 +90,16 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, "GLM", basename(temp_fil)))
-      glm_nml <- file.path(folder, "GLM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
     if(constant_value){
@@ -138,14 +141,15 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
       got_yaml <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "GOTM", basename(temp_fil)))
-      got_yaml <- file.path(folder, "GOTM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
     if(constant_value){
@@ -178,14 +182,15 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
+    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
-      sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
@@ -240,12 +245,20 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
               "Average is used instead.")
     }
     
-    # Read the MyLake config file from config_file, and write it to the MyLake directory
-    load(file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    # Load MyLake config file
+    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    if(file.exists(temp_fil)){
+      load(temp_fil)
+    }else{
+      # Load template config file from extdata
+      mylake_path <- system.file(package = "LakeEnsemblR")
+      cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+      load(file.path(folder, "MyLake", cnf_name))
+    }
     
     mylake_config[["Bio.par"]][2] <- Kw
-    
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+    save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
     
   }
 }

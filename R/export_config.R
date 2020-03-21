@@ -3,7 +3,8 @@
 #'Create directory with file setups for each model based on a master LakeEnsemblR config file
 #'
 #'@param config_file name of the master LakeEnsemblR config file
-#'@param model vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'@param model vector; model to export configuration file.
+#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
 #'@keywords methods
 #'@author
@@ -18,8 +19,19 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), folder = "."){
+export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+                          folder = ".") {
 
+  # Check if config file exists
+  if(!file.exists(config_file)){
+    stop(config_file, " does not exist.")
+  }
+  
+  # check the master config file
+  check_master_config(config_file, exp_cnf = TRUE)
+  # check model input
+  model <- check_models(model)
+  
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -36,16 +48,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   Sys.setenv(TZ = "GMT")
 
 
-
-
-
   # Read in all information from config_file that needs to be
   # written to the model-specific config files
-
-  # Check if file exists
-  if(!file.exists(config_file)){
-    stop(config_file, " does not exist.")
-  }
 
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
@@ -92,14 +96,14 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
+    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "FLake", basename(temp_fil)))
-      fla_fil <- file.path(folder, "FLake", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
 
 
@@ -141,30 +145,28 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
-    bsn_len <- get_yaml_value(config_file, "config_files", "bsn_len")
-    bsn_wid <- get_yaml_value(config_file, "config_files", "bsn_wid")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, "GLM", basename(temp_fil)))
-      glm_nml <- file.path(folder, "GLM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
     # Format hypsograph
     glm_hyp <- hyp
     glm_hyp[, 1] <- elev - glm_hyp[, 1] # this doesn't take into account GLM's lake elevation
 
-    # Calculate bsn_len & bsn_wid if none provided
-    if(bsn_len == "NULL" | bsn_wid == "NULL"){
-      # Calculate basin dims assume ellipse with width is twice the length
-      Ao <- max(glm_hyp[, 2])
-      bsn_wid <- sqrt((2 * Ao) / pi)
-      bsn_len <- 2 * bsn_wid
-    }
+    # Calculate bsn_len & bsn_wid:
+    # Calculate basin dims assume ellipse with width is twice the length
+    Ao <- max(glm_hyp[, 2])
+    bsn_wid <- sqrt((2 * Ao) / pi)
+    bsn_len <- 2 * bsn_wid
+    # Can be overwritten by providing values in the model_parameters section of config_file
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -210,14 +212,15 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
-      got_yaml <- temp_fil
+      got_yaml <- file.path(folder, temp_fil)
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "GOTM", basename(temp_fil)))
-      got_yaml <- file.path(folder, "GOTM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
@@ -273,14 +276,14 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
+    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
-      sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 
     # Copy in template files from examples folder in the package
@@ -366,21 +369,23 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   if("MyLake" %in% model){
 
     # wind sheltering coefficient (C_shelter)
-    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
-
-    if(is.na(as.numeric(c_shelter))){
-      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
-    }
+    c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
 
     # Create directory and output directory, if they do not yet exist
     if(!dir.exists("MyLake")){
       dir.create("MyLake")
     }
 
-    # Load in template config file MyLakeR requires to fill in from yaml
-    mylake_path <- system.file(package = "LakeEnsemblR")
-    load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
-
+    # Load config file MyLake
+    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    if(file.exists(temp_fil)){
+      load(temp_fil)
+    }else{
+      # Load template config file from extdata
+      mylake_path <- system.file(package = "LakeEnsemblR")
+      load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+    }
+    
     # update MyLakeR config file
     mylake_config[["M_start"]] <- start_date
     mylake_config[["M_stop"]] <- stop_date
@@ -406,12 +411,16 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                       ncol = 8)
     }
 
+    temp_fil <- gsub(".*/", "", temp_fil)
     # save lake-specific config file for MyLake
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
 
     message("MyLake configuration complete!")
   }
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined model-specific parameters
+  export_model_parameters(config_file, model = model, folder = folder)
 }

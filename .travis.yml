@@ -1,0 +1,42 @@
+# .travis.yml for continuous build/test
+#
+# Using standard travis R build env now
+# from here: https://docs.travis-ci.com/user/languages/r/
+
+language: r
+cache: packages
+sudo: true
+
+repos:
+  CRAN: https://cran.rstudio.com
+  
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc libgfortran3
+  - sudo add-apt-repository -y ppa:jonathonf/gcc-7.1
+  - sudo apt-get update
+  - sudo apt install gcc-7
+
+warnings_are_errors: false
+
+r_github_packages:
+  - GLEON/GLM3r
+  - hdugan/glmtools
+  - aemon-j/FLakeR
+  - aemon-j/GOTMr
+  - aemon-j/gotmtools
+  - aemon-j/SimstratR
+  - aemon-j/MyLakeR
+
+r:
+  - oldrel
+  - release
+
+r_build_args: --no-build-vignettes --no-manual
+r_check_args: --no-build-vignettes --no-manual --as-cran
+
+
+notifications:
+  email:
+    on_success: change
+    on_failure: change
