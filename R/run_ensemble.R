@@ -26,7 +26,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # check model input
   model <- check_models(model)
   # check the master config file
-  check_master_config(config_file)
+  check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
