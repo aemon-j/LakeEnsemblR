@@ -19,8 +19,19 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), folder = "."){
+export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+                          folder = ".") {
 
+  # Check if config file exists
+  if(!file.exists(config_file)){
+    stop(config_file, " does not exist.")
+  }
+  
+  # check the master config file
+  check_master_config(config_file, exp_cnf = TRUE)
+  # check model input
+  model <- check_models(model)
+  
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -37,16 +48,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   Sys.setenv(TZ = "GMT")
 
 
-
-
-
   # Read in all information from config_file that needs to be
   # written to the model-specific config files
-
-  # Check if file exists
-  if(!file.exists(config_file)){
-    stop(config_file, " does not exist.")
-  }
 
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
@@ -143,8 +146,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Read the GLM config file from config_file, and write it to the GLM directory
     temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
-    bsn_len <- get_yaml_value(config_file, "model_parameters", "bsn_len")
-    bsn_wid <- get_yaml_value(config_file, "model_parameters", "bsn_wid")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
@@ -160,13 +161,12 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     glm_hyp <- hyp
     glm_hyp[, 1] <- elev - glm_hyp[, 1] # this doesn't take into account GLM's lake elevation
 
-    # Calculate bsn_len & bsn_wid if none provided
-    if(bsn_len == "NULL" | bsn_wid == "NULL"){
-      # Calculate basin dims assume ellipse with width is twice the length
-      Ao <- max(glm_hyp[, 2])
-      bsn_wid <- sqrt((2 * Ao) / pi)
-      bsn_len <- 2 * bsn_wid
-    }
+    # Calculate bsn_len & bsn_wid:
+    # Calculate basin dims assume ellipse with width is twice the length
+    Ao <- max(glm_hyp[, 2])
+    bsn_wid <- sqrt((2 * Ao) / pi)
+    bsn_len <- 2 * bsn_wid
+    # Can be overwritten by providing values in the model_parameters section of config_file
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -369,11 +369,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   if("MyLake" %in% model){
 
     # wind sheltering coefficient (C_shelter)
-    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
-
-    if(is.na(as.numeric(c_shelter))){
-      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
-    }
+    c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
 
     # Create directory and output directory, if they do not yet exist
     if(!dir.exists("MyLake")){
@@ -415,12 +411,16 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                       ncol = 8)
     }
 
+    temp_fil <- gsub(".*/", "", temp_fil)
     # save lake-specific config file for MyLake
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
 
     message("MyLake configuration complete!")
   }
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined model-specific parameters
+  export_model_parameters(config_file, model = model, folder = folder)
 }
