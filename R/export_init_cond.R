@@ -29,7 +29,7 @@
 export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), wtemp_file = NULL, date, month = NULL, ndeps = 2, btm_depth = NULL, print = TRUE, folder = "."){
 
   # check the master config file
-  check_master_config(config_file)
+  check_master_config(config_file, model)
   # check model input
   model <- check_models(model)
   
