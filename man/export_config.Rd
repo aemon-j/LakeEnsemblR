@@ -26,6 +26,6 @@ Create directory with file setups for each model based on a master LakeEnsemblR 
 
 }
 \author{
-Tadhg Moore, Jorrit Mesman
+Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 }
 \keyword{methods}

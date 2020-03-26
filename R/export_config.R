@@ -8,7 +8,7 @@
 #'@param folder folder
 #'@keywords methods
 #'@author
-#'Tadhg Moore, Jorrit Mesman
+#'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 #'@examples
 #'
 #'
@@ -196,6 +196,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                      "out_fn" = "output",
                      "timefmt" = 2,
                      "timezone" = 0)
+    if(!use_inflows){
+      inp_list$num_inflows <- 0
+    }
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
 
@@ -420,6 +423,11 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined inflow boundary condition
+  if(use_inflows){
+    export_inflow(config_file, model = model, folder = folder)
+  }
   
   # Export user-defined model-specific parameters
   export_model_parameters(config_file, model = model, folder = folder)
