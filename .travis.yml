@@ -6,7 +6,7 @@
 language: r
 cache: packages
 
-os: Linux
+os: linux
 dist: bionic
 sudo: true
 
