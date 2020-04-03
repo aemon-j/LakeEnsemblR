@@ -2,9 +2,12 @@
 #
 # Using standard travis R build env now
 # from here: https://docs.travis-ci.com/user/languages/r/
-dist: bionic
+
 language: r
 cache: packages
+
+os: Linux
+dist: bionic
 sudo: true
 
 repos:
