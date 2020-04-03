@@ -43,6 +43,26 @@ test_that("create model meteo & config files", {
 })
 
 test_that("all models can be run", {
+
+  # Set config file
+  masterConfigFile <- 'Feeagh_master_config.yaml'
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
+                folder = '.')
+  
+  # 2. Create meteo driver files
+  export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
+               meteo_file = 'LakeEnsemblR_meteo_standard.csv')
+  
+  # 3. Create initial conditions
+  start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
+  
+  export_init_cond(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
+                   wtemp_file = 'LakeEnsemblR_wtemp_profile_standard.csv',
+                   date = start_date, 
+                   month = 1, ndeps = 2, print = TRUE)
+
 # 4. Run ensemble lake models
 wtemp_list <- run_ensemble(config_file = masterConfigFile,
                            model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
