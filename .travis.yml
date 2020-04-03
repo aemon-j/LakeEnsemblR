@@ -4,7 +4,7 @@
 # from here: https://docs.travis-ci.com/user/languages/r/
 
 language: r
-cache: packages
+
 
 os: linux
 dist: bionic
