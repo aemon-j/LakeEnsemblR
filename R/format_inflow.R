@@ -26,9 +26,27 @@ format_inflow <- function(inflow, model, daily = FALSE, config_file, folder = ".
   l_names <- as.list(lake_var_dic$standard_name)
   names(l_names) <- lake_var_dic$short_name
   
+  hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
+  if(!file.exists(hyp_file)){
+    stop(hyp_file, " does not exist. Check filepath in ", config_file)
+  }
+  hyp <- read.csv(hyp_file)
+  
   if("FLake" %in% model){
     
-    stop(paste0("FLake does not accept a user-defined inflow boundary condition."))
+    flake_inflow <- inflow
+    
+    flake_inflow <- flake_inflow[, c("Flow_metersCubedPerSecond",
+                                 "Water_Temperature_celsius")]
+    
+    colnames(flake_inflow) <- c("FLOW", "TEMP")
+    
+    flake_inflow[, 1] <- (flake_inflow[, 1]) / max(hyp)
+    
+    #Reduce number of digits
+    flake_inflow <- signif(flake_inflow, digits = 8)
+    
+    return(flake_inflow)
     
   }
   

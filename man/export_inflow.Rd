@@ -8,7 +8,8 @@ export_inflow(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   scale_param = NULL,
-  folder = "."
+  folder = ".",
+  use_outflows = FALSE
 )
 }
 \arguments{

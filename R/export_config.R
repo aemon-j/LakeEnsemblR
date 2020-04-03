@@ -79,6 +79,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
+  # Use counter outflows
+  use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
   # Output timestep
   out_tstep <- get_yaml_value(config_file, "output", "time_step")
   # Output unit
@@ -132,6 +134,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "depth_w_lk", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "latitude_lk", lat)
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
+    
+    if(!use_inflows){
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile", '.true.')
+    }
 
     message("FLake configuration complete!")
 
@@ -240,7 +246,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
     # Switch on ice model - MyLake
-    input_yaml(got_yaml, "ice", "model", 2)
+    # input_yaml(got_yaml, "ice", "model", 2)
 
 
     # Create GOTM hypsograph file
@@ -426,7 +432,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   
   # Export user-defined inflow boundary condition
   if(use_inflows){
-    export_inflow(config_file, model = model, folder = folder)
+    export_inflow(config_file, model = model, folder = folder, use_outflows)
   }
   
   # Export user-defined model-specific parameters
