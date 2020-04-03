@@ -24,7 +24,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          meteo_file = NULL, scale_param = NULL, folder = "."){
 
   # check the master config file
-  check_master_config(config_file)
+  check_master_config(config_file, model)
   # check model input
   model <- check_models(model)
   
