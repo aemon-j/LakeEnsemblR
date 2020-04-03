@@ -8,7 +8,7 @@ test_that("test data can be created", {
                          'Unknown model: "GRE" in input argument "model"')
 })
 
-test_that("run model ensemble", {
+test_that("create model meteo & config files", {
   
   library(LakeEnsemblR)
   library(gotmtools)
@@ -40,4 +40,13 @@ test_that("run model ensemble", {
   testthat::expect_true((file.exists("FLake/feeagh.nml") & file.exists("GLM/glm3.nml") &
                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/feeagh.par") &
                           file.exists("MyLake/mylake_config_template.Rdata")))
+})
+
+test_that("all models can be run", {
+# 4. Run ensemble lake models
+wtemp_list <- run_ensemble(config_file = masterConfigFile,
+                           model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
+                           return_list = TRUE, create_netcdf = TRUE)
+
+testthat::expect_true(file.exists("output/ensemble_output.nc"))
 })
