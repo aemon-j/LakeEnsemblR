@@ -136,7 +136,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
     
     if(!use_inflows){
-      input_nml(fla_fil, label = "inflow", key = "Qfromfile", '.true.')
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  '.false.')
     }
 
     message("FLake configuration complete!")
