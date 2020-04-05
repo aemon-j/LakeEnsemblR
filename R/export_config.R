@@ -6,6 +6,8 @@
 #'@param model vector; model to export configuration file.
 #'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
+#'@param inflow_file filepath; to inflow file which is in the standardised LakeEnsemblR format (if
+#' a different file than the one provided in the configuration file is needed); default is NULL
 #'@keywords methods
 #'@author
 #'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
@@ -20,7 +22,7 @@
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          folder = ".") {
+                          folder = ".", inflow_file = NULL) {
 
   # Check if config file exists
   if(!file.exists(config_file)){
@@ -432,7 +434,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   
   # Export user-defined inflow boundary condition
   if(use_inflows){
-    export_inflow(config_file, model = model, folder = folder, use_outflows)
+    export_inflow(config_file, model = model, folder = folder, use_outflows, inflow_file)
   }
   
   # Export user-defined model-specific parameters

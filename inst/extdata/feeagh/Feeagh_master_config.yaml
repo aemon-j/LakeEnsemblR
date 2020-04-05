@@ -33,7 +33,7 @@ input:
 inflows:
    use: true                                   # use in- and outflows? Implemented for GLM, GOTM, Simstrat, MyLake
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary
-   mass-balance: false                          # enforce pseudo mass-balance by adding an artifical outflow for every inflow
+   mass-balance: true                          # enforce pseudo mass-balance by adding an artifical outflow for every inflow
 output:
    file: ensemble_output.nc                    # path of output file, excluding extension
    format: netcdf                              # format [text, netcdf; default=netcdf]

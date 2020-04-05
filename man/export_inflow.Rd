@@ -7,6 +7,7 @@
 export_inflow(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  inflow_file = NULL,
   scale_param = NULL,
   folder = ".",
   use_outflows = FALSE
@@ -17,6 +18,8 @@ export_inflow(
 
 \item{model}{vector; model to export driving data. Options include
 c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+
+\item{inflow_file}{filepath; to inflow file which is in the standardised LakeEnsemblR format.}
 
 \item{scale_param}{dataframe; with column names referring to standard names in LER.
 Scales meteorological value according to value in the column. Defaults to NULL.}
