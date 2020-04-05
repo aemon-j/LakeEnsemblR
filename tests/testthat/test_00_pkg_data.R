@@ -22,7 +22,7 @@ test_that("run model ensemble", {
   
   # 1. Example - creates directories with all model setup
   export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
-                folder = '.')
+                inflow_file = 'LakeEnsemblR_inflow_standard.csv', folder = '.')
   
   # 2. Create meteo driver files
   export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
