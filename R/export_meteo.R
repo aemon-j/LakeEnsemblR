@@ -58,7 +58,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "meteo_file")
   }
-  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
+  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = FALSE)
   met[, 1] <- as.POSIXct(met[, 1])
   # Check time step
   tstep <- diff(as.numeric(met[, 1]))

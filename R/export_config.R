@@ -434,7 +434,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   
   # Export user-defined inflow boundary condition
   if(use_inflows){
-    export_inflow(config_file, model = model, folder = folder, use_outflows, inflow_file)
+    export_inflow(config_file, model = model, folder = folder, use_outflows =
+                    use_outflows, inflow_file = inflow_file)
   }
   
   # Export user-defined model-specific parameters

@@ -22,7 +22,8 @@
 #'
 #' @export
 export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          inflow_file = NULL, scale_param = NULL, folder = ".", use_outflows = FALSE){
+                          inflow_file = NULL, scale_param = NULL, folder = ".",
+                          use_outflows = FALSE){
   
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
@@ -53,7 +54,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # I'd prefer to use a function that can read both comma and tab delimited.
   # data.table::fread does this, but then it's data.table
   message("Loading inflow data...")
-  inflow <- read.csv(file.path(folder, inflow_file), stringsAsFactors = F)
+  inflow <- read.csv(file.path(folder, inflow_file), stringsAsFactors = FALSE)
   inflow[, 1] <- as.POSIXct(inflow[, 1])
   # Check time step
   tstep <- diff(as.numeric(inflow[, 1]))
@@ -102,7 +103,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     
     flake_outfile <- "Tinflow"
     
-    flake_outfpath <- file.path(folder, "Flake", flake_outfile)
+    flake_outfpath <- file.path(folder, "FLake", flake_outfile)
     
     
     #Scale met
