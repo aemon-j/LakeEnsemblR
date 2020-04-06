@@ -58,7 +58,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "meteo_file")
   }
-  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
+  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = FALSE)
   met[, 1] <- as.POSIXct(met[, 1])
   # Check time step
   tstep <- diff(as.numeric(met[, 1]))
@@ -89,15 +89,15 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Met output file name
     met_outfile <- "all_meteo_file.dat"
-    met_outfile <- file.path(folder, "FLake", met_outfile)
+    met_outfpath <- file.path(folder, "FLake", met_outfile)
 
 
     #Scale met
     if(!is.null(scale_param)){
-      scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfile)
+      scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfpath)
     } else {
       # Write to file
-      write.table(fla_met, met_outfile, sep = "\t", quote = FALSE, col.names = FALSE,
+      write.table(fla_met, met_outfpath, sep = "\t", quote = FALSE, col.names = FALSE,
                   row.names = FALSE)
     }
 

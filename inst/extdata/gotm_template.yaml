@@ -117,16 +117,16 @@ surface:
          scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
       calc_evaporation: true            # calculate evaporation from meteorological conditions [default=false]
       ssuv_method: 0                    # wind treatment [0=use absolute wind speed, 1=use wind speed relative to current velocity; default=1]
-   back_radiation:                      # net longwave radiation
+   longwave_radiation:                      # net longwave radiation
       method: 1                         # method [0=from file, 1=Clark, 2=Hastenrath, 3=Bignami, 4=Berliand; default=1]
       file:                             # path to file with time series [default=]
       column: 1                         # index of column to read from [default=1]
    albedo:
       method: 1                         # method to compute albedo [0=constant, 1=Payne (1972), 2=Cogley (1979); default=1]
       constant_value: 0.0               # constant value to use throughout the simulation [fraction; min=0.0; max=1.0; default=0.0]
-   ice:
-      model: 0                          # model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
-      H: 0.0                            # initial ice thickness [m; default=0.0]
+#   ice:
+#      model: 0                          # model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
+#      H: 0.0                            # initial ice thickness [m; default=0.0]
    roughness:
       charnock: false                   # use Charnock (1955) roughness adaptation [default=false]
       charnock_val: 1400.0              # empirical constant for roughness adaptation [dimensionless; min=0.0; default=1400.0]
@@ -279,26 +279,44 @@ o2:                                     # oxygen
    scale_factor: 31.25                  # scale factor to be applied to values read from file [default=1.0]
    offset: 0.0                          # offset to be added to values read from file [default=0.0]     
 streams:
-########################   inflow:                                    # stream configuration
-########################      method: 4                                 # inflow method [default=1]
-########################      zu: 0.0                                   # upper limit [m; default=0.0]
-########################      zl: 0.0                                   # lower limit [m; default=0.0]
-########################      flow:                                     # water flow
-########################         method: 2                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
-########################         file: inflow.dat                       # path to file with time series [default=]
-########################         column: 1                              # index of column to read from [default=1]
-########################      temp:                                     # flow temperature
-########################         method: 2                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: -1.0                   # value to use throughout the simulation [Celcius; default=-1.0]
-########################         file: inflow.dat                       # path to file with time series [default=]
-########################         column: 2                              # index of column to read from [default=1]
-########################      salt:                                     # flow salinity
-########################         method: 0                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: -1.0                   # value to use throughout the simulation [PSU; default=-1.0]
-########################         file:                                  # path to file with time series [default=]
-########################         column: 1                              # index of column to read from [default=1]
-########################
+   inflow:                                    # stream configuration
+      method: 1                                 # inflow method [default=1]
+      zu: 0.0                                   # upper limit [m; default=0.0]
+      zl: 0.0                                   # lower limit [m; default=0.0]
+      flow:                                     # water flow
+         method: 2                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
+         file: inflow_file.dat                       # path to file with time series [default=]
+         column: 1                              # index of column to read from [default=1]
+      temp:                                     # flow temperature
+         method: 2                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                   # value to use throughout the simulation [Celcius; default=-1.0]
+         file: inflow_file.dat                       # path to file with time series [default=]
+         column: 2                              # index of column to read from [default=1]
+      salt:                                     # flow salinity
+         method: 2                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                   # value to use throughout the simulation [PSU; default=-1.0]
+         file: inflow_file.dat                            # path to file with time series [default=]
+         column: 3                              # index of column to read from [default=1]
+   outflow:                                    # outflow configuration
+      method: 1                                 # inflow method [default=1]
+      zu: 0.0                                   # upper limit [m; default=0.0]
+      zl: 0.0                                   # lower limit [m; default=0.0]
+      flow:                                     # water flow
+         method: 0                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
+         file: outflow_file.dat                       # path to file with time series [default=]
+         column: 1                              # index of column to read from [default=1]
+      temp:                                     # flow temperature
+         method: 0                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                   # value to use throughout the simulation [Celcius; default=-1.0]
+         file: outflow_file.dat                       # path to file with time series [default=]
+         column: 2                              # index of column to read from [default=1]
+      salt:                                     # flow salinity
+         method: 0                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                   # value to use throughout the simulation [PSU; default=-1.0]
+         file: outflow_file.dat                            # path to file with time series [default=]
+         column: 3                              # index of column to read from [default=1]
 physical_constants:
    rho_0: 1000.0                        # reference density [kg/m^3; min=0.0; default=1027.0]
 buoyancy:
