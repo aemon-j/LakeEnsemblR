@@ -84,7 +84,7 @@ for(i in 1:5){
   p1 <- gotmtools::plot_vari(ncdf = ens_out,
                              var = vars[i],
                              incl_time = FALSE,
-                             limits = c(0,25),
+                             limits = c(0,25), # z limits
                              zlab = 'degC')
   p1 <- p1 + scale_y_reverse() + #Reverse y-axis
     coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
