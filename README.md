@@ -24,7 +24,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 #install.packages("devtools")
 devtools::install_github("GLEON/GLM3r")
 devtools::install_github("hdugan/glmtools")
-devtools::install_github("aemon-j/FLakeR")
+devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
 devtools::install_github("aemon-j/SimstratR")
