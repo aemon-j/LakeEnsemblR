@@ -124,9 +124,9 @@ surface:
    albedo:
       method: 1                         # method to compute albedo [0=constant, 1=Payne (1972), 2=Cogley (1979); default=1]
       constant_value: 0.0               # constant value to use throughout the simulation [fraction; min=0.0; max=1.0; default=0.0]
-#   ice:
-#      model: 0                          # model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
-#      H: 0.0                            # initial ice thickness [m; default=0.0]
+   ice:
+      model: 0                          # model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
+      H: 0.0                            # initial ice thickness [m; default=0.0]
    roughness:
       charnock: false                   # use Charnock (1955) roughness adaptation [default=false]
       charnock_val: 1400.0              # empirical constant for roughness adaptation [dimensionless; min=0.0; default=1400.0]
