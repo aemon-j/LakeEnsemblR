@@ -6,9 +6,11 @@
 #'@param model vector; model to export configuration file.
 #'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
+#'@param inflow_file filepath; to inflow file which is in the standardised LakeEnsemblR format (if
+#' a different file than the one provided in the configuration file is needed); default is NULL
 #'@keywords methods
 #'@author
-#'Tadhg Moore, Jorrit Mesman
+#'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 #'@examples
 #'
 #'
@@ -20,7 +22,7 @@
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          folder = ".") {
+                          folder = ".", inflow_file = NULL) {
 
   # Check if config file exists
   if(!file.exists(config_file)){
@@ -79,6 +81,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
+  # Use counter outflows
+  use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
   # Output timestep
   out_tstep <- get_yaml_value(config_file, "output", "time_step")
   # Output unit
@@ -132,6 +136,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "depth_w_lk", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "latitude_lk", lat)
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
+    
+    if(!use_inflows){
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  '.false.')
+    }
 
     message("FLake configuration complete!")
 
@@ -196,6 +204,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                      "out_fn" = "output",
                      "timefmt" = 2,
                      "timezone" = 0)
+    if(!use_inflows){
+      inp_list$num_inflows <- 0
+      inp_list$num_outlet <- 0
+    }
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
 
@@ -237,7 +249,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
     # Switch on ice model - MyLake
-    input_yaml(got_yaml, "ice", "model", 2)
+    # input_yaml(got_yaml, "ice", "model", 2)
 
 
     # Create GOTM hypsograph file
@@ -420,6 +432,12 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined inflow boundary condition
+  if(use_inflows){
+    export_inflow(config_file, model = model, folder = folder, use_outflows =
+                    use_outflows, inflow_file = inflow_file)
+  }
   
   # Export user-defined model-specific parameters
   export_model_parameters(config_file, model = model, folder = folder)
