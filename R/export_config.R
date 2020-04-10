@@ -88,6 +88,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Output unit
   out_unit <- get_yaml_value(config_file, "output", "time_unit")
 
+  
+  
+##--------------------- FLake --------------------------------------------------------------------
 
   if("FLake" %in% model){
 
@@ -109,8 +112,31 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                 to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
       fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
-
-
+    
+    
+    
+    # check if meteo file is in accordence with start and stop date
+    metf_flake <- gsub(",", "", glmtools::get_nml_value(nml_file = fla_fil, arg_name = "meteofile"))
+    if(file.exists(metf_flake)) {
+      met_flake <- read.table(file.path("FLake", metf_flake))
+      met_flake$V6 <- as.POSIXct(met_flake$V6)
+        # check if start date fits
+      if(min(met_flake$V6) != as.POSIXct(start_date)) {
+        warning(paste0("FLake start date (", as.character(min(met_flake$V6)),
+                       ') does not fit start date specified in master control file "',
+                       config_file, '"( ', as.character(start_date),
+                       "). Pleas re-run export_meteo."))
+      }
+      # check if stop date fits
+      if(max(met_flake$V6) != as.POSIXct(stop_date)) {
+        warning(paste0("FLake stop date (", as.character(max(met_flake$V6)),
+                       ') does not fit stop date specified in master control file "',
+                       config_file, '"( ', as.character(stop_date),
+                       "). Pleas re-run export_meteo."))
+      }
+      # set timesteps
+      input_nml(fla_fil, "SIMULATION_PARAMS", "time_step_number", nrow(met_flake))
+    }
     # Calculate mean depth from hypsograph (mdepth = V / SA)
     # Calculate volume from hypsograph - converted to function?
     ## Needs to be double checked!
@@ -131,7 +157,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ##
 
     # Input parameters
-    input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "del_time_lk", met_timestep) #meteo needs to be in same time step as model
+    input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "del_time_lk", met_timestep)
+    #meteo needs to be in same time step as model
     input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "h_ML_in", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "depth_w_lk", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "latitude_lk", lat)
@@ -145,6 +172,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   }
 
+  ##----------------------- GLM --------------------------------------------------------------------
+  
   if("GLM" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -216,6 +245,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   }
 
+  ##--------------------- GOTM ---------------------------------------------------------------------
+  
   if("GOTM" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -261,6 +292,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                 sep = "\t", row.names = FALSE, col.names = TRUE)
     input_yaml(got_yaml, "location", "hypsograph", "hypsograph.dat")
 
+    
     # Set time settings
     input_yaml(got_yaml, "time", "start", start_date)
     input_yaml(got_yaml, "time", "stop", stop_date)
@@ -270,6 +302,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     out_yaml <- file.path(folder, "GOTM", "output.yaml")
     input_yaml(out_yaml, "output", "time_step", out_tstep)
     input_yaml(out_yaml, "output", "time_unit", out_unit)
+    # Need to input start and stop into yaml file
+    time_method <- get_yaml_value(config_file, "output", "time_method")
+    input_yaml(got_yaml, label = "output", key = "time_method", value = time_method)
+    input_yaml(got_yaml, label = "output", key = "format", value = "netcdf")
 
 
     ## Switch off streams
@@ -280,6 +316,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     message("GOTM configuration complete!")
   }
 
+  ##--------------------- Simstrat -----------------------------------------------------------------
+  
   if("Simstrat" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -315,6 +353,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
 
+    
     # Input parameters
     # need to source helper_functions/input_json.R for this function:
     input_json(sim_par, "Input", "Morphology", '"hypsograph.dat"')
@@ -377,7 +416,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   }
 
-  ## MyLake
+  ##--------------------- MyLake -------------------------------------------------------------------
+  
   if("MyLake" %in% model){
 
     # wind sheltering coefficient (C_shelter)

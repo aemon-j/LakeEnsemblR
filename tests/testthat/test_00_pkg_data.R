@@ -8,7 +8,7 @@ test_that("test data can be created", {
                          'Unknown model: "GRE" in input argument "model"')
 })
 
-test_that("run model ensemble", {
+test_that("create model meteo & config files", {
   
   library(LakeEnsemblR)
   library(gotmtools)
