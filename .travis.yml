@@ -4,10 +4,7 @@
 # from here: https://docs.travis-ci.com/user/languages/r/
 
 language: r
-
-
-os: linux
-dist: bionic
+cache: packages
 sudo: true
 
 repos:
@@ -15,10 +12,7 @@ repos:
   
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc libgfortran3 libnetcdf13 libnetcdff-dev
-  - sudo add-apt-repository -y ppa:jonathonf/gcc-7.1
-  - sudo apt-get update
-  - sudo apt install -y gcc-7 gfortran-7
+  - sudo apt-get install -y libnetcdf-dev netcdf-bin netcdf-doc
 
 warnings_are_errors: false
 
