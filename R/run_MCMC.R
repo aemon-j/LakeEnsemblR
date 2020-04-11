@@ -60,7 +60,8 @@ run_MCMC <- function(config_file, num = 100, param_file = NULL, method,
   obs_file <- get_yaml_value(file = yaml, label = "observations", key = "file")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
   time_step <- get_yaml_value(config_file, "output", "time_step")
-  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+  met_timestep <- get_meteo_time_step(file.path(folder,
+                                                get_yaml_value(config_file, "meteo", "file")))
 
   # Create output time vector
   if(is.null(spin_up)){

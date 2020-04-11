@@ -25,7 +25,6 @@ observations:
 input:
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
-      time_step: 86400.0                        # timestep of meteorological input data [s]
       time_zone: UTC                            # R timezone measured file is in [default=UTC]
    ice:
       use: true                                 # turn on ice models? [default=true]

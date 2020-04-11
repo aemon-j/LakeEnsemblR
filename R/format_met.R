@@ -129,7 +129,7 @@ format_met <- function(met, model, config_file, folder = "."){
     ## Extract start, stop, lat & lon for netCDF file from config file
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
-    met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+    met_timestep <- get_meteo_time_step(file.path(folder, get_yaml_value(config_file, "meteo", "file")))
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     # Subset temporally
