@@ -132,10 +132,8 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   tstep <- diff(as.numeric(met[, 1]))
 
   if((mean(tstep) - 86400) / 86400 < -0.05){
-    daily <- FALSE
     subdaily <- TRUE
   } else {
-    daily <- TRUE
     subdaily <- FALSE
   }
 
@@ -155,7 +153,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   if("FLake" %in% model){
 
     # Format met file
-    fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
+    fla_met <- format_met(met = met, model = "FLake", config_file = config_file)
 
 
     # Select nml file for running FLake
@@ -242,7 +240,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   # GLM
   #####
   if("GLM" %in% model){
-    glm_met <- format_met(met = met, model = "GLM", config_file = config_file, daily = daily)
+    glm_met <- format_met(met = met, model = "GLM", config_file = config_file)
 
     if("LongWave" %in% colnames(glm_met)){
       lw_type <- "LW_IN"
@@ -331,7 +329,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
   ## GOTM
   if("GOTM" %in% model){
 
-    met_got <- format_met(met = met, model = "GOTM", daily = daily, config_file = config_file)
+    met_got <- format_met(met = met, model = "GOTM", config_file = config_file)
 
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
 
@@ -412,7 +410,7 @@ run_LHC <- function(config_file, num = NULL, param_file = NULL, method,
     par_fpath <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     par_file <- basename(par_fpath)
 
-    met_simst <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
+    met_simst <- format_met(met = met, model = "Simstrat", config_file = config_file)
 
     met_outfile <- "LHS_meteo_file.dat"
 
