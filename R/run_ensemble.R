@@ -197,7 +197,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(return_list | create_netcdf){
 
-    met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+    met_timestep <- get_meteo_time_step(file.path(folder,
+                                                  get_yaml_value(config_file, "meteo", "file")))
     out_hour <- ifelse(met_timestep == 86400, hour(start), 0) #Used for FLake output
 
     # Extract output

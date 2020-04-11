@@ -64,10 +64,8 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   tstep <- diff(as.numeric(met[, 1]))
 
   if((mean(tstep) - 86400) / 86400 < -0.05) {
-    daily <- FALSE
     subdaily <- TRUE
   } else {
-    daily <- TRUE
     subdaily <- FALSE
   }
 
@@ -85,7 +83,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   #####
   if("FLake" %in% model) {
 
-    fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
+    fla_met <- format_met(met = met, model = "FLake", config_file = config_file)
 
     # Met output file name
     met_outfile <- "all_meteo_file.dat"
@@ -116,7 +114,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # GLM
   #####
   if("GLM" %in% model){
-    glm_met <- format_met(met = met, model = "GLM", config_file = config_file, daily = daily)
+    glm_met <- format_met(met = met, model = "GLM", config_file = config_file)
 
     met_outfile <- file.path("GLM", "meteo_file.csv")
 
@@ -159,7 +157,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     met_outfpath <- file.path(folder, "GOTM", met_outfile)
 
-    got_met <- format_met(met, model = "GOTM", daily = daily, config_file = config_file)
+    got_met <- format_met(met, model = "GOTM", config_file = config_file)
 
     #Scale met
     if(!is.null(scale_param)){
@@ -187,7 +185,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     met_outfpath <- file.path(folder, "Simstrat", met_outfile)
     
-    sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
+    sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file)
     
     #Scale met
     if(!is.null(scale_param)){
@@ -209,7 +207,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     met_outfile <- "meteo_file.dat"
     met_outfpath <- file.path(folder, "MyLake", met_outfile)
-    mylake_met <- format_met(met = met, model = "MyLake", config_file = config_file, daily = daily)
+    mylake_met <- format_met(met = met, model = "MyLake", config_file = config_file)
     #Scale met
     if(!is.null(scale_param)){
       scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
