@@ -2,9 +2,9 @@
 title: 'R package LakeEnsemblR: Basic Use and Sample Applications'
 author:
    - "johannes.feldbauer@tu-dresden.de"
-   - "tadhg moore"
-   - "jorrit mesman"
-   - "robert ladwig"
+   - "tadhg.moore@dkit.ie"
+   - "jorrit.mesman@unige.ch"
+   - "ladwigjena@gmail.com"
 date: "`r Sys.Date()`"
 output:
   rmarkdown::html_document:
