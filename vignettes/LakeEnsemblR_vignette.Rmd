@@ -137,7 +137,7 @@ Once you have your hypsograph, water temperature observations and meteorological
 #install.packages('devtools')
 devtools::install_github('GLEON/GLM3r')
 devtools::install_github(‘USGS-R/glmtools’, ref = ‘ggplot_overhaul’)
-devtools::install_github('aemon-j/FLakeR')
+devtools::install_github('aemon-j/FLakeR', ref = “inflow”)
 devtools::install_github('aemon-j/GOTMr')
 devtools::install_github('aemon-j/gotmtools')
 devtools::install_github('aemon-j/SimstratR')
