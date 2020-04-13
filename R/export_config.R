@@ -91,8 +91,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Output timestep in seconds
   conv_l <- list(second = 1, hour = 3600, day = 86400)
   out_tstep_s <- out_tstep * conv_l[[out_unit]]
-  # Output timestep in d
-  out_tstep_d <- out_tstep_s / 86400
   
 ##--------------------- FLake --------------------------------------------------------------------
 
@@ -383,7 +381,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                          as.POSIXct(paste0(reference_year, "-01-01")),
                                          units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
-    input_json(sim_par, "Output", "Times", round(1 / out_tstep_d))
+    input_json(sim_par, "Output", "Times", round(out_tstep_s / timestep))
 
 
     # Turn off ice and snow
