@@ -212,6 +212,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # If met_timestep is not 24 hours, MyLake would crash
     # If met_timestep is lower than 24 hours, met is averaged to 24 hours
     if(met_timestep < 86400){
+      warning("Meteo time step less than daily; averaging met file for MyLake simulation.")
       met_temp <- aggregate(met,
                             by = list(lubridate::floor_date(met$datetime, unit = "days")),
                             FUN = mean)
