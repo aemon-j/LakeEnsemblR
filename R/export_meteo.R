@@ -221,7 +221,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       stop("MyLake cannot be run with meteo forcing time steps larger than 1 day.")
     }
     
-    mylake_met <- format_met(met = met, model = "MyLake", config_file = config_file)
+    mylake_met <- format_met(met = met_temp, model = "MyLake", config_file = config_file)
     #Scale met
     if(!is.null(scale_param)){
       scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
