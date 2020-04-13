@@ -91,8 +91,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Output timestep in seconds
   conv_l <- list(second = 1, hour = 3600, day = 86400)
   out_tstep_s <- out_tstep * conv_l[[out_unit]]
-  # Output timestep in 1/d
-  out_tstep_d <- out_tstep_s/86400
   
 ##--------------------- FLake --------------------------------------------------------------------
 
@@ -169,7 +167,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
     
     if(!use_inflows){
-      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  '.false.')
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
     }
 
     message("FLake configuration complete!")
@@ -272,7 +270,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
     out_fil <- system.file("extdata/output.yaml", package = "GOTMr")
-    file.copy(from = out_fil, to = "GOTM/output.yaml") # was just "GOTM", does this overwrite the GOTM dir?
+    file.copy(from = out_fil, to = "GOTM/output.yaml")
 
     # Write input parameters to got_yaml
     input_yaml(got_yaml, "location", "name", get_yaml_value(config_file, "location", "name"))
@@ -383,7 +381,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                          as.POSIXct(paste0(reference_year, "-01-01")),
                                          units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
-    input_json(sim_par, "Output", "Times", out_tstep_d)
+    input_json(sim_par, "Output", "Times", round(out_tstep_s / timestep))
 
 
     # Turn off ice and snow
