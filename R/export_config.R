@@ -88,8 +88,11 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   out_tstep <- get_yaml_value(config_file, "output", "time_step")
   # Output unit
   out_unit <- get_yaml_value(config_file, "output", "time_unit")
-
-  
+  # Output timestep in seconds
+  conv_l <- list(second = 1, hour = 3600, day = 86400)
+  out_tstep_s <- out_tstep * conv_l[[out_unit]]
+  # Output timestep in 1/d
+  out_tstep_d <- out_tstep_s/86400
   
 ##--------------------- FLake --------------------------------------------------------------------
 
@@ -229,7 +232,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                      "bsn_wid" = bsn_wid,
                      "max_layers" = max_layers,
                      "max_layer_thick" = 1.0,
-                     "nsave" = out_tstep,
+                     "nsave" = round(out_tstep_s / timestep),
                      "out_dir" = "output",
                      "out_fn" = "output",
                      "timefmt" = 2,
@@ -380,7 +383,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                          as.POSIXct(paste0(reference_year, "-01-01")),
                                          units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
-    input_json(sim_par, "Output", "Times", out_tstep)
+    input_json(sim_par, "Output", "Times", out_tstep_d)
 
 
     # Turn off ice and snow
