@@ -219,6 +219,8 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       colnames(met_temp)[1] <- "datetime"
     }else if(met_timestep > 86400){
       stop("MyLake cannot be run with meteo forcing time steps larger than 1 day.")
+    }else{
+      met_temp <- met
     }
     
     mylake_met <- format_met(met = met_temp, model = "MyLake", config_file = config_file)
