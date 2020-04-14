@@ -24,7 +24,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 #install.packages("devtools")
 devtools::install_github("GLEON/GLM3r")
 devtools::install_github("hdugan/glmtools")
-devtools::install_github("aemon-j/FLakeR")
+devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
 devtools::install_github("aemon-j/SimstratR")
@@ -87,6 +87,7 @@ for(i in 1:(length(vars)-1)){
                              limits = c(0, 22),
                              zlab = "degC")
   p1 <- p1 + scale_y_reverse() + #Reverse y-axis
+    coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
     ggtitle(vars[i]) + # Add title using variable name
     xlab("")+ # Remove x-label
     theme_bw(base_size = 18) # Increase font size of plots

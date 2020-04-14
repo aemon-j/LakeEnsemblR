@@ -25,7 +25,6 @@ observations:
 input:
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
-      time_step: 86400.0                        # timestep of meteorological input data [s]
       time_zone: UTC                            # R timezone measured file is in [default=UTC]
    ice:
       use: true                                 # turn on ice models? [default=true]
@@ -39,7 +38,7 @@ output:
    format: netcdf                              # format [text, netcdf; default=netcdf]
    depths: 0.5                                 # depths to extract output [m; default=0.5]
    compression: 4                              # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
-   time_unit: hour                             # time unit [second, hour, day, month, year, dt=model time step; default=day]
+   time_unit: hour                             # time unit [second, hour, day, dt=model time step; default=day]
    time_step: 24                               # number of time units between output [min=1; default=1]
    time_method: mean                           # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
    variables:
