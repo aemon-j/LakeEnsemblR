@@ -117,7 +117,7 @@ surface:
          scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
       calc_evaporation: true            # calculate evaporation from meteorological conditions [default=false]
       ssuv_method: 0                    # wind treatment [0=use absolute wind speed, 1=use wind speed relative to current velocity; default=1]
-   back_radiation:                      # net longwave radiation
+   longwave_radiation:                      # net longwave radiation
       method: 1                         # method [0=from file, 1=Clark, 2=Hastenrath, 3=Bignami, 4=Berliand; default=1]
       file:                             # path to file with time series [default=]
       column: 1                         # index of column to read from [default=1]
