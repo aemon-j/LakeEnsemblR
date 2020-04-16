@@ -7,11 +7,10 @@ author:
    - "ladwigjena@gmail.com"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_document:
+  rmarkdown::html_vignette:
     number_sections: yes
     toc: yes
     toc_depth: 3
-    toc_float: true
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{R package LakeEnsemblR: Basic Use and Sample Applications}
