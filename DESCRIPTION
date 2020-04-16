@@ -18,6 +18,7 @@ License: CCO
 Depends:
     R (>= 3.5)
 Imports:
+    configr,
     FLakeR,
     FME,
     GLM3r,
@@ -34,8 +35,11 @@ Imports:
     reshape2,
     zoo
 Suggests:
-    testthat
+    testthat,
+    knitr,
+    rmarkdown
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.0
+VignetteBuilder: knitr

@@ -3,11 +3,14 @@
 #'Create directory with file setups for each model based on a master LakeEnsemblR config file
 #'
 #'@param config_file name of the master LakeEnsemblR config file
-#'@param model vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'@param model vector; model to export configuration file.
+#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #'@param folder folder
+#'@param inflow_file filepath; to inflow file which is in the standardised LakeEnsemblR format (if
+#' a different file than the one provided in the configuration file is needed); default is NULL
 #'@keywords methods
 #'@author
-#'Tadhg Moore, Jorrit Mesman
+#'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 #'@examples
 #'
 #'
@@ -18,8 +21,19 @@
 #'
 #'@export
 
-export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"), folder = "."){
+export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+                          folder = ".", inflow_file = NULL) {
 
+  # Check if config file exists
+  if(!file.exists(config_file)){
+    stop(config_file, " does not exist.")
+  }
+  
+  # check the master config file
+  check_master_config(config_file, exp_cnf = TRUE)
+  # check model input
+  model <- check_models(model)
+  
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -36,16 +50,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   Sys.setenv(TZ = "GMT")
 
 
-
-
-
   # Read in all information from config_file that needs to be
   # written to the model-specific config files
-
-  # Check if file exists
-  if(!file.exists(config_file)){
-    stop(config_file, " does not exist.")
-  }
 
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
@@ -67,19 +73,26 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   stop_date <- get_yaml_value(config_file, "time", "stop")
   # Time step
   timestep <- get_yaml_value(config_file, "time", "time_step")
-  # Met time step
-  met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+  # Met time step (uses get_meteo_time_step function, in helpers.R)
+  met_timestep <- get_meteo_time_step(file.path(folder,
+                                                get_yaml_value(config_file, "meteo", "file")))
   # Output depths
   output_depths <- get_yaml_value(config_file, "output", "depths")
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
+  # Use counter outflows
+  use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
   # Output timestep
   out_tstep <- get_yaml_value(config_file, "output", "time_step")
   # Output unit
   out_unit <- get_yaml_value(config_file, "output", "time_unit")
-
+  # Output timestep in seconds
+  conv_l <- list(second = 1, hour = 3600, day = 86400)
+  out_tstep_s <- out_tstep * conv_l[[out_unit]]
+  
+##--------------------- FLake --------------------------------------------------------------------
 
   if("FLake" %in% model){
 
@@ -92,17 +105,40 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "flake")
+    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(file.exists(temp_fil)){
       fla_fil <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "FLake", basename(temp_fil)))
-      fla_fil <- file.path(folder, "FLake", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
+      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
     }
-
-
+    
+    
+    
+    # check if meteo file is in accordence with start and stop date
+    metf_flake <- gsub(",", "", glmtools::get_nml_value(nml_file = fla_fil, arg_name = "meteofile"))
+    if(file.exists(metf_flake)) {
+      met_flake <- read.table(file.path("FLake", metf_flake))
+      met_flake$V6 <- as.POSIXct(met_flake$V6)
+        # check if start date fits
+      if(min(met_flake$V6) != as.POSIXct(start_date)) {
+        warning(paste0("FLake start date (", as.character(min(met_flake$V6)),
+                       ') does not fit start date specified in master control file "',
+                       config_file, '"( ', as.character(start_date),
+                       "). Pleas re-run export_meteo."))
+      }
+      # check if stop date fits
+      if(max(met_flake$V6) != as.POSIXct(stop_date)) {
+        warning(paste0("FLake stop date (", as.character(max(met_flake$V6)),
+                       ') does not fit stop date specified in master control file "',
+                       config_file, '"( ', as.character(stop_date),
+                       "). Pleas re-run export_meteo."))
+      }
+      # set timesteps
+      input_nml(fla_fil, "SIMULATION_PARAMS", "time_step_number", nrow(met_flake))
+    }
     # Calculate mean depth from hypsograph (mdepth = V / SA)
     # Calculate volume from hypsograph - converted to function?
     ## Needs to be double checked!
@@ -123,16 +159,23 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ##
 
     # Input parameters
-    input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "del_time_lk", met_timestep) #meteo needs to be in same time step as model
+    input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "del_time_lk", met_timestep)
+    #meteo needs to be in same time step as model
     input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "h_ML_in", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "depth_w_lk", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "latitude_lk", lat)
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
+    
+    if(!use_inflows){
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
+    }
 
     message("FLake configuration complete!")
 
   }
 
+  ##----------------------- GLM --------------------------------------------------------------------
+  
   if("GLM" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -141,30 +184,28 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "glm")
-    bsn_len <- get_yaml_value(config_file, "config_files", "bsn_len")
-    bsn_wid <- get_yaml_value(config_file, "config_files", "bsn_wid")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
 
     if(file.exists(temp_fil)){
       glm_nml <- temp_fil
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file, to = file.path(folder, "GLM", basename(temp_fil)))
-      glm_nml <- file.path(folder, "GLM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
+      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     }
 
     # Format hypsograph
     glm_hyp <- hyp
     glm_hyp[, 1] <- elev - glm_hyp[, 1] # this doesn't take into account GLM's lake elevation
 
-    # Calculate bsn_len & bsn_wid if none provided
-    if(bsn_len == "NULL" | bsn_wid == "NULL"){
-      # Calculate basin dims assume ellipse with width is twice the length
-      Ao <- max(glm_hyp[, 2])
-      bsn_wid <- sqrt((2 * Ao) / pi)
-      bsn_len <- 2 * bsn_wid
-    }
+    # Calculate bsn_len & bsn_wid:
+    # Calculate basin dims assume ellipse with width is twice the length
+    Ao <- max(glm_hyp[, 2])
+    bsn_wid <- sqrt((2 * Ao) / pi)
+    bsn_len <- 2 * bsn_wid
+    # Can be overwritten by providing values in the model_parameters section of config_file
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -189,11 +230,15 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                      "bsn_wid" = bsn_wid,
                      "max_layers" = max_layers,
                      "max_layer_thick" = 1.0,
-                     "nsave" = out_tstep,
+                     "nsave" = round(out_tstep_s / timestep),
                      "out_dir" = "output",
                      "out_fn" = "output",
                      "timefmt" = 2,
                      "timezone" = 0)
+    if(!use_inflows){
+      inp_list$num_inflows <- 0
+      inp_list$num_outlet <- 0
+    }
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
 
@@ -202,6 +247,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   }
 
+  ##--------------------- GOTM ---------------------------------------------------------------------
+  
   if("GOTM" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -210,19 +257,20 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "gotm")
+    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(file.exists(temp_fil)){
-      got_yaml <- temp_fil
+      got_yaml <- file.path(folder, temp_fil)
     }else{
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "GOTM", basename(temp_fil)))
-      got_yaml <- file.path(folder, "GOTM", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
+      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     }
 
     # Get output.yaml from the GOTMr package and copy to the GOTM folder
     out_fil <- system.file("extdata/output.yaml", package = "GOTMr")
-    file.copy(from = out_fil, to = "GOTM/output.yaml") # was just "GOTM", does this overwrite the GOTM dir?
+    file.copy(from = out_fil, to = "GOTM/output.yaml")
 
     # Write input parameters to got_yaml
     input_yaml(got_yaml, "location", "name", get_yaml_value(config_file, "location", "name"))
@@ -234,7 +282,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
     # Switch on ice model - MyLake
-    input_yaml(got_yaml, "ice", "model", 2)
+    # input_yaml(got_yaml, "ice", "model", 2)
 
 
     # Create GOTM hypsograph file
@@ -246,6 +294,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                 sep = "\t", row.names = FALSE, col.names = TRUE)
     input_yaml(got_yaml, "location", "hypsograph", "hypsograph.dat")
 
+    
     # Set time settings
     input_yaml(got_yaml, "time", "start", start_date)
     input_yaml(got_yaml, "time", "stop", stop_date)
@@ -255,6 +304,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     out_yaml <- file.path(folder, "GOTM", "output.yaml")
     input_yaml(out_yaml, "output", "time_step", out_tstep)
     input_yaml(out_yaml, "output", "time_unit", out_unit)
+    # Need to input start and stop into yaml file
+    time_method <- get_yaml_value(config_file, "output", "time_method")
+    input_yaml(got_yaml, label = "output", key = "time_method", value = time_method)
+    input_yaml(got_yaml, label = "output", key = "format", value = "netcdf")
 
 
     ## Switch off streams
@@ -265,6 +318,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     message("GOTM configuration complete!")
   }
 
+  ##--------------------- Simstrat -----------------------------------------------------------------
+  
   if("Simstrat" %in% model){
 
     # Create directory and output directory, if they do not yet exist
@@ -273,14 +328,14 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
 
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "simstrat")
+    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(file.exists(temp_fil)){
       sim_par <- temp_fil
     }else{
-      # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file, to = file.path(folder, "Simstrat", basename(temp_fil)))
-      sim_par <- file.path(folder, "Simstrat", basename(temp_fil))
+      file.copy(from = template_file,
+                to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
+      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     }
 
     # Copy in template files from examples folder in the package
@@ -300,6 +355,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
 
+    
     # Input parameters
     # need to source helper_functions/input_json.R for this function:
     input_json(sim_par, "Input", "Morphology", '"hypsograph.dat"')
@@ -325,7 +381,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                          as.POSIXct(paste0(reference_year, "-01-01")),
                                          units = "days"))))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
-    input_json(sim_par, "Output", "Times", out_tstep)
+    input_json(sim_par, "Output", "Times", round(out_tstep_s / timestep))
 
 
     # Turn off ice and snow
@@ -362,25 +418,28 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   }
 
-  ## MyLake
+  ##--------------------- MyLake -------------------------------------------------------------------
+  
   if("MyLake" %in% model){
 
     # wind sheltering coefficient (C_shelter)
-    c_shelter <- gotmtools::get_yaml_value(config_file, "MyLake", "C_shelter")
-
-    if(is.na(as.numeric(c_shelter))){
-      c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
-    }
+    c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
 
     # Create directory and output directory, if they do not yet exist
     if(!dir.exists("MyLake")){
       dir.create("MyLake")
     }
 
-    # Load in template config file MyLakeR requires to fill in from yaml
-    mylake_path <- system.file(package = "LakeEnsemblR")
-    load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
-
+    # Load config file MyLake
+    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    if(file.exists(temp_fil)){
+      load(temp_fil)
+    }else{
+      # Load template config file from extdata
+      mylake_path <- system.file(package = "LakeEnsemblR")
+      load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+    }
+    
     # update MyLakeR config file
     mylake_config[["M_start"]] <- start_date
     mylake_config[["M_stop"]] <- stop_date
@@ -406,12 +465,22 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                       ncol = 8)
     }
 
+    temp_fil <- gsub(".*/", "", temp_fil)
     # save lake-specific config file for MyLake
-    save(mylake_config, file = file.path(folder, "MyLake", "mylake_config_final.Rdata"))
+    save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
 
     message("MyLake configuration complete!")
   }
 
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
+  
+  # Export user-defined inflow boundary condition
+  if(use_inflows){
+    export_inflow(config_file, model = model, folder = folder, use_outflows =
+                    use_outflows, inflow_file = inflow_file)
+  }
+  
+  # Export user-defined model-specific parameters
+  export_model_parameters(config_file, model = model, folder = folder)
 }

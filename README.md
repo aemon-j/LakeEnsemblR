@@ -21,46 +21,46 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 ## Example model run
 ```{r gh-installation, eval = FALSE}
 # Install packages - Ensure all packages are up to date - parallel devlopment ongoing
-#install.packages('devtools')
-devtools::install_github('GLEON/GLM3r')
-devtools::install_github('hdugan/glmtools')
-devtools::install_github('aemon-j/FLakeR')
-devtools::install_github('aemon-j/GOTMr')
-devtools::install_github('aemon-j/gotmtools')
-devtools::install_github('aemon-j/SimstratR')
-devtools::install_github('aemon-j/LakeEnsemblR')
-devtools::install_github('aemon-j/MyLakeR')
+#install.packages("devtools")
+devtools::install_github("GLEON/GLM3r")
+devtools::install_github("hdugan/glmtools")
+devtools::install_github("aemon-j/FLakeR", ref = "inflow")
+devtools::install_github("aemon-j/GOTMr")
+devtools::install_github("aemon-j/gotmtools")
+devtools::install_github("aemon-j/SimstratR")
+devtools::install_github("aemon-j/LakeEnsemblR")
+devtools::install_github("aemon-j/MyLakeR")
 
 # Load libraries
 library(gotmtools)
 library(LakeEnsemblR)
 
 # Copy template folder
-template_folder <- system.file("extdata/feeagh", package= 'LakeEnsemblR')
-dir.create('example') # Create example folder
-file.copy(from = template_folder, to = 'example', recursive = TRUE)
-setwd('example/feeagh') # Change working directory to example folder
+template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+dir.create("example") # Create example folder
+file.copy(from = template_folder, to = "example", recursive = TRUE)
+setwd("example/feeagh") # Change working directory to example folder
 
 # Set config file
-masterConfigFile <- 'Feeagh_master_config.yaml'
+masterConfigFile <- "Feeagh_master_config.yaml"
 
 # 1. Example - creates directories with all model setup
-export_config(config_file = masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'), folder = '.')
+export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
 
 # 2. Create meteo driver files
-export_meteo(masterConfigFile, model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'))
+export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
 # 3. Create initial conditions
 start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
 
 export_init_cond(config_file = masterConfigFile, 
-                 model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
+                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                  date = start_date,
                  print = TRUE)
 
 # 4. Run ensemble lake models
 wtemp_list <- run_ensemble(config_file = masterConfigFile,
-                           model = c('FLake', 'GLM', 'GOTM', 'Simstrat', 'MyLake'),
+                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                            return_list = TRUE)
 
 ```
@@ -75,7 +75,7 @@ library(ggplot2)
 ## Plot model output using gotmtools/ggplot2
 
 # Extract names of all the variables in netCDF
-ens_out <- 'output/ensemble_output.nc'
+ens_out <- "output/ensemble_output.nc"
 vars <- gotmtools::list_vars(ens_out)
 vars # Print variables
 
@@ -89,20 +89,19 @@ for(i in 1:5){
   p1 <- p1 + scale_y_reverse() + #Reverse y-axis
     coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
     ggtitle(vars[i]) + # Add title using variable name
-    xlab('')+ # Remove x-label
+    xlab("")+ # Remove x-label
     theme_bw(base_size = 18) # Increase font size of plots
   plist[[i]] <- p1
 }
 
 # Plot all model simulations
-# install.packages('ggpubr')
-g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = 'right')
+# install.packages("ggpubr")
+g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = "right")
 g1
-ggsave('output/model_ensemble_watertemp.png', g1,  dpi = 300,width = 384,height = 300, units = 'mm')
+ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300, width = 384, height = 300, units = "mm")
 
 ```
 ![](images/model_ensemble_watertemp-wMyLake.jpg)<!-- -->
-
 
 How do I contribute new code back to the `LakeEnsemblR` project?
 ==========================================================
