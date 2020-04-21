@@ -11,7 +11,7 @@
 #'
 #' @export
 
-create_netcdf_output <- function(output_lists, folder = ".", out_time,
+create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                                  longitude = 0, latitude = 0, compression = 4,
                                  out_file = "ensemble_output.nc"){
   
@@ -35,6 +35,15 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
   timedim <- ncdf4::ncdim_def("time", units = "seconds since 1970-01-01 00:00:00",
                        vals = as.double(nsecs), calendar = "proleptic_gregorian")
   
+  # Define model dimensions
+  mod_names <- c(model, 'Obs')
+  moddim <- ncdf4::ncdim_def("model", units = "-",
+                             vals = as.double(seq_len(length(mod_names))))
+  
+  # Define parameter dimensions
+  pardim <- ncdf4::ncdim_def("parameter", units = "-",
+                             vals = as.double(1))
+  
   fillvalue <- 1e20 # Fill value
   missvalue <- 1e20 # Missing value
   
@@ -52,17 +61,13 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
     if(ncol(output_lists[[i]][[1]]) == 2){
       # Add 2D variable
       
-      for(j in seq_len(length(output_lists[[i]]))) {
-        model_name <- strsplit(names(output_lists[[i]])[j], "_")[[1]][1]
-        # Long name
-        lname <- paste(model_name, variable_name)
-        # Define variable
-        tmp_def <- ncdf4::ncvar_def(tolower(names(output_lists[[i]])[j]),
-                                    variable_unit, list(lon1, lat2, timedim),
-                                    fillvalue, lname, prec = "float", compression = compression,
-                                    shuffle = FALSE)
-        nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
-      }
+      # Define variable
+      tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
+                                  list(lon1, lat2, pardim, moddim, timedim), fillvalue, variable_name,
+                                  prec = "float", compression = compression, shuffle = FALSE)
+      nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
+      
+
     }else if(ncol(output_lists[[i]][[1]]) > 2){
       # Add 3D variable
       
@@ -71,27 +76,24 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
       deps <- rLakeAnalyzer::get.offsets(output_lists[[i]][[lon_list]]) # Extract depths
       
       # Depth dimension
-      depthdim <- ncdf4::ncdim_def("z", units = "meters", vals = as.double(rev(deps)),
+      depthdim <- ncdf4::ncdim_def("z", units = "meters", vals = as.double((-deps)),
                             longname = "Depth from surface")
       
-      # For-loop over each model (and observations) in output_lists[[i]]
-      for(j in seq_len(length(output_lists[[i]]))) {
-        
-        model_name <- strsplit(names(output_lists[[i]])[j], "_")[[1]][1]
-        
-        lname <- paste(model_name, variable_name)
-        # Define variable
-        tmp_def <- ncdf4::ncvar_def(tolower(names(output_lists[[i]])[j]), variable_unit,
-                             list(lon1, lat2, timedim, depthdim), fillvalue, lname,
-                             prec = "float", compression = compression, shuffle = FALSE)
-        nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
-      }
+      # Define variable
+      tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
+                                  list(lon1, lat2, pardim, moddim, timedim, depthdim), fillvalue, variable_name,
+                                  prec = "float", compression = compression, shuffle = FALSE)
+      nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
+      
+
     }
     
-    # Re-assign list names
-    names(nc_vars)[(length(nc_vars) - length(output_lists[[i]]) + 1):length(nc_vars)] <-
-      names(output_lists[[i]])
+    
   }
+  
+  # Re-assign list names
+  names(nc_vars)[(length(nc_vars) - length(output_lists) + 1):length(nc_vars)] <-
+    names(output_lists)
   
   # Create file name for output file
   fname <- file.path(folder, "output", out_file) # Ensemble output filename
@@ -105,6 +107,8 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
   ncout <- ncdf4::nc_create(fname, nc_vars, force_v4 = T)
   # Add coordinates attribute for use with get_vari()
   ncdf4::ncatt_put(ncout, "z", attname = "coordinates", attval = c("z"))
+  ncdf4::ncatt_put(ncout, "model", attname = "Model", attval = paste(mod_names, collapse = ', '))
+  ncdf4::ncatt_put(ncout, "parameter", attname = "parameter", attval = c("TEST"))
   
   # Loop through and add each variable
   # Add tryCatch ensure that it closes netCDF file
@@ -114,22 +118,35 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
       
       if(ncol(output_lists[[i]][[1]]) == 2){
         # Add 2D variable
+        
+        arr <- array(NA, dim = c(length(mod_names), length(nsecs)))
+        
+        
         for(j in seq_len(length(output_lists[[i]]))) {
+          mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[4]]$len, ncol = nc_vars[[i]]$dim[[5]]$len)
+          
           
           mat <- as.matrix(output_lists[[i]][[j]][, -1])
           
-          #Create index for nc_vars
-          nc_idx <- length(nc_vars) - length(output_lists[[i]]) + j
+          splitted_name <- strsplit(names(output_lists[[i]])[j], "_")[[1]]
+          m_name <- splitted_name[1]
+          idx <- which(mod_names == m_name)
           
-          ncdf4::ncvar_put(ncout, nc_vars[[nc_idx]], mat)
-          ncdf4::ncatt_put(ncout, nc_vars[[nc_idx]], attname = "coordinates", attval = c("lon lat"))
-          ncdf4::ncvar_change_missval(ncout, nc_vars[[j]], missval = fillvalue)
+          arr[idx,] <- mat
         }
+        
+        ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
+        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates", attval = c("lon lat model parameter"))
+        ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
         
       }else if(ncol(output_lists[[i]][[1]]) > 2){
         # Add 3D variable
+        
+        arr <- array(NA, dim = c(length(mod_names), length(nsecs), length(deps)))
+        
+        
         for(j in seq_len(length(output_lists[[i]]))) {
-          mat1 <- matrix(NA, nrow = nc_vars[[j]]$dim[[3]]$len, ncol = nc_vars[[j]]$dim[[4]]$len)
+          mat1 <- matrix(NA, nrow = nc_vars[[i]]$dim[[5]]$len, ncol = nc_vars[[i]]$dim[[6]]$len)
           
           # vector of depths to input into the matrix
           deps_tmp <- rLakeAnalyzer::get.offsets(output_lists[[i]][[j]])
@@ -141,10 +158,17 @@ create_netcdf_output <- function(output_lists, folder = ".", out_time,
             mat1[, col] <- mat[, k]
           }
           
-          ncdf4::ncvar_put(ncout, nc_vars[[j]], mat1)
-          ncdf4::ncatt_put(ncout, nc_vars[[j]], attname = "coordinates", attval = c("lon lat z"))
-          ncdf4::ncvar_change_missval(ncout, nc_vars[[j]], missval = fillvalue)
+          splitted_name <- strsplit(names(output_lists[[i]])[j], "_")[[1]]
+          m_name <- splitted_name[1]
+          idx <- which(mod_names == m_name)
+          
+          arr[idx,,] <- mat1
         }
+        
+        ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
+        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates", attval = c("lon lat z model parameter"))
+        ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
+
       }
     }
   }, warning = function(w) {
