@@ -26,7 +26,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # check model input
   model <- check_models(model)
   # check the master config file
-  check_master_config(config_file)
+  check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
@@ -150,13 +150,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 #' @keywords internal
 .run_GLM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
                      out_time, out_hour, out_vars, time_step){
-  #Need to input start and stop into nml file
-  nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
-  input_nml(nml_file, label = "time", key = "start", value = paste0("'", start, "'"))
-  input_nml(nml_file, label = "time", key = "stop", value = paste0("'", stop, "'"))
-
-  # Update model output
-  input_nml(nml_file, label = "output", key = "nsave", value = time_step)
 
   #Delete previous output
   # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
@@ -190,34 +183,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 #' @keywords internal
 .run_FLake <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
                        out_time, out_hour, out_vars, time_step){
-  #Need to figure out how to subset data by dates
-  nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
-  if(file.exists(file.path(folder, "FLake", "all_meteo_file.dat"))){
-    met_file <- file.path(folder, "FLake", "all_meteo_file.dat")
-    met_outfile <- file.path(folder, "FLake", "meteo_file_tmp.dat")
-  }else{
-    met_file <- suppressWarnings(get_nml_value(arg_name = "meteofile", nml_file = nml_file))
-    met_file <- gsub(",", "", met_file)
-    met_file <- file.path(folder, "FLake", met_file)
-    met_outfile <- file.path(folder, "FLake", met_file)
-  }
-  message("FLake: Loading ", met_file)
-  met <- read.delim(met_file, header = FALSE, stringsAsFactors = FALSE)
-  colnames(met)[ncol(met)] <- "datetime"
-  met$datetime <- as.POSIXct(met$datetime, tz = tz)
-  met_sub <- met[(met$datetime >= start & met$datetime <= stop), ]
-  if(nrow(met_sub) < nrow(met)){
-    warning("FLake: Writing new met file with shorter time series: ", met_outfile)
-  }
-
-  # Write to file
-  write.table(met_sub, met_outfile, sep = "\t", quote = FALSE, col.names = FALSE,
-              row.names = FALSE)
-  met_outfile <- basename(met_outfile)
-  input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(met_sub))
-  input_nml(nml_file, "METEO", "meteofile", paste0("'", met_outfile, "'"))
-
-  # Select nml file again
+  
+  
+  
   nml_file <- basename(get_yaml_value(config_file, "config_files", "FLake"))
 
   #Delete previous output
@@ -229,7 +197,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(return_list | create_netcdf){
 
-    met_timestep <- get_yaml_value(config_file, "meteo", "time_step")
+    met_timestep <- get_meteo_time_step(file.path(folder,
+                                                  get_yaml_value(config_file, "meteo", "file")))
     out_hour <- ifelse(met_timestep == 86400, hour(start), 0) #Used for FLake output
 
     # Extract output
@@ -256,20 +225,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 .run_GOTM <- function(config_file, folder, return_list, create_netcdf, tz, start, stop, obs_deps,
                       out_time, out_vars, time_step){
 
-  # Need to input start and stop into yaml file
-  time_method <- get_yaml_value(config_file, "output", "time_method")
-  time_unit <- get_yaml_value(config_file, "output", "time_unit")
-
   yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
-  input_yaml(yaml_file, label = "time", key = "start", value = start)
-  input_yaml(yaml_file, label = "time", key = "stop", value = stop)
-
-  #output yaml
-  out_yaml <- file.path(folder, "GOTM", "output.yaml")
-  input_yaml(out_yaml, label = "output", key = "time_method", value = time_method)
-  input_yaml(out_yaml, label = "output", key = "time_unit", value = time_unit)
-  input_yaml(out_yaml, label = "output", key = "time_step", value = time_step)
-  input_yaml(out_yaml, label = "output", key = "format", value = "netcdf")
 
   #Delete previous output
   old_output <- list.files(file.path(folder, "GOTM", "output"))
@@ -302,24 +258,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 #' @keywords internal
 .run_Simstrat <- function(config_file, folder, return_list, create_netcdf, tz, start, stop,
                           obs_deps, out_time, out_vars, time_step){
-  sim_par <- get_yaml_value(config_file, "config_files", "Simstrat")
-
-  # Set times
-  reference_year <- year(as.POSIXct(start))
-  input_json(sim_par, "Simulation", "Start year", reference_year)
-  start_date_simulation <- as.POSIXct(start, format = "%Y-%m-%d %H:%M:%S", tz = tz)
-  end_date_simulation <- as.POSIXct(stop, format = "%Y-%m-%d %H:%M:%S", tz = tz)
-  input_json(sim_par, "Simulation", "Start d",
-             as.numeric(difftime(start_date_simulation,
-                                 as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
-  input_json(sim_par, "Simulation", "End d",
-             as.numeric(difftime(end_date_simulation,
-                                 as.POSIXct(paste0(reference_year, "-01-01")), units = "days")))
-  input_json(sim_par, "Output", "Times", time_step)
-
-  # Need to input start and stop into json par file
-  par_fpath <- get_yaml_value(config_file, "config_files", "Simstrat")
-  par_file <- basename(par_fpath)
+  
+  par_file <- basename(get_yaml_value(config_file, "config_files", "Simstrat"))
 
   #Delete previous output
   # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = "Output", "Path")

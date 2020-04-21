@@ -4,7 +4,11 @@
 \alias{check_master_config}
 \title{Check master config file}
 \usage{
-check_master_config(config_file, exp_cnf = FALSE)
+check_master_config(
+  config_file,
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  exp_cnf = FALSE
+)
 }
 \arguments{
 \item{config_file}{filepath; to LakeEnsemblr yaml master config file}
