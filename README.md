@@ -51,11 +51,8 @@ export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", 
 export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
 # 3. Create initial conditions
-start_date <- get_yaml_value(file = masterConfigFile, label =  "time", key = "start")
-
 export_init_cond(config_file = masterConfigFile, 
                  model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                 date = start_date,
                  print = TRUE)
 
 # 4. Run ensemble lake models
