@@ -34,7 +34,7 @@ export_init_cond <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "
   model <- check_models(model)
   
   if(is.null(wtemp_file)){
-    wtemp_file <- get_yaml_value(config_file, "observations", "file")
+    wtemp_file <- get_yaml_value(config_file, "temperature", "file")
     wtemp_file <- file.path(folder, wtemp_file)
   }
 
