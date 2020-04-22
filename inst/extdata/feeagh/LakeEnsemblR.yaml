@@ -27,6 +27,8 @@ observations:
       file: LakeEnsemblR_ice-height_standard.csv            # file with observed ice height, with column headers according to LakeEnsemblR vocabulary
       timezone: UTC                                         # R timezone measured file is in [default=UTC]
 input:
+   init_temp_profile:
+      file:                                     # initial temperature profile. CSV file or empty. If empty, the observations file will be used.
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
       time_zone: UTC                            # R timezone measured file is in [default=UTC]
