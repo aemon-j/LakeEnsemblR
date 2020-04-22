@@ -36,7 +36,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                        vals = as.double(nsecs), calendar = "proleptic_gregorian")
   
   # Define model dimensions
-  mod_names <- c(model, 'Obs')
+  mod_names <- c(model, "Obs")
   moddim <- ncdf4::ncdim_def("model", units = "-",
                              vals = as.double(seq_len(length(mod_names))))
   
@@ -45,7 +45,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                              vals = as.double(1))
   
   fillvalue <- 1e20 # Fill value
-  missvalue <- 1e20 # Missing value
+  # missvalue <- 1e20 # Missing value
   
   nc_vars <- list() #Initialize empty list to fill netcdf variables
   
@@ -57,13 +57,14 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
     # Get variable unit (from dictionary)
     variable_unit <- lake_var_dic$unit[lake_var_dic$short_name == variable_name]
     
-    # See if it's 2D (e.g. ice height) or 3D (e.g. temperature)
+    # See if it"s 2D (e.g. ice height) or 3D (e.g. temperature)
     if(ncol(output_lists[[i]][[1]]) == 2){
       # Add 2D variable
       
       # Define variable
       tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
-                                  list(lon1, lat2, pardim, moddim, timedim), fillvalue, variable_name,
+                                  list(lon1, lat2, pardim, moddim, timedim),
+                                  fillvalue, variable_name,
                                   prec = "float", compression = compression, shuffle = FALSE)
       nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
       
@@ -81,7 +82,8 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
       
       # Define variable
       tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
-                                  list(lon1, lat2, pardim, moddim, timedim, depthdim), fillvalue, variable_name,
+                                  list(lon1, lat2, pardim, moddim, timedim, depthdim),
+                                  fillvalue, variable_name,
                                   prec = "float", compression = compression, shuffle = FALSE)
       nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
       
@@ -107,7 +109,8 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   ncout <- ncdf4::nc_create(fname, nc_vars, force_v4 = T)
   # Add coordinates attribute for use with get_vari()
   ncdf4::ncatt_put(ncout, "z", attname = "coordinates", attval = c("z"))
-  ncdf4::ncatt_put(ncout, "model", attname = "Model", attval = paste(mod_names, collapse = ', '))
+  ncdf4::ncatt_put(ncout, "model", attname = "Model",
+                   attval = paste(seq_len(length(mod_names)), "-", mod_names, collapse = ", "))
   ncdf4::ncatt_put(ncout, "parameter", attname = "parameter", attval = c("TEST"))
   
   # Loop through and add each variable
@@ -132,11 +135,12 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
           m_name <- splitted_name[1]
           idx <- which(mod_names == m_name)
           
-          arr[idx,] <- mat
+          arr[idx, ] <- mat
         }
         
         ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
-        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates", attval = c("lon lat model parameter"))
+        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates",
+                         attval = c("lon lat model parameter"))
         ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
         
       }else if(ncol(output_lists[[i]][[1]]) > 2){
@@ -162,11 +166,12 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
           m_name <- splitted_name[1]
           idx <- which(mod_names == m_name)
           
-          arr[idx,,] <- mat1
+          arr[idx, , ] <- mat1
         }
         
         ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
-        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates", attval = c("lon lat z model parameter"))
+        ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates",
+                         attval = c("lon lat z model parameter"))
         ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
 
       }
