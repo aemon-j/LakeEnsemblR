@@ -13,18 +13,17 @@
 #' @importFrom ncdf4 ncatt_get
 
 #' @export
-load_var <- function(ncdf, var, return = 'list', print = TRUE){
+load_var <- function(ncdf, var, return = "list", print = TRUE){
   
-  match.arg(return, c('list', 'array'))
+  match.arg(return, c("list", "array"))
   
-  fid = nc_open(ncdf) # Open netCDF
+  fid <- nc_open(ncdf) # Open netCDF
   
   # Extract the time
-  tim = ncvar_get(fid, "time")
-  tunits = ncatt_get(fid, "time")
-  lnam = tunits$long_name
+  tim <- ncvar_get(fid, "time")
+  tunits <- ncatt_get(fid, "time")
   tustr <- strsplit(tunits$units, " ")
-  step = tustr[[1]][1]
+  # step <- tustr[[1]][1]
   tdstr <- strsplit(unlist(tustr)[3], "-")
   tmonth <- as.integer(unlist(tdstr)[2])
   tday <- as.integer(unlist(tdstr)[3])
@@ -33,32 +32,32 @@ load_var <- function(ncdf, var, return = 'list', print = TRUE){
   thour <- as.integer(unlist(tdstr)[1])
   tmin <- as.integer(unlist(tdstr)[2])
   origin <- as.POSIXct(paste0(tyear, "-", tmonth,
-                              "-", tday, ' ', thour, ':', tmin), format = "%Y-%m-%d %H:%M", tz = "UTC")
-  time = as.POSIXct(tim, origin = origin, tz = "UTC")
+                              "-", tday, " ", thour, ":", tmin),
+                       format = "%Y-%m-%d %H:%M", tz = "UTC")
+  time <- as.POSIXct(tim, origin = origin, tz = "UTC")
 
   # Extract model names
-  mod_names <- ncatt_get(fid, 'model', 'Model')$value
-  mod_names <- strsplit(mod_names, ', ')[[1]]
+  mod_names <- ncatt_get(fid, "model", "Model")$value
+  mod_names <- strsplit(mod_names, ", ")[[1]]
+  mod_names <- substring(mod_names, 5)
   
   # Extract parameters
-  pars <- ncvar_get(fid, 'parameter')
+  pars <- ncvar_get(fid, "parameter")
   
   # Will need updating when parameter ensembles are added
   
   # Extract variable
-  var1 = ncvar_get(fid, var)
-  tunits = ncatt_get(fid, var)
+  var1 <- ncvar_get(fid, var)
+  tunits <- ncatt_get(fid, var)
   
   # Extract depths if dimensions are greater than 2
   if(length(dim(var1)) > 2){
-    z <- ncvar_get(fid, 'z')
+    z <- ncvar_get(fid, "z")
   }
   
   nc_close(fid) # Close netCDF
   
-  # lnam = lapply(tunits, function(x)x$long_name)
-
-  mat = matrix(data = c(var, tunits$units, tunits$coordinates),
+  mat <- matrix(data = c(var, tunits$units, tunits$coordinates),
                dimnames = list(c("short_name",
                                  "units", "dimensions"), c()))
   if (print == TRUE) {
@@ -66,7 +65,7 @@ load_var <- function(ncdf, var, return = 'list', print = TRUE){
     print(mat)
   }
   
-  if(return == 'array'){
+  if(return == "array"){
     
     if(length(dim(var1)) > 2){
       dimnames(var1) <- list(mod_names, as.character(time), z)
@@ -78,22 +77,22 @@ load_var <- function(ncdf, var, return = 'list', print = TRUE){
     return(var1)
   }
   
-  if(return == 'list'){
+  if(return == "list"){
     if(length(dim(var1)) > 2){
-      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x,,])
+      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, , ])
       names(var_list) <- mod_names
       
       # Add datetime column + columns names for rLake Analyzer
       var_list <- lapply(var_list, function(x){
         x <- as.data.frame(x)
         x <- cbind(time, x)
-        colnames(x) <- c('datetime', paste0('wtr_', abs(z)))
+        colnames(x) <- c("datetime", paste0("wtr_", abs(z)))
         return(x)
       })
     }
     
-    if(length(dim(var1)) == 2){
-      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x,])
+    if (length(dim(var1)) == 2) {
+      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, ])
       names(var_list) <- mod_names
       
       # Add datetime column + columns names for rLake Analyzer
@@ -109,4 +108,3 @@ load_var <- function(ncdf, var, return = 'list', print = TRUE){
   }
 
 }
-
