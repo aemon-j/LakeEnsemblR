@@ -18,7 +18,7 @@ test_that("create model meteo & config files", {
   setwd("example/feeagh") # Change working directory to example folder
   
   # Set config file
-  masterConfigFile <- "Feeagh_master_config.yaml"
+  masterConfigFile <- "LakeEnsemblR.yaml"
   
   # 1. Example - creates directories with all model setup
   export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
@@ -34,7 +34,7 @@ test_that("create model meteo & config files", {
                    print = TRUE)
   
   
-  testthat::expect_true((file.exists("FLake/feeagh.nml") & file.exists("GLM/glm3.nml") &
-                          file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/feeagh.par") &
-                          file.exists("MyLake/mylake_config_template.Rdata")))
+  testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
+                          file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
+                          file.exists("MyLake/mylake.Rdata")))
 })
