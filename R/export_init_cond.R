@@ -40,22 +40,7 @@ export_init_cond <- function(config_file,
   # check model input
   model <- check_models(model)
   
-<<<<<<< HEAD
-  if(is.null(wtemp_file)){
-    wtemp_file <- get_yaml_value(config_file, "temperature", "file")
-    wtemp_file <- file.path(folder, wtemp_file)
-  }
 
-  message("Loading wtemp_file...")
-  obs <- read.csv(wtemp_file)
-
-  if(!is.null(month)){
-    obs[, 1] <- as.POSIXct(obs[, 1], tz = "UTC")
-    obs$month <- month(obs[, 1])
-    sub <- obs[(obs$month == month), ]
-    if(nrow(sub) == 0){
-      stop("No measurements for that month. Select a different month")
-=======
   # Here check if config_file, "initial_profile:" is empty or not
   if(get_yaml_value(config_file, "init_temp_profile", "file") == ""){
     # If no initial temperature profile is given, read in the observations and
@@ -68,7 +53,6 @@ export_init_cond <- function(config_file,
     
     if(is.null(date)){
       date <- get_yaml_value(config_file, "time", "start")
->>>>>>> upstream/devel
     }
     
     # Check if date is in observations
