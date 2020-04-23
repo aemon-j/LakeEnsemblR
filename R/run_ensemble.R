@@ -46,8 +46,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   stop <- get_yaml_value(config_file, "time", "stop")
   lat <- get_yaml_value(config_file, "location", "latitude")
   lon <- get_yaml_value(config_file, "location", "longitude")
-  obs_file <- get_yaml_value(config_file, "observations", "file")
-
+  obs_file <- get_yaml_value(config_file, "temperature", "file")
+  ice_file <- get_yaml_value(config_file, "ice_height", "file")
+  
   # Get output configurations
   out_file <- get_yaml_value(config_file, "output", "file")
   out_depths <- get_yaml_value(config_file, "output", "depths")
@@ -68,7 +69,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   if(obs_file != "NULL"){
-    message("Loading obs_file...")
+    message("Loading temperature observations...")
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
 
@@ -85,6 +86,21 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }else{
     obs_deps <- NULL
   }
+  
+  if(ice_file != "NULL"){
+    message("Loading ice observations...")
+    ice <- read.csv(ice_file, stringsAsFactors = FALSE)
+    
+    ice$datetime <- as.POSIXct(ice$datetime, tz = tz)
+    
+    # Subset to out_time
+    ice_out <- ice[ice$datetime %in% out_time$datetime, ]
+    ice_out <- merge(out_time, ice_out, by = "datetime", all.x = TRUE)
+    
+  }else{
+    ice_out <- NULL
+  }
+  
 
   run_model_args <- list(config_file = config_file,
                          folder = folder,
@@ -123,6 +139,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         lapply(model, function(mod_name) model_out[[mod_name]][["ice_height"]]),
         paste0(model, "_ice_height")
       )
+      if(!is.null(ice_out)){
+        ice_list <- append(ice_list, list("Obs_ice_height" = ice_out))
+      }
     }
 
     # Put all lists with output into a single, named list
@@ -132,7 +151,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if(create_netcdf){
       # Pass all_lists to the netcdf function to create netcdf output
-      create_netcdf_output(all_lists, folder = folder, out_time = out_time,
+      create_netcdf_output(output_lists = all_lists, folder = folder, model = model, out_time = out_time,
                            longitude = lon, latitude = lat, compression = compression,
                            out_file = out_file)
     }

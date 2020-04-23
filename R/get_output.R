@@ -57,7 +57,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
 
-      glm_out[[length(glm_out) + 1]] <- get_var(file = file.path(folder, "GLM", "output",
+      glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
                                                                  "output.nc"),
                                                 var_name = "temp", reference = "surface",
                                                 z_out = depths)

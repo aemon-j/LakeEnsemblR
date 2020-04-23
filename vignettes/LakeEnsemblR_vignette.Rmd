@@ -7,15 +7,15 @@ author:
    - "ladwigjena@gmail.com"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_document:
+  rmarkdown::html_vignette:
     number_sections: yes
     toc: yes
     toc_depth: 3
-    toc_float: true
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{R package LakeEnsemblR: Basic Use and Sample Applications}
   %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
 ---
 
 <!-- ALTERNATIVE FOR html
@@ -40,6 +40,11 @@ library(xtable)
 library(LakeEnsemblR)
 ```
 
+# Included models
+
+LakeEnsemblR currently includes the following models: GLM (@hipsey_general_2019),
+FLake (@mironov_flake_2008), GOTM (@umlauf_gotm_2005),
+Simstrat (@goudsmit_application_2002), and MyLake (@saloranta_mylakemulti_year_2007).
 
 # Setting up LakeEnsemblR
 
