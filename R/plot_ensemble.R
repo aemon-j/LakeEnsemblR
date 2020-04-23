@@ -1,0 +1,154 @@
+#' Function to plot results of the ensemble run
+#' 
+#' Plot the outcome of the ensemble run for a given depth along with the minimum, maximum, and
+#' an average value.
+#' 
+#' @param ncdf Path to the netcdf file created by `run_ensemble()`
+#' @param model Vector of models which should be included in the plot
+#' @param var Variable which to plot
+#' @param depth If `var` has a depth dimension, for which depth should it be plotted?
+#' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
+#' @author Johannes Fledbauer
+#' @importFrom rLakeAnalyzer get.offsets
+#' @importFrom reshape2 melt
+#' @import ggplot2
+#' @import dplyr
+#' @import RColorBrewer
+#' @examples
+#' \dontrun{
+#' p <- plot_ensemble(ncdf = "output/ensemble_output.nc",
+#'                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
+#'                    var = "watertemp", depth = 0.9, boxwhisker = TRUE)
+#' }
+#'
+#' @export
+plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
+                          var, depth = NULL, av_fun = "mean", boxwhisker = FALSE) {
+  # check if model input is correct
+  model <- check_models(model)
+  # get variable
+  var_list <- load_var(ncdf, var = var, return = "list")
+  # get depths
+  deps <- get.offsets(var_list[[1]])
+  # only the selected models
+  var_list <- var_list[c(model, "Obs")]
+  if(var == "watertemp" & is.null(depth)) {
+    stop(paste0("When plotting water temperature depth must be specified"))
+  }
+  plist <- list()
+  if(length(depth) > 0) {
+    if(!(depth %in% deps)) {
+      stop(paste0("The selected depth is not in the output. Available depths are:\n",
+                  paste0(deps, collapse = ", "), "\n"))
+    }  
+    data <- var_list %>% melt( id.vars = "datetime") %>% 
+      dplyr::filter(variable == paste0("wtr_", depth)) %>%
+      dplyr::group_by(datetime)
+    colnames(data) <- c("datetime", "Depth", "value", "Model")
+    obs <- data %>% 
+      dplyr::filter(Model == "Obs")
+    colnames(obs) <- c("datetime", "Depth", "value", "Observed")
+    dat <- data %>% 
+      dplyr::filter(Model != "Obs")
+    dat_av <- dat %>% 
+      dplyr::filter(Model != "Obs") %>%
+      dplyr::summarize(mean = get(av_fun)(value, na.rm = TRUE),
+                max = max(value, na.rm = TRUE),
+                min = min(value, na.rm = TRUE)) 
+    
+    colfunc <- colorRampPalette(brewer.pal(8, 'Set2'))
+    dat_av$Type = av_fun
+   
+    p1 <- ggplot() +  
+      geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33) +
+      geom_ribbon(data = dat_av, aes(datetime, ymin=min, ymax=max),
+                  alpha=0.2) + 
+      geom_line(data = dat, aes(x = datetime, y = value, col = Model)) +
+      geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1) +
+      ylab(var) +
+      xlab("") +
+      ggtitle(paste0("Time Series ",paste0("at depth = ", depth, " m"))) +
+      scale_colour_manual(values = c("#D95F02", colfunc(length(unique(dat$Model))), "#7570B3"),
+                          breaks= c(av_fun, unique(dat$Model), "Obs"),
+                          guide = guide_legend(override.aes = list(
+                          linetype = c(rep("solid", length(unique(dat$Model)) + 1), rep("blank", 1)),
+                          shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
+      theme(text = element_text(size=10),
+            axis.text.x = element_text(angle=0, hjust= 0.5),
+            legend.margin=margin(0,0,0,0),
+            legend.box.margin=margin(0,0,0,0),
+            legend.position="bottom",legend.title=element_blank()) 
+    plist[[1]] <- p1
+    
+    dat_res <- dat
+    dat_res$value <- dat$value - obs$value
+    dat_resav <- dat_av 
+    dat_resav$mean <- dat_av$mean - obs$value
+    dat_resav$max <- dat_av$max - obs$value
+    dat_resav$min <- dat_av$min - obs$value
+    
+    p2 <- ggplot() +  
+      geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
+      geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
+                  alpha=0.2) + 
+      geom_line(data = dat_res, aes(x = datetime, y = value, col = Model)) +
+      ylab(var) +
+      xlab("") +
+      ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
+      scale_colour_manual(values = c("#D95F02", colfunc(length(unique(dat$Model))), "#7570B3"),
+                          breaks= c(av_fun, unique(dat_res$Model), "Obs"),
+                          guide = guide_legend(override.aes = list(
+                            linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
+                            shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
+
+      theme(text = element_text(size=10),
+            axis.text.x = element_text(angle=0, hjust= 0.5),
+            legend.margin=margin(0,0,0,0),
+            legend.box.margin=margin(0,0,0,0),
+            legend.position="bottom",legend.title=element_blank()) 
+    plist[[2]] <- p2
+    
+    if (boxwhisker){
+      dat <- var_list %>% 
+        melt( id.vars = "datetime") %>% 
+        dplyr::filter(variable == paste0("wtr_", depth)) %>%
+        dplyr::group_by(datetime)
+      colnames(dat) <- c("datetime", "Depth", "value", "Model")
+      
+      dat$Model <- factor(dat$Model)
+      dat$Model <- factor(dat$Model, levels=c("Obs", levels(dat$Model)[-c(which(levels(dat$Model) == "Obs"))]))
+      
+      p3 <- ggplot(dat, aes(x = Model, y = value)) +
+        geom_boxplot() +
+        geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
+        stat_summary(fun.y = mean, geom = "point", shape = 10, size = 4) +
+        ylab(var) +
+        ggtitle(paste0("Box-Whisker-Plot ",paste0("at depth = ", depth, " m"))) +
+        scale_colour_manual(breaks= c(av_fun, unique(dat$Model), "Obs"),
+                            guide = guide_legend(override.aes = list(
+                              linetype = c(rep("solid", length(unique(dat$Model)) + 1), rep("blank", 1)),
+                              shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
+        theme_classic()
+      plist[[3]] <- p3
+    }
+
+  } else {
+    dat <- var_list %>% melt( id.vars = "time") %>% 
+      group_by(time)
+    obs <- dat %>% filter(L1 == "Obs")
+    dat <- dat %>% filter(L1 != "Obs")
+    dat_av <- dat %>% filter(L1 != "Obs") %>%
+      summarize(mean = mean(value, na.rm = TRUE),
+                max = max(value, na.rm = TRUE),
+                min = min(value, na.rm = TRUE)) 
+    p1 <- ggplot() +  geom_line(data = dat_av, aes(time, mean), col =1, lwd = 1.33) +
+      geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
+                  alpha=0.5) + geom_line(data = dat, aes(x = time, y = value, col = L1)) +
+      geom_point(data = obs, aes(x = time, y = value, col = L1), col = 1, size = 1)
+    
+    plist[[1]] <- p1
+  }
+  
+
+  return(plist)
+}
