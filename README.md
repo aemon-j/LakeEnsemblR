@@ -42,21 +42,21 @@ file.copy(from = template_folder, to = "example", recursive = TRUE)
 setwd("example/feeagh") # Change working directory to example folder
 
 # Set config file
-masterConfigFile <- "Feeagh_master_config.yaml"
+config_file <- 'LakeEnsemblR.yaml'
 
 # 1. Example - creates directories with all model setup
-export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
+export_config(config_file = config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
 
 # 2. Create meteo driver files
-export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+export_meteo(config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
 # 3. Create initial conditions
-export_init_cond(config_file = masterConfigFile, 
+export_init_cond(config_file = config_file, 
                  model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                  print = TRUE)
 
 # 4. Run ensemble lake models
-wtemp_list <- run_ensemble(config_file = masterConfigFile,
+wtemp_list <- run_ensemble(config_file = config_file,
                            model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                            return_list = TRUE)
 
@@ -76,27 +76,30 @@ ens_out <- "output/ensemble_output.nc"
 vars <- gotmtools::list_vars(ens_out)
 vars # Print variables
 
-plist <- list() # Initialize empty list for storing plots of each variable
-for(i in 1:5){
-  p1 <- gotmtools::plot_vari(ncdf = ens_out,
-                             var = vars[i],
-                             incl_time = FALSE,
-                             limits = c(0,25), # z limits
-                             zlab = 'degC')
-  p1 <- p1 + scale_y_reverse() + #Reverse y-axis
-    coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
-    ggtitle(vars[i]) + # Add title using variable name
-    xlab("")+ # Remove x-label
-    theme_bw(base_size = 18) # Increase font size of plots
-  plist[[i]] <- p1
-}
+out <- analyse_ncdf(ncdf, spin_up = 0)
+names(out)
+out[['strat']]
+out[['stats']]
+
+# Extract wtemp as a list
+wtemp_list <- load_var(ncdf, var = 'watertemp', return = 'list')
+names(wtemp_list)
+deps <- rLakeAnalyzer::get.offsets(wtemp_list[[1]]) # extract depths
+
+# Plot each 
+plist <- lapply(1:length(wtemp_list), function(x){
+  df <- wide2long(data = wtemp_list[[x]], deps)
+  long_heatmap(df, title = names(wtemp_list)[x])+
+    scale_y_reverse() + #Reverse y-axis
+    coord_cartesian(ylim = c(47,0))+
+    theme_classic(base_size = 20)
+})
 
 # Plot all model simulations
 # install.packages("ggpubr")
-g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = "right")
-g1
-ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300, width = 384, height = 300, units = "mm")
-
+g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 2, nrow = 3, common.legend = TRUE, legend = 'right')
+# g1
+ggsave('output/model_ensemble.png', g1,  dpi = 300,width = 384,height = 280, units = 'mm')
 ```
 ![](images/model_ensemble_watertemp-wMyLake.jpg)<!-- -->
 

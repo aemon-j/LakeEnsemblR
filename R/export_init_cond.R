@@ -40,6 +40,7 @@ export_init_cond <- function(config_file,
   # check model input
   model <- check_models(model)
   
+
   # Here check if config_file, "initial_profile:" is empty or not
   if(get_yaml_value(config_file, "init_temp_profile", "file") == ""){
     # If no initial temperature profile is given, read in the observations and
