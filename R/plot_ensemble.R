@@ -12,9 +12,6 @@
 #' @author Johannes Fledbauer
 #' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
-#' @import ggplot2
-#' @import dplyr
-#' @import RColorBrewer
 #' @examples
 #' \dontrun{
 #' # time series
