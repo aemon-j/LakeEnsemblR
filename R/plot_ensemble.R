@@ -207,39 +207,40 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             legend.position="bottom",legend.title=element_blank()) 
     plist[[1]] <- p1
     
-    
-    dat_res <- dat
-    dat_res$value <- dat$value - obs$value
-    dat_res <- na.exclude(dat_res)
-    dat_resav <- dat_av 
-    dat_resav$mean <- dat_av$mean - obs$value
-    dat_resav$max <- dat_av$max - obs$value
-    dat_resav$min <- dat_av$min - obs$value
-    dat_resav <- na.exclude(dat_resav)
-    
-    p2 <- ggplot() +  
-      geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
-      geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type), lwd = 1.33) +
-      geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),
-                  alpha=0.2) + 
-      geom_point(data = dat_res, aes(x = Depth, y = value, col = Model)) + 
-      geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) + coord_flip() +
-      ylab(var) +
-      xlab("") +
-      ggtitle(paste0("Residuals over depth", paste0("at date ", format(date)))) +
-      scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
-                          breaks= c(av_fun, unique(dat_res$Model), "Obs"),
-                          guide = guide_legend(override.aes = list(
-                            linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
-                            shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
+    # if observations are available plot residuals
+    if(sum(!is.na(obs$value)) > 0 ) {
+      dat_res <- dat
+      dat_res$value <- dat$value - obs$value
+      dat_res <- na.exclude(dat_res)
+      dat_resav <- dat_av 
+      dat_resav$mean <- dat_av$mean - obs$value
+      dat_resav$max <- dat_av$max - obs$value
+      dat_resav$min <- dat_av$min - obs$value
+      dat_resav <- na.exclude(dat_resav)
       
-      theme(text = element_text(size=10),
-            axis.text.x = element_text(angle=0, hjust= 0.5),
-            legend.margin=margin(0,0,0,0),
-            legend.box.margin=margin(0,0,0,0),
-            legend.position="bottom",legend.title=element_blank()) 
-    plist[[2]] <- p2
-    
+      p2 <- ggplot() +  
+        geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
+        geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type), lwd = 1.33) +
+        geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),
+                    alpha=0.2) + 
+        geom_point(data = dat_res, aes(x = Depth, y = value, col = Model)) + 
+        geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) + coord_flip() +
+        ylab(var) +
+        xlab("") +
+        ggtitle(paste0("Residuals over depth", paste0("at date ", format(date)))) +
+        scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
+                            breaks= c(av_fun, unique(dat_res$Model), "Obs"),
+                            guide = guide_legend(override.aes = list(
+                              linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
+                              shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
+        
+        theme(text = element_text(size=10),
+              axis.text.x = element_text(angle=0, hjust= 0.5),
+              legend.margin=margin(0,0,0,0),
+              legend.box.margin=margin(0,0,0,0),
+              legend.position="bottom",legend.title=element_blank()) 
+      plist[[2]] <- p2
+    }
     if (boxwhisker){
       
       dat <- var_list %>% melt( id.vars = "datetime") %>% 
