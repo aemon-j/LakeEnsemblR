@@ -12,6 +12,7 @@
 #' @author Johannes Fledbauer
 #' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
+#' @importFrom RColorBrewer brewer.pal
 #' @examples
 #' \dontrun{
 #' # time series
@@ -29,7 +30,7 @@
 #'
 #' @export
 plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                          var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE) {
+                          var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE, residuals = FALSE) {
   # check if model input is correct
   model <- check_models(model)
   # get variable
@@ -46,7 +47,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   colfunc <- colorRampPalette(brewer.pal(length(model), 'Set2'))
   
   # if no date is selected plot time series
-  if(is.null(date)) {
+  if(!is.null(depth)) {
     if(var == "watertemp" & is.null(depth)) {
       stop(paste0("When plotting water temperature depth must be specified"))
     }
@@ -95,33 +96,41 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
               legend.position="bottom",legend.title=element_blank()) 
       plist[[1]] <- p1
       
-      dat_res <- dat
-      dat_res$value <- dat$value - obs$value
-      dat_resav <- dat_av 
-      dat_resav$mean <- dat_av$mean - obs$value
-      dat_resav$max <- dat_av$max - obs$value
-      dat_resav$min <- dat_av$min - obs$value
+      if (residuals){
+        if (sum(!is.na(obs$value)) == 0){
+          warning(paste0("Residuals can not be calculated because observed data is missing."))
+        }
+        # if observations are available plot residuals
+        if(sum(!is.na(obs$value)) > 0 ) {
+          dat_res <- dat
+          dat_res$value <- dat$value - obs$value
+          dat_resav <- dat_av 
+          dat_resav$mean <- dat_av$mean - obs$value
+          dat_resav$max <- dat_av$max - obs$value
+          dat_resav$min <- dat_av$min - obs$value
+          
+          p2 <- ggplot() +  
+            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
+            geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
+                        alpha=0.2) + 
+            geom_line(data = dat_res, aes(x = datetime, y = value, col = Model)) +
+            ylab(var) +
+            xlab("") +
+            ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
+            scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
+                                breaks= c(av_fun, unique(dat_res$Model), "Obs"),
+                                guide = guide_legend(override.aes = list(
+                                  linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
+                                  shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
       
-      p2 <- ggplot() +  
-        geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
-        geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
-                    alpha=0.2) + 
-        geom_line(data = dat_res, aes(x = datetime, y = value, col = Model)) +
-        ylab(var) +
-        xlab("") +
-        ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
-        scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
-                            breaks= c(av_fun, unique(dat_res$Model), "Obs"),
-                            guide = guide_legend(override.aes = list(
-                              linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
-                              shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
-  
-        theme(text = element_text(size=10),
-              axis.text.x = element_text(angle=0, hjust= 0.5),
-              legend.margin=margin(0,0,0,0),
-              legend.box.margin=margin(0,0,0,0),
-              legend.position="bottom",legend.title=element_blank()) 
-      plist[[2]] <- p2
+            theme(text = element_text(size=10),
+                  axis.text.x = element_text(angle=0, hjust= 0.5),
+                  legend.margin=margin(0,0,0,0),
+                  legend.box.margin=margin(0,0,0,0),
+                  legend.position="bottom",legend.title=element_blank()) 
+          plist[[2]] <- p2
+        }
+      }
       
       if (boxwhisker){
         dat <- var_list %>% 
@@ -146,11 +155,16 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                              rep("blank", 1)),
                                 shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
           theme_classic()
-        plist[[3]] <- p3
+        
+        if (residuals){
+          plist[[3]] <- p3
+        } else {
+          plist[[2]] <- p3
+        }
       }
   
     } else {
-      # if a specific date is selected plot a depth profile
+      
       
       dat <- var_list %>% reshape2::melt( id.vars = "time") %>% 
         dplyr::group_by(time)
@@ -170,8 +184,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       
       plist[[1]] <- p1
     }
-  } else {
-    
+  } 
+  if(!is.null(date)) {
+    # if a specific date is selected plot a depth profile
     dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>% 
       dplyr::filter(datetime == date) %>%
       dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
@@ -209,38 +224,43 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             legend.position="bottom",legend.title=element_blank()) 
     plist[[1]] <- p1
     
+    if (residuals){
+      if (sum(!is.na(obs$value)) == 0){
+        warning(paste0("Residuals can not be calculated because observed data is missing."))
+      }
     # if observations are available plot residuals
-    if(sum(!is.na(obs$value)) > 0 ) {
-      dat_res <- dat
-      dat_res$value <- dat$value - obs$value
-      dat_res <- na.exclude(dat_res)
-      dat_resav <- dat_av 
-      dat_resav$mean <- dat_av$mean - obs$value
-      dat_resav$max <- dat_av$max - obs$value
-      dat_resav$min <- dat_av$min - obs$value
-      dat_resav <- na.exclude(dat_resav)
-      
-      p2 <- ggplot() +  
-        geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
-        geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type), lwd = 1.33) +
-        geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),
-                    alpha=0.2) + 
-        geom_point(data = dat_res, aes(x = Depth, y = value, col = Model)) + 
-        geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) +
-        coord_flip() + ylab(var) + xlab("") +
-        ggtitle(paste0("Residuals over depth", paste0("at date ", format(date)))) +
-        scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
-                            breaks= c(av_fun, unique(dat_res$Model), "Obs"),
-                            guide = guide_legend(override.aes = list(
-                              linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
-                              shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
+      if(sum(!is.na(obs$value)) > 0 ) {
+        dat_res <- dat
+        dat_res$value <- dat$value - obs$value
+        dat_res <- na.exclude(dat_res)
+        dat_resav <- dat_av 
+        dat_resav$mean <- dat_av$mean - obs$value
+        dat_resav$max <- dat_av$max - obs$value
+        dat_resav$min <- dat_av$min - obs$value
+        dat_resav <- na.exclude(dat_resav)
         
-        theme(text = element_text(size=10),
-              axis.text.x = element_text(angle=0, hjust= 0.5),
-              legend.margin=margin(0,0,0,0),
-              legend.box.margin=margin(0,0,0,0),
-              legend.position="bottom",legend.title=element_blank()) 
-      plist[[2]] <- p2
+        p2 <- ggplot() +  
+          geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
+          geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type), lwd = 1.33) +
+          geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),
+                      alpha=0.2) + 
+          geom_point(data = dat_res, aes(x = Depth, y = value, col = Model)) + 
+          geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) +
+          coord_flip() + ylab(var) + xlab("") +
+          ggtitle(paste0("Residuals over depth ", paste0("at date ", format(date)))) +
+          scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
+                              breaks= c(av_fun, unique(dat_res$Model), "Obs"),
+                              guide = guide_legend(override.aes = list(
+                                linetype = c(rep("solid", length(unique(dat_res$Model)) + 1)),
+                                shape = c(rep(NA, length(unique(dat_res$Model)) + 1))))) +
+          
+          theme(text = element_text(size=10),
+                axis.text.x = element_text(angle=0, hjust= 0.5),
+                legend.margin=margin(0,0,0,0),
+                legend.box.margin=margin(0,0,0,0),
+                legend.position="bottom",legend.title=element_blank()) 
+        plist[[2]] <- p2
+      }
     }
     if (boxwhisker){
       
@@ -266,7 +286,11 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                            rep("blank", 1)),
                               shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
         theme_classic()
-      plist[[3]] <- p3
+      if (residuals){
+        plist[[3]] <- p3
+      } else {
+        plist[[2]] <- p3
+      }
     }
     
   }
