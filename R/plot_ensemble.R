@@ -33,7 +33,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   # check if model input is correct
   model <- check_models(model)
   # get variable
-  var_list <- load_var(ncdf, var = var, return = "list")
+  var_list <- load_var(ncdf, var = var, return = "list", print = FALSE)
   # get depths
   deps <- get.offsets(var_list[[1]])
   # only the selected models
