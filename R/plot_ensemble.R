@@ -226,7 +226,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) + coord_flip() +
       ylab(var) +
       xlab("") +
-      ggtitle(paste0("Residuals ", paste0("at date ", format(date)))) +
+      ggtitle(paste0("Residuals over depth", paste0("at date ", format(date)))) +
       scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
                           breaks= c(av_fun, unique(dat_res$Model), "Obs"),
                           guide = guide_legend(override.aes = list(
