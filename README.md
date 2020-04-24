@@ -47,10 +47,10 @@ config_file <- 'LakeEnsemblR.yaml'
 # 1. Example - creates directories with all model setup
 export_config(config_file = config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
 
-# 2. Create meteo driver files
+# 2. Create meteo driver files for each model
 export_meteo(config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
-# 3. Create initial conditions
+# 3. Create initial conditions for each model
 export_init_cond(config_file = config_file, 
                  model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                  print = TRUE)
@@ -101,7 +101,11 @@ g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 2, nrow = 3, common.legend = TR
 # g1
 ggsave('output/model_ensemble.png', g1,  dpi = 300,width = 384,height = 280, units = 'mm')
 ```
-![](images/model_ensemble_watertemp-wMyLake.jpg)<!-- -->
+![](images/ensemble_heatmap.jpg)<!-- -->
+
+How do I setup `LakeEnsemblR` for my lake?
+=========================================================
+Head on over to our [Wiki](https://github.com/aemon-j/LakeEnsemblR/wiki) for guides on how to set up your lake for LakeEnsemblR
 
 How do I contribute new code back to the `LakeEnsemblR` project?
 ==========================================================
