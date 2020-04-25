@@ -49,5 +49,5 @@ p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
 
 }
 \author{
-Johannes Fledbauer
+Johannes Feldbauer, Robert Ladwig
 }

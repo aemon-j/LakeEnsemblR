@@ -9,7 +9,7 @@
 #' @param depth If `var` has a depth dimension, for which depth should it be plotted?
 #' @param date Specific date for which depth profiles should be plotted
 #' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
-#' @author Johannes Fledbauer
+#' @author Johannes Feldbauer, Robert Ladwig
 #' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @importFrom RColorBrewer brewer.pal
