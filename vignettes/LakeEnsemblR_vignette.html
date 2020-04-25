@@ -15,7 +15,7 @@
 <meta name="author" content="jorrit.mesman@unige.ch" />
 <meta name="author" content="ladwigjena@gmail.com" />
 
-<meta name="date" content="2020-04-19" />
+<meta name="date" content="2020-04-25" />
 
 <title>R package LakeEnsemblR: Basic Use and Sample Applications</title>
 
@@ -40,7 +40,7 @@ a.sourceLine { text-indent: -1em; padding-left: 1em; }
 pre.numberSource a.sourceLine
   { position: relative; left: -4em; }
 pre.numberSource a.sourceLine::before
-  { content: attr(data-line-number);
+  { content: attr(title);
     position: relative; left: -1em; text-align: right; vertical-align: baseline;
     border: none; pointer-events: all; display: inline-block;
     -webkit-touch-callout: none; -webkit-user-select: none;
@@ -307,25 +307,36 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h4 class="author"><a href="mailto:tadhg.moore@dkit.ie" class="email">tadhg.moore@dkit.ie</a></h4>
 <h4 class="author"><a href="mailto:jorrit.mesman@unige.ch" class="email">jorrit.mesman@unige.ch</a></h4>
 <h4 class="author"><a href="mailto:ladwigjena@gmail.com" class="email">ladwigjena@gmail.com</a></h4>
-<h4 class="date">2020-04-19</h4>
+<h4 class="date">2020-04-25</h4>
 
 
 <div id="TOC">
 <ul>
 <li><a href="#included-models"><span class="toc-section-number">1</span> Included models</a></li>
-<li><a href="#setting-up-lakeensemblr"><span class="toc-section-number">2</span> Setting up LakeEnsemblR</a><ul>
-<li><a href="#introduction"><span class="toc-section-number">2.1</span> Introduction</a></li>
-<li><a href="#datetime-formatting"><span class="toc-section-number">2.2</span> DateTime formatting</a></li>
-<li><a href="#time-zones"><span class="toc-section-number">2.3</span> Time Zones</a></li>
-<li><a href="#hypsograph-data"><span class="toc-section-number">2.4</span> Hypsograph data</a></li>
-<li><a href="#temperature-profile-data"><span class="toc-section-number">2.5</span> Temperature Profile data</a></li>
-<li><a href="#meteorological-data"><span class="toc-section-number">2.6</span> Meteorological data</a></li>
-<li><a href="#lakeensemblr-yaml-configuration-file"><span class="toc-section-number">2.7</span> LakeEnsemblR YAML configuration file</a></li>
+<li><a href="#introduction"><span class="toc-section-number">2</span> Introduction</a></li>
+<li><a href="#installation"><span class="toc-section-number">3</span> Installation</a></li>
+<li><a href="#the-lakeensemblr-configuration-file"><span class="toc-section-number">4</span> The LakeEnsemblR configuration file</a><ul>
+<li><a href="#location"><span class="toc-section-number">4.1</span> Location</a></li>
+<li><a href="#time"><span class="toc-section-number">4.2</span> Time</a></li>
+<li><a href="#config-files"><span class="toc-section-number">4.3</span> Config files</a></li>
+<li><a href="#light"><span class="toc-section-number">4.4</span> Light</a></li>
+<li><a href="#observations"><span class="toc-section-number">4.5</span> Observations</a></li>
+<li><a href="#input"><span class="toc-section-number">4.6</span> Input</a></li>
+<li><a href="#inflows"><span class="toc-section-number">4.7</span> Inflows</a></li>
+<li><a href="#output"><span class="toc-section-number">4.8</span> Output</a></li>
+<li><a href="#biogeochemistry"><span class="toc-section-number">4.9</span> Biogeochemistry</a></li>
+<li><a href="#model-parameters"><span class="toc-section-number">4.10</span> Model parameters</a></li>
+<li><a href="#calibration"><span class="toc-section-number">4.11</span> Calibration</a></li>
 </ul></li>
-<li><a href="#running-lakeensemblr"><span class="toc-section-number">3</span> Running LakeEnsemblR</a><ul>
-<li><a href="#example-model-run"><span class="toc-section-number">3.1</span> Example model run</a></li>
-<li><a href="#post-processing"><span class="toc-section-number">3.2</span> Post-processing</a></li>
+<li><a href="#workflow"><span class="toc-section-number">5</span> Workflow</a><ul>
+<li><a href="#setting-up-a-directory"><span class="toc-section-number">5.1</span> Setting up a directory</a></li>
+<li><a href="#export_config"><span class="toc-section-number">5.2</span> Export_config</a></li>
+<li><a href="#optional-changes-in-model-specific-directories"><span class="toc-section-number">5.3</span> Optional: changes in model-specific directories</a></li>
+<li><a href="#run_ensemble"><span class="toc-section-number">5.4</span> Run_ensemble</a></li>
+<li><a href="#post-processing"><span class="toc-section-number">5.5</span> Post-processing</a></li>
+<li><a href="#example-model-run"><span class="toc-section-number">5.6</span> Example model run</a></li>
 </ul></li>
+<li><a href="#citation"><span class="toc-section-number">6</span> Citation</a></li>
 <li><a href="#references">References</a></li>
 </ul>
 </div>
@@ -342,23 +353,28 @@ rmarkdown::pdf_document:
 <h1><span class="header-section-number">1</span> Included models</h1>
 <p>LakeEnsemblR currently includes the following models: GLM (<span class="citation">Hipsey et al. (2019)</span>), FLake (<span class="citation">Mironov (2008)</span>), GOTM (<span class="citation">Umlauf, Bolding, and Burchard (2005)</span>), Simstrat (<span class="citation">Goudsmit et al. (2002)</span>), and MyLake (<span class="citation">Saloranta and Andersen (2007)</span>).</p>
 </div>
-<div id="setting-up-lakeensemblr" class="section level1">
-<h1><span class="header-section-number">2</span> Setting up LakeEnsemblR</h1>
-<div id="introduction" class="section level2">
-<h2><span class="header-section-number">2.1</span> Introduction</h2>
-<p>A key part of developing LakeEnsemblR was to develop a standardised format for model input data. This involved standard variable naming which includes units.</p>
+<div id="introduction" class="section level1">
+<h1><span class="header-section-number">2</span> Introduction</h1>
+<p>LakeEnsemblR is an R package that lets you run multiple one-dimensional physical lake models.</p>
+<p>The settings for a model run are controlled by one centralised, “master” configuration file in YAML format. In this configuration file, you can set all the specifications for your model run, including start and end time, time steps, links to meteorological forcing and bathymetry files, etc. The package then converts these settings to the configuration files required by each model, through the <code>export_config</code> function. This sets up all models to run with the settings specified by the user, and the models are then run through the <code>run_ensemble</code> function. A netcdf file is created with the outputs of all the models, and the package provides functions to extract and plot this data.</p>
+<p>Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the international standard format (ISO 8601), which is <code>YYYY-mm-dd HH:MM:SS</code>, for example <code>2020-04-03 09:00:00</code>. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in <code>package/inst/extdata</code>, or extracted by the function get_template).</p>
 </div>
-<div id="datetime-formatting" class="section level2">
-<h2><span class="header-section-number">2.2</span> DateTime formatting</h2>
-<p>This package uses international standard format for date and time (ISO 8601), which is <code>YYYY-mm-dd HH:MM:SS</code>. For example: <code>2020-04-03 09:00:00</code>.</p>
+<div id="installation" class="section level1">
+<h1><span class="header-section-number">3</span> Installation</h1>
+<p>The code of LakeEnsemblR is hosted on the AEMON-J Github page (<a href="https://github.com/aemon-j/LakeEnsemblR" class="uri">https://github.com/aemon-j/LakeEnsemblR</a>), and can be installed using the <code>devtools</code> package</p>
+<pre><code>devtools::install_github(&quot;aemon-j/LakeEnsemblR)</code></pre>
+<p>The package relies on multiple other packages that also need to be installed. Most notably, to run the multiple models, it requires the packages FLakeR, GLM3r, GOTMr, SimstratR, and MyLakeR. These packages run the individual models, and contain ways of running the models for the platforms Windows, MacOS, or UNIX, through either executables, or by having the model code in R.</p>
 </div>
-<div id="time-zones" class="section level2">
-<h2><span class="header-section-number">2.3</span> Time Zones</h2>
-<p>Currently this is not accounted for so the timezone used in input is the timezone of output data. It is on the list of things to do.</p>
-</div>
-<div id="hypsograph-data" class="section level2">
-<h2><span class="header-section-number">2.4</span> Hypsograph data</h2>
-<p>The data needs to be a comma separated values (.csv) file where 0m is the surface and all depths are reported as positive. Area needs to be in meters squared. The column names <em>must</em> be <code>Depth_meter</code> and <code>Area_meterSquared</code></p>
+<div id="the-lakeensemblr-configuration-file" class="section level1">
+<h1><span class="header-section-number">4</span> The LakeEnsemblR configuration file</h1>
+<p>In this section, we go through the LakeEnsemblR configuration file. This file controls the settings with which the models are run. It is written in YAML (Yaml Ain’t Markup Language) format, and can be opened by text-editors such as Notepad or Notepad++. Although not needed to use LakeEnsemblR, you can read this file into R with the <code>configr</code> package (<code>read.config</code> function). Within LakeEnsemblR, we provide the <code>get_yaml_value</code> and <code>input_yaml</code> functions to get and input values into this file type.</p>
+<p>There is an example LakeEnsemblR configuration file provided in the example dataset in the package (<code>LakeEnsemblR::get_template(&quot;LakeEnsemblR_config&quot;)</code>) or you can download a copy from GitHub <a href="https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata/feeagh/Feeagh_master_config.yaml">here</a>.</p>
+<div id="location" class="section level2">
+<h2><span class="header-section-number">4.1</span> Location</h2>
+<p>The first section is “Location”. Here you specify the name, latitude and longitude, elevation, maximum depth, and initial depth.</p>
+<p>You also need to provide a link to the hypsograph (i.e. surface area per depth) file. As in the rest of the configuration file, all links to files are relative to the <code>folder</code> argument in the LakeEnsemblR functions (default is the R working directory). We strongly advise to set the working directory to the location of the LER config file, and link to the files relative to this directory (we explain this further in the chapter “Workflow” of this vignette). For example, if your hypsograph file is called <code>hypsograph.csv</code> and in the same folder as the LER config file, the corresponding line in the LER config file would look like</p>
+<pre><code>  hypsograph: hypsograph.csv</code></pre>
+<p>The data needs to be a comma-separated file (.csv) where 0m is the surface and all depths are reported as positive, in meters. Area needs to be in meters squared. The column names <em>must</em> be <code>Depth_meter</code> and <code>Area_meterSquared</code></p>
 <p>Example of data:</p>
 <pre><code>Depth_meter,Area_meterSquared
 0,3931000
@@ -370,9 +386,22 @@ rmarkdown::pdf_document:
 6,3029720
 ...</code></pre>
 </div>
-<div id="temperature-profile-data" class="section level2">
-<h2><span class="header-section-number">2.5</span> Temperature Profile data</h2>
-<p>The data needs to be a comma separated values (.csv) file where the datetime column is in the format <code>YYYY-mm-dd HH:MM:SS</code>. Depths are positive and relative to the water surface. Water temperature is in degrees Celsius. The column names <em>must</em> be <code>datetime</code>, <code>Depth_meter</code> and <code>Water_Temperature_celsius</code></p>
+<div id="time" class="section level2">
+<h2><span class="header-section-number">4.2</span> Time</h2>
+<p>In the “Time” section, you fill in the start and end date of the simulation, and the model time step. <code>time_step</code> indicates the model integration time step, so each time step that the model performs a calculation.</p>
+</div>
+<div id="config-files" class="section level2">
+<h2><span class="header-section-number">4.3</span> Config files</h2>
+<p>In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (<code>get_template(&quot;FLake_config&quot;)</code>, <code>get_template(&quot;GLM_config&quot;)</code>, etc.) or you can download a copy from GitHub <a href="https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata">here</a>. The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER “master” config file. However, should you want to change some of the more specialised settings in each model, that is possible.</p>
+</div>
+<div id="light" class="section level2">
+<h2><span class="header-section-number">4.4</span> Light</h2>
+<p>Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available).</p>
+</div>
+<div id="observations" class="section level2">
+<h2><span class="header-section-number">4.5</span> Observations</h2>
+<p>If you have observations of water temperature or ice cover, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (but see next section).</p>
+<p>For water temperature, the data needs to be a comma separated values (.csv) file where the datetime column is in the format <code>YYYY-mm-dd HH:MM:SS</code>. Depths are positive and relative to the water surface. Water temperature is in degrees Celsius. The column names <em>must</em> be <code>datetime</code>, <code>Depth_meter</code> and <code>Water_Temperature_celsius</code> (templates available).</p>
 <p>Example of data:</p>
 <pre><code>datetime,Depth_meter,Water_Temperature_celsius
 2004-01-05 00:00:00,0.9,6.97
@@ -381,9 +410,11 @@ rmarkdown::pdf_document:
 2004-01-05 00:00:00,8,6.76
 ...</code></pre>
 </div>
-<div id="meteorological-data" class="section level2">
-<h2><span class="header-section-number">2.6</span> Meteorological data</h2>
-<p>The data needs to be a comma separated values (.csv) file where the datetime column is in the format <code>YYYY-mm-dd HH:MM:SS</code>. See table 1 for the list of variables, units and column names.</p>
+<div id="input" class="section level2">
+<h2><span class="header-section-number">4.6</span> Input</h2>
+<p>In the “Input” section, you give information about the initial temperature profile, meteorological forcing, and ice.</p>
+<p>Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.</p>
+<p>Secondly, you give the link to the file with your meteorological data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format <code>YYYY-mm-dd HH:MM:SS</code>. See table 1 for the list of variables, units and column names. The time_zone setting has not been implemented yet.</p>
 <p>Table 1. Description of meteorological variables used within LakeEnsemblR with units and required column names.</p>
 <table>
 <colgroup>
@@ -499,103 +530,152 @@ rmarkdown::pdf_document:
 </tr>
 </tbody>
 </table>
+<p>Lastly, you can specify if you want to use the ice modules that are present in some of the models.</p>
 </div>
-<div id="lakeensemblr-yaml-configuration-file" class="section level2">
-<h2><span class="header-section-number">2.7</span> LakeEnsemblR YAML configuration file</h2>
-<p>There is an example yaml configuration provided in the example dataset in the package or you can download a copy from GitHub <a href="https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata/feeagh/Feeagh_master_config.yaml">here</a>.</p>
-<p>You will need to update each of the required variables in the location block to reflect your own site.</p>
-<pre><code>location:
-   name: Feeagh                                 # station name used in output [default=GOTM site]
-   latitude: 53.9                               # latitude [degrees North; min=-90.0; max=90.0; default=0.0]
-   longitude: -9.5                              # longitude [degrees East; min=-360.0; max=360.0; default=0.0]
-   elevation: 15                                # elevation of lake surface above sea level [m]
-   depth: 46.8                                  # maximum water depth [m; min=0.0; default=100.0]
-   hypsograph: LakeEnsemblR_bathymetry_standard.csv                 # hypsograph [default=]
-   init_depth: 46.8                             # initial height of lake surface relative to the bottom [m]</code></pre>
-<p>Then input the filepaths to the bathymetry, meteorlogical and water temperature profile observations file. For first time users we would recommend to set up a folder with just these three files plus the LakeEnsemblR yaml configuration file.</p>
-<p>Now you should be ready to run LakeEnsemblR on your site.</p>
+<div id="inflows" class="section level2">
+<h2><span class="header-section-number">4.7</span> Inflows</h2>
+<p>Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format <code>YYYY-mm-dd HH:MM:SS</code>. Flow discharge, water temperature, and salinity need to be specified. The column names <em>must</em> be <code>datetime</code>, <code>Flow_metersCubedPerSecond</code>, <code>Water_Temperature_celsius</code>, and <code>Salinity_practicalSalinityUnits</code> (template available).</p>
+<p>Example of data:</p>
+<pre><code>datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalSalinityUnits
+2005-01-01 00:00:00,5.62,6.96,0.00
+2005-01-02 00:00:00,2.32,6.00,0.00
+2005-01-03 00:00:00,1.77,8.44,0.00
+2005-01-04 00:00:00,4.64,7.27,0.00
+...</code></pre>
+</div>
+<div id="output" class="section level2">
+<h2><span class="header-section-number">4.8</span> Output</h2>
+<p>In the “Output” section, you specify how the output should look like. Currently, only the netcdf option is in place. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently only “temp” and “ice_height”).</p>
+</div>
+<div id="biogeochemistry" class="section level2">
+<h2><span class="header-section-number">4.9</span> Biogeochemistry</h2>
+<p>Currently not implemented</p>
+</div>
+<div id="model-parameters" class="section level2">
+<h2><span class="header-section-number">4.10</span> Model parameters</h2>
+<p>All models in LakeEnsemblR have different parameterizations. In this section, you can set the value of any parameter in one of the model-specific configuration files.</p>
+<p>You can give either only the name of the parameter, but if needed you can also provide the name of the section in which the parameter occurs, separated by a <code>/</code>. For example for GOTM’s k_min parameter:</p>
+<pre><code>  GOTM:
+    k_min: 3.6E-6</code></pre>
+<p>or:</p>
+<pre><code>  GOTM:
+    turb_param/k_min: 3.6E-6</code></pre>
+</div>
+<div id="calibration" class="section level2">
+<h2><span class="header-section-number">4.11</span> Calibration</h2>
+<p>This section is used when calibrating the models. In the package, the run_LHC (Latin-Hypercube) and run_MCMC (Monte-Carlo Markov Chain) functions do this, but this is currently still in a beta-phase and this will be more clearly explained in a later version of this vignette.</p>
 </div>
 </div>
-<div id="running-lakeensemblr" class="section level1">
-<h1><span class="header-section-number">3</span> Running LakeEnsemblR</h1>
-<p>Once you have your hypsograph, water temperature observations and meteorological files prepared tunning LakeEnsemblR is relatively straightforward.</p>
-<div id="example-model-run" class="section level2">
-<h2><span class="header-section-number">3.1</span> Example model run</h2>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb4-1" data-line-number="1"><span class="co"># Install packages - Ensure all packages are up to date - parallel development ongoing</span></a>
-<a class="sourceLine" id="cb4-2" data-line-number="2"><span class="co">#install.packages('devtools')</span></a>
-<a class="sourceLine" id="cb4-3" data-line-number="3">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'GLEON/GLM3r'</span>)</a>
-<a class="sourceLine" id="cb4-4" data-line-number="4">devtools<span class="op">::</span><span class="kw">install_github</span>(‘USGS<span class="op">-</span>R<span class="op">/</span>glmtools’, <span class="dt">ref =</span> ‘ggplot_overhaul’)</a>
-<a class="sourceLine" id="cb4-5" data-line-number="5">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/FLakeR'</span>, <span class="dt">ref =</span> “inflow”)</a>
-<a class="sourceLine" id="cb4-6" data-line-number="6">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/GOTMr'</span>)</a>
-<a class="sourceLine" id="cb4-7" data-line-number="7">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/gotmtools'</span>)</a>
-<a class="sourceLine" id="cb4-8" data-line-number="8">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/SimstratR'</span>)</a>
-<a class="sourceLine" id="cb4-9" data-line-number="9">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/LakeEnsemblR'</span>)</a>
-<a class="sourceLine" id="cb4-10" data-line-number="10">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">'aemon-j/MyLakeR'</span>)</a>
-<a class="sourceLine" id="cb4-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb4-12" data-line-number="12"><span class="co"># Load libraries</span></a>
-<a class="sourceLine" id="cb4-13" data-line-number="13"><span class="kw">library</span>(gotmtools)</a>
-<a class="sourceLine" id="cb4-14" data-line-number="14"><span class="kw">library</span>(LakeEnsemblR)</a>
-<a class="sourceLine" id="cb4-15" data-line-number="15"></a>
-<a class="sourceLine" id="cb4-16" data-line-number="16"><span class="co"># Set working directory</span></a>
-<a class="sourceLine" id="cb4-17" data-line-number="17"><span class="kw">setwd</span>(<span class="st">'example'</span>) <span class="co"># Change working directory to example folder</span></a>
-<a class="sourceLine" id="cb4-18" data-line-number="18"></a>
-<a class="sourceLine" id="cb4-19" data-line-number="19"><span class="co"># Set models &amp; config file</span></a>
-<a class="sourceLine" id="cb4-20" data-line-number="20">model &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">'GLM'</span>,  <span class="st">'FLake'</span>, <span class="st">'GOTM'</span>, <span class="st">'Simstrat'</span>, <span class="st">'MyLake'</span>)</a>
-<a class="sourceLine" id="cb4-21" data-line-number="21">config_file &lt;-<span class="st"> 'Feeagh_master_config.yaml'</span></a>
-<a class="sourceLine" id="cb4-22" data-line-number="22"></a>
-<a class="sourceLine" id="cb4-23" data-line-number="23"><span class="co"># 1. Example - creates directories with all model setup</span></a>
-<a class="sourceLine" id="cb4-24" data-line-number="24"><span class="kw">export_config</span>(<span class="dt">config_file =</span> config_file, <span class="dt">model =</span> model, <span class="dt">folder =</span> <span class="st">'.'</span>)</a>
-<a class="sourceLine" id="cb4-25" data-line-number="25"></a>
-<a class="sourceLine" id="cb4-26" data-line-number="26"><span class="co"># 2. Create meteo driver files</span></a>
-<a class="sourceLine" id="cb4-27" data-line-number="27"><span class="kw">export_meteo</span>(<span class="dt">config_file =</span> config_file, <span class="dt">model =</span> model)</a>
-<a class="sourceLine" id="cb4-28" data-line-number="28"></a>
-<a class="sourceLine" id="cb4-29" data-line-number="29"><span class="co"># 3. Create initial conditions</span></a>
-<a class="sourceLine" id="cb4-30" data-line-number="30">start_date &lt;-<span class="st"> </span><span class="kw">get_yaml_value</span>(<span class="dt">file =</span> config_file, <span class="dt">label =</span>  <span class="st">&quot;time&quot;</span>, <span class="dt">key =</span> <span class="st">&quot;start&quot;</span>)</a>
-<a class="sourceLine" id="cb4-31" data-line-number="31"></a>
-<a class="sourceLine" id="cb4-32" data-line-number="32"><span class="kw">export_init_cond</span>(<span class="dt">config_file =</span> config_file, </a>
-<a class="sourceLine" id="cb4-33" data-line-number="33">                 <span class="dt">model =</span> model,</a>
-<a class="sourceLine" id="cb4-34" data-line-number="34">                 <span class="dt">date =</span> start_date,</a>
-<a class="sourceLine" id="cb4-35" data-line-number="35">                 <span class="dt">print =</span> <span class="ot">TRUE</span>)</a>
-<a class="sourceLine" id="cb4-36" data-line-number="36"></a>
-<a class="sourceLine" id="cb4-37" data-line-number="37"><span class="co"># 4. Run ensemble lake models</span></a>
-<a class="sourceLine" id="cb4-38" data-line-number="38">wtemp_list &lt;-<span class="st"> </span><span class="kw">run_ensemble</span>(<span class="dt">config_file =</span> config_file,</a>
-<a class="sourceLine" id="cb4-39" data-line-number="39">                           <span class="dt">model =</span> <span class="kw">c</span>(<span class="st">'FLake'</span>, <span class="st">'GLM'</span>, <span class="st">'GOTM'</span>, <span class="st">'Simstrat'</span>, <span class="st">'MyLake'</span>),</a>
-<a class="sourceLine" id="cb4-40" data-line-number="40">                           <span class="dt">return_list =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<div id="workflow" class="section level1">
+<h1><span class="header-section-number">5</span> Workflow</h1>
+<p>In this chapter, we quickly show you how your workflow with LakeEnsemblR could look like.</p>
+<div id="setting-up-a-directory" class="section level2">
+<h2><span class="header-section-number">5.1</span> Setting up a directory</h2>
+<p>First, you make an empty directory for the simulations of a specific lake. In this directory, you place the LakeEnsemblR configuration file, and the necessary LakeEnsemblR-format input files (e.g. meteorology, inflow, water temperature observations, hypsograph). Within this directory, you create empty folders for each model (FLake, GLM, GOTM, Simstrat, MyLake), and in here you place the model-specific configuration files, corresponding the information you put in the <code>config_files</code> section in the LER config file.</p>
+</div>
+<div id="export_config" class="section level2">
+<h2><span class="header-section-number">5.2</span> Export_config</h2>
+<p>Then, you run the <code>export_config</code> function, which exports the settings in the LER configuration file to the model-specific configuration files. It is possible to run parts of this function, such as <code>export_meteo</code>, if the meteorological forcing is the only thing you changed, but usually you will run <code>export_config</code>.</p>
+</div>
+<div id="optional-changes-in-model-specific-directories" class="section level2">
+<h2><span class="header-section-number">5.3</span> Optional: changes in model-specific directories</h2>
+<p>Optionally, you can now go into the model-specific configuration files and make further changes. This should not be needed for regular simulations, especially since you can control parameters in the <code>model_parameters</code> section of the LER config file, but the option is there. For example, if you want to change the depth of the inflow in the Simstrat model, you could go to the Simstrat folders and make these changes manually (or through a script you wrote). It speaks for itself that these changes should be done only if you are sure this is what you need, and LakeEnsemblR does not provide further support for this.</p>
+</div>
+<div id="run_ensemble" class="section level2">
+<h2><span class="header-section-number">5.4</span> Run_ensemble</h2>
+<p>The next step would be to call <code>run_ensemble</code>, which runs all the models. A new folder called “output” is created, in which a netcdf-file will be put with all the results from the model runs. If you are interested, each model sub-folder will also have an “output” folder, with the model-specific model output.</p>
 </div>
 <div id="post-processing" class="section level2">
-<h2><span class="header-section-number">3.2</span> Post-processing</h2>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb5-1" data-line-number="1"><span class="co"># Load libraries for post-processing</span></a>
-<a class="sourceLine" id="cb5-2" data-line-number="2"><span class="kw">library</span>(ggpubr)</a>
-<a class="sourceLine" id="cb5-3" data-line-number="3"><span class="kw">library</span>(ggplot2)</a>
-<a class="sourceLine" id="cb5-4" data-line-number="4"></a>
-<a class="sourceLine" id="cb5-5" data-line-number="5"><span class="co">## Plot model output using gotmtools/ggplot2</span></a>
-<a class="sourceLine" id="cb5-6" data-line-number="6"></a>
-<a class="sourceLine" id="cb5-7" data-line-number="7"><span class="co"># Extract names of all the variables in netCDF</span></a>
-<a class="sourceLine" id="cb5-8" data-line-number="8">ens_out &lt;-<span class="st"> 'output/ensemble_output.nc'</span></a>
-<a class="sourceLine" id="cb5-9" data-line-number="9">vars &lt;-<span class="st"> </span>gotmtools<span class="op">::</span><span class="kw">list_vars</span>(ens_out)</a>
-<a class="sourceLine" id="cb5-10" data-line-number="10">vars <span class="co"># Print variables</span></a>
-<a class="sourceLine" id="cb5-11" data-line-number="11"></a>
-<a class="sourceLine" id="cb5-12" data-line-number="12">plist &lt;-<span class="st"> </span><span class="kw">list</span>() <span class="co"># Initialize empty list for storing plots of each variable</span></a>
-<a class="sourceLine" id="cb5-13" data-line-number="13"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>){</a>
-<a class="sourceLine" id="cb5-14" data-line-number="14">  p1 &lt;-<span class="st"> </span>gotmtools<span class="op">::</span><span class="kw">plot_vari</span>(<span class="dt">ncdf =</span> ens_out,</a>
-<a class="sourceLine" id="cb5-15" data-line-number="15">                             <span class="dt">var =</span> vars[i],</a>
-<a class="sourceLine" id="cb5-16" data-line-number="16">                             <span class="dt">incl_time =</span> <span class="ot">FALSE</span>,</a>
-<a class="sourceLine" id="cb5-17" data-line-number="17">                             <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">25</span>),</a>
-<a class="sourceLine" id="cb5-18" data-line-number="18">                             <span class="dt">zlab =</span> <span class="st">'degC'</span>)</a>
-<a class="sourceLine" id="cb5-19" data-line-number="19">  p1 &lt;-<span class="st"> </span>p1 <span class="op">+</span><span class="st"> </span><span class="kw">scale_y_reverse</span>() <span class="op">+</span><span class="st"> </span><span class="co">#Reverse y-axis</span></a>
-<a class="sourceLine" id="cb5-20" data-line-number="20"><span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">45</span>,<span class="dv">0</span>))<span class="op">+</span><span class="st"> </span><span class="co"># ggplot2 v3.3 is sensitive to order of ylim</span></a>
-<a class="sourceLine" id="cb5-21" data-line-number="21"><span class="st">    </span><span class="kw">ggtitle</span>(vars[i]) <span class="op">+</span><span class="st"> </span><span class="co"># Add title using variable name</span></a>
-<a class="sourceLine" id="cb5-22" data-line-number="22"><span class="st">    </span><span class="kw">xlab</span>(<span class="st">''</span>)<span class="op">+</span><span class="st"> </span><span class="co"># Remove x-label</span></a>
-<a class="sourceLine" id="cb5-23" data-line-number="23"><span class="st">    </span><span class="kw">theme_bw</span>(<span class="dt">base_size =</span> <span class="dv">18</span>) <span class="co"># Increase font size of plots</span></a>
-<a class="sourceLine" id="cb5-24" data-line-number="24">  plist[[i]] &lt;-<span class="st"> </span>p1</a>
-<a class="sourceLine" id="cb5-25" data-line-number="25">}</a>
-<a class="sourceLine" id="cb5-26" data-line-number="26"></a>
-<a class="sourceLine" id="cb5-27" data-line-number="27"><span class="co"># Plot all model simulations</span></a>
-<a class="sourceLine" id="cb5-28" data-line-number="28"><span class="co"># install.packages('ggpubr')</span></a>
-<a class="sourceLine" id="cb5-29" data-line-number="29">g1 &lt;-<span class="st"> </span>ggpubr<span class="op">::</span><span class="kw">ggarrange</span>(<span class="dt">plotlist =</span> plist, <span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">'right'</span>)</a>
-<a class="sourceLine" id="cb5-30" data-line-number="30">g1</a>
-<a class="sourceLine" id="cb5-31" data-line-number="31"><span class="kw">ggsave</span>(<span class="st">'output/model_ensemble_watertemp.png'</span>, g1,  <span class="dt">dpi =</span> <span class="dv">300</span>,<span class="dt">width =</span> <span class="dv">384</span>,<span class="dt">height =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">'mm'</span>)</a></code></pre></div>
+<h2><span class="header-section-number">5.5</span> Post-processing</h2>
+<p>Now that the model simulations are finished, you can extract the data with <code>load_var</code>, or plot it with <code>plot_ensemble</code>. You can extract data from the netcdf file to do any further analysis. The <code>ncdf4</code> R package supports working with netcdf data in R, and the PyNcView software (<a href="https://sourceforge.net/projects/pyncview/" class="uri">https://sourceforge.net/projects/pyncview/</a>) can be used to look at netcdf output.</p>
+<p>We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.</p>
 </div>
+<div id="example-model-run" class="section level2">
+<h2><span class="header-section-number">5.6</span> Example model run</h2>
+<p>See below for an example run, and some post-processing of the data.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb8-1" title="1"><span class="co"># Install packages - Ensure all packages are up to date - parallel development ongoing</span></a>
+<a class="sourceLine" id="cb8-2" title="2"><span class="co">#install.packages(&quot;devtools&quot;)</span></a>
+<a class="sourceLine" id="cb8-3" title="3">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;GLEON/GLM3r&quot;</span>)</a>
+<a class="sourceLine" id="cb8-4" title="4">devtools<span class="op">::</span><span class="kw">install_github</span>(‘USGS<span class="op">-</span>R<span class="op">/</span>glmtools’, <span class="dt">ref =</span> ‘ggplot_overhaul’)</a>
+<a class="sourceLine" id="cb8-5" title="5">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/FLakeR&quot;</span>, <span class="dt">ref =</span> “inflow”)</a>
+<a class="sourceLine" id="cb8-6" title="6">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/GOTMr&quot;</span>)</a>
+<a class="sourceLine" id="cb8-7" title="7">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/gotmtools&quot;</span>)</a>
+<a class="sourceLine" id="cb8-8" title="8">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/SimstratR&quot;</span>)</a>
+<a class="sourceLine" id="cb8-9" title="9">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/LakeEnsemblR&quot;</span>)</a>
+<a class="sourceLine" id="cb8-10" title="10">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;aemon-j/MyLakeR&quot;</span>)</a>
+<a class="sourceLine" id="cb8-11" title="11"></a>
+<a class="sourceLine" id="cb8-12" title="12"><span class="co"># Load libraries</span></a>
+<a class="sourceLine" id="cb8-13" title="13"><span class="kw">library</span>(gotmtools)</a>
+<a class="sourceLine" id="cb8-14" title="14"><span class="kw">library</span>(LakeEnsemblR)</a>
+<a class="sourceLine" id="cb8-15" title="15"></a>
+<a class="sourceLine" id="cb8-16" title="16"><span class="co"># Set working directory with example data from Lough Feeagh, Ireland</span></a>
+<a class="sourceLine" id="cb8-17" title="17">template_folder &lt;-<span class="st"> </span><span class="kw">system.file</span>(<span class="st">&quot;extdata/feeagh&quot;</span>, <span class="dt">package=</span> <span class="st">&quot;LakeEnsemblR&quot;</span>)</a>
+<a class="sourceLine" id="cb8-18" title="18"><span class="kw">dir.create</span>(<span class="st">&quot;example&quot;</span>) <span class="co"># Create example folder</span></a>
+<a class="sourceLine" id="cb8-19" title="19"><span class="kw">file.copy</span>(<span class="dt">from =</span> template_folder, <span class="dt">to =</span> <span class="st">&quot;example&quot;</span>, <span class="dt">recursive =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb8-20" title="20"><span class="kw">setwd</span>(<span class="st">&quot;example/feeagh&quot;</span>) <span class="co"># Change working directory to example folder</span></a>
+<a class="sourceLine" id="cb8-21" title="21"></a>
+<a class="sourceLine" id="cb8-22" title="22"><span class="co"># Set models &amp; config file</span></a>
+<a class="sourceLine" id="cb8-23" title="23">model &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;GLM&quot;</span>,  <span class="st">&quot;FLake&quot;</span>, <span class="st">&quot;GOTM&quot;</span>, <span class="st">&quot;Simstrat&quot;</span>, <span class="st">&quot;MyLake&quot;</span>)</a>
+<a class="sourceLine" id="cb8-24" title="24">config_file &lt;-<span class="st"> &quot;Feeagh_master_config.yaml&quot;</span></a>
+<a class="sourceLine" id="cb8-25" title="25"></a>
+<a class="sourceLine" id="cb8-26" title="26"><span class="co"># 1. Example - creates directories with all model setup</span></a>
+<a class="sourceLine" id="cb8-27" title="27"><span class="kw">export_config</span>(<span class="dt">config_file =</span> config_file, <span class="dt">model =</span> model, <span class="dt">folder =</span> <span class="st">&quot;.&quot;</span>)</a>
+<a class="sourceLine" id="cb8-28" title="28"></a>
+<a class="sourceLine" id="cb8-29" title="29"><span class="co"># 2. Create meteo driver files</span></a>
+<a class="sourceLine" id="cb8-30" title="30"><span class="kw">export_meteo</span>(<span class="dt">config_file =</span> config_file, <span class="dt">model =</span> model)</a>
+<a class="sourceLine" id="cb8-31" title="31"></a>
+<a class="sourceLine" id="cb8-32" title="32"><span class="co"># 3. Create initial conditions</span></a>
+<a class="sourceLine" id="cb8-33" title="33">start_date &lt;-<span class="st"> </span><span class="kw">get_yaml_value</span>(<span class="dt">file =</span> config_file, <span class="dt">label =</span>  <span class="st">&quot;time&quot;</span>, <span class="dt">key =</span> <span class="st">&quot;start&quot;</span>)</a>
+<a class="sourceLine" id="cb8-34" title="34"></a>
+<a class="sourceLine" id="cb8-35" title="35"><span class="kw">export_init_cond</span>(<span class="dt">config_file =</span> config_file, </a>
+<a class="sourceLine" id="cb8-36" title="36">                 <span class="dt">model =</span> model,</a>
+<a class="sourceLine" id="cb8-37" title="37">                 <span class="dt">date =</span> start_date,</a>
+<a class="sourceLine" id="cb8-38" title="38">                 <span class="dt">print =</span> <span class="ot">TRUE</span>)</a>
+<a class="sourceLine" id="cb8-39" title="39"></a>
+<a class="sourceLine" id="cb8-40" title="40"><span class="co"># 4. Run ensemble lake models</span></a>
+<a class="sourceLine" id="cb8-41" title="41">wtemp_list &lt;-<span class="st"> </span><span class="kw">run_ensemble</span>(<span class="dt">config_file =</span> config_file,</a>
+<a class="sourceLine" id="cb8-42" title="42">                           <span class="dt">model =</span> <span class="kw">c</span>(<span class="st">&quot;FLake&quot;</span>, <span class="st">&quot;GLM&quot;</span>, <span class="st">&quot;GOTM&quot;</span>, <span class="st">&quot;Simstrat&quot;</span>, <span class="st">&quot;MyLake&quot;</span>),</a>
+<a class="sourceLine" id="cb8-43" title="43">                           <span class="dt">return_list =</span> <span class="ot">TRUE</span>)</a></code></pre></div>
+<p>Post-processing:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb9-1" title="1"><span class="co"># Load libraries for post-processing</span></a>
+<a class="sourceLine" id="cb9-2" title="2"><span class="kw">library</span>(ggpubr)</a>
+<a class="sourceLine" id="cb9-3" title="3"><span class="kw">library</span>(ggplot2)</a>
+<a class="sourceLine" id="cb9-4" title="4"></a>
+<a class="sourceLine" id="cb9-5" title="5"><span class="co">## Plot model output using gotmtools/ggplot2</span></a>
+<a class="sourceLine" id="cb9-6" title="6"></a>
+<a class="sourceLine" id="cb9-7" title="7"><span class="co"># Extract names of all the variables in netCDF</span></a>
+<a class="sourceLine" id="cb9-8" title="8">ens_out &lt;-<span class="st"> &quot;output/ensemble_output.nc&quot;</span></a>
+<a class="sourceLine" id="cb9-9" title="9">vars &lt;-<span class="st"> </span>gotmtools<span class="op">::</span><span class="kw">list_vars</span>(ens_out)</a>
+<a class="sourceLine" id="cb9-10" title="10">vars <span class="co"># Print variables</span></a>
+<a class="sourceLine" id="cb9-11" title="11"></a>
+<a class="sourceLine" id="cb9-12" title="12">plist &lt;-<span class="st"> </span><span class="kw">list</span>() <span class="co"># Initialize empty list for storing plots of each variable</span></a>
+<a class="sourceLine" id="cb9-13" title="13"><span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">5</span>){</a>
+<a class="sourceLine" id="cb9-14" title="14">  p1 &lt;-<span class="st"> </span>gotmtools<span class="op">::</span><span class="kw">plot_vari</span>(<span class="dt">ncdf =</span> ens_out,</a>
+<a class="sourceLine" id="cb9-15" title="15">                             <span class="dt">var =</span> vars[i],</a>
+<a class="sourceLine" id="cb9-16" title="16">                             <span class="dt">incl_time =</span> <span class="ot">FALSE</span>,</a>
+<a class="sourceLine" id="cb9-17" title="17">                             <span class="dt">limits =</span> <span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">25</span>),</a>
+<a class="sourceLine" id="cb9-18" title="18">                             <span class="dt">zlab =</span> <span class="st">&quot;degC&quot;</span>)</a>
+<a class="sourceLine" id="cb9-19" title="19">  p1 &lt;-<span class="st"> </span>p1 <span class="op">+</span><span class="st"> </span><span class="kw">scale_y_reverse</span>() <span class="op">+</span><span class="st"> </span><span class="co">#Reverse y-axis</span></a>
+<a class="sourceLine" id="cb9-20" title="20"><span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">45</span>,<span class="dv">0</span>))<span class="op">+</span><span class="st"> </span><span class="co"># ggplot2 v3.3 is sensitive to order of ylim</span></a>
+<a class="sourceLine" id="cb9-21" title="21"><span class="st">    </span><span class="kw">ggtitle</span>(vars[i]) <span class="op">+</span><span class="st"> </span><span class="co"># Add title using variable name</span></a>
+<a class="sourceLine" id="cb9-22" title="22"><span class="st">    </span><span class="kw">xlab</span>(<span class="st">&quot;&quot;</span>)<span class="op">+</span><span class="st"> </span><span class="co"># Remove x-label</span></a>
+<a class="sourceLine" id="cb9-23" title="23"><span class="st">    </span><span class="kw">theme_bw</span>(<span class="dt">base_size =</span> <span class="dv">18</span>) <span class="co"># Increase font size of plots</span></a>
+<a class="sourceLine" id="cb9-24" title="24">  plist[[i]] &lt;-<span class="st"> </span>p1</a>
+<a class="sourceLine" id="cb9-25" title="25">}</a>
+<a class="sourceLine" id="cb9-26" title="26"></a>
+<a class="sourceLine" id="cb9-27" title="27"><span class="co"># Plot all model simulations</span></a>
+<a class="sourceLine" id="cb9-28" title="28"><span class="co"># install.packages(&quot;ggpubr&quot;)</span></a>
+<a class="sourceLine" id="cb9-29" title="29">g1 &lt;-<span class="st"> </span>ggpubr<span class="op">::</span><span class="kw">ggarrange</span>(<span class="dt">plotlist =</span> plist, <span class="dt">ncol =</span> <span class="dv">1</span>, <span class="dt">common.legend =</span> <span class="ot">TRUE</span>, <span class="dt">legend =</span> <span class="st">&quot;right&quot;</span>)</a>
+<a class="sourceLine" id="cb9-30" title="30">g1</a>
+<a class="sourceLine" id="cb9-31" title="31"><span class="kw">ggsave</span>(<span class="st">&quot;output/model_ensemble_watertemp.png&quot;</span>, g1,  <span class="dt">dpi =</span> <span class="dv">300</span>,<span class="dt">width =</span> <span class="dv">384</span>,<span class="dt">height =</span> <span class="dv">300</span>, <span class="dt">units =</span> <span class="st">&quot;mm&quot;</span>)</a></code></pre></div>
+</div>
+</div>
+<div id="citation" class="section level1">
+<h1><span class="header-section-number">6</span> Citation</h1>
+<p>See</p>
+<pre><code>citation(&quot;LakeEnsemblR&quot;)</code></pre>
+<p>on how to cite this project.</p>
+<p>Although this information is included when running the function above, we would like to repeat that in case you use and cite LakeEnsemblR, you will also need to cite the individual models that you used in your simulations.</p>
 </div>
 <div id="references" class="section level1 unnumbered">
 <h1>References</h1>

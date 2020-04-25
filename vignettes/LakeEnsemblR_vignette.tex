@@ -1,0 +1,776 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\hypersetup{
+  pdftitle={R package LakeEnsemblR: Basic Use and Sample Applications},
+  pdfauthor={johannes.feldbauer@tu-dresden.de; tadhg.moore@dkit.ie; jorrit.mesman@unige.ch; ladwigjena@gmail.com},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+\urlstyle{same} % disable monospaced font for URLs
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs}
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{5}
+\usepackage{longtable}
+% Make figures non-floating
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{amsmath}
+\let\origfigure\figure
+\let\endorigfigure\endfigure
+\renewenvironment{figure}[1][2] {
+    \expandafter\origfigure\expandafter[H]
+} {
+    \endorigfigure
+}
+
+\title{R package LakeEnsemblR: Basic Use and Sample Applications}
+\author{\href{mailto:johannes.feldbauer@tu-dresden.de}{\nolinkurl{johannes.feldbauer@tu-dresden.de}} \and \href{mailto:tadhg.moore@dkit.ie}{\nolinkurl{tadhg.moore@dkit.ie}} \and \href{mailto:jorrit.mesman@unige.ch}{\nolinkurl{jorrit.mesman@unige.ch}} \and \href{mailto:ladwigjena@gmail.com}{\nolinkurl{ladwigjena@gmail.com}}}
+\date{2020-04-25}
+
+\begin{document}
+\maketitle
+
+{
+\setcounter{tocdepth}{3}
+\tableofcontents
+}
+\hypertarget{included-models}{%
+\section{Included models}\label{included-models}}
+
+LakeEnsemblR currently includes the following models: GLM (Hipsey et al.
+(2019)), FLake (Mironov (2008)), GOTM (Umlauf, Bolding, and Burchard
+(2005)), Simstrat (Goudsmit et al. (2002)), and MyLake (Saloranta and
+Andersen (2007)).
+
+\hypertarget{introduction}{%
+\section{Introduction}\label{introduction}}
+
+LakeEnsemblR is an R package that lets you run multiple one-dimensional
+physical lake models.
+
+The settings for a model run are controlled by one centralised,
+``master'' configuration file in YAML format. In this configuration
+file, you can set all the specifications for your model run, including
+start and end time, time steps, links to meteorological forcing and
+bathymetry files, etc. The package then converts these settings to the
+configuration files required by each model, through the
+\texttt{export\_config} function. This sets up all models to run with
+the settings specified by the user, and the models are then run through
+the \texttt{run\_ensemble} function. A netcdf file is created with the
+outputs of all the models, and the package provides functions to extract
+and plot this data.
+
+Part of the design philosophy of LakeEnsemblR is that all input is given
+in a standardized format. This entails standard column names (which
+includes units), comma-separated ASCII files, and a DateTime format
+using the international standard format (ISO 8601), which is
+\texttt{YYYY-mm-dd\ HH:MM:SS}, for example
+\texttt{2020-04-03\ 09:00:00}. In this document, we will explain what
+the required files are and in what format they need to be. We also
+advise you to look at the provided example files, and at the templates
+provided with the R package (to be found in
+\texttt{package/inst/extdata}, or extracted by the function
+get\_template).
+
+\hypertarget{installation}{%
+\section{Installation}\label{installation}}
+
+The code of LakeEnsemblR is hosted on the AEMON-J Github page
+(\url{https://github.com/aemon-j/LakeEnsemblR}), and can be installed
+using the \texttt{devtools} package
+
+\begin{verbatim}
+devtools::install_github("aemon-j/LakeEnsemblR)
+\end{verbatim}
+
+The package relies on multiple other packages that also need to be
+installed. Most notably, to run the multiple models, it requires the
+packages FLakeR, GLM3r, GOTMr, SimstratR, and MyLakeR. These packages
+run the individual models, and contain ways of running the models for
+the platforms Windows, MacOS, or UNIX, through either executables, or by
+having the model code in R.
+
+\hypertarget{the-lakeensemblr-configuration-file}{%
+\section{The LakeEnsemblR configuration
+file}\label{the-lakeensemblr-configuration-file}}
+
+In this section, we go through the LakeEnsemblR configuration file. This
+file controls the settings with which the models are run. It is written
+in YAML (Yaml Ain't Markup Language) format, and can be opened by
+text-editors such as Notepad or Notepad++. Although not needed to use
+LakeEnsemblR, you can read this file into R with the \texttt{configr}
+package (\texttt{read.config} function). Within LakeEnsemblR, we provide
+the \texttt{get\_yaml\_value} and \texttt{input\_yaml} functions to get
+and input values into this file type.
+
+There is an example LakeEnsemblR configuration file provided in the
+example dataset in the package
+(\texttt{LakeEnsemblR::get\_template("LakeEnsemblR\_config")}) or you
+can download a copy from GitHub
+\href{https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata/feeagh/Feeagh_master_config.yaml}{here}.
+
+\hypertarget{location}{%
+\subsection{Location}\label{location}}
+
+The first section is ``Location''. Here you specify the name, latitude
+and longitude, elevation, maximum depth, and initial depth.
+
+You also need to provide a link to the hypsograph (i.e.~surface area per
+depth) file. As in the rest of the configuration file, all links to
+files are relative to the \texttt{folder} argument in the LakeEnsemblR
+functions (default is the R working directory). We strongly advise to
+set the working directory to the location of the LER config file, and
+link to the files relative to this directory (we explain this further in
+the chapter ``Workflow'' of this vignette). For example, if your
+hypsograph file is called \texttt{hypsograph.csv} and in the same folder
+as the LER config file, the corresponding line in the LER config file
+would look like
+
+\begin{verbatim}
+  hypsograph: hypsograph.csv
+\end{verbatim}
+
+The data needs to be a comma-separated file (.csv) where 0m is the
+surface and all depths are reported as positive, in meters. Area needs
+to be in meters squared. The column names \emph{must} be
+\texttt{Depth\_meter} and \texttt{Area\_meterSquared}
+
+Example of data:
+
+\begin{verbatim}
+Depth_meter,Area_meterSquared
+0,3931000
+1,3688025
+2,3445050
+3,3336093.492
+4,3225992.455
+5,3133491.11
+6,3029720
+...
+\end{verbatim}
+
+\hypertarget{time}{%
+\subsection{Time}\label{time}}
+
+In the ``Time'' section, you fill in the start and end date of the
+simulation, and the model time step. \texttt{time\_step} indicates the
+model integration time step, so each time step that the model performs a
+calculation.
+
+\hypertarget{config-files}{%
+\subsection{Config files}\label{config-files}}
+
+In this section, you link to the model-specific configuration files.
+Templates of these can be found in in the package
+(\texttt{get\_template("FLake\_config")},
+\texttt{get\_template("GLM\_config")}, etc.) or you can download a copy
+from GitHub
+\href{https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata}{here}.
+The setup of LakeEnsemblR is such that you will usually not have to
+access these files, as most settings are regulated through the LER
+``master'' config file. However, should you want to change some of the
+more specialised settings in each model, that is possible.
+
+\hypertarget{light}{%
+\subsection{Light}\label{light}}
+
+Here you can either give a value for Kw (light extinction coefficient)
+in 1/m, or give the link to a file, where you can vary Kw over time
+(template available).
+
+\hypertarget{observations}{%
+\subsection{Observations}\label{observations}}
+
+If you have observations of water temperature or ice cover, you can fill
+them in here. These will be used in plotting, and in case of water
+temperature potentially in initialising the temperature profile at the
+start of the simulation (but see next section).
+
+For water temperature, the data needs to be a comma separated values
+(.csv) file where the datetime column is in the format
+\texttt{YYYY-mm-dd\ HH:MM:SS}. Depths are positive and relative to the
+water surface. Water temperature is in degrees Celsius. The column names
+\emph{must} be \texttt{datetime}, \texttt{Depth\_meter} and
+\texttt{Water\_Temperature\_celsius} (templates available).
+
+Example of data:
+
+\begin{verbatim}
+datetime,Depth_meter,Water_Temperature_celsius
+2004-01-05 00:00:00,0.9,6.97
+2004-01-05 00:00:00,2.5,6.71
+2004-01-05 00:00:00,5,6.73
+2004-01-05 00:00:00,8,6.76
+...
+\end{verbatim}
+
+\hypertarget{input}{%
+\subsection{Input}\label{input}}
+
+In the ``Input'' section, you give information about the initial
+temperature profile, meteorological forcing, and ice.
+
+Firstly, you can give the initial temperature profile with which to
+start the simulation (link to .csv file, template available). If you
+leave it empty, the water temperature observations will be used,
+provided you have an observation on the starting time of your
+simulation.
+
+Secondly, you give the link to the file with your meteorological data.
+The data needs to be a comma separated values (.csv) file where the
+datetime column is in the format \texttt{YYYY-mm-dd\ HH:MM:SS}. See
+table 1 for the list of variables, units and column names. The
+time\_zone setting has not been implemented yet.
+
+Table 1. Description of meteorological variables used within
+LakeEnsemblR with units and required column names.
+
+\begin{longtable}[]{@{}llll@{}}
+\toprule
+\begin{minipage}[b]{0.12\columnwidth}\raggedright
+Description\strut
+\end{minipage} & \begin{minipage}[b]{0.03\columnwidth}\raggedright
+Units\strut
+\end{minipage} & \begin{minipage}[b]{0.18\columnwidth}\raggedright
+Column Name\strut
+\end{minipage} & \begin{minipage}[b]{0.56\columnwidth}\raggedright
+Status\strut
+\end{minipage}\tabularnewline
+\midrule
+\endhead
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Downwelling longwave radaiation\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+W/m2\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Longwave\_Radiation\_Downwelling\_wattPerMeterSquared\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from air temperature, cloud
+cover and relative humidity/dewpoint temperature\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Downwelling shortwave radaiation\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+W/m2\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Shortwave\_Radiation\_Downwelling\_wattPerMeterSquared\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Cloud cover\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+-\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Cloud\_Cover\_decimalFraction\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from air temperature,
+short-wave radiation, latitude, longitude, elevation and relative
+humidity/dewpoint temperature\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Air temperature\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+°C\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Air\_Temperature\_celsius\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Relative humidity\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+\%\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Relative\_Humidity\_percent\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from air temperature and
+dewpoint temperature\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Dewpoint temperature\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+°C\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Dewpoint\_Temperature\_celsius\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from air temperature and
+relative humidity\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Wind speed at 10m\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/s\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Ten\_Meter\_Elevation\_Wind\_Speed\_meterPerSecond\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Either wind speed or u and v vectors is required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Wind direction at 10m\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+°C\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Ten\_Meter\_Elevation\_Wind\_Direction\_degree\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Not required, but if provided u and v vectors are calculated
+internally\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Wind u-vector at 10m\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/s\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Ten\_Meter\_Uwind\_vector\_meterPerSecond\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Either wind speed or u and v vectors is required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Wind v-vector at 10m\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/s\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Ten\_Meter\_Vwind\_vector\_meterPerSecond\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Either wind speed or u and v vectors is required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Precipitation\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/s\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Precipitation\_meterPerSecond\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Not strictly required but is important for mass budgets in some
+models\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Rainfall\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/s\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Rainfall\_meterPerSecond\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Snowfall\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+m/day\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Snowfall\_meterPerDay\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from rain when air
+temperature \textless{} 0 degC\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Sea level pressure\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+Pa\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Sea\_Level\_Barometric\_Pressure\_pascal\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Not required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Surface level pressure\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+Pa\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Surface\_Level\_Barometric\_Pressure\_pascal\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+Required\strut
+\end{minipage}\tabularnewline
+\begin{minipage}[t]{0.12\columnwidth}\raggedright
+Vapour pressure\strut
+\end{minipage} & \begin{minipage}[t]{0.03\columnwidth}\raggedright
+mbar\strut
+\end{minipage} & \begin{minipage}[t]{0.18\columnwidth}\raggedright
+Vapor\_Pressure\_milliBar\strut
+\end{minipage} & \begin{minipage}[t]{0.56\columnwidth}\raggedright
+If not provided,it is calculated internally from air temperature and
+relative humidity/dewpoint temperature\strut
+\end{minipage}\tabularnewline
+\bottomrule
+\end{longtable}
+
+Lastly, you can specify if you want to use the ice modules that are
+present in some of the models.
+
+\hypertarget{inflows}{%
+\subsection{Inflows}\label{inflows}}
+
+Specify if you want to add inflows to your simulation. If yes, you need
+to link to a file with the inflow data. The data needs to be a comma
+separated values (.csv) file where the datetime column is in the format
+\texttt{YYYY-mm-dd\ HH:MM:SS}. Flow discharge, water temperature, and
+salinity need to be specified. The column names \emph{must} be
+\texttt{datetime}, \texttt{Flow\_metersCubedPerSecond},
+\texttt{Water\_Temperature\_celsius}, and
+\texttt{Salinity\_practicalSalinityUnits} (template available).
+
+Example of data:
+
+\begin{verbatim}
+datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalSalinityUnits
+2005-01-01 00:00:00,5.62,6.96,0.00
+2005-01-02 00:00:00,2.32,6.00,0.00
+2005-01-03 00:00:00,1.77,8.44,0.00
+2005-01-04 00:00:00,4.64,7.27,0.00
+...
+\end{verbatim}
+
+\hypertarget{output}{%
+\subsection{Output}\label{output}}
+
+In the ``Output'' section, you specify how the output should look like.
+Currently, only the netcdf option is in place. You can specify the depth
+interval of the output, and the frequency. Also specify what variables
+should be in the output (currently only ``temp'' and ``ice\_height'').
+
+\hypertarget{biogeochemistry}{%
+\subsection{Biogeochemistry}\label{biogeochemistry}}
+
+Currently not implemented
+
+\hypertarget{model-parameters}{%
+\subsection{Model parameters}\label{model-parameters}}
+
+All models in LakeEnsemblR have different parameterizations. In this
+section, you can set the value of any parameter in one of the
+model-specific configuration files.
+
+You can give either only the name of the parameter, but if needed you
+can also provide the name of the section in which the parameter occurs,
+separated by a \texttt{/}. For example for GOTM's k\_min parameter:
+
+\begin{verbatim}
+  GOTM:
+    k_min: 3.6E-6
+\end{verbatim}
+
+or:
+
+\begin{verbatim}
+  GOTM:
+    turb_param/k_min: 3.6E-6
+\end{verbatim}
+
+\hypertarget{calibration}{%
+\subsection{Calibration}\label{calibration}}
+
+This section is used when calibrating the models. In the package, the
+run\_LHC (Latin-Hypercube) and run\_MCMC (Monte-Carlo Markov Chain)
+functions do this, but this is currently still in a beta-phase and this
+will be more clearly explained in a later version of this vignette.
+
+\hypertarget{workflow}{%
+\section{Workflow}\label{workflow}}
+
+In this chapter, we quickly show you how your workflow with LakeEnsemblR
+could look like.
+
+\hypertarget{setting-up-a-directory}{%
+\subsection{Setting up a directory}\label{setting-up-a-directory}}
+
+First, you make an empty directory for the simulations of a specific
+lake. In this directory, you place the LakeEnsemblR configuration file,
+and the necessary LakeEnsemblR-format input files (e.g.~meteorology,
+inflow, water temperature observations, hypsograph). Within this
+directory, you create empty folders for each model (FLake, GLM, GOTM,
+Simstrat, MyLake), and in here you place the model-specific
+configuration files, corresponding the information you put in the
+\texttt{config\_files} section in the LER config file.
+
+\hypertarget{export_config}{%
+\subsection{Export\_config}\label{export_config}}
+
+Then, you run the \texttt{export\_config} function, which exports the
+settings in the LER configuration file to the model-specific
+configuration files. It is possible to run parts of this function, such
+as \texttt{export\_meteo}, if the meteorological forcing is the only
+thing you changed, but usually you will run \texttt{export\_config}.
+
+\hypertarget{optional-changes-in-model-specific-directories}{%
+\subsection{Optional: changes in model-specific
+directories}\label{optional-changes-in-model-specific-directories}}
+
+Optionally, you can now go into the model-specific configuration files
+and make further changes. This should not be needed for regular
+simulations, especially since you can control parameters in the
+\texttt{model\_parameters} section of the LER config file, but the
+option is there. For example, if you want to change the depth of the
+inflow in the Simstrat model, you could go to the Simstrat folders and
+make these changes manually (or through a script you wrote). It speaks
+for itself that these changes should be done only if you are sure this
+is what you need, and LakeEnsemblR does not provide further support for
+this.
+
+\hypertarget{run_ensemble}{%
+\subsection{Run\_ensemble}\label{run_ensemble}}
+
+The next step would be to call \texttt{run\_ensemble}, which runs all
+the models. A new folder called ``output'' is created, in which a
+netcdf-file will be put with all the results from the model runs. If you
+are interested, each model sub-folder will also have an ``output''
+folder, with the model-specific model output.
+
+\hypertarget{post-processing}{%
+\subsection{Post-processing}\label{post-processing}}
+
+Now that the model simulations are finished, you can extract the data
+with \texttt{load\_var}, or plot it with \texttt{plot\_ensemble}. You
+can extract data from the netcdf file to do any further analysis. The
+\texttt{ncdf4} R package supports working with netcdf data in R, and the
+PyNcView software (\url{https://sourceforge.net/projects/pyncview/}) can
+be used to look at netcdf output.
+
+We are currently working on a function to add new simulations (for
+example with a different meteorology file) to the same netcdf and
+including them in the analysis.
+
+\hypertarget{example-model-run}{%
+\subsection{Example model run}\label{example-model-run}}
+
+See below for an example run, and some post-processing of the data.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Install packages - Ensure all packages are up to date - parallel development ongoing}
+\CommentTok{#install.packages("devtools")}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"GLEON/GLM3r"}\NormalTok{)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(‘USGS}\OperatorTok{-}\NormalTok{R}\OperatorTok{/}\NormalTok{glmtools’, }\DataTypeTok{ref =}\NormalTok{ ‘ggplot_overhaul’)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/FLakeR"}\NormalTok{, }\DataTypeTok{ref =}\NormalTok{ “inflow”)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/GOTMr"}\NormalTok{)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/gotmtools"}\NormalTok{)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/SimstratR"}\NormalTok{)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/LakeEnsemblR"}\NormalTok{)}
+\NormalTok{devtools}\OperatorTok{::}\KeywordTok{install_github}\NormalTok{(}\StringTok{"aemon-j/MyLakeR"}\NormalTok{)}
+
+\CommentTok{# Load libraries}
+\KeywordTok{library}\NormalTok{(gotmtools)}
+\KeywordTok{library}\NormalTok{(LakeEnsemblR)}
+
+\CommentTok{# Set working directory with example data from Lough Feeagh, Ireland}
+\NormalTok{template_folder <-}\StringTok{ }\KeywordTok{system.file}\NormalTok{(}\StringTok{"extdata/feeagh"}\NormalTok{, }\DataTypeTok{package=} \StringTok{"LakeEnsemblR"}\NormalTok{)}
+\KeywordTok{dir.create}\NormalTok{(}\StringTok{"example"}\NormalTok{) }\CommentTok{# Create example folder}
+\KeywordTok{file.copy}\NormalTok{(}\DataTypeTok{from =}\NormalTok{ template_folder, }\DataTypeTok{to =} \StringTok{"example"}\NormalTok{, }\DataTypeTok{recursive =} \OtherTok{TRUE}\NormalTok{)}
+\KeywordTok{setwd}\NormalTok{(}\StringTok{"example/feeagh"}\NormalTok{) }\CommentTok{# Change working directory to example folder}
+
+\CommentTok{# Set models & config file}
+\NormalTok{model <-}\StringTok{ }\KeywordTok{c}\NormalTok{(}\StringTok{"GLM"}\NormalTok{,  }\StringTok{"FLake"}\NormalTok{, }\StringTok{"GOTM"}\NormalTok{, }\StringTok{"Simstrat"}\NormalTok{, }\StringTok{"MyLake"}\NormalTok{)}
+\NormalTok{config_file <-}\StringTok{ "Feeagh_master_config.yaml"}
+
+\CommentTok{# 1. Example - creates directories with all model setup}
+\KeywordTok{export_config}\NormalTok{(}\DataTypeTok{config_file =}\NormalTok{ config_file, }\DataTypeTok{model =}\NormalTok{ model, }\DataTypeTok{folder =} \StringTok{"."}\NormalTok{)}
+
+\CommentTok{# 2. Create meteo driver files}
+\KeywordTok{export_meteo}\NormalTok{(}\DataTypeTok{config_file =}\NormalTok{ config_file, }\DataTypeTok{model =}\NormalTok{ model)}
+
+\CommentTok{# 3. Create initial conditions}
+\NormalTok{start_date <-}\StringTok{ }\KeywordTok{get_yaml_value}\NormalTok{(}\DataTypeTok{file =}\NormalTok{ config_file, }\DataTypeTok{label =}  \StringTok{"time"}\NormalTok{, }\DataTypeTok{key =} \StringTok{"start"}\NormalTok{)}
+
+\KeywordTok{export_init_cond}\NormalTok{(}\DataTypeTok{config_file =}\NormalTok{ config_file, }
+                 \DataTypeTok{model =}\NormalTok{ model,}
+                 \DataTypeTok{date =}\NormalTok{ start_date,}
+                 \DataTypeTok{print =} \OtherTok{TRUE}\NormalTok{)}
+
+\CommentTok{# 4. Run ensemble lake models}
+\NormalTok{wtemp_list <-}\StringTok{ }\KeywordTok{run_ensemble}\NormalTok{(}\DataTypeTok{config_file =}\NormalTok{ config_file,}
+                           \DataTypeTok{model =} \KeywordTok{c}\NormalTok{(}\StringTok{"FLake"}\NormalTok{, }\StringTok{"GLM"}\NormalTok{, }\StringTok{"GOTM"}\NormalTok{, }\StringTok{"Simstrat"}\NormalTok{, }\StringTok{"MyLake"}\NormalTok{),}
+                           \DataTypeTok{return_list =} \OtherTok{TRUE}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Post-processing:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# Load libraries for post-processing}
+\KeywordTok{library}\NormalTok{(ggpubr)}
+\KeywordTok{library}\NormalTok{(ggplot2)}
+
+\CommentTok{## Plot model output using gotmtools/ggplot2}
+
+\CommentTok{# Extract names of all the variables in netCDF}
+\NormalTok{ens_out <-}\StringTok{ "output/ensemble_output.nc"}
+\NormalTok{vars <-}\StringTok{ }\NormalTok{gotmtools}\OperatorTok{::}\KeywordTok{list_vars}\NormalTok{(ens_out)}
+\NormalTok{vars }\CommentTok{# Print variables}
+
+\NormalTok{plist <-}\StringTok{ }\KeywordTok{list}\NormalTok{() }\CommentTok{# Initialize empty list for storing plots of each variable}
+\ControlFlowTok{for}\NormalTok{(i }\ControlFlowTok{in} \DecValTok{1}\OperatorTok{:}\DecValTok{5}\NormalTok{)\{}
+\NormalTok{  p1 <-}\StringTok{ }\NormalTok{gotmtools}\OperatorTok{::}\KeywordTok{plot_vari}\NormalTok{(}\DataTypeTok{ncdf =}\NormalTok{ ens_out,}
+                             \DataTypeTok{var =}\NormalTok{ vars[i],}
+                             \DataTypeTok{incl_time =} \OtherTok{FALSE}\NormalTok{,}
+                             \DataTypeTok{limits =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{25}\NormalTok{),}
+                             \DataTypeTok{zlab =} \StringTok{"degC"}\NormalTok{)}
+\NormalTok{  p1 <-}\StringTok{ }\NormalTok{p1 }\OperatorTok{+}\StringTok{ }\KeywordTok{scale_y_reverse}\NormalTok{() }\OperatorTok{+}\StringTok{ }\CommentTok{#Reverse y-axis}
+\StringTok{    }\KeywordTok{coord_cartesian}\NormalTok{(}\DataTypeTok{ylim =} \KeywordTok{c}\NormalTok{(}\DecValTok{45}\NormalTok{,}\DecValTok{0}\NormalTok{))}\OperatorTok{+}\StringTok{ }\CommentTok{# ggplot2 v3.3 is sensitive to order of ylim}
+\StringTok{    }\KeywordTok{ggtitle}\NormalTok{(vars[i]) }\OperatorTok{+}\StringTok{ }\CommentTok{# Add title using variable name}
+\StringTok{    }\KeywordTok{xlab}\NormalTok{(}\StringTok{""}\NormalTok{)}\OperatorTok{+}\StringTok{ }\CommentTok{# Remove x-label}
+\StringTok{    }\KeywordTok{theme_bw}\NormalTok{(}\DataTypeTok{base_size =} \DecValTok{18}\NormalTok{) }\CommentTok{# Increase font size of plots}
+\NormalTok{  plist[[i]] <-}\StringTok{ }\NormalTok{p1}
+\NormalTok{\}}
+
+\CommentTok{# Plot all model simulations}
+\CommentTok{# install.packages("ggpubr")}
+\NormalTok{g1 <-}\StringTok{ }\NormalTok{ggpubr}\OperatorTok{::}\KeywordTok{ggarrange}\NormalTok{(}\DataTypeTok{plotlist =}\NormalTok{ plist, }\DataTypeTok{ncol =} \DecValTok{1}\NormalTok{, }\DataTypeTok{common.legend =} \OtherTok{TRUE}\NormalTok{, }\DataTypeTok{legend =} \StringTok{"right"}\NormalTok{)}
+\NormalTok{g1}
+\KeywordTok{ggsave}\NormalTok{(}\StringTok{"output/model_ensemble_watertemp.png"}\NormalTok{, g1,  }\DataTypeTok{dpi =} \DecValTok{300}\NormalTok{,}\DataTypeTok{width =} \DecValTok{384}\NormalTok{,}\DataTypeTok{height =} \DecValTok{300}\NormalTok{, }\DataTypeTok{units =} \StringTok{"mm"}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{citation}{%
+\section{Citation}\label{citation}}
+
+See
+
+\begin{verbatim}
+citation("LakeEnsemblR")
+\end{verbatim}
+
+on how to cite this project.
+
+Although this information is included when running the function above,
+we would like to repeat that in case you use and cite LakeEnsemblR, you
+will also need to cite the individual models that you used in your
+simulations.
+
+\hypertarget{references}{%
+\section*{References}\label{references}}
+\addcontentsline{toc}{section}{References}
+
+\hypertarget{refs}{}
+\leavevmode\hypertarget{ref-goudsmit_application_2002}{}%
+Goudsmit, G.-H., H. Burchard, F. Peeters, and A. Wüest. 2002.
+``Application of \(k-\epsilon\) Turbulence Models to Enclosed Basins:
+The Role of Internal Seiches.'' \emph{Journal of Geophysical Research:
+Oceans} 107 (C12): 23--21--23--13.
+\url{https://doi.org/10.1029/2001JC000954}.
+
+\leavevmode\hypertarget{ref-hipsey_general_2019}{}%
+Hipsey, M. R., L. C. Bruce, C. Boon, B. Busch, C. C. Carey, D. P.
+Hamilton, P. C. Hanson, et al. 2019. ``A General Lake Model (GLM 3.0)
+for Linking with High-Frequency Sensor Data from the Global Lake
+Ecological Observatory Network (GLEON).'' \emph{Geoscientific Model
+Development} 12 (1): 473--523.
+\url{https://doi.org/10.5194/gmd-12-473-2019}.
+
+\leavevmode\hypertarget{ref-mironov_flake_2008}{}%
+Mironov, Dimitrii V. 2008. \emph{Parameterization of Lakes in Numerical
+Weather Prediction. Description of a Lake Model}. COSMO Technical
+Report. Offenbach am Main, Germany: Deutscher Wetterdienst.
+\url{http://www.flake.igb-berlin.de/site/doc}.
+
+\leavevmode\hypertarget{ref-saloranta_mylakemulti_year_2007}{}%
+Saloranta, Tuomo M., and Tom Andersen. 2007. ``MyLake---A Multi-Year
+Lake Simulation Model Code Suitable for Uncertainty and Sensitivity
+Analysis Simulations.'' \emph{Ecological Modelling}, Uncertainty in
+Ecological Models, 207 (1): 45--60.
+\url{https://doi.org/10.1016/j.ecolmodel.2007.03.018}.
+
+\leavevmode\hypertarget{ref-umlauf_gotm_2005}{}%
+Umlauf, Lars, Karsten Bolding, and Hans Burchard. 2005. \emph{GOTM --
+Scientific Documentation} (version 3.2). Marine Science Reports.
+Warnemuende, Germany: Leibniz-Institute for Baltic Sea Research.
+\url{https://gotm.net/portfolio/documentation/}.
+
+\end{document}
