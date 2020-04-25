@@ -43,13 +43,12 @@ library(LakeEnsemblR)
 # Setting up LakeEnsemblR
 
 ## Introduction
-A key part of developing LakeEnsemblR was to develop a standardised format for model input data. This involved standard variable naming which includes units.
+LakeEnsemblR is an R package that lets you run multiple one-dimensional physical lake models.
 
-## DateTime formatting
-This package uses international standard format for date and time (ISO 8601), which is `YYYY-mm-dd HH:MM:SS`. For example: `2020-04-03 09:00:00`.
+The settings for a model run are controlled by one centralised, "master" configuration file in YAML format. In this configuration file, you can set all the specifications for your model run, including start and end time, time steps, links to meteorological forcing and bathymetry files, etc. The package then converts these settings to the configuration files required by each model, through the `export_config` function. This sets up all models to run with the settings specified by the user, and the models are then run through the `run_ensemble` function. A netcdf file is created with the outputs of all the models, and the package provides functions to extract and plot this data.
 
-## Time Zones
-Currently this is not accounted for so the timezone used in input is the timezone of output data. It is on the list of things to do.
+Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the international standard format (ISO 8601), which is `YYYY-mm-dd HH:MM:SS`, for example `2020-04-03 09:00:00`. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in `package/inst/extdata`, or extracted by the function get_template).
+
 
 ## Hypsograph data
 The data needs to be a comma separated values (.csv) file where 0m is the surface and all depths are reported as positive. Area needs to be in meters squared. The column names *must* be `Depth_meter` and `Area_meterSquared`
