@@ -25,7 +25,7 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
   name_Kw <- "LakeEnsemblR_Kw_template.csv"
   name_inflow <- "feeagh/LakeEnsemblR_inflow_standard.csv"
   name_hypsograph <- "feeagh/LakeEnsemblR_bathymetry_standard.csv"
-  name_ice_height <- "feeagh/LakeEnsemblR_ice-height_standard"
+  name_ice_height <- "feeagh/LakeEnsemblR_ice-height_standard.csv"
   name_meteo <- "feeagh/LakeEnsemblR_meteo_standard.csv"
   name_temp_obs <- "feeagh/LakeEnsemblR_wtemp_profile_standard.csv"
   
@@ -51,60 +51,60 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
             "\nHypsograph", "\nIce height", "\nMeteo", "\nTemperature observations")
   }else if(template == "LakeEnsemblR_config"){
     file.copy(file.path(template_folder, name_config),
-              file.path(folder, name_config),
+              file.path(folder, basename(name_config)),
               overwrite = overwrite)
   }else if(template == "FLake_config"){
     file.copy(file.path(template_folder, name_flake),
-              file.path(folder, name_flake),
+              file.path(folder, basename(name_flake)),
               overwrite = overwrite)
   }else if(template == "GLM_config"){
     file.copy(file.path(template_folder, name_glm),
-              file.path(folder, name_glm),
+              file.path(folder, basename(name_glm)),
               overwrite = overwrite)
   }else if(template == "GOTM_config"){
     file.copy(file.path(template_folder, name_gotm),
-              file.path(folder, name_gotm),
+              file.path(folder, basename(name_gotm)),
               overwrite = overwrite)
   }else if(template == "Simstrat_config"){
     file.copy(file.path(template_folder, name_simstrat),
-              file.path(folder, name_simstrat),
+              file.path(folder, basename(name_simstrat)),
               overwrite = overwrite)
   }else if(template == "MyLake_config"){
     file.copy(file.path(template_folder, name_mylake),
-              file.path(folder, name_mylake),
+              file.path(folder, basename(name_mylake)),
               overwrite = overwrite)
   }else if(template == "Initial temperature profile"){
     file.copy(file.path(template_folder, name_init_temp_profile),
-              file.path(folder, name_init_temp_profile),
+              file.path(folder, basename(name_init_temp_profile)),
               overwrite = overwrite)
   }else if(template == "Light extinction"){
     file.copy(file.path(template_folder, name_Kw),
-              file.path(folder, name_Kw),
+              file.path(folder, basename(name_Kw)),
               overwrite = overwrite)
   }else if(template == "Inflow"){
     file.copy(file.path(template_folder, name_inflow),
-              file.path(folder, name_inflow),
+              file.path(folder, basename(name_inflow)),
               overwrite = overwrite)
   }else if(template == "Hypsograph"){
     file.copy(file.path(template_folder, name_hypsograph),
-              file.path(folder, name_hypsograph),
+              file.path(folder, basename(name_hypsograph)),
               overwrite = overwrite)
   }else if(template == "Ice height"){
     file.copy(file.path(template_folder, name_ice_height),
-              file.path(folder, name_ice_height),
+              file.path(folder, basename(name_ice_height)),
               overwrite = overwrite)
   }else if(template == "Meteo"){
     file.copy(file.path(template_folder, name_meteo),
-              file.path(folder, name_meteo),
+              file.path(folder, basename(name_meteo)),
               overwrite = overwrite)
   }else if(template == "Temperature observations"){
     file.copy(file.path(template_folder, name_temp_obs),
-              file.path(folder, name_temp_obs),
+              file.path(folder, basename(name_temp_obs)),
               overwrite = overwrite)
   }else if(template == "all"){
     for(i in all_names){
       file.copy(file.path(template_folder, i),
-                file.path(folder, i),
+                file.path(folder, basename(i)),
                 overwrite = overwrite)
     }
   }else{
