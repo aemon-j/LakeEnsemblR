@@ -42,6 +42,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   
   # output list
   plist <- list()
+  pindex <- 1
   
   # colors for plotting
   colfunc <- colorRampPalette(brewer.pal(length(model), 'Set2'))
@@ -94,7 +95,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
               legend.margin=margin(0,0,0,0),
               legend.box.margin=margin(0,0,0,0),
               legend.position="bottom",legend.title=element_blank()) 
-      plist[[1]] <- p1
+      plist[[pindex]] <- p1
+      pindex <- pindex + 1
       
       if (residuals){
         if (sum(!is.na(obs$value)) == 0){
@@ -128,7 +130,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                   legend.margin=margin(0,0,0,0),
                   legend.box.margin=margin(0,0,0,0),
                   legend.position="bottom",legend.title=element_blank()) 
-          plist[[2]] <- p2
+          plist[[pindex]] <- p2
+          pindex <- pindex + 1
         }
       }
       
@@ -156,11 +159,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                 shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
           theme_classic()
         
-        if (residuals){
-          plist[[3]] <- p3
-        } else {
-          plist[[2]] <- p3
-        }
+        # if (residuals){
+        #   plist[[3]] <- p3
+        # } else {
+        #   plist[[2]] <- p3
+        # }
+        plist[[pindex]] <- p3
+        pindex <- pindex + 1
       }
   
     } else {
@@ -182,7 +187,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                     alpha=0.5) + geom_line(data = dat, aes(x = time, y = value, col = L1)) +
         geom_point(data = obs, aes(x = time, y = value, col = L1), col = 1, size = 1)
       
-      plist[[1]] <- p1
+      # plist[[1]] <- p1
+      plist[[pindex]] <- p1
+      pindex <- pindex + 1
     }
   } 
   if(!is.null(date)) {
@@ -222,7 +229,19 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             legend.margin=margin(0,0,0,0),
             legend.box.margin=margin(0,0,0,0),
             legend.position="bottom",legend.title=element_blank()) 
-    plist[[1]] <- p1
+    
+    # if (!is.null(depth) && residuals && boxwhisker){
+    #   plist[[4]] <- p1
+    # } else if (!is.null(depth) && residuals || boxwhisker){
+    #   plist[[3]] <- p1
+    # } else if (!is.null(depth) && !residuals && !boxwhisker){
+    #   plist[[2]] <- p1
+    # } else {
+    #   plist[[1]] <- p1
+    # }
+    plist[[pindex]] <- p1
+    pindex <- pindex + 1
+    
     
     if (residuals){
       if (sum(!is.na(obs$value)) == 0){
@@ -259,7 +278,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                 legend.margin=margin(0,0,0,0),
                 legend.box.margin=margin(0,0,0,0),
                 legend.position="bottom",legend.title=element_blank()) 
-        plist[[2]] <- p2
+        # plist[[2]] <- p2
+        plist[[pindex]] <- p2
+        pindex <- pindex + 1
       }
     }
     if (boxwhisker){
@@ -286,11 +307,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                            rep("blank", 1)),
                               shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
         theme_classic()
-      if (residuals){
-        plist[[3]] <- p3
-      } else {
-        plist[[2]] <- p3
-      }
+      # if (residuals){
+      #   plist[[3]] <- p3
+      # } else {
+      #   plist[[2]] <- p3
+      # }
+      plist[[pindex]] <- p3
+      pindex <- pindex + 1
     }
     
   }
