@@ -7,7 +7,6 @@
 #' @param var_list list of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model Vector of models which should be included in the plot
 #' @return ggplot object of heatmaps
-#' @examples
 #' @author Tadhg Moore, Johannes Feldbauer
 #' @importFrom reshape2 melt
 #' @import ggplot2
@@ -15,13 +14,10 @@
 #' @import RColorBrewer
 #' @examples
 #' \dontrun{
-#' plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "watertemp",
-#'                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
-#' plist[['obs_res']]+
-#' theme_classic()
+#' ncdf <- 'output/ensemble_output.nc'
+#' # Plot ensemble mean at 0.9m
+#' plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
 #' }
-#' 
-#'
 #' @export
 plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
                        model = NULL) {
