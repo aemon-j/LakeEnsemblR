@@ -4,7 +4,7 @@
 \alias{analyse_ncdf}
 \title{Analyse the output netCDF}
 \usage{
-analyse_ncdf(ncdf, model, spin_up = NULL, drho = 0.1)
+analyse_ncdf(ncdf, model, spin_up = 0, drho = 0.1)
 }
 \arguments{
 \item{ncdf}{filepath; to the `ensemble_output.nc` file}
