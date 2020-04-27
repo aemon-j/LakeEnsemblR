@@ -11,8 +11,7 @@
 #'  "res_depth" = Residuals versus depth,
 #'  "yday_res" = residuals for day of year,
 #'  "res_dist" = distribution of residuals
-#' @examples
-#' @author Johannes Feldbauer, Tadhg Moore
+#' @author Tadhg Moore, Johannes Feldbauer
 #' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @import ggplot2
@@ -115,6 +114,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
     scale_colour_gradientn(colours = c("black", dep_cols[2], dep_cols[1])) +
     geom_point(alpha = 0.1) +
     coord_equal() +
+    ggtitle("Observed vs. Residuals")+
     facet_wrap(~Model)
   p2
   # Res v Depth
@@ -122,6 +122,8 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
     geom_vline(xintercept = 0, linetype = "dashed", colour = "grey") +
     geom_point(alpha = 0.1) +
     scale_colour_gradientn(colours = rev(spec)) +
+    labs(colour = "temp") +
+    ggtitle('Residuals vs. Depth') +
     facet_wrap(~Model)
   
   # Time v Res
@@ -129,6 +131,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
     geom_hline(yintercept = 0, linetype = "dashed") +
     geom_point(alpha = 0.1) +
     scale_colour_gradientn(colours = c("black", dep_cols[2], dep_cols[1])) +
+    ggtitle("Year day vs. Residuals") +
     facet_wrap(~Model)
   
 
@@ -138,6 +141,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
     geom_line(data = dens, aes(x = pred, y = density), colour = cols[2], size = 1) +
     geom_vline(xintercept = 0, linetype = "dashed") +
     scale_x_continuous("Residuals (\u00B0C)") +
+    ggtitle("Density distribution of Residuals") +
     facet_wrap(~Model)
   
   plist <- list("obs_res" = p2, "res_depth" = p3,

@@ -23,13 +23,10 @@ Plot a heat map of ensemble output data. It can either plot directly from the ne
 }
 \examples{
 \dontrun{
-plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "watertemp",
-                   model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
-plist[['obs_res']]+
-theme_classic()
+ncdf <- 'output/ensemble_output.nc'
+# Plot ensemble mean at 0.9m
+plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
 }
-
-
 }
 \author{
 Tadhg Moore, Johannes Feldbauer
