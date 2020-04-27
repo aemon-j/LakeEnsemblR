@@ -1,7 +1,7 @@
 LakeEnsemblR
 =====
 
-[![Build Status](https://travis-ci.org/aemon-j/LakeEnsemblR.svg?branch=master)](https://travis-ci.org/aemon-j/LakeEnsemblR)
+[![Build Status](https://travis-ci.org/aemon-j/LakeEnsemblR.svg?branch=master)](https://travis-ci.org/aemon-j/LakeEnsemblR)[![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/)
 <a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
