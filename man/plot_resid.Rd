@@ -36,5 +36,5 @@ theme_classic()
 
 }
 \author{
-Johannes Feldbauer, Tadhg Moore
+Tadhg Moore, Johannes Feldbauer
 }
