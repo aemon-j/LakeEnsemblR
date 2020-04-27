@@ -20,7 +20,7 @@
 #' @importFrom gotmtools list_vars get_vari wide2long sum_stat analyse_strat
 #'
 #' @export
-analyse_ncdf <- function(ncdf, model, spin_up = NULL, drho = 0.1){
+analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   
   # check if model input is correct
   model <- check_models(model)
