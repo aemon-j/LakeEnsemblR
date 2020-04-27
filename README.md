@@ -66,42 +66,51 @@ wtemp_list <- run_ensemble(config_file = config_file,
 ```{r gh-installation, eval = FALSE}
 
 # Load libraries for post-processing
-library(ggpubr)
 library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
-
 # Extract names of all the variables in netCDF
-ens_out <- "output/ensemble_output.nc"
-vars <- gotmtools::list_vars(ens_out)
+ncdf <- 'output/ensemble_output.nc'
+vars <- gotmtools::list_vars(ncdf)
 vars # Print variables
 
-out <- analyse_ncdf(ncdf, spin_up = 0)
-names(out)
-out[['strat']]
-out[['stats']]
+p1 <- plot_heatmap(ncdf)
+p1
+# Change the theme and increase text size for saving
+p1 <- p1 +
+  theme_classic(base_size = 24)
+# Save as a png file
+ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
 
-# Extract wtemp as a list
-wtemp_list <- load_var(ncdf, var = 'watertemp', return = 'list')
-names(wtemp_list)
-deps <- rLakeAnalyzer::get.offsets(wtemp_list[[1]]) # extract depths
-
-# Plot each 
-plist <- lapply(1:length(wtemp_list), function(x){
-  df <- wide2long(data = wtemp_list[[x]], deps)
-  long_heatmap(df, title = names(wtemp_list)[x])+
-    scale_y_reverse() + #Reverse y-axis
-    coord_cartesian(ylim = c(47,0))+
-    theme_classic(base_size = 20)
-})
-
-# Plot all model simulations
-# install.packages("ggpubr")
-g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 2, nrow = 3, common.legend = TRUE, legend = 'right')
-# g1
-ggsave('output/model_ensemble.png', g1,  dpi = 300,width = 384,height = 280, units = 'mm')
 ```
-![](images/ensemble_heatmap.jpg)<!-- -->
+![](images/ensemble_heatmap.png)<!-- -->
+
+## Plot Ensemble output
+```{r gh-installation, eval = FALSE}
+# Plot ensemble mean at 0.9m
+plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
+
+# Load watertemp from netCDF file as a list
+wtemp <- load_var(ncdf = ncdf, var = 'watertemp', return = 'list')
+names(wtemp)
+
+# Plot residual diagnostic plots
+plots <- plot_resid(var_list = wtemp) # Plot residuals - returns a list of plots
+names(plots) #
+
+# Plot residuals vs. depth ("res_depth")
+plots[[2]]
+
+# Analyse the netCDF output
+out <- analyse_ncdf(ncdf, model = model, spin_up = 0)
+names(out)
+str <- out[['strat']]
+str[str$year == 2010, ]
+stats <- out[['stats']]
+stats
+```
+See the [vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf) for further examples.
+
 
 How do I setup `LakeEnsemblR` for my lake?
 =========================================================
