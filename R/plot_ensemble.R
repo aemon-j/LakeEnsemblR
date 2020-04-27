@@ -33,10 +33,20 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE, residuals = FALSE) {
   # check if model input is correct
   model <- check_models(model)
+  # Check if netCDF exists
+  if(!file.exists(ncdf)){
+    stop("File '", ncdf, "' does not exist. Check you have the correct filepath.")
+  }
+  # Check if var is in ncdf
+  vars <- gotmtools::list_vars(ncdf)
+  if(!(var %in% vars)){
+    stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
+  }
+
   # get variable
   var_list <- load_var(ncdf, var = var, return = "list", print = FALSE)
   # get depths
-  deps <- get.offsets(var_list[[1]])
+  deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
   # only the selected models
   var_list <- var_list[c(model, "Obs")]
   
@@ -45,7 +55,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   pindex <- 1
   
   # colors for plotting
-  colfunc <- colorRampPalette(brewer.pal(length(model), 'Set2'))
+  colfunc <- colorRampPalette(RColorBrewer::brewer.pal(length(model), 'Set2'))
   
   # if no date is selected plot time series
   if(!is.null(depth)) {
@@ -59,7 +69,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                     paste0(deps, collapse = ", "), "\n"))
       } 
       
-      data <- var_list %>% melt( id.vars = "datetime") %>% 
+      data <- var_list %>%
+        reshape2::melt( id.vars = "datetime") %>%
         dplyr::filter(variable == paste0("wtr_", depth)) %>%
         dplyr::group_by(datetime)
       colnames(data) <- c("datetime", "Depth", "value", "Model")
@@ -76,10 +87,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       dat_av$Type = av_fun
      
       p1 <- ggplot() +  
-        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33) +
         geom_ribbon(data = dat_av, aes(datetime, ymin=min, ymax=max),
                     alpha=0.2) + 
         geom_line(data = dat, aes(x = datetime, y = value, col = Model)) +
+        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33) +
         geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1) +
         ylab(var) +
         xlab("") +
@@ -112,10 +123,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           dat_resav$min <- dat_av$min - obs$value
           
           p2 <- ggplot() +  
-            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
             geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
                         alpha=0.2) + 
             geom_line(data = dat_res, aes(x = datetime, y = value, col = Model)) +
+            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
             ylab(var) +
             xlab("") +
             ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
@@ -171,7 +182,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     } else {
       
       
-      dat <- var_list %>% reshape2::melt( id.vars = "time") %>% 
+      dat <- var_list %>%
+        reshape2::melt( id.vars = "time") %>%
         dplyr::group_by(time)
       obs <- dat %>% dplyr::filter(L1 == "Obs")
       dat <- dat %>% dplyr::filter(L1 != "Obs")
@@ -212,9 +224,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     dat_av <- dat_av[order(dat_av$Depth, decreasing = TRUE), ]
     dat_av$Type = av_fun
     
-    p1 <- ggplot() +  geom_line(data = dat_av, aes(mean, Depth, col = Type), lwd = 1.33) +
+    p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(xmin=min, xmax=max, y = Depth),
-                  alpha=0.5) + geom_line(data = dat, aes(x = value, y = Depth, col = Model)) +
+                  alpha=0.2) + geom_line(data = dat, aes(x = value, y = Depth, col = Model)) +
+      geom_line(data = dat_av, aes(mean, Depth, col = Type), lwd = 1.33) +
       geom_point(data = obs, aes(x = value, y = Depth, col = Observed), size = 1) +
       xlab(var) + 
       ggtitle(paste0("Depth profile ", paste0("at date ", format(date)))) +
@@ -259,10 +272,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         dat_resav <- na.exclude(dat_resav)
         
         p2 <- ggplot() +  
+          geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),alpha=0.2) + 
           geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
-          geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type), lwd = 1.33) +
-          geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),
-                      alpha=0.2) + 
+          geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type),
+                    lwd = 1.33) +
           geom_point(data = dat_res, aes(x = Depth, y = value, col = Model)) + 
           geom_line(data = na.exclude(dat_res), aes(x = Depth, y = value, col = Model)) +
           coord_flip() + ylab(var) + xlab("") +
