@@ -53,7 +53,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = NULL, drho = 0.1){
   
   
   # Extract latitude for determining hemisphere
-  lat <- get_1d(ncdf, "lat")
+  lat <- gotmtools::get_1d(ncdf, "lat")
   if(lat > 0){
     NH <- TRUE
   }else{
@@ -175,6 +175,10 @@ analyse_ncdf <- function(ncdf, model, spin_up = NULL, drho = 0.1){
   out_strat <- rbind.data.frame(obs_strat, out_strat)
   obs_temp <- na.exclude(obs_temp)
   out_df$model <- factor(out_df$model)
+  
+  # Put the model in the first column
+  out_stat <- out_stat[,c(ncol(out_stat), 1:(ncol(out_stat)-1))]
+  out_strat <- out_strat[,c(ncol(out_strat), 1:(ncol(out_strat)-1))]
   
   
   out <- list(out_df = out_df,
