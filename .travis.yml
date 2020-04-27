@@ -16,6 +16,12 @@ before_install:
 
 warnings_are_errors: false
 
+r_packages:
+  - covr
+
+after_success:
+  - Rscript -e 'library(covr); codecov()'
+
 r_github_packages:
   - GLEON/GLM3r
   - hdugan/glmtools
