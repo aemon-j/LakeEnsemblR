@@ -7,13 +7,13 @@
 plot_resid(ncdf = NULL, var = "watertemp", var_list = NULL, model = NULL)
 }
 \arguments{
-\item{ncdf}{Path to the netcdf file created by `run_ensemble()`}
+\item{ncdf}{filepath; to the netcdf file created by `run_ensemble()`}
 
-\item{var}{Variable which to plot. Defaults to "watertemp"}
+\item{var}{string; of variable which to plot. Defaults to "watertemp"}
 
-\item{var_list}{list of variables in the format when loaded using `load_var()`. Defaults to NULL}
+\item{var_list}{list; of variables in the format when loaded using `load_var()`. Defaults to NULL}
 
-\item{model}{Vector of models which should be included in the plot}
+\item{model}{string vector; of models which should be included in the plot. If NULL all models in the netCDF/list are plotted. Defaults to NULL.}
 }
 \value{
 list with four ggplot objects: "obs_res" = Observations versus residuals,
@@ -36,5 +36,5 @@ theme_classic()
 
 }
 \author{
-Johannes Fledbauer, Tadhg Moore
+Johannes Feldbauer, Tadhg Moore
 }
