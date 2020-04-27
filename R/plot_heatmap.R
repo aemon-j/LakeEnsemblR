@@ -29,6 +29,15 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
   # check if model input is correct
   model <- check_models(model)
   if(!is.null(ncdf)){
+    # Check if netCDF exists
+    if(!file.exists(ncdf)){
+      stop("File '", ncdf, "' does not exist. Check you have the correct filepath.")
+    }
+    # Check if var is in ncdf
+    vars <- gotmtools::list_vars(ncdf)
+    if(!(var %in% vars)){
+      stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
+    }
     # get variable
     var_list <- load_var(ncdf, var = var, return = "list")
   }else{
