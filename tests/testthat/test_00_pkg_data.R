@@ -29,7 +29,7 @@ test_that("create model meteo & config files", {
                meteo_file = "LakeEnsemblR_meteo_standard.csv")
   
   # 3. Create initial conditions
-  export_init_cond(masterConfigFile,
+  export_init_cond(config_file = masterConfigFile,
                    model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                    print = TRUE)
   
