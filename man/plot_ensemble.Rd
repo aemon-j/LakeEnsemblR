@@ -11,7 +11,8 @@ plot_ensemble(
   depth = NULL,
   date = NULL,
   av_fun = "mean",
-  boxwhisker = FALSE
+  boxwhisker = FALSE,
+  residuals = FALSE
 )
 }
 \arguments{
@@ -48,5 +49,5 @@ p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
 
 }
 \author{
-Johannes Fledbauer
+Johannes Feldbauer, Robert Ladwig
 }
