@@ -33,7 +33,10 @@ Imports:
     plyr,
     rLakeAnalyzer,
     reshape2,
-    zoo
+    zoo,
+    ggplot2,
+    dplyr,
+    RColorBrewer
 Suggests:
     testthat,
     knitr,

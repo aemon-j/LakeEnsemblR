@@ -59,10 +59,12 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     dates <- unique(data[, 1])
 
     # Put into data frame and remove NA's
-    if(!is.null(H_ice)){
+    ice_test <- na.exclude(H_ice)
+    if(!is.null(H_ice) & length(ice_test) > 0){
       df <- data.frame(dates, Ts, Tb, H_ice)
     }else{
-      df <- data.frame(dates, Ts, Tb)
+      H_ice <- rep(0, length(Ts))
+      df <- data.frame(dates, Ts, Tb, H_ice)
     }
     df <- na.exclude(df)
     if(nrow(df) == 0){
