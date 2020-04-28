@@ -198,10 +198,25 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     
     p1 <- ggplot() +  
       geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
-                  alpha=0.2) + geom_line(data = dat, aes(x = time, y = value, col = L1)) +
-      geom_point(data = obs, aes(x = time, y = value, col = L1), col = 1, size = 1) +
-      geom_line(data = dat_av, aes(time, mean), col =1, lwd = 1.33)
-
+                  alpha=0.2) + 
+      geom_line(data = dat, aes(x = time, y = value, col = L1)) +
+      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33) +
+      geom_point(data = obs, aes(x = time, y = value, col = L1), size = 1) +
+      ylab(var) +
+      xlab("") +
+      ggtitle(paste0("Time Series of ",paste0(var))) +
+      scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$L1))), "black"),
+                          breaks= c(av_fun, unique(dat$L1), "Obs"),
+                          guide = guide_legend(override.aes = list(
+                            linetype = c(rep("solid", length(unique(dat$L1)) + 1),
+                                         rep("blank", 1)),
+                            shape = c(rep(NA, length(unique(dat$L1)) + 1), rep(16, 1))))) +
+      theme(text = element_text(size=10),
+            axis.text.x = element_text(angle=0, hjust= 0.5),
+            legend.margin=margin(0,0,0,0),
+            legend.box.margin=margin(0,0,0,0),
+            legend.position="bottom",legend.title=element_blank()) 
+    
     # plist[[1]] <- p1
     plist[[pindex]] <- p1
     pindex <- pindex + 1
