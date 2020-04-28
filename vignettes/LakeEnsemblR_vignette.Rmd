@@ -191,11 +191,6 @@ Optionally, you can now go into the model-specific configuration files and make 
 ## Run_ensemble
 The next step would be to call `run_ensemble`, which runs all the models. A new folder called "output" is created, in which a netcdf-file will be put with all the results from the model runs. If you are interested, each model sub-folder will also have an "output" folder, with the model-specific model output.
 
-## Post-processing
-Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://sourceforge.net/projects/pyncview/) can be used to look at netcdf output.
-
-We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.
-
 ## Example model run
 See below for an example run, and some post-processing of the data.
 ```{r eval = FALSE}
@@ -279,9 +274,97 @@ for(i in 1:5){
 # install.packages("ggpubr")
 g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = "right")
 g1
-ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300,width = 384,height = 300, units = "mm")
+ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300,width = 384,height = 300,
+       units = "mm")
 
 ```
+
+## More Post-processing
+
+Once LakeEnsemblR did successfully run all lake models, you can either extract the output data from the netcdf file for custom analysis and plotting, or use post-processing scripts for an initial look at the output.
+
+### Quick post-processing
+Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://sourceforge.net/projects/pyncview/) can be used to look at netcdf output.
+
+```{r gh-installation, eval = FALSE}
+# Import the LEr output into your workspace
+ens_out <- "output/ensemble_output.nc"
+
+# Plot depth and time-specific results
+p <- plot_ensemble(ncdf = ens_out, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
+                   depth = 0.9, var = 'watertemp', date = as.POSIXct("2010-06-13", tz = "UTC"),
+                   boxwhisker = TRUE, residuals = TRUE)
+```
+
+```{r, out.width = "650px", echo = FALSE}
+include_graphics("../images/model_ensemble_timeseries_depth.png")
+
+include_graphics("../images/model_ensemble_vertical_depth.png")
+```
+
+
+```{r metrics, eval = FALSE}
+# Take a look at the model fits to the observed data
+calc_fit(ncdf = "output/ensemble_output.nc",
+         model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
+         var = "watertemp")
+
+print(calc_fit)
+$FLake
+      rmse      nse         r         re      nmae
+1 3.356338 0.651542 0.6452533 -0.1836044 0.1877008
+
+$GLM
+      rmse       nse         r         re      nmae
+1 2.677758 0.5880857 0.8791993 -0.2142704 0.2230113
+
+$GOTM
+      rmse       nse         r         re      nmae
+1 2.855198 0.5303783 0.8983338 -0.2464723 0.2478081
+
+$Simstrat
+      rmse        nse        r         re      nmae
+1 4.111067 0.02639042 0.653375 -0.2212801 0.2915025
+
+$MyLake
+      rmse       nse         r         re      nmae
+1 2.548408 0.6258777 0.9059941 -0.1880694 0.1946865
+```
+
+```{r diagnostics, eval = FALSE}
+# Take a look at the model performance against residuals, time and depth
+plist <- plot_resid(ncdf = ens_out,var = "watertemp",
+                   model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
+```
+
+```{r, out.width = "650px", echo = FALSE}
+include_graphics("../images/model_ensemble_diagnostics.png")
+```
+
+
+### Further custom post-processing
+```{r further, eval = FALSE}
+# Load post-processed output data into your workspace
+analyse_df <- analyse_ncdf(ncdf = ens_out, spin_up = NULL, drho = 0.1)
+
+# Example plot the summer stratification period
+strat_df <- analyse_df$strat
+
+p <- ggplot(strat_df, aes(model, TotStratDur)) +
+  geom_col() +
+  ylab("Total stratification duration [days]") +
+  xlab("") +
+  theme_classic()
+ggsave("output/model_ensemble_stratification.png", p,  dpi = 300, width = 284,
+       height = 284, units = "mm")
+```
+
+```{r, out.width = "250px", echo = FALSE}
+include_graphics("../images/model_ensemble_stratification.png")
+```
+
+
+We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.
 
 # Citation
 See 
