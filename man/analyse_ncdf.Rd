@@ -4,16 +4,25 @@
 \alias{analyse_ncdf}
 \title{Analyse the output netCDF}
 \usage{
-analyse_ncdf(ncdf, spin_up = NULL)
+analyse_ncdf(ncdf, model, spin_up = 0, drho = 0.1)
 }
 \arguments{
 \item{ncdf}{filepath; to the `ensemble_output.nc` file}
 
+\item{model}{Vector of models for which to calculate the performance measures}
+
 \item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
+
+\item{drho}{numeric; density difference between top and bottom indicating stratification
+[kg m^-3]}
+
+\item{var}{character; Name of the variable to be extracted. Must match short name in netCDF file}
 }
 \value{
-list with the dataframes used for comparison, statistics on model performance,
-stratification
+list of four dataframes: 'out_df' = long data frame with date, depths, temp and model,
+'stats' = summary statistics of model fitness compared to observed and mean differences between modelled and observed phenological events,
+'strat' = stratification statistics for each year,
+'obs_temp' = long dataframe of observed data within the netCDF file
 }
 \description{
 Analyse the LER output neCDF and produce summary statistics
@@ -21,4 +30,7 @@ Analyse the LER output neCDF and produce summary statistics
 \examples{
 \dontrun{
 }
+}
+\author{
+Tadhg Moore
 }

@@ -7,6 +7,7 @@
 create_netcdf_output(
   output_lists,
   folder = ".",
+  model,
   out_time,
   longitude = 0,
   latitude = 0,
