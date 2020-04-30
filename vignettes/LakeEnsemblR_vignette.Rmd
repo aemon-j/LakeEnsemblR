@@ -95,10 +95,10 @@ Depth_meter,Area_meterSquared
 In the "Time" section, you fill in the start and end date of the simulation, and the model time step. `time_step` indicates the model integration time step, so each time step that the model performs a calculation. 
 
 ## Config files
-In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc.) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
+In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
 
 ## Light
-Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
+Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
 
 ## Observations
 If you have observations of water temperature or ice cover, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
@@ -106,19 +106,32 @@ If you have observations of water temperature or ice cover, you can fill them in
 For water temperature, the data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Depths are positive and relative to the water surface. Water temperature is in degrees Celsius. The column names *must* be `datetime`, `Depth_meter` and `Water_Temperature_celsius` (templates available).
 
 Example of data:
-```{}
+```{csv}
 datetime,Depth_meter,Water_Temperature_celsius
 2004-01-05 00:00:00,0.9,6.97
-2004-01-05 00:00:00,2.5,6.71
-2004-01-05 00:00:00,5,6.73
-2004-01-05 00:00:00,8,6.76
+2004-01-06 00:00:00,2.5,6.71
+2004-01-07 00:00:00,5,6.73
+2004-01-08 00:00:00,8,6.76
+...
+```
+
+
+For ice height, the data must also be a comma separated values (.csv) file, with datetime column in format `YYYY-mm-dd HH:MM:SS` and has the column name `datetime`. Ice height must be provided in meters and the column must be named `Ice_Height_meter`.
+
+Example of data:
+
+```{csv}
+datetime, Ice_Height_meter
+2004-01-01 00:00:00,0.3
+2004-01-02 00:00:00,0.3
+2004-01-03 00:00:00,0.35
 ...
 ```
 
 ## Input
 In the "Input" section, you give information about the initial temperature profile, meteorological forcing, and ice.
 
-Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
+Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available using `get_template("Initial temperature profile")`). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
 
 Secondly, you give the link to the file with your meteorological data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. See Table 1 for the list of variables, units and column names. The `time_zone` setting has not been implemented yet.
 
@@ -141,7 +154,7 @@ kable_styling(x_html, position = "left", font_size = 11)
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available).
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ).
 
 Example of data:
 ```{csv}
@@ -240,46 +253,18 @@ wtemp_list <- run_ensemble(config_file = config_file,
 
 ```
 
-Post-processing:
+Plotting the model outputs is very easy using the `plot_heatmap()` function:
 
 ```{r eval = FALSE}
 
-# Load libraries for post-processing
-library(ggpubr)
-library(ggplot2)
+g1 <- plot_heatmap("output/ensemble_output.nc")
 
-## Plot model output using gotmtools/ggplot2
-
-# Extract names of all the variables in netCDF
-ens_out <- "output/ensemble_output.nc"
-vars <- gotmtools::list_vars(ens_out)
-vars # Print variables
-
-plist <- list() # Initialize empty list for storing plots of each variable
-for(i in 1:5){
-  p1 <- gotmtools::plot_vari(ncdf = ens_out,
-                             var = vars[i],
-                             incl_time = FALSE,
-                             limits = c(0,25),
-                             zlab = "degC")
-  p1 <- p1 + scale_y_reverse() + #Reverse y-axis
-    coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
-    ggtitle(vars[i]) + # Add title using variable name
-    xlab("")+ # Remove x-label
-    theme_bw(base_size = 18) # Increase font size of plots
-  plist[[i]] <- p1
-}
-
-# Plot all model simulations
-# install.packages("ggpubr")
-g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = "right")
-g1
 ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300,width = 384,height = 300,
        units = "mm")
 
 ```
 
-## More Post-processing
+## Post-processing
 
 Once LakeEnsemblR did successfully run all lake models, you can either extract the output data from the netcdf file for custom analysis and plotting, or use post-processing scripts for an initial look at the output.
 
@@ -345,7 +330,7 @@ include_graphics("../images/model_ensemble_diagnostics.png")
 ### Further custom post-processing
 ```{r further, eval = FALSE}
 # Load post-processed output data into your workspace
-analyse_df <- analyse_ncdf(ncdf = ens_out, spin_up = NULL, drho = 0.1)
+analyse_df <- analyse_ncdf(ncdf = ens_out, model = model, spin_up = NULL, drho = 0.1)
 
 # Example plot the summer stratification period
 strat_df <- analyse_df$strat
