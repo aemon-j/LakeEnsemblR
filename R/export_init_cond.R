@@ -40,6 +40,9 @@ export_init_cond <- function(config_file,
   # check model input
   model <- check_models(model)
   
+  if(is.null(date)){
+    date <- get_yaml_value(config_file, "time", "start")
+  }
 
   # Here check if config_file, "initial_profile:" is empty or not
   if(get_yaml_value(config_file, "init_temp_profile", "file") == ""){
@@ -50,10 +53,6 @@ export_init_cond <- function(config_file,
     
     message("Loading wtemp_file...")
     obs <- read.csv(wtemp_file)
-    
-    if(is.null(date)){
-      date <- get_yaml_value(config_file, "time", "start")
-    }
     
     # Check if date is in observations
     if(!date %in% obs[, 1]){

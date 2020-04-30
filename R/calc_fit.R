@@ -12,6 +12,7 @@
 #'    relative error (re), and normalized mean absolute error (nmae). Can be any function that
 #'    takes observed data as first, and simulated data at the same time and depth as the second
 #'    argument
+#' @param avfun Name of the function to calculate the ensemble average, defaults to "mean"
 #' @author Johannes Feldbauer
 #' @export
 #' @examples 
@@ -25,7 +26,7 @@
 #'                   model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
 #'                   var = "watertemp", qualfun = function(O, S) mean(O - S, na.rm = TRUE))
 #' }
-calc_fit <- function(ncdf, list = NULL, model, var, qualfun = qual_meas) {
+calc_fit <- function(ncdf, list = NULL, model, var, qualfun = qual_meas, avfun = "mean") {
   
   # check if model input is correct
   model <- check_models(model)
@@ -43,6 +44,7 @@ calc_fit <- function(ncdf, list = NULL, model, var, qualfun = qual_meas) {
   # only the selected models
   var_list <- var_list[c(model, "Obs")]
 
+
   
   # only select depth where observations are available
   obs_col <- which(apply(var_list$Obs, 2, function(x)sum(!is.na(x))) != 0)
@@ -52,9 +54,9 @@ calc_fit <- function(ncdf, list = NULL, model, var, qualfun = qual_meas) {
 
   
   # create list with long format data.frames
- var_long <-  lapply(model, function(m)
-             cbind(data.frame(reshape2::melt(var_list[[m]],id.vars = "datetime")),
-                   data.frame(obs = reshape2::melt(var_list$Obs,id.vars = "datetime")$value)))
+  var_long <-  lapply(model, function(m)
+                       cbind(data.frame(reshape2::melt(var_list[[m]],id.vars = "datetime")),
+                       data.frame(obs = reshape2::melt(var_list$Obs,id.vars = "datetime")$value)))
  
  names(var_long) <- model 
  
@@ -63,6 +65,12 @@ calc_fit <- function(ncdf, list = NULL, model, var, qualfun = qual_meas) {
                         function(m) dplyr::mutate(m, variable = -as.numeric(gsub("wtr_", "",
                                                                                  variable)))) 
 
+ # calculate ensemble average
+ ens_data <- var_long[[model[1]]]
+ ens_data$value <- apply(sapply(model, function(m) var_long[[m]]$value), 1, get(avfun),
+                         na.rm = TRUE)
+ var_long[[paste0("ensemble_",avfun)]] <- ens_data
+ 
  # calculate quality measures
  qual <- lapply(var_long, function(m){qualfun(m$obs, m$value)})
 
