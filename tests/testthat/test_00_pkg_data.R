@@ -29,7 +29,7 @@ test_that("create model meteo & config files", {
                meteo_file = "LakeEnsemblR_meteo_standard.csv")
   
   # 3. Create initial conditions
-  export_init_cond(masterConfigFile,
+  export_init_cond(config_file = masterConfigFile,
                    model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                    print = TRUE)
   
@@ -37,4 +37,38 @@ test_that("create model meteo & config files", {
   testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
                           file.exists("MyLake/mylake.Rdata")))
+})
+
+
+test_that("crun models", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file
+  masterConfigFile <- "LakeEnsemblR.yaml"
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                inflow_file = "LakeEnsemblR_inflow_standard.csv", folder = ".")
+  
+  # 2. Create meteo driver files
+  export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+               meteo_file = "LakeEnsemblR_meteo_standard.csv")
+  
+  # 3. Create initial conditions
+  export_init_cond(config_file = masterConfigFile,
+                   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                   print = TRUE)
+  
+  # 4 run models
+  run_ensemble(config_file = masterConfigFile,
+               model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+               folder = ".", return_list = FALSE, create_netcdf = TRUE)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
