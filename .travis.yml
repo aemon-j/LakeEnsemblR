@@ -23,7 +23,7 @@ after_success:
   - Rscript -e 'library(covr); codecov()'
 
 r_github_packages:
-  - JFeldbauer/GLM3r
+  - GLEON/GLM3r
   - hdugan/glmtools
   - aemon-j/FLakeR@inflow
   - aemon-j/GOTMr
