@@ -137,7 +137,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # if cmethod == LHC sample parameter or read from provided file
   if(cmethod == "LHC") {
     if(is.null(param_file)) {
-      param_file <- sample_LHC(config_file = config_file, num = num, cmethod = "met",
+      param_file <- sample_LHC(config_file = config_file, num = num, method = "met",
                                folder = folder,
                                file.name = file.path(out_f, paste0("LHS_params_",
                                                                    format(Sys.time(),
@@ -176,7 +176,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # read in meteo file
   glm_met <- read.table(file.path(folder, "GLM", "meteo_file.csv"), sep = ",", header = TRUE)
   # read in meteo file
-  flake_met <- read.table(file.path(folder, "FLake", "all_meteo_file.dat"), sep = "\t", header = FALSE)
+  flake_met <- read.table(file.path(folder, "FLake", "all_meteo_file.dat"), sep = "\t",
+                          header = FALSE)
   colnames(flake_met) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
                            "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
