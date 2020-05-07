@@ -54,9 +54,12 @@
 #' @importFrom configr read.config
 #'
 #' @export
-cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC", qualfun = qual_meas,
-                    model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL,
-                    out_f = "cali", nout_fun = 5, ...){
+
+cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC",
+                          qualfun = qual_meas, model = c("FLake", "GLM", "GOTM", "Simstrat"),
+                          folder = ".", spin_up = NULL, out_f = "cali", nout_fun = 5, ...) {
+
+##----------------- check inputs and set things up -------------------------------------------------  
   
   # check if method is one of the allowed
   if(!cmethod %in% c("modFit", "LHC", "MCMC")) {
@@ -97,7 +100,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   names(cnfg_l) <- model
   met_timestep <- get_meteo_time_step(file.path(folder,
                                                 get_yaml_value(config_file, "meteo", "file")))
-  
+ 
+##----------------- read in observed data  ---------------------------------------------------------  
+ 
   # Create output time vector
   if(is.null(spin_up)){
     out_time <- seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz), by =
@@ -132,6 +137,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
   message("Finished!")
+  
+##---------------- read in  parameter initial values or create parameter sets ----------------------
+  
   # if not existing create output file
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
   # if cmethod == LHC sample parameter or read from provided file
@@ -154,7 +162,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     p_lower <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
     p_upper <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
   }
-  
+
+##--------- prepare models to be run ---------------------------------------------------------------  
+
   # prepare controll files of the models
   export_config(config_file = config_file, model = model, folder = folder)
   # prepare meteo files for the models
@@ -163,6 +173,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   export_init_cond(config_file = config_file, 
                    model = model,
                    print = TRUE)
+  
+##----------------- read in model meteo files ------------------------------------------------------
   
   ## read in meteo
   # read in meteo file
@@ -194,6 +206,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                 FLake = flake_met,
                 Simstrat = simstrat_met,
                 MyLake = mylake_met)
+  
+  ##------------------------- calibration ----------------------------------------------------------
   # method LCH
   if(cmethod == "LHC") {
     model_out <- setNames(
@@ -210,6 +224,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       model
     )
   }
+  
   # method MCMC
   if(cmethod == "MCMC") {
     model_out <- setNames(
@@ -233,7 +248,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                 model
     )
   }
-  # method 
+  
+  # method modFit
   if(cmethod == "modFit") {
     model_out <- setNames(
       lapply(model, function(m){
@@ -257,9 +273,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       model
     )
   }
-  
+  # return calibration results
   return(model_out)
 }
+
+##----------- wrapper function for LHC calibration -------------------------------------------------
 
 LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
                       obs_deps, obs_out, out_hour, qualfun, config_f, nout_fun) {
@@ -296,6 +314,8 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   
 }
 
+##----------------- warpper function for other two methods -----------------------------------------
+
 wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
                        obs_deps, obs_out, out_hour, qualfun, config_f, out_name,
                        par_name, write = TRUE) {
@@ -328,6 +348,7 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   return(qual)
 }
 
+##---------------------------------- utility functions ---------------------------------------------
 
 #' Change parameter or meteo scaling for a model
 #' 
