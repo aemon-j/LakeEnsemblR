@@ -94,6 +94,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
 
   if("MyLake" %in% model) {
 
+    par_nams <- names(pars)
+    
     if("wind_speed" %in% par_nams) {
       met[[l_names$wind_speed]] <- met[[l_names$wind_speed]] * pars$wind_speed
     }
@@ -102,6 +104,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
       met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
 
+    # Write to file
+    write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE,
+                col.names = FALSE)
 
   }
 
