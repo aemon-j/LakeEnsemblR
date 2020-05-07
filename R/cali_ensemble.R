@@ -7,7 +7,7 @@
 #' num = number of parameters in that file.
 #' @param param_file filepath; to previously created parameter file set. If NULL creates a new
 #' parameter set. Defaults to NULL
-#' @param method character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"
+#' @param cmethod character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"
 #' @param obs_file filepath; to LakeEnsemblR standardised observed water temperature profile data.
 #' If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
@@ -20,6 +20,8 @@
 #' @param qualfun function; function that calculates measure of fit from observed and simulated 
 #'    variables, takes the two arguments Observed and Simulated
 #' @param nout_fun integer; number of return values from qualfun
+#' @param ... additional arguments passed to modFit or modMCMC. Only used when method is
+#'    modFit or MCMC
 #' @importFrom reshape2 dcast
 #'
 #' @examples
@@ -27,11 +29,15 @@
 #' 
 #' config_file <- 'LakeEnsemblR.yaml'
 #' 
-#' cali_ensemble(config_file = config_file, num = 200, method = "LCH",
+#' cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
 #'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 #'              
-#' resMCMC <- cali_ensemble(config_file = config_file, num = 200, method = "MCMC",
-#'                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))             
+#' resMCMC <- cali_ensemble(config_file = config_file, num = 200, cmethod = "MCMC",
+#'                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+#'                
+#' resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "modFit",
+#'                             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+#'                             method = "Nelder-Mead")                                           
 #'              
 #' }
 #' @importFrom FME Latinhyper
@@ -48,9 +54,14 @@
 #' @importFrom configr read.config
 #'
 #' @export
-cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "LHC", qualfun = qual_meas,
+cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC", qualfun = qual_meas,
                     model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL,
-                    out_f = "cali", nout_fun = 5){
+                    out_f = "cali", nout_fun = 5, ...){
+  
+  # check if method is one of the allowed
+  if(!cmethod %in% c("modFit", "LHC", "MCMC")) {
+    stop(paste0("Method ", cmethod, " not allowed. Use one of: modFit, LHC, or MCMC"))
+  }
   
   # check model input
   model <- check_models(model)
@@ -121,12 +132,12 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
   message("Finished!")
-
+  # if not existing create output file
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
-
-  if(method == "LHC") {
+  # if cmethod == LHC sample parameter or read from provided file
+  if(cmethod == "LHC") {
     if(is.null(param_file)) {
-      param_file <- sample_LHC(config_file = config_file, num = num, method = "met",
+      param_file <- sample_LHC(config_file = config_file, num = num, cmethod = "met",
                                folder = folder,
                                file.name = file.path(out_f, paste0("LHS_params_",
                                                                    format(Sys.time(),
@@ -135,11 +146,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "
     params <- read.csv(param_file, stringsAsFactors = FALSE)
     num <- nrow(params)
   } else {
+    ## else use initial values from master config file as starting values
     # load master config file
     configr_master_config <- configr::read.config(file.path(folder, config_file))
     cal_section <- configr_master_config[["calibration"]][["met"]]
     params <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
+    p_lower <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
+    p_upper <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
   }
+  
   # prepare controll files of the models
   export_config(config_file = config_file, model = model, folder = folder)
   # prepare meteo files for the models
@@ -172,13 +187,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "
   # read in meteo file
   simstrat_met <- read.table(file.path(folder, "Simstrat", "meteo_file.dat"), sep = "\t",
                              header = TRUE)
-
+  # list with all meteo files
   met_l <- list(GLM = glm_met,
                 GOTM = gotm_met,
                 FLake = flake_met,
                 Simstrat = simstrat_met,
                 MyLake = mylake_met)
-  if(method == "LHC") {
+  # method LCH
+  if(cmethod == "LHC") {
     model_out <- setNames(
       lapply(model, function(mod_name) LHC_model(pars = params,
                                                  type = rep("met", (ncol(params)-1)),
@@ -193,7 +209,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "
       model
     )
   }
-if(method == "MCMC") {
+  # method MCMC
+  if(cmethod == "MCMC") {
     model_out <- setNames(
                 lapply(model, function(m){
                     FME::modMCMC(f = wrap_model, p = params, par_name = names(params),
@@ -201,7 +218,6 @@ if(method == "MCMC") {
                                  model = m,
                                  var = "temp",
                                  config_file = config_file,
-                                 method = method,
                                  met = met_l[[m]],
                                  folder = folder,
                                  config_f = cnfg_l[[m]],
@@ -209,14 +225,38 @@ if(method == "MCMC") {
                                  out_hour = out_hour,
                                  qualfun = function(O, P){
                                    ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
-                                 out_name = paste0(method, "_", m, "_",
+                                 out_name = paste0(cmethod, "_", m, "_",
                                                     format(Sys.time(), "%Y%m%d%H%M"),
                                                     ".csv"),
-                                 niter = num)}),
+                                 niter = num, ...)}),
                 model
     )
-}
-
+  }
+  # method 
+  if(cmethod == "modFit") {
+    model_out <- setNames(
+      lapply(model, function(m){
+        FME::modFit(f = wrap_model, p = params, par_name = names(params),
+                    type = rep("met",(length(params))),
+                    model = m,
+                    var = "temp",
+                    config_file = config_file,
+                    met = met_l[[m]],
+                    folder = folder,
+                    config_f = cnfg_l[[m]],
+                    out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                    out_hour = out_hour,
+                    qualfun = function(O, P){
+                    res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
+                    out_name = "",
+                    write = FALSE,
+                    lower = p_lower,
+                    upper = p_upper,
+                    ...)}),
+      model
+    )
+  }
+  
   return(model_out)
 }
 
@@ -255,9 +295,9 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   
 }
 
-wrap_model <- function(pars, type, model, var, config_file, met, folder, method, out_f,
+wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
                        obs_deps, obs_out, out_hour, qualfun, config_f, out_name,
-                       par_name) {
+                       par_name, write = TRUE) {
   # name of the parameter
   pars <- data.frame(matrix(pars, nrow = 1))
   colnames(pars) <- par_name
@@ -276,11 +316,13 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, method,
     # paste parameter values and quality measure
     out_w <- data.frame(pars, qual = qual)
   }
-  # switch if file is existing
-  flsw <- file.exists(file.path(folder, out_f, out_name))
-  write.table(x = out_w, file = file.path(folder, out_f, out_name),
-              append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
-              col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
+  if(write) {
+    # switch if file is existing
+    flsw <- file.exists(file.path(folder, out_f, out_name))
+    write.table(x = out_w, file = file.path(folder, out_f, out_name),
+                append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
+                col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
+  }
   # return
   return(qual)
 }

@@ -8,13 +8,14 @@ cali_ensemble(
   config_file,
   num = NULL,
   param_file = NULL,
-  method = "LHC",
+  cmethod = "LHC",
   qualfun = qual_meas,
   model = c("FLake", "GLM", "GOTM", "Simstrat"),
   folder = ".",
   spin_up = NULL,
   out_f = "cali",
-  nout_fun = 5
+  nout_fun = 5,
+  ...
 )
 }
 \arguments{
@@ -26,7 +27,7 @@ num = number of parameters in that file.}
 \item{param_file}{filepath; to previously created parameter file set. If NULL creates a new
 parameter set. Defaults to NULL}
 
-\item{method}{character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"}
+\item{cmethod}{character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"}
 
 \item{qualfun}{function; function that calculates measure of fit from observed and simulated 
 variables, takes the two arguments Observed and Simulated}
@@ -42,6 +43,9 @@ variables, takes the two arguments Observed and Simulated}
 
 \item{nout_fun}{integer; number of return values from qualfun}
 
+\item{...}{additional arguments passed to modFit or modMCMC. Only used when method is
+modFit or MCMC}
+
 \item{obs_file}{filepath; to LakeEnsemblR standardised observed water temperature profile data.
 If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.}
 }
@@ -53,11 +57,15 @@ Run lake models using Latin hypercube sampling for model parameters.
 
 config_file <- 'LakeEnsemblR.yaml'
 
-cali_ensemble(config_file = config_file, num = 200, method = "LCH",
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
              
-resMCMC <- cali_ensemble(config_file = config_file, num = 200, method = "MCMC",
-                         model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))             
+resMCMC <- cali_ensemble(config_file = config_file, num = 200, cmethod = "MCMC",
+                         model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+               
+resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "modFit",
+                            model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                            method = "Nelder-Mead")                                           
              
 }
 }
