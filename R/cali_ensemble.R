@@ -7,8 +7,7 @@
 #' num = number of parameters in that file.
 #' @param param_file filepath; to previously created parameter file set. If NULL creates a new
 #' parameter set. Defaults to NULL
-#' @param method character; Method for calibration. Can be "met", "model" or "both". Needs to be
-#' specified by the user.
+#' @param method character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"
 #' @param obs_file filepath; to LakeEnsemblR standardised observed water temperature profile data.
 #' If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
@@ -28,10 +27,15 @@
 #' 
 #' config_file <- 'LakeEnsemblR.yaml'
 #' 
-#' run_LHC_atom(config_file = config_file, num = 200, method = "met",
+#' cali_ensemble(config_file = config_file, num = 200, method = "LCH",
 #'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+#'              
+#' resMCMC <- cali_ensemble(config_file = config_file, num = 200, method = "MCMC",
+#'                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))             
+#'              
 #' }
 #' @importFrom FME Latinhyper
+#' @importFrom FME modMCMC
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast
@@ -41,9 +45,10 @@
 #' @importFrom SimstratR run_simstrat
 #' @importFrom MyLakeR run_mylake
 #' @importFrom lubridate round_date seconds_to_period
+#' @importFrom configr read.config
 #'
 #' @export
-run_LHC_atom <- function(config_file, num = NULL, param_file = NULL, method, qualfun = qual_meas,
+cali_ensemble <- function(config_file, num = NULL, param_file = NULL, method = "LHC", qualfun = qual_meas,
                     model = c("FLake", "GLM", "GOTM", "Simstrat"), folder = ".", spin_up = NULL,
                     out_f = "cali", nout_fun = 5){
   
@@ -116,26 +121,32 @@ run_LHC_atom <- function(config_file, num = NULL, param_file = NULL, method, qua
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
   message("Finished!")
-  
+
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
 
-  if(is.null(param_file)){
-    param_file <- sample_LHC(config_file = config_file, num = num, method = method,
-                             folder = folder,
-                             file.name = file.path(out_f, paste0("LHS_params_",
-                                                                 format(Sys.time(),
-                                                                        format = "%Y%m%d%H%M"))))
+  if(method == "LHC") {
+    if(is.null(param_file)) {
+      param_file <- sample_LHC(config_file = config_file, num = num, method = "met",
+                               folder = folder,
+                               file.name = file.path(out_f, paste0("LHS_params_",
+                                                                   format(Sys.time(),
+                                                                          format = "%Y%m%d%H%M"))))
+    }
+    params <- read.csv(param_file, stringsAsFactors = FALSE)
+    num <- nrow(params)
+  } else {
+    # load master config file
+    configr_master_config <- configr::read.config(file.path(folder, config_file))
+    cal_section <- configr_master_config[["calibration"]][["met"]]
+    params <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
   }
-  params <- read.csv(param_file, stringsAsFactors = FALSE)
-  num <- nrow(params)
-  
   # prepare controll files of the models
   export_config(config_file = config_file, model = model, folder = folder)
   # prepare meteo files for the models
   export_meteo(config_file = config_file,model =  model,meteo_file =  meteo_file, folder = folder)
   # export initial conditions for each model
   export_init_cond(config_file = config_file, 
-                   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                   model = model,
                    print = TRUE)
   
   ## read in meteo
@@ -167,24 +178,46 @@ run_LHC_atom <- function(config_file, num = NULL, param_file = NULL, method, qua
                 FLake = flake_met,
                 Simstrat = simstrat_met,
                 MyLake = mylake_met)
-  
-  model_out <- setNames(
-    lapply(model, function(mod_name) LHC_model(pars = params,
-                                               type = rep("met", (ncol(params)-1)),
-                                               model = mod_name, var = "temp",
-                                               config_file = config_file,
-                                               met = met_l[[mod_name]], folder = folder,
-                                               out_f = out_f, config_f = cnfg_l[[mod_name]],
-                                               obs_deps = obs_deps, obs_out = obs_out,
-                                               out_hour = out_hour, qualfun = qualfun,
-                                               nout_fun = 5
-                                              )),
-    model
-  )
-  
-  
+  if(method == "LHC") {
+    model_out <- setNames(
+      lapply(model, function(mod_name) LHC_model(pars = params,
+                                                 type = rep("met", (ncol(params)-1)),
+                                                 model = mod_name, var = "temp",
+                                                 config_file = config_file,
+                                                 met = met_l[[mod_name]], folder = folder,
+                                                 out_f = out_f, config_f = cnfg_l[[mod_name]],
+                                                 obs_deps = obs_deps, obs_out = obs_out,
+                                                 out_hour = out_hour, qualfun = qualfun,
+                                                 nout_fun = 5
+                                                )),
+      model
+    )
+  }
+if(method == "MCMC") {
+    model_out <- setNames(
+                lapply(model, function(m){
+                    FME::modMCMC(f = wrap_model, p = params, par_name = names(params),
+                                 type = rep("met",(length(params))),
+                                 model = m,
+                                 var = "temp",
+                                 config_file = config_file,
+                                 method = method,
+                                 met = met_l[[m]],
+                                 folder = folder,
+                                 config_f = cnfg_l[[m]],
+                                 out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                                 out_hour = out_hour,
+                                 qualfun = function(O, P){
+                                   ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
+                                 out_name = paste0(method, "_", m, "_",
+                                                    format(Sys.time(), "%Y%m%d%H%M"),
+                                                    ".csv"),
+                                 niter = num)}),
+                model
+    )
+}
 
-
+  return(model_out)
 }
 
 LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
@@ -222,6 +255,35 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   
 }
 
+wrap_model <- function(pars, type, model, var, config_file, met, folder, method, out_f,
+                       obs_deps, obs_out, out_hour, qualfun, config_f, out_name,
+                       par_name) {
+  # name of the parameter
+  pars <- data.frame(matrix(pars, nrow = 1))
+  colnames(pars) <- par_name
+
+  # change the paremeter/meteo scaling
+  change_pars(config_file = config_file, model = model, pars = pars,
+              type = type, met = met, folder = folder)
+  # calculate quality measure
+  qual <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
+                     obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
+                     qualfun = qualfun, config_f = config_f)
+  if(is.na(qual)) {
+    qual <- NA
+    out_w <- t(c(pars, qual))
+  } else {
+    # paste parameter values and quality measure
+    out_w <- data.frame(pars, qual = qual)
+  }
+  # switch if file is existing
+  flsw <- file.exists(file.path(folder, out_f, out_name))
+  write.table(x = out_w, file = file.path(folder, out_f, out_name),
+              append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
+              col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
+  # return
+  return(qual)
+}
 
 
 #' Change parameter or meteo scaling for a model
