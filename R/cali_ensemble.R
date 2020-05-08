@@ -56,7 +56,8 @@
 #' @export
 
 cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC",
-                          qualfun = qual_meas, model = c("FLake", "GLM", "GOTM", "Simstrat"),
+                          qualfun = qual_fun,
+                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", nout_fun = 5, ...) {
 
 ##----------------- check inputs and set things up -------------------------------------------------  
@@ -464,7 +465,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
 
 
 
-qual_meas <- function(O, P){
+qual_fun <- function(O, P){
   
   # function that calculates different estimations for model accuracy, namely: root mean squared
   # error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),

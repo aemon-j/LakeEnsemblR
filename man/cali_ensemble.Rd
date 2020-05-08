@@ -9,7 +9,7 @@ cali_ensemble(
   num = NULL,
   param_file = NULL,
   cmethod = "LHC",
-  qualfun = qual_meas,
+  qualfun = qual_fun,
   model = c("FLake", "GLM", "GOTM", "Simstrat"),
   folder = ".",
   spin_up = NULL,
