@@ -10,7 +10,7 @@ cali_ensemble(
   param_file = NULL,
   cmethod = "LHC",
   qualfun = qual_fun,
-  model = c("FLake", "GLM", "GOTM", "Simstrat"),
+  model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
   folder = ".",
   spin_up = NULL,
   out_f = "cali",

@@ -102,6 +102,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   met_timestep <- get_meteo_time_step(file.path(folder,
                                                 get_yaml_value(config_file, "meteo", "file")))
  
+  # name for the output files
+  if(is.null(param_file)) {
+    outf_n <- paste0(cmethod, "_", format(Sys.time(), "%Y%m%d%H%M"))
+  } else {
+    outf_n <- gsub("_params_", "", basename(param_file))
+  }
+  
 ##----------------- read in observed data  ---------------------------------------------------------  
  
   # Create output time vector
@@ -148,9 +155,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     if(is.null(param_file)) {
       param_file <- sample_LHC(config_file = config_file, num = num, method = "met",
                                folder = folder,
-                               file.name = file.path(out_f, paste0("LHS_params_",
-                                                                   format(Sys.time(),
-                                                                          format = "%Y%m%d%H%M"))))
+                               file.name = file.path(folder, out_f, paste0("pars_", outf_n))
+                               )
     }
     params <- read.csv(param_file, stringsAsFactors = FALSE)
     num <- nrow(params)
@@ -158,10 +164,28 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     ## else use initial values from master config file as starting values
     # load master config file
     configr_master_config <- configr::read.config(file.path(folder, config_file))
+    # meteo parameter
     cal_section <- configr_master_config[["calibration"]][["met"]]
-    params <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
-    p_lower <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
-    p_upper <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
+    params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
+    p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
+    p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
+    # get names of models for which parameter are given
+    model_p <- model[model %in% names(configr_master_config[["calibration"]])]
+    # model specific parameters
+    cal_section <- lapply(model_p, function(m)configr_master_config[["calibration"]][[m]])
+    names(cal_section) <- model_p
+    params_mod <- lapply(model_p, function(m) {
+                    sapply(names(cal_section[[m]]),
+                           function(n) as.numeric(cal_section[[m]][[n]]$initial))})
+    names(params_mod) <- model_p
+    p_lower_mod <- lapply(model_p, function(m) {
+      sapply(names(cal_section[[m]]),
+             function(n) as.numeric(cal_section[[m]][[n]]$lower))})
+    names(p_lower_mod) <- model_p
+    p_upper_mod <- lapply(model_p, function(m) {
+      sapply(names(cal_section[[m]]),
+             function(n) as.numeric(cal_section[[m]][[n]]$upper))})
+    names(p_upper_mod) <- model_p
   }
 
 ##--------- prepare models to be run ---------------------------------------------------------------  
@@ -178,36 +202,42 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 ##----------------- read in model meteo files ------------------------------------------------------
   
   ## read in meteo
-  # read in meteo file
-  mylake_met <- read.table(file.path(folder, "MyLake", "meteo_file.dat"), sep = "\t",
-                           header = FALSE)
-  ## list with long standard names
-  l_names <- as.list(met_var_dic$standard_name)
-  names(l_names) <- met_var_dic$short_name
-  colnames(mylake_met) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
-                            l_names$p_surf, l_names$wind_speed, l_names$precip)
-  # read in meteo file
-  glm_met <- read.table(file.path(folder, "GLM", "meteo_file.csv"), sep = ",", header = TRUE)
-  # read in meteo file
-  flake_met <- read.table(file.path(folder, "FLake", "all_meteo_file.dat"), sep = "\t",
-                          header = FALSE)
-  colnames(flake_met) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
+  met_l <- lapply(model, function(m){
+    met_name <- get_model_met_name(m, cnfg_l[[m]])
+    ## list with long standard names
+    l_names <- as.list(met_var_dic$standard_name)
+    names(l_names) <- met_var_dic$short_name
+    
+    if(m == "MyLake") {
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                        header = FALSE)
+      colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
+                           l_names$p_surf, l_names$wind_speed, l_names$precip)
+    } else if (m == "GLM") {
+      met_m <- read.table(file.path(folder, m, met_name), sep = ",", header = TRUE)
+    } else if (m == "FLake") {
+      # read in meteo file
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                              header = FALSE)
+      colnames(met_m) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
                            "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
                            "Cloud_Cover_decimalFraction", "datetime")
-  # read in meteo file
-  gotm_met <- read.table(file.path(folder, "GOTM", "meteo_file.dat"), sep = "\t", header = TRUE)
-  colnames(gotm_met)[1] <- "!datetime"
-  # read in meteo file
-  simstrat_met <- read.table(file.path(folder, "Simstrat", "meteo_file.dat"), sep = "\t",
-                             header = TRUE)
-  # list with all meteo files
-  met_l <- list(GLM = glm_met,
-                GOTM = gotm_met,
-                FLake = flake_met,
-                Simstrat = simstrat_met,
-                MyLake = mylake_met)
-  
+    } else if (m == "GOTM") {
+      # read in meteo file
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t", header = TRUE)
+      colnames(met_m)[1] <- "!datetime"
+    } else if(m == "Simstrat") {
+      # read in meteo file
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                                 header = TRUE)
+      
+    }
+    return(met_m)
+  })
+
+  names(met_l) <- model
+
   ##------------------------- calibration ----------------------------------------------------------
   # method LCH
   if(cmethod == "LHC") {
@@ -220,7 +250,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                                  out_f = out_f, config_f = cnfg_l[[mod_name]],
                                                  obs_deps = obs_deps, obs_out = obs_out,
                                                  out_hour = out_hour, qualfun = qualfun,
-                                                 nout_fun = 5
+                                                 nout_fun = 5, outf_n = outf_n
                                                 )),
       model
     )
@@ -242,9 +272,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                  out_hour = out_hour,
                                  qualfun = function(O, P){
                                    ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
-                                 out_name = paste0(cmethod, "_", m, "_",
-                                                    format(Sys.time(), "%Y%m%d%H%M"),
-                                                    ".csv"),
+                                 outf_n = outf_n,
                                  niter = num, ...)}),
                 model
     )
@@ -254,8 +282,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   if(cmethod == "modFit") {
     model_out <- setNames(
       lapply(model, function(m){
-        FME::modFit(f = wrap_model, p = params, par_name = names(params),
-                    type = rep("met",(length(params))),
+        FME::modFit(f = wrap_model, p = params_met, par_name = names(params_met),
+                    type = rep("met",(length(params_met))),
                     model = m,
                     var = "temp",
                     config_file = config_file,
@@ -268,8 +296,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                     res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
                     out_name = "",
                     write = FALSE,
-                    lower = p_lower,
-                    upper = p_upper,
+                    lower = p_lower_met,
+                    upper = p_upper_met,
                     ...)}),
       model
     )
@@ -280,11 +308,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
 ##----------- wrapper function for LHC calibration -------------------------------------------------
 
-LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
+LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, outf_n,
                       obs_deps, obs_out, out_hour, qualfun, config_f, nout_fun) {
   
   # name of the output file to be written
-  out_name <- paste0("LHC_", model, "_", format(Sys.time(), "%Y%m%d%H%M"), ".csv")
+  out_name <- paste0(model, "_", outf_n, ".csv")
   # create the output folder, if not existing
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
   # loop over all parameter sets
@@ -318,8 +346,10 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f,
 ##----------------- warpper function for other two methods -----------------------------------------
 
 wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
-                       obs_deps, obs_out, out_hour, qualfun, config_f, out_name,
+                       obs_deps, obs_out, out_hour, qualfun, config_f, outf_n,
                        par_name, write = TRUE) {
+  # name of the output file to be written
+  out_name <- paste0(model, "_", outf_n, ".csv")
   # name of the parameter
   pars <- data.frame(matrix(pars, nrow = 1))
   colnames(pars) <- par_name
@@ -372,24 +402,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     model_pars <- pars[type == "model"]
     
     if (length(met_pars) > 0){
-      if(model == "MyLake") {
-        met_name <- "meteo_file.dat"
-        } else {
-        # get right lable and key for meteo file
-        label <- dplyr::case_when(model == "GLM" ~ "meteorology",
-                                  model == "GOTM" ~ "meteo",
-                                  model == "FLake" ~ "METEO",
-                                  model == "Simstrat" ~ "Input")
-        key <- dplyr::case_when(model == "GLM" ~ "meteo_fl",
-                                model == "GOTM" ~ "file",
-                                model == "FLake" ~ "meteofile",
-                                model == "Simstrat" ~ "Forcing")
-        # get name of meteo file
-        met_name <- get_config_value(model, config_f, label, key)
-        }
-      if (model == "FLake") {
-        met_name <- gsub(",", "", met_name)
-      }
+      met_name <- get_model_met_name(model, config_f)
       met_pars <- setNames(data.frame(met_pars), names(met_pars))
       # scale meteo
       scale_met(met = met, pars = met_pars, model = model,
@@ -412,7 +425,28 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     
   } 
   
-  
+# get the name of the meteo file from the model config file
+get_model_met_name <- function(model, config_f){
+    if(model == "MyLake") {
+    met_name <- "meteo_file.dat"
+    } else {
+    # get right lable and key for meteo file
+    label <- dplyr::case_when(model == "GLM" ~ "meteorology",
+                              model == "GOTM" ~ "meteo",
+                              model == "FLake" ~ "METEO",
+                              model == "Simstrat" ~ "Input")
+    key <- dplyr::case_when(model == "GLM" ~ "meteo_fl",
+                            model == "GOTM" ~ "file",
+                            model == "FLake" ~ "meteofile",
+                            model == "Simstrat" ~ "Forcing")
+    # get name of meteo file
+    met_name <- get_config_value(model, config_f, label, key)
+  }
+  if (model == "FLake") {
+    met_name <- gsub(",", "", met_name)
+  }
+  return(met_name)
+}
 #' Run a model and calculate model fit 
 #' 
 #' Runns the selected model and calculates fit metrics using a provided funtion
@@ -422,15 +456,18 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
                        config_f) {
   if(model == "FLake") {
     mod_arg <- list(sim_folder = file.path(folder, model),
-                    nml_file =basename(config_f))
+                    nml_file =basename(config_f),
+                    verbose = FALSE)
   } else if (model == "Simstrat") {
     mod_arg <- list(sim_folder = file.path(folder, model),
-                    par_file = basename(config_f))
+                    par_file = basename(config_f),
+                    verbose = FALSE)
   } else if(model == "MyLake") {
     mod_arg <- list(sim_folder = file.path(folder),
                     config_dat = basename(config_f))
   } else {
-    mod_arg <- list(sim_folder = file.path(folder, model))
+    mod_arg <- list(sim_folder = file.path(folder, model),
+                    verbose = FALSE)
   }
    ran <- FALSE
      tryCatch({
