@@ -10,6 +10,7 @@ cali_ensemble(
   param_file = NULL,
   cmethod = "LHC",
   qualfun = qual_fun,
+  parallel = FALSE,
   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
   folder = ".",
   spin_up = NULL,
@@ -32,6 +33,8 @@ parameter set. Defaults to NULL}
 \item{qualfun}{function; function that calculates measure of fit from observed and simulated 
 variables, takes the two arguments Observed and Simulated}
 
+\item{parallel}{Boolean; should the model calibration be parallelized}
+
 \item{model}{vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 "FLake")}
 
@@ -51,6 +54,10 @@ If included adds observed data to netCDF and list if they are set to TRUE. Defau
 }
 \description{
 Use one of three methods to calibrate specified models.
+}
+\details{
+Parallelization is done using the `parallel` package and `parLapply()`. The number of
+   cores used is set to the number of available cores minus one.
 }
 \examples{
 \dontrun{

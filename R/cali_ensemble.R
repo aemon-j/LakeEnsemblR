@@ -20,9 +20,11 @@
 #' @param qualfun function; function that calculates measure of fit from observed and simulated 
 #'    variables, takes the two arguments Observed and Simulated
 #' @param nout_fun integer; number of return values from qualfun
+#' @param parallel Boolean; should the model calibration be parallelized
 #' @param ... additional arguments passed to modFit or modMCMC. Only used when method is
 #'    modFit or MCMC
-#' @importFrom reshape2 dcast
+#' @details Parallelization is done using the `parallel` package and `parLapply()`. The number of
+#'    cores used is set to the number of available cores minus one.
 #'
 #' @examples
 #' \dontrun{
@@ -40,6 +42,12 @@
 #'                             method = "Nelder-Mead")                                           
 #'              
 #' }
+#' @importFrom reshape2 dcast
+#' @importFrom parallel detectCores
+#' @importFrom parallel parLapply
+#' @importFrom parallel clusterExport
+#' @importFrom parallel makeCluster
+#' @importFrom parallel clusterEvalQ
 #' @importFrom FME Latinhyper
 #' @importFrom FME modMCMC
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
@@ -56,7 +64,7 @@
 #' @export
 
 cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC",
-                          qualfun = qual_fun,
+                          qualfun = qual_fun, parallel = FALSE,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", nout_fun = 5, ...) {
 
@@ -240,22 +248,49 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
 ##------------------------- LCH calibration ----------------------------------------------------------
 
-  if(cmethod == "LHC") {
-    model_out <- setNames(
-      lapply(model, function(mod_name) LHC_model(pars = params,
-                                                 type = rep("met", (ncol(params)-1)),
-                                                 model = mod_name, var = "temp",
-                                                 config_file = config_file,
-                                                 met = met_l[[mod_name]], folder = folder,
-                                                 out_f = out_f, config_f = cnfg_l[[mod_name]],
-                                                 obs_deps = obs_deps, obs_out = obs_out,
-                                                 out_hour = out_hour, qualfun = qualfun,
-                                                 nout_fun = 5, outf_n = outf_n
-                                                )),
-      model
-    )
-  }
+  if(parallel){
+    ncores <- detectCores() -1
+    clust <- makeCluster(ncores)
+    clusterExport(clust, varlist = list("params", "model", "config_file", "met_l",
+                                        "folder", "out_f", "cnfg_l", "obs_deps",
+                                        "obs_out", "out_hour", "qualfun",
+                                        "outf_n"),
+                  envir = environment())
+    clusterEvalQ(clust, library(LakeEnsemblR))
+    if(cmethod == "LHC") {
+      model_out <- setNames(
+        parLapply(clust, model, function(mod_name) LHC_model(pars = params,
+                                                   type = rep("met", (ncol(params)-1)),
+                                                   model = mod_name, var = "temp",
+                                                   config_file = config_file,
+                                                   met = met_l[[mod_name]], folder = folder,
+                                                   out_f = out_f, config_f = cnfg_l[[mod_name]],
+                                                   obs_deps = obs_deps, obs_out = obs_out,
+                                                   out_hour = out_hour, qualfun = qualfun,
+                                                   nout_fun = 5, outf_n = outf_n
+        )),
+        model
+      )
+    }
+  stopCluster(clust)
+  } else {
   
+    if(cmethod == "LHC") {
+      model_out <- setNames(
+        lapply(model, function(mod_name) LHC_model(pars = params,
+                                                   type = rep("met", (ncol(params)-1)),
+                                                   model = mod_name, var = "temp",
+                                                   config_file = config_file,
+                                                   met = met_l[[mod_name]], folder = folder,
+                                                   out_f = out_f, config_f = cnfg_l[[mod_name]],
+                                                   obs_deps = obs_deps, obs_out = obs_out,
+                                                   out_hour = out_hour, qualfun = qualfun,
+                                                   nout_fun = 5, outf_n = outf_n
+                                                  )),
+        model
+      )
+    }
+  }
 ##------------------------- MCMC calibration ----------------------------------------------------------
   
   if(cmethod == "MCMC") {
