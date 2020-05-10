@@ -2,7 +2,7 @@
 % Please edit documentation in R/cali_ensemble.R
 \name{cali_ensemble}
 \alias{cali_ensemble}
-\title{Run Latin hypercube sampling atomized version}
+\title{Calibrate models}
 \usage{
 cali_ensemble(
   config_file,
@@ -50,7 +50,7 @@ modFit or MCMC}
 If included adds observed data to netCDF and list if they are set to TRUE. Defaults to NULL.}
 }
 \description{
-Run lake models using Latin hypercube sampling for model parameters.
+Use one of three methods to calibrate specified models.
 }
 \examples{
 \dontrun{
