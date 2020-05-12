@@ -46,8 +46,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
 
   # get variable
   var_list <- load_var(ncdf, var = var, return = "list", print = FALSE)
-  # get depths
-  deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
+  
   # only the selected models
   var_list <- var_list[c(model, "Obs")]
   
@@ -63,6 +62,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     if(var == "watertemp" & is.null(depth)) {
       stop(paste0("When plotting water temperature depth must be specified"))
     }
+    # get depths
+    deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
     # check if the chosen depth is available
     if(length(depth) > 0) {
       if(!(depth %in% deps)) {
@@ -182,31 +183,48 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         pindex <- pindex + 1
       }
   
-    } else {
-      
-      
-      dat <- var_list %>%
-        reshape2::melt( id.vars = "time") %>%
-        dplyr::group_by(time)
-      obs <- dat %>% dplyr::filter(L1 == "Obs")
-      dat <- dat %>% dplyr::filter(L1 != "Obs")
-      dat_av <- dat %>% dplyr::filter(L1 != "Obs") %>%
-        summarize(mean = get(av_fun)(value, na.rm = TRUE),
-                  max = max(value, na.rm = TRUE),
-                  min = min(value, na.rm = TRUE)) 
-      dat_av$Type = av_fun
-      
-      
-      p1 <- ggplot() +  geom_line(data = dat_av, aes(time, mean), col =1, lwd = 1.33) +
-        geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
-                    alpha=0.5) + geom_line(data = dat, aes(x = time, y = value, col = L1)) +
-        geom_point(data = obs, aes(x = time, y = value, col = L1), col = 1, size = 1)
-      
-      # plist[[1]] <- p1
-      plist[[pindex]] <- p1
-      pindex <- pindex + 1
-    }
-  } 
+    } 
+  }else {
+    
+    
+    dat <- var_list %>%
+      reshape2::melt( id.vars = "time") %>%
+      dplyr::group_by(time)
+    obs <- dat %>% dplyr::filter(L1 == "Obs")
+    dat <- dat %>% dplyr::filter(L1 != "Obs")
+    dat_av <- dat %>% dplyr::filter(L1 != "Obs") %>%
+      summarize(mean = get(av_fun)(value, na.rm = TRUE),
+                max = max(value, na.rm = TRUE),
+                min = min(value, na.rm = TRUE)) 
+    dat_av$Type = av_fun
+    
+    
+    p1 <- ggplot() +  
+      geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
+                  alpha=0.2) + 
+      geom_line(data = dat, aes(x = time, y = value, col = L1)) +
+      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33) +
+      geom_point(data = obs, aes(x = time, y = value, col = L1), size = 1) +
+      ylab(var) +
+      xlab("") +
+      ggtitle(paste0("Time Series of ",paste0(var))) +
+      scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$L1))), "black"),
+                          breaks= c(av_fun, unique(dat$L1), "Obs"),
+                          guide = guide_legend(override.aes = list(
+                            linetype = c(rep("solid", length(unique(dat$L1)) + 1),
+                                         rep("blank", 1)),
+                            shape = c(rep(NA, length(unique(dat$L1)) + 1), rep(16, 1))))) +
+      theme(text = element_text(size=10),
+            axis.text.x = element_text(angle=0, hjust= 0.5),
+            legend.margin=margin(0,0,0,0),
+            legend.box.margin=margin(0,0,0,0),
+            legend.position="bottom",legend.title=element_blank()) 
+    
+    # plist[[1]] <- p1
+    plist[[pindex]] <- p1
+    pindex <- pindex + 1
+  }
+  
   if(!is.null(date)) {
     # if a specific date is selected plot a depth profile
     dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>% 
