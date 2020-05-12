@@ -64,15 +64,23 @@ Parallelization is done using the `parallel` package and `parLapply()`. The numb
 
 config_file <- 'LakeEnsemblR.yaml'
 
+# LCH method
 cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-             
+
+# MCMC method                           
 resMCMC <- cali_ensemble(config_file = config_file, num = 200, cmethod = "MCMC",
                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-               
+
+# modFit method using the Nelder-Mead algorithm      
 resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "modFit",
                             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                            method = "Nelder-Mead")                                           
+                            method = "Nelder-Mead")
+
+# LCH method using multiple cores
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+             parallel = TRUE)                                        
              
 }
 }

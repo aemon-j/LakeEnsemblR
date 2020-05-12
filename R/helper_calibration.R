@@ -41,7 +41,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     qual_i <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
                          obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                          qualfun = qualfun, config_f = config_f)
-    if(is.na(qual_i)) {
+    if(is.na(qual_i[1])) {
       qual_i <- rep(NA, nout_fun)
       out_i <- t(c(par_set = pars[p, ncol(pars)], qual_i))
     } else {
@@ -57,7 +57,10 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
   }
   
   message(paste0("\nFinished LHC for model: ", model, "\n"))
-  
+  return(data.frame(results = file.path(folder, out_f, out_name),
+                    parameters = file.path(folder, out_f,
+                                           paste0("params_", model, "_", outf_n, ".csv")),
+                    stringsAsFactors = FALSE))
 }
 
 #' warpper function for other two methods (modMCMC and modFit)
@@ -90,7 +93,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
 wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
                        obs_deps, obs_out, out_hour, qualfun, config_f, outf_n,
                        write = TRUE) {
-  par_name <- names(params)
+  par_name <- names(pars)
   # name of the output file to be written
   out_name <- paste0(model, "_", outf_n, ".csv")
   # name of the parameter

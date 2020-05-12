@@ -31,15 +31,23 @@
 #' 
 #' config_file <- 'LakeEnsemblR.yaml'
 #' 
+#' # LCH method
 #' cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
 #'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-#'              
+#' 
+#' # MCMC method                           
 #' resMCMC <- cali_ensemble(config_file = config_file, num = 200, cmethod = "MCMC",
 #'                          model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-#'                
+#' 
+#' # modFit method using the Nelder-Mead algorithm      
 #' resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "modFit",
 #'                             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-#'                             method = "Nelder-Mead")                                           
+#'                             method = "Nelder-Mead")
+#'
+#' # LCH method using multiple cores
+#' cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+#'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+#'              parallel = TRUE)                                        
 #'              
 #' }
 #' @importFrom reshape2 dcast
@@ -47,6 +55,7 @@
 #' @importFrom parallel parLapply
 #' @importFrom parallel clusterExport
 #' @importFrom parallel makeCluster
+#' @importFrom parallel stopCluster
 #' @importFrom parallel clusterEvalQ
 #' @importFrom FME Latinhyper
 #' @importFrom FME modMCMC
@@ -110,13 +119,6 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   met_timestep <- get_meteo_time_step(file.path(folder,
                                                 get_yaml_value(config_file, "meteo", "file")))
  
-  # name for the output files
-  if(is.null(param_file)) {
-    outf_n <- paste0(cmethod, "_", format(Sys.time(), "%Y%m%d%H%M"))
-  } else {
-    outf_n <- gsub("_params_", "", basename(param_file))
-  }
-  
 ##----------------- read in observed data  ---------------------------------------------------------  
  
   # Create output time vector
@@ -158,42 +160,116 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   # if not existing create output file
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
+
+  ## use initial values from master config file as starting values
+  # load master config file
+  configr_master_config <- configr::read.config(file.path(folder, config_file))
+  # meteo parameter
+  cal_section <- configr_master_config[["calibration"]][["met"]]
+  params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
+  p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
+  p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
+  # get names of models for which parameter are given
+  model_p <- model[model %in% names(configr_master_config[["calibration"]])]
+  # model specific parameters
+  cal_section <- lapply(model_p, function(m)configr_master_config[["calibration"]][[m]])
+  names(cal_section) <- model_p
+  # get parameters 
+  params_mod <- lapply(model_p, function(m) {
+                  sapply(names(cal_section[[m]]),
+                         function(n) as.numeric(cal_section[[m]][[n]]$initial))})
+  names(params_mod) <- model_p
+  # get lower bound
+  p_lower_mod <- lapply(model_p, function(m) {
+    sapply(names(cal_section[[m]]),
+           function(n) as.numeric(cal_section[[m]][[n]]$lower))})
+  names(p_lower_mod) <- model_p
+  # get upper bound
+  p_upper_mod <- lapply(model_p, function(m) {
+    sapply(names(cal_section[[m]]),
+           function(n) as.numeric(cal_section[[m]][[n]]$upper))})
+  names(p_upper_mod) <- model_p
+  # log transform for LHC?
+  log_mod <- lapply(model_p, function(m) {
+    sapply(names(cal_section[[m]]),
+           function(n) as.logical(cal_section[[m]][[n]]$log))})
+  names(log_mod) <- model_p
+  
+  # create a list with parameters for every model
+  pars_l <- lapply(model, function(m){
+    data.frame(pars = c(params_met, params_mod[[m]]),
+               name = c(names(params_met), names(params_mod[[m]])),
+               upper = c(p_upper_met, p_upper_mod[[m]]),
+               lower = c(p_lower_met, p_lower_mod[[m]]),
+               type = c(rep("met", length(params_met)),
+                        rep("model", length(params_mod[[m]]))),
+               log = c(rep(FALSE, length(params_met)), log_mod[[m]]),
+               stringsAsFactors = FALSE)
+  })
+  names(pars_l) <- model
+  
+  # count number of different sets for LHC
+  par_sets <- setNames(sapply(model, function(m) length(pars_l[[m]]$pars)), model)
+  # output name
+  outf_n <- paste0(cmethod, "_", format(Sys.time(), "%Y%m%d%H%M"))
+  
   # if cmethod == LHC sample parameter or read from provided file
   if(cmethod == "LHC") {
+    
+    # name for the output files
     if(is.null(param_file)) {
-      param_file <- sample_LHC(config_file = config_file, num = num, method = "met",
-                               folder = folder,
-                               file.name = file.path(folder, out_f, paste0("pars_", outf_n))
-                               )
+    } else {
+      # if the models have different number of pars to calibrate a file can not be supplied
+      if(length(unique(par_sets)) > 1) {
+        stop(paste0("The calibration configuration in the master config file ",
+                    config_file, "results in ", length(unique(par_sets)),
+                    " In this case providing own calibration file is not supported."))
+      }
+      # set name to name of supplied file
+      outf_n <- gsub("_params_", "", basename(param_file))
     }
-    params <- read.csv(param_file, stringsAsFactors = FALSE)
-    num <- nrow(params)
+    
+    if(is.null(param_file)) {
+      pars_lhc <- list()
+      for (m in model) {
+        # range of parametes
+        prange <- matrix(c(pars_l[[m]]$lower, pars_l[[m]]$upper),ncol = 2)
+        # calculate log if wanted
+        prange[pars_l[[m]]$log, ] <- log10(prange[pars_l[[m]]$log, ])
+        # sample parameter sets
+        pars_lhc[[m]] <- Latinhyper(parRange = prange, num = num)
+        # retransform log parameter
+        pars_lhc[[m]][, pars_l[[m]]$log] <- 10^pars_lhc[[m]][, pars_l[[m]]$log]
+        # only use 5 significant digits
+        pars_lhc[[m]] <- signif(pars_lhc[[m]], 5)
+        # set colnames
+        colnames(pars_lhc[[m]]) <- pars_l[[m]]$name
+        pars_lhc[[m]] <- as.data.frame(pars_lhc[[m]])
+        # add identifier for every set
+        pars_lhc[[m]]$par_id <- paste0("p", formatC(seq_len(num), width = round(log10(num))+1,
+                                                    format = "d", flag = "0"))
+        # write parameter sets to file
+        write.table(pars_lhc[[m]], file = file.path(folder, out_f,
+                                                    paste0("params_", m, "_", outf_n, ".csv")),
+                    quote = FALSE, row.names = FALSE, sep = ",")
+        
+      }
+      
+    } else {
+      # if file is supplied read it in
+      pars_lhc <- lapply(model, function(m) read.csv(param_file, stringsAsFactors = FALSE))
+      names(pars_lhc) <- model
+      # check if the number of columns in the file fit the number of parameters to be calibrated
+      if((ncol(pars_lhc[[1]])-1) != unique(par_sets)) {
+        stop(paste0("Number of parameters in file ", param_file, " (", (ncol(pars_lhc[[1]])-1),
+                    ") ", "and number of parameters to calibrate in master config file (",
+                    unique(par_sets), ") do not match!"))
+      }
+      num <- nrow(pars_lhc[[1]])
+    }
   } else {
-    ## else use initial values from master config file as starting values
-    # load master config file
-    configr_master_config <- configr::read.config(file.path(folder, config_file))
-    # meteo parameter
-    cal_section <- configr_master_config[["calibration"]][["met"]]
-    params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
-    p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
-    p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
-    # get names of models for which parameter are given
-    model_p <- model[model %in% names(configr_master_config[["calibration"]])]
-    # model specific parameters
-    cal_section <- lapply(model_p, function(m)configr_master_config[["calibration"]][[m]])
-    names(cal_section) <- model_p
-    params_mod <- lapply(model_p, function(m) {
-                    sapply(names(cal_section[[m]]),
-                           function(n) as.numeric(cal_section[[m]][[n]]$initial))})
-    names(params_mod) <- model_p
-    p_lower_mod <- lapply(model_p, function(m) {
-      sapply(names(cal_section[[m]]),
-             function(n) as.numeric(cal_section[[m]][[n]]$lower))})
-    names(p_lower_mod) <- model_p
-    p_upper_mod <- lapply(model_p, function(m) {
-      sapply(names(cal_section[[m]]),
-             function(n) as.numeric(cal_section[[m]][[n]]$upper))})
-    names(p_upper_mod) <- model_p
+    # we just nedd a empty variable to export to parallel clusters (not a good fix, but works)
+    pars_lhc <- NULL
   }
 
 ##--------- prepare models to be run ---------------------------------------------------------------  
@@ -246,98 +322,173 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   names(met_l) <- model
 
-##------------------------- LCH calibration ----------------------------------------------------------
+##------------------------- parallel LCH calibration -----------------------------------------------
 
   if(parallel){
     ncores <- detectCores() -1
     clust <- makeCluster(ncores)
-    clusterExport(clust, varlist = list("params", "model", "config_file", "met_l",
+    clusterExport(clust, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
                                         "folder", "out_f", "cnfg_l", "obs_deps",
                                         "obs_out", "out_hour", "qualfun",
                                         "outf_n"),
                   envir = environment())
     clusterEvalQ(clust, library(LakeEnsemblR))
     if(cmethod == "LHC") {
+      message("\nStarted parallel LHC\n")
       model_out <- setNames(
-        parLapply(clust, model, function(mod_name) LHC_model(pars = params,
-                                                   type = rep("met", (ncol(params)-1)),
-                                                   model = mod_name, var = "temp",
-                                                   config_file = config_file,
-                                                   met = met_l[[mod_name]], folder = folder,
-                                                   out_f = out_f, config_f = cnfg_l[[mod_name]],
-                                                   obs_deps = obs_deps, obs_out = obs_out,
-                                                   out_hour = out_hour, qualfun = qualfun,
-                                                   nout_fun = 5, outf_n = outf_n
+        parLapply(clust, model, function(m) LHC_model(pars = pars_lhc[[m]],
+                                                      type = pars_l[[m]]$type,
+                                                      model = m, var = "temp",
+                                                      config_file = config_file,
+                                                      met = met_l[[m]], folder = folder,
+                                                      out_f = out_f, config_f = cnfg_l[[m]],
+                                                      obs_deps = obs_deps, obs_out = obs_out,
+                                                      out_hour = out_hour, qualfun = qualfun,
+                                                      nout_fun = 5, outf_n = outf_n
         )),
         model
       )
+      message("\nFinished parallel LHC\n")
     }
-  stopCluster(clust)
+##------------------------- parallel MCMC calibration ----------------------------------------------
+    
+    if(cmethod == "MCMC") {
+      message("\nStarted parallel MCMC\n")
+      model_out <- setNames(
+        parLapply(clust, model, function(m){
+          FME::modMCMC(f = wrap_model,
+                       p = setNames(pars_l[[m]]$pars,
+                                    pars_l[[m]]$name), 
+                       type = pars_l[[m]]$type,
+                       model = m,
+                       var = "temp",
+                       config_file = config_file,
+                       met = met_l[[m]],
+                       folder = folder,
+                       config_f = cnfg_l[[m]],
+                       out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                       out_hour = out_hour,
+                       qualfun = function(O, P){
+                         ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
+                       outf_n = outf_n,
+                       niter = num, ...)}),
+        model
+      )
+      message("\nFinished parallel MCMC\n")
+    }
+    
+##------------------------- parallel MCMC calibration ----------------------------------------------
+    if(cmethod == "modFit") {
+      message("\nStarted parallel modFit\n")
+      model_out <- setNames(
+        parLapply(clust, model, function(m){
+          FME::modFit(f = wrap_model,
+                      p = setNames(pars_l[[m]]$pars,
+                                   pars_l[[m]]$name), 
+                      type = pars_l[[m]]$type,
+                      model = m,
+                      var = "temp",
+                      config_file = config_file,
+                      met = met_l[[m]],
+                      folder = folder,
+                      config_f = cnfg_l[[m]],
+                      out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                      out_hour = out_hour,
+                      qualfun = function(O, P){
+                        res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
+                      out_name = "",
+                      write = FALSE,
+                      lower = setNames(pars_l[[m]]$lower,
+                                       pars_l[[m]]$name),
+                      upper = setNames(pars_l[[m]]$upper,
+                                       pars_l[[m]]$name),
+                      ...)}),
+        model
+      )
+      message("\nFinished parallel modFit\n")
+    }
+    # stop cluster  
+    stopCluster(clust)
   } else {
-  
+    
+##------------------------- LCH calibration --------------------------------------------------------
+    
     if(cmethod == "LHC") {
       model_out <- setNames(
-        lapply(model, function(mod_name) LHC_model(pars = params,
-                                                   type = rep("met", (ncol(params)-1)),
-                                                   model = mod_name, var = "temp",
-                                                   config_file = config_file,
-                                                   met = met_l[[mod_name]], folder = folder,
-                                                   out_f = out_f, config_f = cnfg_l[[mod_name]],
-                                                   obs_deps = obs_deps, obs_out = obs_out,
-                                                   out_hour = out_hour, qualfun = qualfun,
-                                                   nout_fun = 5, outf_n = outf_n
+        lapply(model, function(m) LHC_model(pars = pars_lhc[[m]],
+                                            type = pars_l[[m]]$type,
+                                            model = m, var = "temp",
+                                            config_file = config_file,
+                                            met = met_l[[m]], folder = folder,
+                                            out_f = out_f, config_f = cnfg_l[[m]],
+                                            obs_deps = obs_deps, obs_out = obs_out,
+                                            out_hour = out_hour, qualfun = qualfun,
+                                            nout_fun = 5, outf_n = outf_n
                                                   )),
         model
       )
     }
-  }
-##------------------------- MCMC calibration ----------------------------------------------------------
+ 
+##------------------------- MCMC calibration -------------------------------------------------------
+    
+    if(cmethod == "MCMC") {
+      model_out <- setNames(
+                  lapply(model, function(m){
+                    message(paste0("\nStrated MCMC for model ", m, "\n"))
+                      res <- FME::modMCMC(f = wrap_model,
+                                          p = setNames(pars_l[[m]]$pars,
+                                                       pars_l[[m]]$name), 
+                                          type = pars_l[[m]]$type,
+                                          model = m,
+                                          var = "temp",
+                                          config_file = config_file,
+                                          met = met_l[[m]],
+                                          folder = folder,
+                                          config_f = cnfg_l[[m]],
+                                          out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                                          out_hour = out_hour,
+                                          qualfun = function(O, P){
+                                           ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
+                                          outf_n = outf_n,
+                                          niter = num, ...)
+                      message(paste0("\nFinished MCMC for model ", m, "\n"))
+                      return(res)}),
+                  model
+      )
+    }
   
-  if(cmethod == "MCMC") {
-    model_out <- setNames(
-                lapply(model, function(m){
-                    FME::modMCMC(f = wrap_model, p = params, 
-                                 type = rep("met",(length(params))),
-                                 model = m,
-                                 var = "temp",
-                                 config_file = config_file,
-                                 met = met_l[[m]],
-                                 folder = folder,
-                                 config_f = cnfg_l[[m]],
-                                 out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
-                                 out_hour = out_hour,
-                                 qualfun = function(O, P){
-                                   ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
-                                 outf_n = outf_n,
-                                 niter = num, ...)}),
-                model
-    )
-  }
-  
-##------------------------- MCMC calibration ----------------------------------------------------------
-  
-  if(cmethod == "modFit") {
-    model_out <- setNames(
-      lapply(model, function(m){
-        FME::modFit(f = wrap_model, p = params_met,
-                    type = rep("met",(length(params_met))),
-                    model = m,
-                    var = "temp",
-                    config_file = config_file,
-                    met = met_l[[m]],
-                    folder = folder,
-                    config_f = cnfg_l[[m]],
-                    out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
-                    out_hour = out_hour,
-                    qualfun = function(O, P){
-                    res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
-                    out_name = "",
-                    write = FALSE,
-                    lower = p_lower_met,
-                    upper = p_upper_met,
-                    ...)}),
-      model
-    )
+##------------------------- modFit calibration -------------------------------------------------------
+    
+    if(cmethod == "modFit") {
+      model_out <- setNames(
+        lapply(model, function(m){
+          message(paste0("\nStrated fitting of model ", m, "\n"))
+          res <- FME::modFit(f = wrap_model,
+                             p = setNames(pars_l[[m]]$pars,
+                                   pars_l[[m]]$name),
+                             type = pars_l[[m]]$type,
+                             model = m,
+                             var = "temp",
+                             config_file = config_file,
+                             met = met_l[[m]],
+                             folder = folder,
+                             config_f = cnfg_l[[m]],
+                             out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                             out_hour = out_hour,
+                             qualfun = function(O, P){
+                             res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
+                             out_name = "",
+                             write = FALSE,
+                             lower = setNames(pars_l[[m]]$lower,
+                                              pars_l[[m]]$name),
+                             upper = setNames(pars_l[[m]]$upper,
+                                              pars_l[[m]]$name),
+                             ...)
+          message(paste0("\nFinished fitting of model ", m, "\n"))
+          return(res)}),
+        model
+      )
+    }
   }
   # return calibration results
   return(model_out)
