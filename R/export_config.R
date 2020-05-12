@@ -242,7 +242,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       inp_list$num_outlet <- 0
     } else {
       inp_list$num_inflows <- 1
-      inp_list$num_inflows <- 0
+      inp_list$num_outlet <- 0
     }
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
