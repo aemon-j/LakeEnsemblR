@@ -168,6 +168,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     
     if(!use_inflows){
       input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
+    } else {
+      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".true.")
     }
 
     message("FLake configuration complete!")
@@ -238,6 +240,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     if(!use_inflows){
       inp_list$num_inflows <- 0
       inp_list$num_outlet <- 0
+    } else {
+      inp_list$num_inflows <- 1
+      inp_list$num_inflows <- 0
     }
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
@@ -313,6 +318,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ## Switch off streams
     if(!use_inflows){
       streams_switch(file = got_yaml, method = "off")
+    } else {
+      streams_switch(file = got_yaml, method = "on")
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
+                            "method", value = 0)
     }
 
     message("GOTM configuration complete!")
@@ -412,6 +421,20 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
                  file_connection)
       close(file_connection)
+    } else {
+      inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
+      # In case Kw is a single value for the whole simulation:
+      inflow_line_2 <- "1"
+      inflow_line_3 <- "-1 0.00"
+      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
+      end_sim <- get_json_value(sim_par, "Simulation", "End d")
+      inflow_line_4 <- paste(start_sim, 0.000)
+      inflow_line_5 <- paste(end_sim, 0.000)
+      
+      file_connection <- file("Simstrat/Qout.dat")
+      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
+                 file_connection)
+      close(file_connection)
     }
 
     message("Simstrat configuration complete!")
@@ -463,8 +486,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                                                       to = as.Date(stop_date),
                                                                       by = "day"))),
                                       ncol = 8)
-    }
-
+    } 
     temp_fil <- gsub(".*/", "", temp_fil)
     # save lake-specific config file for MyLake
     save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
