@@ -78,7 +78,7 @@ format_met <- function(met, model, config_file, folder = "."){
     
     # In case snowfall is also provided, add snowfall to precipitation
     if(chck_met$snow){
-      snow_to_add <- met[[l_names$snow]]/86400
+      snow_to_add <- met[[l_names$snow]] / 86400
       met[[l_names$precip]] <- met[[l_names$precip]] + snow_to_add
     }
     chck_met$precip <- TRUE
@@ -89,7 +89,7 @@ format_met <- function(met, model, config_file, folder = "."){
     # If snowfall is provided, subtract snow from precipitation to get rainfall.
     if(chck_met$snow){
       met[[l_names$rain]] <- met[[l_names$precip]] -
-        met[[l_names$snow]]/86400
+        met[[l_names$snow]] / 86400
       met[[l_names$rain]][met[[l_names$rain]] < 0] <- 0
     }else{
       met[[l_names$rain]] <- met[[l_names$precip]]
@@ -105,7 +105,7 @@ format_met <- function(met, model, config_file, folder = "."){
     met[[l_names$rain]] <- 0
     chck_met$precip <- TRUE
     # Precipitation_metPerHour does not have to be recalculated, as Simstrat
-    # can be run without precipitation column. 
+    # can be run without precipitation column.
   }
 
   #Snowfall
@@ -161,7 +161,8 @@ format_met <- function(met, model, config_file, folder = "."){
     ## Extract start, stop, lat & lon for netCDF file from config file
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
-    met_timestep <- get_meteo_time_step(file.path(folder, get_yaml_value(config_file, "meteo", "file")))
+    met_timestep <- get_meteo_time_step(file.path(folder,
+                                                  get_yaml_value(config_file, "meteo", "file")))
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     # Subset temporally

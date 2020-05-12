@@ -155,9 +155,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if(create_netcdf){
       # Pass all_lists to the netcdf function to create netcdf output
-      create_netcdf_output(output_lists = all_lists, folder = folder, model = model, out_time = out_time,
-                           longitude = lon, latitude = lat, compression = compression,
-                           out_file = out_file)
+      create_netcdf_output(output_lists = all_lists, folder = folder, model = model,
+                           out_time = out_time, longitude = lon, latitude = lat,
+                           compression = compression, out_file = out_file)
     }
   }
 
