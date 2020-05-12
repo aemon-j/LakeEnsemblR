@@ -68,7 +68,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                                                by = paste(time_step, time_unit)))
 
 
-  if(obs_file != "NULL"){
+  if(!(obs_file == "NULL" | obs_file == "")){
     message("Loading temperature observations...")
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
@@ -87,7 +87,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_deps <- NULL
   }
   
-  if(ice_file != "NULL"){
+  if(!(ice_file == "NULL" | ice_file == "")){
     message("Loading ice observations...")
     ice <- read.csv(ice_file, stringsAsFactors = FALSE)
     
