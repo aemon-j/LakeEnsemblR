@@ -77,15 +77,34 @@ calibration:                                   # Calibration section
          upper: 1.5
          initial: 1
          log: false
+    Simstrat:                                  
+      a_seiche:
+         lower: 0.0008
+         upper: 0.003
+         initial: 0.001
+         log: false                          
+   MyLake:                                    
+      Phys.par/C_shelter:
+         lower: 0.14
+         upper: 0.16
+         initial: 0.15
+         log: false 	
    GOTM:
-      k_min:
-         lower: 1E-5
-         upper: 1E-5
+      turb_param/k_min:
+         lower: 5E-4
+         upper: 5E-6
          initial: 1E-5
          log: true
    GLM:
-      coef_mix_hyp:
+      mixing/coef_mix_hyp:
          lower: 0.1
          upper: 2
          initial: 1
          log: false
+   FLake:                                      # FLake specific parameters
+      fetch_lk:
+         lower: 1.60E+03
+         upper: 2.20E+03
+         initial: 2.0E+03
+         log: false
+
