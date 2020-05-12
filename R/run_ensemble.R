@@ -54,6 +54,10 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   out_depths <- get_yaml_value(config_file, "output", "depths")
   format <- get_yaml_value(config_file, "output", "format")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
+  if(time_unit == "second"){
+    # Needed to create out_time vector
+    time_unit <- "sec"
+  }
   time_step <- get_yaml_value(config_file, "output", "time_step")
   out_vars <- get_yaml_value(config_file, "output", "variables")
 
