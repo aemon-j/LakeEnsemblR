@@ -377,7 +377,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       message("\nFinished parallel MCMC\n")
     }
     
-##------------------------- parallel MCMC calibration ----------------------------------------------
+##------------------------- parallel modFit calibration ----------------------------------------------
     if(cmethod == "modFit") {
       message("\nStarted parallel modFit\n")
       model_out <- setNames(
@@ -396,7 +396,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                       out_hour = out_hour,
                       qualfun = function(O, P){
                         res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
-                      out_name = "",
+                      outf_n = "",
                       write = FALSE,
                       lower = setNames(pars_l[[m]]$lower,
                                        pars_l[[m]]$name),
@@ -477,7 +477,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                              out_hour = out_hour,
                              qualfun = function(O, P){
                              res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
-                             out_name = "",
+                             outf_n = "",
                              write = FALSE,
                              lower = setNames(pars_l[[m]]$lower,
                                               pars_l[[m]]$name),
