@@ -317,9 +317,13 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     ## Switch off streams
     if(!use_inflows){
-      streams_switch(file = got_yaml, method = "off")
+      # streams_switch(file = got_yaml, method = "off")
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
+                            "method", value = 0)
     } else {
-      streams_switch(file = got_yaml, method = "on")
+      # streams_switch(file = got_yaml, method = "on")
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
+                            "method", value = 2)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
                             "method", value = 0)
     }
