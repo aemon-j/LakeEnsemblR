@@ -30,7 +30,8 @@
 #'
 #' @export
 plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                          var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE, residuals = FALSE) {
+                          var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
+                          residuals = FALSE) {
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
@@ -118,10 +119,12 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         if(sum(!is.na(obs$value)) > 0 ) {
           dat_res <- dat
           dat_res$value <- dat$value - obs$value
+          dat_res <- dat_res[!is.na(dat_res$value), ]
           dat_resav <- dat_av 
           dat_resav$mean <- dat_av$mean - obs$value
           dat_resav$max <- dat_av$max - obs$value
           dat_resav$min <- dat_av$min - obs$value
+          dat_resav <- dat_resav[!is.na(dat_resav$mean), ]
           
           p2 <- ggplot() +  
             geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
