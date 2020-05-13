@@ -37,8 +37,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
   })
-  
-  
+
+  tz  <-  "UTC"
   
   yaml  <-  file.path(folder, config_file)
   
@@ -55,7 +55,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # data.table::fread does this, but then it's data.table
   message("Loading inflow data...")
   inflow <- read.csv(file.path(folder, inflow_file), stringsAsFactors = FALSE)
-  inflow[, 1] <- as.POSIXct(inflow[, 1])
+  inflow[, 1] <- as.POSIXct(inflow[, 1], tz = tz)
   # Check time step
   tstep <- diff(as.numeric(inflow[, 1]))
   
@@ -63,8 +63,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Stop date
   stop_date <- get_yaml_value(config_file, "time", "stop")
   
-  inflow_start <- which(inflow$datetime == start_date)
-  inflow_stop <- which(inflow$datetime == stop_date)
+  inflow_start <- which(inflow$datetime == as.Date(start_date, tz = tz))
+  inflow_stop <- which(inflow$datetime == as.Date(stop_date, tz = tz))
   
   inflow <- inflow[inflow_start:inflow_stop, ]
   
@@ -192,6 +192,10 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
       got_yaml <- file.path(folder, temp_fil)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
+                            "method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
+                            "method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
                             "method", value = 2)
       
       gotm_outflow <- gotm_inflow[, c(1:2)]

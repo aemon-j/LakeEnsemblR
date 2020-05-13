@@ -320,12 +320,32 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       # streams_switch(file = got_yaml, method = "off")
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
                             "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "temp", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "salt", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
+                            "method", value = 0)
     } else {
       # streams_switch(file = got_yaml, method = "on")
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
                             "method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "temp", key4 =
+                            "method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "salt", key4 =
+                            "method", value = 2)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
                             "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
+                            "method", value = 0)
+      
+      
     }
 
     message("GOTM configuration complete!")
