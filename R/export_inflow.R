@@ -157,6 +157,10 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       nml <- glmtools::set_nml(nml, arg_list = nml_list)
       glmtools::write_nml(nml, nml_path)
       
+      max_elv <- get_nml_value(nml, "H")
+      nml <- glmtools::set_nml(nml, arg_list = list("outl_elvs" = max(max_elv)))
+      glmtools::write_nml(nml, nml_path)
+      
       glm_outflow <- glm_inflow[, c("Time", "FLOW")]
       outflow_outfile <- file.path("GLM", "outflow.csv")
       write.csv(glm_outflow, outflow_outfile, row.names = FALSE, quote = FALSE)
@@ -194,9 +198,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
                             "method", value = 2)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
-                            "method", value = 2)
+                            "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
-                            "method", value = 2)
+                            "method", value = 0)
       
       gotm_outflow <- gotm_inflow[, c(1:2)]
       gotm_outflowfile <- "outflow_file.dat"
