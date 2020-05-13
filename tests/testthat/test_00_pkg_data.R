@@ -40,7 +40,7 @@ test_that("create model meteo & config files", {
 })
 
 
-test_that("crun models", {
+test_that("can run models", {
   
   library(LakeEnsemblR)
   library(gotmtools)
@@ -71,4 +71,36 @@ test_that("crun models", {
                folder = ".", return_list = FALSE, create_netcdf = TRUE)
   
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can calibrate models", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file
+  masterConfigFile <- "LakeEnsemblR.yaml"
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                inflow_file = "LakeEnsemblR_inflow_standard.csv", folder = ".")
+  
+  # 2. Create meteo driver files
+  export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+               meteo_file = "LakeEnsemblR_meteo_standard.csv")
+  
+  # 3. Create initial conditions
+  export_init_cond(config_file = masterConfigFile,
+                   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                   print = TRUE)
+  
+  # 4 calibrate models
+  cali_ensemble(config_file = masterConfigFile, cmethod = "LHC", num = 5,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+  
+  testthat::expect_true(length(list.files("cali")) == 10 )
 })

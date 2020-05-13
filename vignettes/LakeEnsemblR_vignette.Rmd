@@ -351,6 +351,115 @@ include_graphics("../images/model_ensemble_stratification.png")
 
 We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.
 
+
+## Model calibration
+
+LakeEnsemblR includes some tools for automatic model calibration which are included in the `cali_ensemble()` function. The function profides three methods:
+
+ - methood "LHC": Lathin hypercube calibration
+ - method "MCMC": Markov Chain Monte Carlo simulation using the `modMCMC` function from the `FME` package (@soetaert_inverse_2010)
+ - method "modFit": model fitting using one of the algorithms provided in the `modFit` function from the `FME` package (@soetaert_inverse_2010)
+
+For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are definded in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be foundand separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
+
+```{yaml}
+calibration:                                   # Calibration section                                   # Calibration section
+   met:                                        # Meteo scaling parameter
+      wind_speed:                              # Wind speed scaling
+         lower: 0.5                            # lower bound for wind speed scaling        
+         upper: 2                              # upper bound for wind speed scaling
+         initial: 1                            # initial value for wind speed scaling
+         log: false                            # log transform scaling factor
+      swr:                                     # shortwave radiation scaling
+         lower: 0.5                            # lower bound for shortwave radiation scaling
+         upper: 1.5                            # upper bound for shortwave radiation scaling
+         initial: 1                            # initial value for shortwave radiation scaling
+         log: false                            # log transform scaling factor
+   Simstrat:                                # Simstrat specific parameters                                 
+      a_seiche:
+         lower: 0.0008                         # lower bound for parameter
+         upper: 0.003                          # upper bound for parameter
+         initial: 0.001                        # initial value for parameter
+         log: false                            # log transform scaling factor                          
+   MyLake:                                  # MyLake specific parameters                                    
+     Phys.par/C_shelter:
+        lower: 0.14                            # lower bound for parameter
+        upper: 0.16                            # upper bound for parameter
+        initial: 0.15                          # initial value for parameter
+        log: false                             # log transform scaling factor	
+   GOTM:                                    # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-4                           # lower bound for parameter
+         upper: 5E-6                           # upper bound for parameter
+         initial: 1E-5                         # initial value for parameter
+         log: true
+   GLM:                                     # GLM specific parameters
+      mixing/coef_mix_hyp:
+         lower: 0.1                           # lower bound for parameter
+         upper: 2                             # upper bound for parameter
+         initial: 1                           # initial value for parameter
+         log: false                           # log transform scaling factor
+   FLake:                                  # FLake specific parameters
+      fetch_lk:
+         lower: 1.60E+03                      # lower bound for parameter
+         upper: 2.20E+03                      # upper bound for parameter
+         initial: 2.0E+03                     # initial value for parameter
+         log: false                           # log transform scaling factor
+
+
+```
+
+
+The calibration process can then be run using the `cali_ensemble()` function. Methods "LHC" and "MCMC" will write intermediate results to .csv text files in the folder specified by the `out_f` argument. It is possible to parallelize the calibration procedure using the `parallel` argument. This will distribute the calibration of the models to different cores. It is worth noting that in the current state the bottle neck for the computation speed is running MyLake (as it is written in R and significantly slower than the other four models).
+
+### LHC method
+
+The "LHC" method will sample a number of parameter sets definded by the `num` argument within the bounds definded by `upper` and `lower` in the master config file. For each model given in the `model` argument a set of parameters consisting of the meteo scaling factors and the model spüecific parameters will be sampled and the model will be run for each set, calculating model performance indices for each run. Both the parameter set and the model results will be written to the `out_f` folder. By default the model performance indices are:
+
+ - rmse: root mean squared error
+ - nse: Nash-Sutcliff model efficiency
+ - r: Pearson corelation coefficient
+ - re: relative error
+ - nmae: normalized mean absolute error
+ 
+But you can provide your own function to calculate model performances using the `qualfun` argument. The provided function must take the two arguments: observed data, and simulated data, both are data.frames with first column being datetime and then columns with depth specific values (lokking like the return value of the `get_output()` function).
+
+The function returns a list with an entry for every model, containing the path to the files containing the parameter sets and the model performance indices for every model run.
+
+```{r eval = FALSE}
+# calibrate the 
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "LHC", num = 300, out_f = "calibration")
+
+```
+
+### MCMC method
+
+The "MCMC" method utalizes the `modMCMC()` function from the `FME` package (@soetaert_inverse_2010), using an adaptive Metropolis algorithm and including a delayed rejection procedure. Internally the function calculates the sum of squares, which is equivalent to -2 log(likelihood) for a Gaussian likelihood and prior. The MCMC will run `num` evaluations for every model. The outcome of every model call during the MCMC simulation is written to a model specific file in the `out_f` folder, containing the parameter values and the sum of squares of the residuals. Additional arguments can be supplied to `modMCMC()` using the ellipsis argument (`...`).
+
+The function returns a list with an entry for every model, containing the return value of `modMCMC()` for every model run. 
+
+```{r eval = FALSE}
+# calibrate the 
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "MCMC", num = 3000, out_f = "calibration")
+
+```
+
+### modFit method
+
+The "modFit" method utalizes the `modFit()` function from the `FME` package (@soetaert_inverse_2010), Fitting a model to data. Additional arguments can be supplied to `modFit()` using the ellipsis argument (`...`).
+
+The function returns a list with an entry for every model, containing the return value of `modFit()` for every model run. 
+
+```{r eval = FALSE}
+# calibrate the models using a Nelder-Mead algorithm
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "modFir", out_f = "calibration", method = "Nelder-Mead")
+
+```
+
+
 # Citation
 See 
 ```{r eval=FALSE}
