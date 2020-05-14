@@ -1,6 +1,6 @@
 Package: LakeEnsemblR
 Type: Package
-Title: Run ensemble of lake models
+Title: Run Ensemble of Lake Models
 Version: 0.1.0
 Date: 2020-05-12
 URL: https://github.com/aemon-j/LakeEnsemblR
@@ -37,12 +37,12 @@ Imports:
     zoo,
     ggplot2,
     dplyr,
-    RColorBrewer,
-    rstudioapi
+    RColorBrewer
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    rstudioapi
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
