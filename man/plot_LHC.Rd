@@ -4,7 +4,14 @@
 \alias{plot_LHC}
 \title{Plot results of LHC calibration}
 \usage{
-plot_LHC(config_file, model, res_files, qual_met = "rmse", best_quant = 0.1)
+plot_LHC(
+  config_file,
+  model,
+  res_files,
+  qual_met = "rmse",
+  best_quant = 0.1,
+  best = "low"
+)
 }
 \arguments{
 \item{config_file}{filepath; to LakeEnsemblr yaml master config file for which `cali_ensemble()`
@@ -20,6 +27,9 @@ was run.}
 result files.}
 
 \item{best_quant}{Quantile for wich the distribution of the parameetrs is to be plotted}
+
+\item{best}{character can euther be "low" or "high", specifying if low or high values of the
+performance metric imply good model performance}
 }
 \description{
 Plot the results of a calibration done using the `cali_ensemble()` function with cmethod = "LHC".

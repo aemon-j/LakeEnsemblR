@@ -11,12 +11,21 @@
 #' @param qual_met Name of the performance metric to use. ;ust be a column name in the model
 #'    result files.
 #' @param best_quant Quantile for wich the distribution of the parameetrs is to be plotted
+#' @param best character can euther be "low" or "high", specifying if low or high values of the
+#'    performance metric imply good model performance
 #' @importFrom configr read.config
+#' @export
 
-plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quant = 0.1) {
+plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quant = 0.1,
+                     best = "low") {
   
   # check model input
   model <- check_models(model)
+  
+  # check if best is either low or high
+  if(!best %in% c("low", "high")) {
+    stop("best must be either low or high")
+  }
   
   # check if for every model two files (pars and res) are provided
   if(length(res_files) != 2*length(model)) {
@@ -38,16 +47,21 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
  
   # read in results and parameter
   res <- lapply(res_files, function(f) read.csv(f))
-  names(res) <- gsub("_LHC_.*", "", list.files("calibration/"))
+  names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))
   names(res) <- model
 
   # subset to best sets of parameter
-  best_l <- lapply(model, function(m) {
-    subset(res[[m]], res[[m]][[qual_met]] < quantile(res[[m]][[qual_met]], best_quant))})
-  names(best_l) <- model
-  
+  if(best == "low") {
+    best_l <- lapply(model, function(m) {
+      subset(res[[m]], res[[m]][[qual_met]] < quantile(res[[m]][[qual_met]], best_quant))})
+    names(best_l) <- model
+  } else {
+    best_l <- lapply(model, function(m) {
+      subset(res[[m]], res[[m]][[qual_met]] > quantile(res[[m]][[qual_met]], (1 - best_quant)))})
+    names(best_l) <- model
+  }
   # empty list for return plots
   ret_l <- list()
   
@@ -59,22 +73,31 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
       av_met <- colnames(res[[m]])[!(colnames(res[[m]])) %in% 
                                      c("par_id", met_pars, model_pars[[m]])]
       stop(paste0("Model performance metric ", qual_met, " not available for model ", m,
-                  "available metrics: ", paste0(av_met, collapse = ", ")))
+                  " available metrics: ", paste0(av_met, collapse = ", ")))
     }
     
     # plot all available parameters
     for (p in c(met_pars, model_pars[[m]])) {
 
       ret_l[[m]][[p]] <-  ggplot(res[[m]]) + geom_point(aes_string(x = p, y = qual_met)) +
-        scale_color_gradient(low="green", high="red")
+        scale_color_gradient(low="green", high="red") +
+        ggtitle(paste0("Scatterplot of parameter ", p, " for model ", m))
       
-      
+      # best parameter
+      if(best == "low") {
+        best_par <- res[[m]][[p]][res[[m]][[qual_met]] == min(res[[m]][[qual_met]])]
+      } else {
+        best_par <- res[[m]][[p]][res[[m]][[qual_met]] == max(res[[m]][[qual_met]])]
+      }
       ret_l[[m]][[paste0("dist_", p)]] <- ggplot(best_l[[m]]) +
-        geom_histogram(aes_string(x = p, y = "..density.."), colour="black", fill="white") + 
+        geom_histogram(aes_string(x = p, y = "..density.."), color="black", fill="white") + 
         geom_density(aes_string(x = p), alpha=.2, fill="#FF6666") +
         xlim(c(min(res[[m]][[p]]), max(res[[m]][[p]]))) +
-        geom_vline(xintercept = res[[m]][[p]][res[[m]][[qual_met]] == min(res[[m]][[qual_met]])],
-                   color="blue", linetype="dashed", size=1)
+        geom_vline(aes(xintercept = best_par, color = "best"), linetype="dashed", size=1,
+                   show.legend = TRUE) +
+        ggtitle(paste0("Distribution of best ", round(best_quant*100, 1), "% of parameter ",
+                       p, " for model ", m)) + 
+        scale_color_manual(name = "", values = c(best = "blue"))
       
     }
     
