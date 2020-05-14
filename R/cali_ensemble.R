@@ -21,6 +21,8 @@
 #'    variables, takes the two arguments Observed and Simulated
 #' @param nout_fun integer; number of return values from qualfun
 #' @param parallel Boolean; should the model calibration be parallelized
+#' @param job_name character; optional name to use as an RStudio job and as output variable
+#'  name. It has to be a syntactically valid name. Check out thos webpage for more info on jobs: https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/
 #' @param ... additional arguments passed to modFit or modMCMC. Only used when method is
 #'    modFit or MCMC
 #' @details Parallelization is done using the `parallel` package and `parLapply()`. The number of
@@ -47,7 +49,13 @@
 #' # LCH method using multiple cores
 #' cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
 #'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-#'              parallel = TRUE)                                        
+#'              parallel = TRUE)
+#'              
+#' # LCH method deployed as a job
+#' cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+#'              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+#'              job_name = "test")
+#' test                                        
 #'              
 #' }
 #' @importFrom reshape2 dcast
@@ -69,13 +77,62 @@
 #' @importFrom MyLakeR run_mylake
 #' @importFrom lubridate round_date seconds_to_period
 #' @importFrom configr read.config
+#' @importFrom rstudioapi isAvailable versionInfo jobRunScript
 #'
 #' @export
 
 cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC",
-                          qualfun = qual_fun, parallel = FALSE,
+                          qualfun = qual_fun, parallel = FALSE, job_name,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", nout_fun = 5, ...) {
+  
+  # ---- Send to RStudio Jobs -----
+  if (!missing(job_name)) {
+    if (make.names(job_name) != job_name) {
+      stop("job_name '",
+           job_name,
+           "' is not a syntactically valid variable name.")
+    }
+    
+    # Evaluates all arguments.
+    call <- match.call()
+    call$config_file <- config_file
+    call$num <- num
+    call$param_file <- param_file
+    call$cmethod <- cmethod
+    # call$qualfun <- qualfun
+    call$parallel <- parallel
+    call$model <- model
+    call$folder <- folder
+    call$spin_up <- spin_up
+    call$out_f <- out_f
+    call$nout_fun <- nout_fun
+    
+    
+    
+    call_list <- lapply(call, eval)
+    call[names(call_list)[-1]] <- call_list[-1]
+    
+    script <- make_script(call = call, name = job_name)
+    if (!requireNamespace("rstudioapi", quietly = TRUE)) {
+      stop("Jobs are only supported in RStudio.")
+    }
+    
+    if (!rstudioapi::isAvailable("1.2")) {
+      stop(
+        "Need at least version 1.2 of RStudio to use jobs. Currently running ",
+        rstudioapi::versionInfo()$version,
+        "."
+      )
+    }
+    
+    job <-
+      rstudioapi::jobRunScript(path = script,
+                               name = job_name,
+                               exportEnv = "R_GlobalEnv")
+    return(invisible(job))
+  }
+#######
 
 ##----------------- check inputs and set things up -------------------------------------------------  
   

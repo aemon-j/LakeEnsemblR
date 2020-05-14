@@ -11,6 +11,7 @@ cali_ensemble(
   cmethod = "LHC",
   qualfun = qual_fun,
   parallel = FALSE,
+  job_name,
   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
   folder = ".",
   spin_up = NULL,
@@ -34,6 +35,9 @@ parameter set. Defaults to NULL}
 variables, takes the two arguments Observed and Simulated}
 
 \item{parallel}{Boolean; should the model calibration be parallelized}
+
+\item{job_name}{character; optional name to use as an RStudio job and as output variable
+name. It has to be a syntactically valid name. Check out thos webpage for more info on jobs: https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/}
 
 \item{model}{vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 "FLake")}
@@ -80,7 +84,13 @@ resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "mod
 # LCH method using multiple cores
 cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-             parallel = TRUE)                                        
+             parallel = TRUE)
+             
+# LCH method deployed as a job
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+             job_name = "test")
+test                                        
              
 }
 }

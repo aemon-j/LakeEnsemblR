@@ -322,3 +322,24 @@ qual_fun <- function(O, P){
   return(qual)
 }
 
+
+#' Creates a script to then run as a job
+#'
+#' @param call an object of class `call``
+#' @param name name of the job
+#' @keywords internal
+make_script <- function(call, name) {
+  script <- tempfile()
+  
+  call$job_name <- NULL
+  wd <- getwd()
+
+  lines <-
+    writeLines(paste0(
+      "library(LakeEnsemblR)\nsetwd('",wd,"')\n",
+      name,
+      " <- ",
+      paste0(deparse(call), collapse = "")
+    ), script)
+  return(script)
+}
