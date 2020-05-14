@@ -179,7 +179,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   old_output <- list.files(file.path(folder, "GLM", "output"))
   unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
 
-  run_glm(sim_folder = file.path(folder, "GLM"))
+  run_glm(sim_folder = file.path(folder, "GLM"), verbose = FALSE)
 
   message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
 
