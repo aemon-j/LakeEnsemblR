@@ -86,18 +86,30 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
       # best parameter
       if(best == "low") {
         best_par <- res[[m]][[p]][res[[m]][[qual_met]] == min(res[[m]][[qual_met]])]
+        best_q <- res[[m]][[qual_met]][res[[m]][[qual_met]] == min(res[[m]][[qual_met]])]
       } else {
         best_par <- res[[m]][[p]][res[[m]][[qual_met]] == max(res[[m]][[qual_met]])]
+        best_q <- res[[m]][[qual_met]][res[[m]][[qual_met]] == max(res[[m]][[qual_met]])]
       }
+      
+      annotations <- data.frame(
+        xpos = -Inf,
+        ypos =  Inf,
+        annotateText = paste0("Best: ",p ," = ", signif(best_par, 4), "; ", qual_met,
+                              " = ", signif(best_q, 4)),
+        hjustvar = 0,
+        vjustvar = 1)
+      
       ret_l[[m]][[paste0("dist_", p)]] <- ggplot(best_l[[m]]) +
         geom_histogram(aes_string(x = p, y = "..density.."), color="black", fill="white") + 
         geom_density(aes_string(x = p), alpha=.2, fill="#FF6666") +
         xlim(c(min(res[[m]][[p]]), max(res[[m]][[p]]))) +
-        geom_vline(aes(xintercept = best_par, color = "best"), linetype="dashed", size=1,
-                   show.legend = TRUE) +
+        geom_vline(aes(xintercept = best_par), color = "blue", linetype="dashed", size=1,
+                   show.legend = TRUE) + 
+        geom_label(data=annotations,aes(x = xpos, y = ypos, hjust = hjustvar, vjust = vjustvar,
+                                       label = annotateText), color = "blue") + 
         ggtitle(paste0("Distribution of best ", round(best_quant*100, 1), "% of parameter ",
-                       p, " for model ", m)) + 
-        scale_color_manual(name = "", values = c(best = "blue"))
+                       p, " for model ", m))
       
     }
     
