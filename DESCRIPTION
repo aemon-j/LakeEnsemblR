@@ -41,7 +41,8 @@ Imports:
 Suggests:
     testthat,
     knitr,
-    rmarkdown
+    rmarkdown,
+    rstudioapi
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
