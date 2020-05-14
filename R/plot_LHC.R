@@ -46,7 +46,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   names(model_pars) <- model_p
  
   # read in results and parameter
-  res <- lapply(res_files, function(f) read.csv(f))
+  res <- lapply(res_files, function(f) na.exclude(read.csv(f)))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))
@@ -108,7 +108,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
                    show.legend = TRUE) + 
         geom_label(data=annotations,aes(x = xpos, y = ypos, hjust = hjustvar, vjust = vjustvar,
                                        label = annotateText), color = "blue") + 
-        ggtitle(paste0("Distribution of best ", round(best_quant*100, 1), "% of parameter ",
+        ggtitle(paste0("Distribution of best ", round(best_quant*100, 1), "% of ",
                        p, " for model ", m))
       
     }
