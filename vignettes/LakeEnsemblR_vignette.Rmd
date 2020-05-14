@@ -455,7 +455,7 @@ The function returns a list with an entry for every model, containing the return
 ```{r eval = FALSE}
 # calibrate the models using a Nelder-Mead algorithm
 cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
-              cmethod = "modFir", out_f = "calibration", method = "Nelder-Mead")
+              cmethod = "modFit", out_f = "calibration", method = "Nelder-Mead")
 
 ```
 
