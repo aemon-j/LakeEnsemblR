@@ -26,6 +26,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     if("swr" %in% par_nams) {
       met[[paste0("!", l_names$swr)]] <- met[[paste0("!", l_names$swr)]] * pars$swr
     }
+    
+    #Reduce number of digits
+    met[, -ncol(met)] <- signif(met[, -ncol(met)], digits = 8)
 
     # Write to file
     write.table(met, out_file, sep = "\t", quote = FALSE, col.names = FALSE, row.names = FALSE)
@@ -46,6 +49,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     if("lwr" %in% par_nams) {
       met$LongWave <- met$LongWave * pars$lwr
     }
+    
+    #Reduce number of digits
+    met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
     write.csv(met, out_file, quote = FALSE, row.names = FALSE)
@@ -63,6 +69,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     if("swr" %in% par_nams) {
       met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
+    
+    #Reduce number of digits
+    met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
     write.table(met, out_file, quote = FALSE, row.names = FALSE, sep = "\t", col.names = TRUE)
@@ -85,6 +94,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     if("lwr" %in% par_nams) {
       met[[l_names$lwr]] <- met[[l_names$jwr]] * pars$lwr
     }
+    
+    #Reduce number of digits
+    met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
     write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE)
@@ -103,6 +115,9 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     if("swr" %in% par_nams) {
       met[[l_names$swr]] <- met[[l_names$swr]] * pars$swr
     }
+    
+    #Reduce number of digits
+    met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
     write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE,
