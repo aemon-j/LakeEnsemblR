@@ -37,12 +37,12 @@ Imports:
     zoo,
     ggplot2,
     dplyr,
-    RColorBrewer
+    RColorBrewer,
+    rstudioapi
 Suggests:
     testthat,
     knitr,
-    rmarkdown,
-    rstudioapi
+    rmarkdown
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
