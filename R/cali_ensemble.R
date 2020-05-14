@@ -426,7 +426,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                        out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
                        out_hour = out_hour,
                        qualfun = function(O, P){
-                         ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
+                         ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2, na.rm = TRUE)},
                        outf_n = outf_n,
                        niter = num, ...)}),
         model
@@ -452,7 +452,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                       out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
                       out_hour = out_hour,
                       qualfun = function(O, P){
-                        res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
+                        res = na.exclude(as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1])))},
                       outf_n = "",
                       write = FALSE,
                       lower = setNames(pars_l[[m]]$lower,
@@ -505,7 +505,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                           out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
                                           out_hour = out_hour,
                                           qualfun = function(O, P){
-                                           ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2)},
+                                           ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2,
+                                                     na.rm = TRUE)},
                                           outf_n = outf_n,
                                           niter = num, ...)
                       message(paste0("\nFinished MCMC for model ", m, "\n"))
@@ -533,7 +534,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                              out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
                              out_hour = out_hour,
                              qualfun = function(O, P){
-                             res = as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1]))},
+                             res = na.exclude(as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1])))},
                              outf_n = "",
                              write = FALSE,
                              lower = setNames(pars_l[[m]]$lower,
