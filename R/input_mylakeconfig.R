@@ -5,11 +5,10 @@
 #' @param label string; which corresponds to section where the key is located
 #' @param key string; name of key in which to extract the value
 #' @param value string; name of key in which to extract the value
+#' @param out_file filepath; to write the output config file (optional); defaults to overwriting file if not specified
 #' @export
 
 input_mylakeconfig <- function(file, label, key, value, out_file = NULL){
-  # out_file not used in this function, but kept in accordance with the other
-  # read/write file functions (e.g. input_yaml, get_json_value, etc.)
   
   load(file)
   # filename is hard-coded: mylake_config

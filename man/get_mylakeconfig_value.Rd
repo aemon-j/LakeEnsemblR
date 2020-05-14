@@ -4,7 +4,7 @@
 \alias{get_mylakeconfig_value}
 \title{Extracts values from the MyLake config file}
 \usage{
-get_mylakeconfig_value(file, label, key, out_file = NULL)
+get_mylakeconfig_value(file, label, key)
 }
 \arguments{
 \item{file}{filepath; to R object (loaded Rdata file)}

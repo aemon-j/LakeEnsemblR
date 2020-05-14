@@ -3,6 +3,8 @@
 #' Check if the master config file is correct
 #'
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
+#' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
+#' "FLake", "MyLake")
 #' @param exp_cnf boolean; check if the control files for the models are there
 #' @importFrom gotmtools get_yaml_value
 
