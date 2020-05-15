@@ -241,7 +241,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     obs <- dat %>% dplyr::filter(Model == "Obs")
     colnames(obs) <- c("datetime", "Depth", "value", "Observed")
     dat <- dat %>% dplyr::filter(Model != "Obs")
-
     
     dat_av <- dat %>% dplyr::filter(Model != "Obs") %>%
       dplyr::group_by(Depth) %>%
@@ -252,11 +251,11 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     dat_av$Type = av_fun
     
     p1 <- ggplot() +
-      geom_ribbon(data = dat_av, aes(xmin=min, xmax=max, y = Depth),
-                  alpha=0.2) + geom_line(data = dat, aes(x = value, y = Depth, col = Model)) +
-      geom_line(data = dat_av, aes(mean, Depth, col = Type), lwd = 1.33) +
-      geom_point(data = obs, aes(x = value, y = Depth, col = Observed), size = 1) +
-      xlab(var) + 
+      geom_ribbon(data = dat_av, aes(ymin=min, ymax=max, x = Depth),
+                  alpha=0.2) + geom_line(data = dat, aes(y = value, x = Depth, col = Model)) +
+      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33) +
+      geom_point(data = obs, aes(y = value, x = Depth, col = Observed), size = 1) +
+      xlab(var) + coord_flip() +
       ggtitle(paste0("Depth profile ", paste0("at date ", format(date)))) +
       scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$Model))), "black"),
                           breaks= c(av_fun, unique(dat$Model), "Obs"),
