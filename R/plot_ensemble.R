@@ -47,6 +47,12 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   # get variable
   var_list <- load_var(ncdf, var = var, return = "list", print = FALSE)
   
+  # check if selected models are in the ncdf file
+  if(any(!(model %in% names(var_list)))) {
+    stop(paste0("Model ", model[!(model %in% names(var_list))],
+                " not found in the ncdf file ", ncdf))
+  }
+  
   # only the selected models
   var_list <- var_list[c(model, "Obs")]
   
@@ -164,7 +170,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         p3 <- ggplot(dat, aes(x = Model, y = value)) +
           geom_boxplot() +
           geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-          stat_summary(fun.y = mean, geom = "point", shape = 10, size = 4) +
+          stat_summary(fun = mean, geom = "point", shape = 10, size = 4) +
           ylab(var) +
           ggtitle(paste0("Box-Whisker-Plot ",paste0("at depth = ", depth, " m"))) +
           scale_colour_manual(breaks= c(av_fun, unique(dat$Model), "Obs"),
@@ -184,7 +190,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       }
   
     } 
-  }else {
+  } else if(is.null(date)) {
     
     
     dat <- var_list %>%
@@ -264,15 +270,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             legend.box.margin=margin(0,0,0,0),
             legend.position="bottom",legend.title=element_blank()) 
     
-    # if (!is.null(depth) && residuals && boxwhisker){
-    #   plist[[4]] <- p1
-    # } else if (!is.null(depth) && residuals || boxwhisker){
-    #   plist[[3]] <- p1
-    # } else if (!is.null(depth) && !residuals && !boxwhisker){
-    #   plist[[2]] <- p1
-    # } else {
-    #   plist[[1]] <- p1
-    # }
     plist[[pindex]] <- p1
     pindex <- pindex + 1
     
@@ -312,7 +309,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                 legend.margin=margin(0,0,0,0),
                 legend.box.margin=margin(0,0,0,0),
                 legend.position="bottom",legend.title=element_blank()) 
-        # plist[[2]] <- p2
+        
         plist[[pindex]] <- p2
         pindex <- pindex + 1
       }
@@ -341,11 +338,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                            rep("blank", 1)),
                               shape = c(rep(NA, length(unique(dat$Model)) + 1), rep(16, 1))))) +
         theme_classic()
-      # if (residuals){
-      #   plist[[3]] <- p3
-      # } else {
-      #   plist[[2]] <- p3
-      # }
+
       plist[[pindex]] <- p3
       pindex <- pindex + 1
     }
