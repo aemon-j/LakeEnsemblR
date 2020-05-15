@@ -4,7 +4,6 @@
 #'
 #' @param ncdf filepath; to the `ensemble_output.nc` file
 #' @param model Vector of models for which to calculate the performance measures
-#' @param var character; Name of the variable to be extracted. Must match short name in netCDF file
 #' @param spin_up numeric; Number of days to disregard as spin-up for analysis.
 #' @param drho numeric; density difference between top and bottom indicating stratification
 #' [kg m^-3]

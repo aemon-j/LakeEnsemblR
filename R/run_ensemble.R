@@ -54,6 +54,10 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   out_depths <- get_yaml_value(config_file, "output", "depths")
   format <- get_yaml_value(config_file, "output", "format")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
+  if(time_unit == "second"){
+    # Needed to create out_time vector
+    time_unit <- "sec"
+  }
   time_step <- get_yaml_value(config_file, "output", "time_step")
   out_vars <- get_yaml_value(config_file, "output", "variables")
 
@@ -68,7 +72,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                                                by = paste(time_step, time_unit)))
 
 
-  if(obs_file != "NULL"){
+  if(!(obs_file == "NULL" | obs_file == "")){
     message("Loading temperature observations...")
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
     obs_deps <- unique(obs$Depth_meter)
@@ -87,7 +91,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_deps <- NULL
   }
   
-  if(ice_file != "NULL"){
+  if(!(ice_file == "NULL" | ice_file == "")){
     message("Loading ice observations...")
     ice <- read.csv(ice_file, stringsAsFactors = FALSE)
     
@@ -151,9 +155,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if(create_netcdf){
       # Pass all_lists to the netcdf function to create netcdf output
-      create_netcdf_output(output_lists = all_lists, folder = folder, model = model, out_time = out_time,
-                           longitude = lon, latitude = lat, compression = compression,
-                           out_file = out_file)
+      create_netcdf_output(output_lists = all_lists, folder = folder, model = model,
+                           out_time = out_time, longitude = lon, latitude = lat,
+                           compression = compression, out_file = out_file)
     }
   }
 
@@ -175,7 +179,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   old_output <- list.files(file.path(folder, "GLM", "output"))
   unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
 
-  run_glm(sim_folder = file.path(folder, "GLM"))
+  run_glm(sim_folder = file.path(folder, "GLM"), verbose = FALSE)
 
   message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
 

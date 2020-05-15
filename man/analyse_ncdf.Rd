@@ -15,8 +15,6 @@ analyse_ncdf(ncdf, model, spin_up = 0, drho = 0.1)
 
 \item{drho}{numeric; density difference between top and bottom indicating stratification
 [kg m^-3]}
-
-\item{var}{character; Name of the variable to be extracted. Must match short name in netCDF file}
 }
 \value{
 list of four dataframes: 'out_df' = long data frame with date, depths, temp and model,

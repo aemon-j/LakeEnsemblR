@@ -21,6 +21,7 @@
 get_output <- function(config_file, model, vars, obs_depths = NULL, folder = ".", out_time,
                        out_hour){
 
+##--------------------------- FLake ----------------------------------------------------------------
   if("FLake" %in% model) {
 
     # Extract output
@@ -44,13 +45,18 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     return(fla_out)
   }
 
+##--------------------------------- GLM ------------------------------------------------------------
+  
   if("GLM" %in% model){
     # Extract output
     glm_out <- list()
     if("temp" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")),
+      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
+                                                                   get_yaml_value(config_file,
+                                                                                  "config_files",
+                                                                                  "GLM")),
                                               arg_name = "lake_depth"))
       depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
@@ -82,6 +88,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
   }
 
+##--------------------------- GTOM -----------------------------------------------------------------
+  
   if("GOTM" %in% model){
 
     got_out <- list()
@@ -130,6 +138,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     return(got_out)
   }
+  
+##------------------- Simstrat ---------------------------------------------------------------------
 
   if("Simstrat" %in% model){
 
@@ -207,6 +217,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
   }
 
+##--------------------- MyLake ---------------------------------------------------------------------
+  
   if("MyLake" %in% model){
 
     mylake_out <- list()

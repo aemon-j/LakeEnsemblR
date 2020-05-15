@@ -58,7 +58,7 @@ format_met <- function(met, model, config_file, folder = "."){
   # Cloud cover
   if(!chck_met$cc){
 
-    met[[l_names$cc]] <-  calc_cc(date = met[[l_names$time]],
+    met[[l_names$cc]] <-  gotmtools::calc_cc(date = met[[l_names$time]],
                                           airt = met[[l_names$airt]],
                                           relh = met[[l_names$relh]],
                                           swr = met[[l_names$swr]],
@@ -67,33 +67,65 @@ format_met <- function(met, model, config_file, folder = "."){
     chck_met$cc <- TRUE
 
   }
+  
+  # Precipitation
+  # Users can be provide rainfall, precipitation, and/or snowfall
+  
+  # If precipitation is not provided, but rainfall is, compute precipitation
+  if(!chck_met$precip & chck_met$rain){
+    # Set precipitation to rain
+    met[[l_names$precip]] <- met[[l_names$rain]]
+    
+    # In case snowfall is also provided, add snowfall to precipitation
+    if(chck_met$snow){
+      snow_to_add <- met[[l_names$snow]] / 86400
+      met[[l_names$precip]] <- met[[l_names$precip]] + snow_to_add
+    }
+    chck_met$precip <- TRUE
+  }
+  
+  # If precipitation is provided, but rainfall is not, compute rainfall
+  if(chck_met$precip & !chck_met$rain){
+    # If snowfall is provided, subtract snow from precipitation to get rainfall.
+    if(chck_met$snow){
+      met[[l_names$rain]] <- met[[l_names$precip]] -
+        met[[l_names$snow]] / 86400
+      met[[l_names$rain]][met[[l_names$rain]] < 0] <- 0
+    }else{
+      met[[l_names$rain]] <- met[[l_names$precip]]
+    }
+  }
+  
+  # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
+  # If no precipitation is provided, precipitation is assumed to be 0
+  if(chck_met$precip){
+    met$`Precipitation_meterPerHour` <- met[[l_names$precip]] * 3600
+  }else{
+    met[[l_names$precip]] <- 0
+    met[[l_names$rain]] <- 0
+    chck_met$precip <- TRUE
+    # Precipitation_metPerHour does not have to be recalculated, as Simstrat
+    # can be run without precipitation column.
+  }
 
   #Snowfall
-  if(!chck_met$snow){
+  if(!chck_met$snow & chck_met$precip){
     freez_ind <- which(met[[l_names$airt]] < 0)
     met[[l_names$snow]] <- 0
     met[[l_names$snow]][freez_ind] <- met[[l_names$precip]][freez_ind]
-    met[[l_names$precip]][freez_ind] <- 0
     met[[l_names$snow]] <- met[[l_names$snow]] * 86400 # m s-1 to m d-1
     chck_met$snow <- TRUE
   }
-  # Precipitation
-  # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
-  if(chck_met$precip){
-    met$`Precipitation_meterPerHour` <- met[[l_names$precip]] * 3600
-  }#else if(snowfall){
-  #  met$`Precipitation_meterPerHour` <- met[[l_names$snow]]/24
-  #}
 
   # Long-wave radiation
   if(!chck_met$lwr & chck_met$dewt){
-    met[[l_names$lwr]] <- calc_in_lwr(cc = met[[l_names$cc]],
+    met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
                                       airt = met[[l_names$airt]],
                                       dewt = met[[l_names$dewt]])
-  } else if(!chck_met$lwr & !chck_met$dewt & chck_met$relh) {
-    met[[l_names$lwr]] <- calc_in_lwr(cc = met[[l_names$cc]],
-                                                     airt = met[[l_names$airt]],
-                                                     relh = met[[l_names$relh]])
+  } else if(!chck_met$lwr & !chck_met$dewt & chck_met$relh){
+    met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
+                                      airt = met[[l_names$airt]],
+                                      relh = met[[l_names$relh]])
   }
 
   # wind speed
@@ -123,13 +155,16 @@ format_met <- function(met, model, config_file, folder = "."){
     chck_met$v10 <- TRUE
   }
 
+##---------------------------------- FLake ---------------------------------------------------------
 
   if("FLake" %in% model){
 
     ## Extract start, stop, lat & lon for netCDF file from config file
     start <- get_yaml_value(config_file, "time", "start")
     stop <- get_yaml_value(config_file, "time", "stop")
-    met_timestep <- get_meteo_time_step(file.path(folder, get_yaml_value(config_file, "meteo", "file")))
+    met_timestep <- get_meteo_time_step(file.path(folder,
+                                                  get_yaml_value(config_file, "meteo", "file")))
+
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     # Subset temporally
@@ -145,10 +180,8 @@ format_met <- function(met, model, config_file, folder = "."){
     fla_met$index <- seq_len(nrow(fla_met))
 
     # Re-organise
-    fla_met <- fla_met[, c("Shortwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
-                           "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
-                           "Cloud_Cover_decimalFraction", "datetime")]
+    fla_met <- fla_met[, c(l_names$swr, l_names$airt, l_names$vap_p,
+                           l_names$wind_speed, l_names$cc, l_names$time)]
     fla_met$datetime <- format(fla_met$datetime, format = "%Y-%m-%d %H:%M:%S")
     colnames(fla_met)[1] <- paste0("!", colnames(fla_met)[1])
 
@@ -158,6 +191,8 @@ format_met <- function(met, model, config_file, folder = "."){
     return(fla_met)
   }
 
+##--------------------------------- GLM ------------------------------------------------------------
+  
   if("GLM" %in% model){
 
     glm_met <- met
@@ -166,11 +201,9 @@ format_met <- function(met, model, config_file, folder = "."){
     glm_met$Precipitation_meterPerDay <- glm_met$Precipitation_meterPerSecond * 86400
 
 
-    glm_met <- glm_met[, c("datetime", "Shortwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Longwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Air_Temperature_celsius", "Relative_Humidity_percent",
-                           "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
-                           "Precipitation_meterPerDay", "Snowfall_meterPerDay")]
+    glm_met <- glm_met[, c(l_names$time, l_names$swr, l_names$lwr,
+                           l_names$airt, l_names$relh, l_names$wind_speed,
+                           l_names$precip, l_names$snow)]
 
     colnames(glm_met) <- c("Date", "ShortWave", "LongWave", "AirTemp", "RelHum", "WindSpeed",
                            "Rain", "Snow")
@@ -181,6 +214,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(glm_met)
   }
+  
+##--------------------------- GTOM -----------------------------------------------------------------
 
   if("GOTM" %in% model){
 
@@ -192,12 +227,9 @@ format_met <- function(met, model, config_file, folder = "."){
 
 
 
-    got_met <- got_met[, c("datetime", "Ten_Meter_Uwind_vector_meterPerSecond",
-                           "Ten_Meter_Vwind_vector_meterPerSecond",
-                           "Surface_Level_Barometric_Pressure_pascal", "Air_Temperature_celsius",
-                           "Relative_Humidity_percent", "Cloud_Cover_decimalFraction",
-                           "Shortwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Precipitation_meterPerSecond")]
+    got_met <- got_met[, c(l_names$time, l_names$u10, l_names$v10,
+                           l_names$p_surf, l_names$airt, l_names$relh,
+                           l_names$cc, l_names$swr, l_names$precip)]
 
     colnames(got_met)[1] <- paste0("!", colnames(got_met)[1])
     got_met[, 1] <- format(got_met[, 1], "%Y-%m-%d %H:%M:%S")
@@ -207,6 +239,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(got_met)
   }
+  
+##----------------------------- Simstrat -----------------------------------------------------------
 
   if("Simstrat" %in% model){
 
@@ -288,6 +322,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(sim_met)
   }
+  
+##------------------------------- MyLake -----------------------------------------------------------
 
   if("MyLake" %in% model) {
 
