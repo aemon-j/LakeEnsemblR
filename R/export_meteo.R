@@ -15,7 +15,7 @@
 #' export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
 #'              meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 #' }
-#' @importFrom gotmtools get_yaml_value calc_cc input_yaml
+#' @importFrom gotmtools get_yaml_value calc_cc input_yaml calc_in_lwr
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom zoo na.approx
 #' @importFrom lubridate floor_date

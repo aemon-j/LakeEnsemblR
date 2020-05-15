@@ -12,11 +12,8 @@
 #' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 #' }
 
-get_json_value <- function(file, label, key, out_file = NULL){
+get_json_value <- function(file, label, key){
   par <- readLines(file)
-  if (is.null(out_file)) {
-    out_file <- file
-  }
   if(is.null(label)){
     ind_label <- 0
   }else{

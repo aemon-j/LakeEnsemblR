@@ -21,10 +21,10 @@ light:
    Kw: 0.98                                     # light extinction coefficient [m-1]
 observations:
    temperature:
-      file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [if none use NULL or leave empty]
+      file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
       timezone: CET                                         # R timezone measured file is in [default=UTC]
    ice_height:
-      file: NULL           # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [if none use NULL or leave empty]
+      file: NULL           # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
       timezone: UTC                                         # R timezone measured file is in [default=UTC]
 input:
    init_temp_profile:
@@ -65,27 +65,46 @@ model_parameters:
       a_seiche: 0.001                          # Fraction of wind energy which goes into seiche energy [-]
    MyLake:                                     # MyLake specific parameters
       Phys.par/C_shelter: 0.15				     # wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
-calibration:                                   # Calibration section
-   met:
-      wind_speed:
-         lower: 0.5
-         upper: 2
-         initial: 1
-         log: false
-      swr:
-         lower: 0.5
-         upper: 1.5
-         initial: 1
-         log: false
-   GOTM:
-      k_min:
-         lower: 1E-5
-         upper: 1E-5
-         initial: 1E-5
+calibration:                                   # Calibration section                                   # Calibration section
+   met:                                        # Meteo scaling parameter
+      wind_speed:                              # Wind speed scaling
+         lower: 0.5                            # lower bound for wind speed scaling        
+         upper: 2                              # upper bound for wind speed scaling
+         initial: 1                            # initial value for wind speed scaling
+         log: false                            # log transform scaling factor
+      swr:                                     # shortwave radiation scaling
+         lower: 0.5                            # lower bound for shortwave radiation scaling
+         upper: 1.5                            # upper bound for shortwave radiation scaling
+         initial: 1                            # initial value for shortwave radiation scaling
+         log: false                            # log transform scaling factor
+   Simstrat:                                # Simstrat specific parameters                                 
+      a_seiche:
+         lower: 0.0008                         # lower bound for parameter
+         upper: 0.003                          # upper bound for parameter
+         initial: 0.001                        # initial value for parameter
+         log: false                            # log transform scaling factor                          
+   MyLake:                                  # MyLake specific parameters                                    
+     Phys.par/C_shelter:
+        lower: 0.14                            # lower bound for parameter
+        upper: 0.16                            # upper bound for parameter
+        initial: 0.15                          # initial value for parameter
+        log: false                             # log transform scaling factor	
+   GOTM:                                    # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-4                           # lower bound for parameter
+         upper: 5E-6                           # upper bound for parameter
+         initial: 1E-5                         # initial value for parameter
          log: true
-   GLM:
-      coef_mix_hyp:
-         lower: 0.1
-         upper: 2
-         initial: 1
-         log: false
+   GLM:                                     # GLM specific parameters
+      mixing/coef_mix_hyp:
+         lower: 0.1                           # lower bound for parameter
+         upper: 2                             # upper bound for parameter
+         initial: 1                           # initial value for parameter
+         log: false                           # log transform scaling factor
+   FLake:                                  # FLake specific parameters
+      fetch_lk:
+         lower: 1.60E+03                      # lower bound for parameter
+         upper: 2.20E+03                      # upper bound for parameter
+         initial: 2.0E+03                     # initial value for parameter
+         log: false                           # log transform scaling factor
+

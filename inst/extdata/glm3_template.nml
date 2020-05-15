@@ -11,8 +11,8 @@
    surface_mixing = 1
    coef_mix_conv = 0.2
    coef_wind_stir = 0.23
-   coef_mix_shear = 0.3
-   coef_mix_turb = 0.51
+   coef_mix_shear = 0.51
+   coef_mix_turb = 0.3
    coef_mix_KH = 0.3
    deep_mixing = 2
    coef_mix_hyp = 0.5
@@ -76,7 +76,7 @@
    subdaily = .false.
    meteo_fl = 'meteo_file.csv'
    wind_factor = 1
-   sw_factor = 1.08
+   sw_factor = 1
    lw_factor = 1
    at_factor = 1
    rh_factor = 1

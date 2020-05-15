@@ -58,7 +58,7 @@ format_met <- function(met, model, config_file, folder = "."){
   # Cloud cover
   if(!chck_met$cc){
 
-    met[[l_names$cc]] <-  calc_cc(date = met[[l_names$time]],
+    met[[l_names$cc]] <-  gotmtools::calc_cc(date = met[[l_names$time]],
                                           airt = met[[l_names$airt]],
                                           relh = met[[l_names$relh]],
                                           swr = met[[l_names$swr]],
@@ -119,11 +119,11 @@ format_met <- function(met, model, config_file, folder = "."){
 
   # Long-wave radiation
   if(!chck_met$lwr & chck_met$dewt){
-    met[[l_names$lwr]] <- calc_in_lwr(cc = met[[l_names$cc]],
+    met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
                                       airt = met[[l_names$airt]],
                                       dewt = met[[l_names$dewt]])
   } else if(!chck_met$lwr & !chck_met$dewt & chck_met$relh){
-    met[[l_names$lwr]] <- calc_in_lwr(cc = met[[l_names$cc]],
+    met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
                                       airt = met[[l_names$airt]],
                                       relh = met[[l_names$relh]])
   }
@@ -155,6 +155,7 @@ format_met <- function(met, model, config_file, folder = "."){
     chck_met$v10 <- TRUE
   }
 
+##---------------------------------- FLake ---------------------------------------------------------
 
   if("FLake" %in% model){
 
@@ -163,6 +164,7 @@ format_met <- function(met, model, config_file, folder = "."){
     stop <- get_yaml_value(config_file, "time", "stop")
     met_timestep <- get_meteo_time_step(file.path(folder,
                                                   get_yaml_value(config_file, "meteo", "file")))
+
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
 
     # Subset temporally
@@ -189,6 +191,8 @@ format_met <- function(met, model, config_file, folder = "."){
     return(fla_met)
   }
 
+##--------------------------------- GLM ------------------------------------------------------------
+  
   if("GLM" %in% model){
 
     glm_met <- met
@@ -210,6 +214,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(glm_met)
   }
+  
+##--------------------------- GTOM -----------------------------------------------------------------
 
   if("GOTM" %in% model){
 
@@ -233,6 +239,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(got_met)
   }
+  
+##----------------------------- Simstrat -----------------------------------------------------------
 
   if("Simstrat" %in% model){
 
@@ -314,6 +322,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     return(sim_met)
   }
+  
+##------------------------------- MyLake -----------------------------------------------------------
 
   if("MyLake" %in% model) {
 
