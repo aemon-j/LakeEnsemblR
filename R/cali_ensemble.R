@@ -251,14 +251,16 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
-    data.frame(pars = c(params_met, params_mod[[m]]),
-               name = c(names(params_met), names(params_mod[[m]])),
-               upper = c(p_upper_met, p_upper_mod[[m]]),
-               lower = c(p_lower_met, p_lower_mod[[m]]),
-               type = c(rep("met", length(params_met)),
-                        rep("model", length(params_mod[[m]]))),
-               log = c(rep(FALSE, length(params_met)), log_mod[[m]]),
-               stringsAsFactors = FALSE)
+    df <- data.frame(pars = c(params_met, params_mod[[m]]),
+                     name = c(names(params_met), names(params_mod[[m]])),
+                     upper = c(p_upper_met, p_upper_mod[[m]]),
+                     lower = c(p_lower_met, p_lower_mod[[m]]),
+                     type = c(rep("met", length(params_met)),
+                              rep("model", length(params_mod[[m]]))),
+                     log = c(rep(FALSE, length(params_met)), log_mod[[m]]),
+                     stringsAsFactors = FALSE)
+    colnames(df) <- c("pars", "name", "upper", "lower", "type", "log")
+    return(df)
   })
   names(pars_l) <- model
   
