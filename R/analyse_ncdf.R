@@ -16,7 +16,7 @@
 #' @examples
 #' \dontrun{
 #' }
-#' @importFrom gotmtools list_vars get_vari wide2long sum_stat analyse_strat
+#' @importFrom gotmtools list_vars get_vari wide2long sum_stat
 #'
 #' @export
 analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
@@ -80,7 +80,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   # Remove temp spin-up period ----
   obs_temp <- temp[["Obs"]]
   z <- rLakeAnalyzer::get.offsets(obs_temp)
-  obs_temp <- wide2long(obs_temp, z)
+  obs_temp <- gotmtools::wide2long(obs_temp, z)
   # obs_temp <- na.exclude(obs_temp)
   if(!is.null(spin_up)){
     spin_date <- obs_temp[1, 1] + spin_up * (24 * 60 * 60)
@@ -118,7 +118,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   out_list <- lapply(seq_len(length(temp)), function(x){
     
     z <- rLakeAnalyzer::get.offsets(temp[[x]])
-    tmp <- wide2long(temp[[x]], z)
+    tmp <- gotmtools::wide2long(temp[[x]], z)
     # obs_temp <- na.exclude(obs_temp)
     if(!is.null(spin_up)){
       spin_date <- tmp[1, 1] + spin_up * (24 * 60 * 60)
@@ -139,7 +139,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
       str <- analyse_strat(data = tmp, NH = NH, H_ice = NULL, drho = drho)
     }
     
-    stats <- sum_stat(tmp, obs_temp, depth = T)
+    stats <- gotmtools::sum_stat(tmp, obs_temp, depth = T)
     
     tmp$model <- names(temp)[x]
     str$model <- names(temp)[x]
