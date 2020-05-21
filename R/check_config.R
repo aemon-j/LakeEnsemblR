@@ -106,6 +106,13 @@ check_master_config <- function(config_file,
                 ". Allowed units: ", paste0(good_vars, collapse = ", ")))
   } 
   
+  # Check if there are tabs in the config file, which will cause
+  # internal errors in some cases when relying on configr:read.config
+  config_char <- readChar(config_file, nchars = file.info(config_file)$size)
+  if(grepl("\t", config_char)){
+    warning("Tabs detected in ", config_file, ". This could lead to errors,",
+            " replace with spaces.")
+  }
 }
 
 
