@@ -47,18 +47,11 @@ setwd("example/feeagh") # Change working directory to example folder
 # Set config file
 config_file <- 'LakeEnsemblR.yaml'
 
-# 1. Example - creates directories with all model setup
+# Example run
+# 1. Export settings - creates directories with all model setups and exports settings from the LER configuration file
 export_config(config_file = config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
 
-# 2. Create meteo driver files for each model
-export_meteo(config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-
-# 3. Create initial conditions for each model
-export_init_cond(config_file = config_file, 
-                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                 print = TRUE)
-
-# 4. Run ensemble lake models
+# 2. Run ensemble lake models
 wtemp_list <- run_ensemble(config_file = config_file,
                            model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                            return_list = TRUE)

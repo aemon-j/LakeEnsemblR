@@ -518,6 +518,12 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     message("MyLake configuration complete!")
   }
 
+  # Meteo in separate function
+  export_meteo(config_file, model = model, folder = folder)
+  
+  # Initial conditions in separate function
+  export_init_cond(config_file, model = model, print = TRUE, folder = folder)
+  
   # Light extinction (Kw) in separate function
   export_extinction(config_file, model = model, folder = folder)
   
