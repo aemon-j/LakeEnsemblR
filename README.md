@@ -84,6 +84,7 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ## Plot Ensemble output
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
+model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
 
 # Load watertemp from netCDF file as a list
