@@ -65,8 +65,8 @@ Parallelization is done using the `parallel` package and `parLapply()`. The numb
 
 config_file <- 'LakeEnsemblR.yaml'
 
-# LCH method
-cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+# LHC method
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LHC",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
 # MCMC method                           
@@ -78,16 +78,16 @@ resMmodFit <- cali_ensemble(config_file = config_file, num = 200, cmethod = "mod
                             model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                             method = "Nelder-Mead")
 
-# LCH method using multiple cores
-cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+# LHC method using multiple cores
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LHC",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
              parallel = TRUE)
              
-# LCH method deployed as a job
-cali_ensemble(config_file = config_file, num = 200, cmethod = "LCH",
+# LHC method deployed as a job
+cali_ensemble(config_file = config_file, num = 200, cmethod = "LHC",
              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
              job_name = "test")
-test                                        
+test # View output from job                                        
              
 }
 }

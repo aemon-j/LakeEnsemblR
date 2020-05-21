@@ -41,31 +41,31 @@ check_master_config <- function(config_file,
   if(!exp_cnf) {
     # test if the control files are available
     if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GOTM")) &&
-       'GOTM' %in% model) {
+       "GOTM" %in% model) {
       stop(paste0("GOTM control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "GOTM"),
                   " is not existing"))
     }
     if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GLM")) &&
-       'GLM' %in% model) {
+       "GLM" %in% model) {
       stop(paste0("GLM control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "GLM"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "Simstrat")) &&
-       'Simstrat' %in% model) {
+       "Simstrat" %in% model) {
       stop(paste0("Simstrat control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "Simstrat"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "FLake")) &&
-       'FLake' %in% model) {
+       "FLake" %in% model) {
       stop(paste0("FLake control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "FLake"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "MyLake")) &&
-       'MyLake' %in% model) {
+       "MyLake" %in% model) {
       stop(paste0("MyLake control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "MyLake"),
                   " is not existing"))
