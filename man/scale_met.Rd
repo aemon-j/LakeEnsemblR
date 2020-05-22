@@ -5,7 +5,7 @@
 \alias{format_met}
 \title{Format meteorological data for each model}
 \usage{
-format_met(met, model, config_file, folder = ".")
+format_met(met, model, daily = FALSE, config_file, folder = ".")
 
 scale_met(met, pars, model, out_file = NULL)
 }
@@ -14,6 +14,8 @@ scale_met(met, pars, model, out_file = NULL)
 
 \item{model}{character; Model for which scaling parameters will be applied. Options include
 c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+
+\item{daily}{logical; Is the data on a daily timestep. Defaults to FALSE}
 
 \item{config_file}{filepath; To LER config yaml file. Only used if model = 'GOTM'}
 

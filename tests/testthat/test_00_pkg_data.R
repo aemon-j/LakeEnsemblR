@@ -3,6 +3,10 @@ test_that("test data can be created", {
   testthat::skip_on_cran()
   library(LakeEnsemblR)
   
+<<<<<<< HEAD
+  testthat::expect_error(run_ensemble(model = c('GLM','GLM')), 
+                         'model input argument cannot contain duplicates')
+=======
   
   testthat::expect_error(run_ensemble(model = c("GRE")), 
                          'Unknown model: "GRE" in input argument "model"')
@@ -37,6 +41,7 @@ test_that("create model meteo & config files", {
   testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
                           file.exists("MyLake/mylake.Rdata")))
+>>>>>>> upstream/master
 })
 
 

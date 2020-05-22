@@ -48,3 +48,4 @@ LazyData: true
 LazyLoad: true
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
+RoxygenNote: 7.0.2

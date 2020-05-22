@@ -7,20 +7,15 @@
 export_config(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-  folder = ".",
-  inflow_file = NULL
+  folder = "."
 )
 }
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export configuration file.
-Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+\item{model}{vector; model to export configuration file. Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
 
 \item{folder}{folder}
-
-\item{inflow_file}{filepath; to inflow file which is in the standardised LakeEnsemblR format (if
-a different file than the one provided in the configuration file is needed); default is NULL}
 }
 \description{
 Create directory with file setups for each model based on a master LakeEnsemblR config file
@@ -30,6 +25,6 @@ Create directory with file setups for each model based on a master LakeEnsemblR 
 
 }
 \author{
-Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
+Tadhg Moore, Jorrit Mesman
 }
 \keyword{methods}

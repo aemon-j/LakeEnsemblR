@@ -6,50 +6,120 @@ location:
    elevation: 15                                # elevation of lake surface above sea level [m]
    depth: 46.8                                  # maximum water depth [m; min=0.0; default=100.0]
    hypsograph: LakeEnsemblR_bathymetry_standard.csv                 # hypsograph [default=]
-   init_depth: 46.8                             # initial height of lake surface relative to the bottom [m]
+   init_depth: 46.8                              # initial height of lake surface relative to the bottom [m]
 time:
    start: 2010-01-01 00:00:00                   # start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
    stop: 2011-01-01 00:00:00                    # stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
-   time_step: 3600.0                            # time step for integration [s; min=0.0; default=3600.0]
+   time_step: 3600.0                             # time step for integration [s; min=0.0; default=3600.0]
 config_files:
+<<<<<<< HEAD:inst/extdata/feeagh/Feeagh_master_config.yaml
+   gotm: GOTM/gotm.yaml                  # GOTM config file (yaml format)
+   glm: GLM/glm3.nml                     # GLM config file (nml format)
+   simstrat: Simstrat/feeagh.par         # Simstrat config file (json format)
+   flake: FLake/feeagh.nml               # FLake config file (nml format)
+   mylake: MyLake/mylake_config_template.Rdata       # MyLake config file (Rdata format)
+=======
    GOTM: GOTM/gotm.yaml                             # GOTM config file (yaml format)
    GLM: GLM/glm3.nml                                # GLM config file (nml format)
    Simstrat: Simstrat/simstrat.par                    # Simstrat config file (json format)
    FLake: FLake/flake.nml                          # FLake config file (nml format)
    MyLake: MyLake/mylake.Rdata      # MyLake config file (Rdata format)
+>>>>>>> upstream/master:inst/extdata/feeagh/LakeEnsemblR.yaml
 light:
-   Kw: 0.98                                     # light extinction coefficient [m-1]
+   Kw: 0.98                  # light extinction coefficient [m-1]
 observations:
+<<<<<<< HEAD:inst/extdata/feeagh/Feeagh_master_config.yaml
+   file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary
+   timezone: CET                        # R timezone measured file is in [default=UTC]
+=======
    temperature:
       file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
       timezone: CET                                         # R timezone measured file is in [default=UTC]
    ice_height:
       file: NULL           # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
       timezone: UTC                                         # R timezone measured file is in [default=UTC]
+>>>>>>> upstream/master:inst/extdata/feeagh/LakeEnsemblR.yaml
 input:
-   init_temp_profile:
-      file:                                     # initial temperature profile. CSV file or empty. If empty, the observations file will be used.
    meteo:
-      file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
-      time_zone: UTC                            # R timezone measured file is in [default=UTC]
+      file: LakeEnsemblR_meteo_standard.csv                    # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
+      time_step: 86400.0                         # timestep of meteorological input data [s]
+      time_zone: UTC                             # R timezone measured file is in [default=UTC]
    ice:
       use: true                                 # turn on ice models? [default=true]
-      H: 0.0                                    # initial ice thickness [m; default=0.0]. Not implemented yet
+      H: 0.0                                    # initial ice thickness [m; default=0.0]
+   salt:
+      use: false                                # allow density variations due to salt? [default = true]
 inflows:
+<<<<<<< HEAD:inst/extdata/feeagh/Feeagh_master_config.yaml
+    use: false                                  # use in- and outflows?
+    Ouflow1:                                    # stream configuration
+      method: 4                                 # inflow method [default=1 from surface, 2=from bottom, 3=depth interval, 4=density resolved]
+      zu: 0.0                                   # upper limit [m; default=0.0]
+      zl: 0.0                                   # lower limit [m; default=0.0]
+      flow:                                     # water flow
+         method: 2                              # method [0=constant, 2=from file; default=0]
+         constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
+         file: inputQ_kristine.dat              # path to file with time series [default=]
+         column: 1                              # index of column to read from [default=1]
+         scale_factor: 2                        # 2 to compensate for ungauged area
+      temp:                                     # flow temperature
+         method: 2                              # method [0=constant, 2=from file; default=0]
+         constant_value: -1.0                   # value to use throughout the simulation [Celcius; default=-1.0]
+         file: inflowchem_kristine.dat          # path to file with time series [default=]
+         column: 2                              # index of column to read from [default=1]
+=======
    use: true                                   # use in- and outflows? Implemented for GLM, GOTM, Simstrat, MyLake
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
    mass-balance: true                          # enforce pseudo mass-balance by adding an artifical outflow for every inflow
+>>>>>>> upstream/master:inst/extdata/feeagh/LakeEnsemblR.yaml
 output:
-   file: ensemble_output.nc                    # path of output file, excluding extension
-   format: netcdf                              # format [text, netcdf; default=netcdf]
-   depths: 0.5                                 # depths to extract output [m; default=0.5]
-   compression: 4                              # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
-   time_unit: hour                             # time unit [second, hour, day, dt=model time step; default=day]
-   time_step: 24                               # number of time units between output [min=1; default=1]
-   time_method: mean                           # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
-   variables:
+    file: ensemble_output.nc                    # path of output file, excluding extension
+    format: netcdf                              # format [text, netcdf; default=netcdf]
+    depths: 0.5                                 # depths to extract output [m; default=0.5]
+    compression: 4                              # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
+    time_unit: hour                             # time unit [second, hour, day, month, year, dt=model time step; default=day]
+    time_step: 24                               # number of time units between output [min=1; default=1]
+    time_method: mean                           # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
+    variables:
       - temp
       - ice_height
+<<<<<<< HEAD
+biogeochemistry:                                # not yet implemented
+    use: false
+FLake:                                          # FLake specific parameters
+    fetch_lk: 2.0E+03                           # Typical wind fetch [m]
+    sediments_on: true                          # false if the sediments layer is switched off
+GLM:                                            # GLM specific parameters
+   bsn_len: 3678                                # Length of the lake basin, at crest height [m; default=NULL]
+   bsn_wid: 944                                 # Width of the lake basin, at crest height [m; default=NULL]
+GOTM:
+   k_min: 3.6E-6                                # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
+Simstrat:
+   a_seiche: 0.001                              # Fraction of wind energy which goes into seiche energy [-]
+MyLake:
+   C_shelter: 0.15				# wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
+calibration:                                    # Calibration section
+   parameter:                                  # Parameters to be calibrated
+      - wind_speed
+      - swr
+      - k_min
+      - coef_mix_hyp
+   upper:                                       # Upper bounds of scaling factors
+      - 2
+      - 1.5
+      - 1e-5
+      - 2
+   lower:                                       # Lower bounds of scaling factors
+      - 0.5
+      - 0.5
+      - 1e-5
+      - 0.1
+   log:                                         # Is the parameter logarithmic [true/false]
+      - false
+      - false
+      - true
+      - false
+=======
 biogeochemistry:                               # Not implemented yet
    use: false
 model_parameters:
@@ -108,3 +178,4 @@ calibration:                                   # Calibration section            
          initial: 2.0E+03                     # initial value for parameter
          log: false                           # log transform scaling factor
 
+>>>>>>> upstream/master

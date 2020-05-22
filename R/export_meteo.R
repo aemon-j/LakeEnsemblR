@@ -18,17 +18,11 @@
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml calc_in_lwr
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom zoo na.approx
-#' @importFrom lubridate floor_date
 #'
 #' @export
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          meteo_file = NULL, scale_param = NULL, folder = "."){
 
-  # check the master config file
-  check_master_config(config_file, model)
-  # check model input
-  model <- check_models(model)
-  
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
@@ -51,22 +45,24 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(!file.exists(meteo_file)){
     stop(meteo_file, " does not exist. Check filepath in ", config_file)
   }
-  
-  met_timestep <- get_meteo_time_step(file.path(folder, meteo_file))
 
   ### Import data
+  # I'd prefer to use a function that can read both comma and tab delimited.
+  # data.table::fread does this, but then it's data.table
   message("Loading met data...")
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "meteo_file")
   }
-  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = FALSE)
+  met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = F)
   met[, 1] <- as.POSIXct(met[, 1])
   # Check time step
   tstep <- diff(as.numeric(met[, 1]))
 
   if((mean(tstep) - 86400) / 86400 < -0.05) {
+    daily <- FALSE
     subdaily <- TRUE
   } else {
+    daily <- TRUE
     subdaily <- FALSE
   }
 
@@ -84,25 +80,27 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   #####
   if("FLake" %in% model) {
 
-    fla_met <- format_met(met = met, model = "FLake", config_file = config_file)
+    fla_met <- format_met(met = met, model = "FLake", daily = daily, config_file = config_file)
 
     # Met output file name
     met_outfile <- "all_meteo_file.dat"
-    met_outfpath <- file.path(folder, "FLake", met_outfile)
+    met_outfile <- file.path(folder, "FLake", met_outfile)
 
 
     #Scale met
     if(!is.null(scale_param)){
-      scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfpath)
+      scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfile)
     } else {
       # Write to file
-      write.table(fla_met, met_outfpath, sep = "\t", quote = FALSE, col.names = FALSE,
+      write.table(fla_met, met_outfile, sep = "\t", quote = FALSE, col.names = FALSE,
                   row.names = FALSE)
     }
 
 
     # Input values to nml
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    nml_file <- list.files(file.path(folder, "FLake"))[grep("nml", list.files(file.path(folder,
+                                                                                       "FLake")))]
+    nml_file <- file.path(folder, "FLake", nml_file)
 
     input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(fla_met))
     input_nml(nml_file, "METEO", "meteofile", paste0("'", met_outfile, "'"))
@@ -115,7 +113,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # GLM
   #####
   if("GLM" %in% model){
-    glm_met <- format_met(met = met, model = "GLM", config_file = config_file)
+    glm_met <- format_met(met = met, model = "GLM", config_file = config_file, daily = daily)
 
     met_outfile <- file.path("GLM", "meteo_file.csv")
 
@@ -137,7 +135,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
     # Input to nml file
-    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
+    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "glm"))
     nml <- glmtools::read_nml(nml_path)
 
     nml_list <- list("subdaily" = subdaily, "lw_type" = lw_type, "meteo_fl" = "meteo_file.csv")
@@ -152,13 +150,13 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   ## GOTM
   if("GOTM" %in% model){
 
-    yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "gotm"))
 
     met_outfile <- "meteo_file.dat"
 
     met_outfpath <- file.path(folder, "GOTM", met_outfile)
 
-    got_met <- format_met(met, model = "GOTM", config_file = config_file)
+    got_met <- format_met(met, model = "GOTM", daily = daily, config_file = config_file)
 
     #Scale met
     if(!is.null(scale_param)){
@@ -182,11 +180,11 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if("Simstrat" %in% model){
 
     met_outfile <- "meteo_file.dat"
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "simstrat"))
 
     met_outfpath <- file.path(folder, "Simstrat", met_outfile)
     
-    sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file)
+    sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file, daily = daily)
     
     #Scale met
     if(!is.null(scale_param)){
@@ -208,36 +206,20 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     met_outfile <- "meteo_file.dat"
     met_outfpath <- file.path(folder, "MyLake", met_outfile)
-    
-    # If met_timestep is not 24 hours, MyLake would crash
-    # If met_timestep is lower than 24 hours, met is averaged to 24 hours
-    if(met_timestep < 86400){
-      warning("Meteo time step less than daily; averaging met file for MyLake simulation.")
-      met_temp <- aggregate(met,
-                            by = list(lubridate::floor_date(met$datetime, unit = "days")),
-                            FUN = mean)
-      met_temp$datetime <- NULL
-      colnames(met_temp)[1] <- "datetime"
-    }else if(met_timestep > 86400){
-      stop("MyLake cannot be run with meteo forcing time steps larger than 1 day.")
-    }else{
-      met_temp <- met
-    }
-    
-    mylake_met <- format_met(met = met_temp, model = "MyLake", config_file = config_file)
+    mylake_met <- format_met(met = met, model = "MyLake", config_file = config_file, daily = daily)
     #Scale met
     if(!is.null(scale_param)){
       scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
-    }else{
+      } else {
       # Write to file
       write.table(mylake_met, met_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
                   col.names = FALSE)
+      }
+      message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
     }
-    message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
-  }
 
-  # Set the timezone back to the original
-  Sys.setenv(TZ = original_tz)
+    # Set the timezone back to the original
+    Sys.setenv(TZ = original_tz)
 
 
 }

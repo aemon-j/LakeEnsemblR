@@ -49,10 +49,7 @@ extincoef_optic = 1.5,! /LER/ Extinction coefficients
 /
 
 &inflow
-DTinflow = 0.0,    ! 
-DTfixed  = .true., ! 
-QS       = 0.0,    ! inflow rate per lake area [m/s], 
-Qfromfile = .true.,
-Qfile='Tinflow',   ! a filename with inflow data should be subsituted for 'Tinflow' 
-time_step_number = 1653 ! number of the model time steps, should be less than or equal to the number of rows in file
+DTinflow = 0.0, 
+DTfixed  = .true., 
+QS       = 0.0     ! m/s 
 / 
