@@ -187,7 +187,7 @@ or:
 ```
 
 ## Calibration
-This section is used when calibrating the models. In the package, the run_LHC (Latin-Hypercube) and run_MCMC (Monte-Carlo Markov Chain) functions do this, but this is currently still in a beta-phase and this will be more clearly explained in a later version of this vignette.
+This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For information on how to run the calibration and how to structure this section of the config file, see section 5.7 "Model calibration". 
 
 # Workflow
 In this chapter, we quickly show you how your workflow with LakeEnsemblR could look like. 
@@ -356,7 +356,7 @@ We are currently working on a function to add new simulations (for example with 
 
 LakeEnsemblR includes some tools for automatic model calibration which are included in the `cali_ensemble()` function. The function profides three methods:
 
- - methood "LHC": Lathin hypercube calibration
+ - method "LHC": Lathin hypercube calibration
  - method "MCMC": Markov Chain Monte Carlo simulation using the `modMCMC` function from the `FME` package (@soetaert_inverse_2010)
  - method "modFit": model fitting using one of the algorithms provided in the `modFit` function from the `FME` package (@soetaert_inverse_2010)
 
@@ -412,6 +412,14 @@ calibration:                                   # Calibration section            
 
 The calibration process can then be run using the `cali_ensemble()` function. Methods "LHC" and "MCMC" will write intermediate results to .csv text files in the folder specified by the `out_f` argument. It is possible to parallelize the calibration procedure using the `parallel` argument. This will distribute the calibration of the models to different cores. It is worth noting that in the current state the bottle neck for the computation speed is running MyLake (as it is written in R and significantly slower than the other four models).
 
+You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that are often calibrated in each model:
+
+ - FLake: is usually not calibrated
+ - GLM: several meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw (@hipsey_general_2019) (@bruce_mlca_glm_2018)
+ - GOTM: shf_factor, wind_factor, swr_factor, k_min, g2 (@ayala_simulations_gotm_2020)
+ - Simstrat: a_seiche, f_wind, p_radin, p_albedo (@gaudard_toward_2019)
+ - MyLake: based on sensitivity analysis (@saloranta_mylakemulti_year_2007)
+ 
 ### LHC method
 
 The "LHC" method will sample a number of parameter sets definded by the `num` argument within the bounds definded by `upper` and `lower` in the master config file. For each model given in the `model` argument a set of parameters consisting of the meteo scaling factors and the model spüecific parameters will be sampled and the model will be run for each set, calculating model performance indices for each run. Both the parameter set and the model results will be written to the `out_f` folder. By default the model performance indices are:
