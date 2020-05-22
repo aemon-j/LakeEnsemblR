@@ -12,17 +12,6 @@
 #' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 #' }
 
-<<<<<<< HEAD
-get_json_value <- function(file, label, key, out_file = NULL){
-  yml <- readLines(file)
-  if (is.null(out_file)) {
-    out_file <- file
-  }
-  label_id <- paste0('"', label, '"')
-  ind_label <- grep(label_id, yml)
-  if (length(ind_label) == 0) {
-    stop(label, " not found in ", file)
-=======
 get_json_value <- function(file, label, key){
   par <- readLines(file)
   if(is.null(label)){
@@ -34,10 +23,9 @@ get_json_value <- function(file, label, key){
     if(length(ind_label) == 0){
       stop(label, " not found in ", file)
     }
->>>>>>> upstream/master
   }
   key_id <- paste0('"', key, '"')
-  ind_key <- grep(key_id, yml)
+  ind_key <- grep(key_id, par)
   if (length(ind_key) == 0) {
     stop(key, " not found in ", label, " in ",
          file)
@@ -48,7 +36,7 @@ get_json_value <- function(file, label, key){
     stop(key, " not found in ", label, " in ",
          file)
   }
-  spl1 <- strsplit(yml[ind_map], c("!"))[[1]]
+  spl1 <- strsplit(par[ind_map], c("!"))[[1]]
   spl2 <- strsplit(spl1[1], ": ")[[1]][2]
   val <- gsub(" ", "", spl2, fixed = TRUE)
   val <- gsub(",", "", val, fixed = TRUE)

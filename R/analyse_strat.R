@@ -129,21 +129,21 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
                    endday = strat_doys[i_s_en])
   a1 <- subset(a1, year %in% yrs)
 
-  s.max <- s.mean <- s.tot <- s.on <- s.off <-
-    s.first <- s.last <- yr <- NULL
+  s_max <- s_mean <- s_tot <- s_on <- s_off <-
+    s_first <- s_last <- yr <- NULL
   for(mm in unique(a1$year[!is.na(a1$year)])) { # remove NAs which are generated when the lake is
     # stratified at the satrt or end of the simulation
     a2 <- subset(a1, year == mm)
     ind <- which.max(a2$dur)
     if(nrow(a2) == 1) if(is.na(a2$dur)) ind <- NA # fixes issue if stratified at end of data period
     yr <- c(yr, mm)
-    s.max <- c(s.max, max(a2$dur))
-    s.mean <- c(s.mean, mean(a2$dur))
-    s.tot <- c(s.tot, sum(a2$dur))
-    s.on <- c(s.on, as.POSIXlt(a2$start[ind])$yday)
-    s.off <- c(s.off, as.POSIXlt(a2$end[ind])$yday)
-    s.first <- c(s.first, min(a2$startday))
-    s.last <- c(s.last, max(a2$endday))
+    s_max <- c(s_max, max(a2$dur))
+    s_mean <- c(s_mean, mean(a2$dur))
+    s_tot <- c(s_tot, sum(a2$dur))
+    s_on <- c(s_on, as.POSIXlt(a2$start[ind])$yday)
+    s_off <- c(s_off, as.POSIXlt(a2$end[ind])$yday)
+    s_first <- c(s_first, min(a2$startday))
+    s_last <- c(s_last, max(a2$endday))
   }
 
   # maximum surface temperature
@@ -223,7 +223,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     TbMin[, c("TbMin", "TbMinDay")]
 
   out[match(yr, yrs), -1:-9] <-
-    data.frame(s.max, s.mean, s.tot, s.on, s.off, s.first, s.last)
+    data.frame(s_max, s_mean, s_tot, s_on, s_off, s_first, s_last)
 
 
   # ice cover
