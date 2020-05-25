@@ -9,7 +9,8 @@ run_ensemble(
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   folder = ".",
   return_list = FALSE,
-  create_netcdf = TRUE
+  create_netcdf = TRUE,
+  add = FALSE
 )
 }
 \arguments{
@@ -23,6 +24,8 @@ c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake')}
 \item{return_list}{boolean; Return a list of dataframes of model output. Defaults to FALSE}
 
 \item{create_netcdf}{boolean; Create ensemble output file. Defaults to TRUE}
+
+\item{add}{boolean; Add results to an existing netcdf file with new dimension "member"}
 }
 \description{
 Run each of the lake models
