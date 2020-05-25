@@ -74,6 +74,17 @@ export_init_cond <- function(config_file,
   deps <- signif(deps, 4)
   tmp <- signif(tmp, 4)
   
+  # Do a test to see if the maximum depth in the initial profile
+  # exceeds the maximum depth of the lake. If so, throw an error
+  if(max(deps) > get_yaml_value(file = file.path(folder, config_file),
+                                label = "location",
+                                key = "depth")){
+    stop("Maximum depth in initial profile exceeds lake depth: ",
+         get_yaml_value(file = file.path(folder, config_file),
+                        label = "location",
+                        key = "depth"), " m")
+  }
+  
   # FLake
   #####
   if("FLake" %in% model){

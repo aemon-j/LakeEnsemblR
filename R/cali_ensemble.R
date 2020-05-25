@@ -251,14 +251,16 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
-    data.frame(pars = c(params_met, params_mod[[m]]),
-               name = c(names(params_met), names(params_mod[[m]])),
-               upper = c(p_upper_met, p_upper_mod[[m]]),
-               lower = c(p_lower_met, p_lower_mod[[m]]),
-               type = c(rep("met", length(params_met)),
-                        rep("model", length(params_mod[[m]]))),
-               log = c(rep(FALSE, length(params_met)), log_mod[[m]]),
-               stringsAsFactors = FALSE)
+    df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
+                     name = c(names(params_met), names(params_mod[[m]]), recursive = TRUE),
+                     upper = c(p_upper_met, p_upper_mod[[m]], recursive = TRUE),
+                     lower = c(p_lower_met, p_lower_mod[[m]], recursive = TRUE),
+                     type = c(rep("met", length(params_met)),
+                              rep("model", length(params_mod[[m]])), recursive = TRUE),
+                     log = c(rep(FALSE, length(params_met)), log_mod[[m]], recursive = TRUE),
+                     stringsAsFactors = FALSE)
+    colnames(df) <- c("pars", "name", "upper", "lower", "type", "log")
+    return(df)
   })
   names(pars_l) <- model
   
@@ -322,20 +324,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       num <- nrow(pars_lhc[[1]])
     }
   } else {
-    # we just nedd a empty variable to export to parallel clusters (not a good fix, but works)
+    # we just need an empty variable to export to parallel clusters (not a good fix, but works)
     pars_lhc <- NULL
   }
 
 ##--------- prepare models to be run ---------------------------------------------------------------  
 
-  # prepare controll files of the models
+  # prepare config files of the models
   export_config(config_file = config_file, model = model, folder = folder)
-  # prepare meteo files for the models
-  export_meteo(config_file = config_file,model =  model,meteo_file =  meteo_file, folder = folder)
-  # export initial conditions for each model
-  export_init_cond(config_file = config_file, 
-                   model = model,
-                   print = TRUE)
   
 ##----------------- read in model meteo files ------------------------------------------------------
   
