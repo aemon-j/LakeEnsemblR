@@ -42,7 +42,7 @@ load_var <- function(ncdf, var, return = "list", print = TRUE){
   mod_names <- substring(mod_names, 5)
   
   # Extract parameters
-  pars <- ncvar_get(fid, "parameter")
+  pars <- ncvar_get(fid, "member")
   
   # Will need updating when parameter ensembles are added
   

@@ -35,7 +35,8 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
   # loop over all parameter sets
   for (p in seq_len(nrow(pars))) {
     # change the paremeter/meteo scaling
-    change_pars(config_file = config_file, model = model, pars = pars[p, -ncol(pars)],
+    change_pars(config_file = config_file, model = model,
+                pars = pars[p, -ncol(pars), drop = FALSE],
                 type = type, met = met, folder = folder)
     # calculate quality measure
     qual_i <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
