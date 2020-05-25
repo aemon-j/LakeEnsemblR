@@ -48,9 +48,9 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   moddim <- ncdf4::ncdim_def("model", units = "-",
                              vals = as.double(seq_len(length(mod_names))))
   
-  # Define parameter dimensions
-  pardim <- ncdf4::ncdim_def("parameter", units = "-",
-                             vals = as.double(1))
+  # Define member dimensions
+  pardim <- ncdf4::ncdim_def("member", units = "-", unlim = TRUE,
+                             vals = as.integer(1))
   
   fillvalue <- 1e20 # Fill value
   # missvalue <- 1e20 # Missing value
@@ -119,7 +119,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   ncdf4::ncatt_put(ncout, "z", attname = "coordinates", attval = c("z"))
   ncdf4::ncatt_put(ncout, "model", attname = "Model",
                    attval = paste(seq_len(length(mod_names)), "-", mod_names, collapse = ", "))
-  ncdf4::ncatt_put(ncout, "parameter", attname = "parameter", attval = c("TEST"))
+  ncdf4::ncatt_put(ncout, "member", attname = "member", attval = c("TEST"))
   
   # Loop through and add each variable
   # Add tryCatch ensure that it closes netCDF file
@@ -148,7 +148,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
         
         ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
         ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates",
-                         attval = c("lon lat model parameter"))
+                         attval = c("lon lat model member"))
         ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
         
       }else if(ncol(output_lists[[i]][[1]]) > 2){
@@ -179,7 +179,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
         
         ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
         ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates",
-                         attval = c("lon lat z model parameter"))
+                         attval = c("lon lat z model member"))
         ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
 
       }
