@@ -49,11 +49,11 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                              vals = as.double(seq_len(length(mod_names))))
   
   # Define member dimensions
-  pardim <- ncdf4::ncdim_def("member", units = "-", unlim = TRUE,
-                             vals = as.integer(1))
+  memdim <- ncdf4::ncdim_def("member", units = "", unlim = TRUE,
+                             vals = as.double(1))
   
   fillvalue <- 1e20 # Fill value
-  # missvalue <- 1e20 # Missing value
+  missvalue <- 1e20 # Missing value
   
   nc_vars <- list() #Initialize empty list to fill netcdf variables
   
@@ -71,7 +71,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
       
       # Define variable
       tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
-                                  list(lon1, lat2, pardim, moddim, timedim),
+                                  list(lon1, lat2, memdim, moddim, timedim),
                                   fillvalue, variable_name,
                                   prec = "float", compression = compression, shuffle = FALSE)
       nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
@@ -90,7 +90,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
       
       # Define variable
       tmp_def <- ncdf4::ncvar_def(variable_name, variable_unit,
-                                  list(lon1, lat2, pardim, moddim, timedim, depthdim),
+                                  list(lon1, lat2, memdim, moddim, timedim, depthdim),
                                   fillvalue, variable_name,
                                   prec = "float", compression = compression, shuffle = FALSE)
       nc_vars[[length(nc_vars) + 1]] <- tmp_def # Add to list
@@ -177,7 +177,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
           arr[idx, , ] <- mat1
         }
         
-        ncdf4::ncvar_put(ncout, nc_vars[[i]], arr)
+        ncdf4::ncvar_put(nc = ncout, varid = nc_vars[[i]], vals = arr)
         ncdf4::ncatt_put(ncout, nc_vars[[i]], attname = "coordinates",
                          attval = c("lon lat z model member"))
         ncdf4::ncvar_change_missval(ncout, nc_vars[[i]], missval = fillvalue)
