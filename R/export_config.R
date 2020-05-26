@@ -15,7 +15,7 @@
 #'
 #'
 #'@importFrom stats approx
-#'@import lubridate
+#'@importFrom lubridate year floor_date ceiling_date
 #'@importFrom gotmtools get_yaml_value streams_switch input_yaml input_nml
 #'@importFrom glmtools read_nml set_nml write_nml
 #'
