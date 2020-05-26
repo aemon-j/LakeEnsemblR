@@ -39,11 +39,14 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
   # check for variables
   vars_old <- names(nc$var)
  
-  #get maximum parameter number
-  pars_num_max <- max(nc$dim$member$vals)
+  #get maximum member number
+  mem_num_max <- length(nc$dim$member$vals)
   
-  #set new parameter number to old + 1
-  pars_num_new <- pars_num_max + 1
+  #set new member number to old + 1
+  mem_num_new <- mem_num_max + 1
+  
+  # Extract missing value
+  miss_val <- lapply(seq_len(length(vars_old)), function(x)ncatt_get(nc, vars_old[x])$missing_value)
  
   
   # Loop through and add each variable
@@ -53,8 +56,8 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
     if(ncol(output_lists[[i]][[1]]) == 2) {
       # Add 2D variable
       for (m in seq_len(length(model))) {
-        dat_add <- output_lists[[i]][[m]][, -1]
-        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, pars_num_new, m, 1),
+        dat_add <- as.matrix(output_lists[[i]][[m]][, -1])
+        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, mem_num_new, m, 1),
                          count = c(1, 1, 1, 1, length(dat_add)))
       }
 
@@ -63,7 +66,8 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
       for (m in seq_len(length(model))) {
         dat_add <- as.matrix(output_lists[[i]][[m]][, !colnames(output_lists[[i]][[m]]) %in%
                                                                                         "datetime"])
-        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, pars_num_new, m, 1, 1),
+        dat_add[is.na(dat_add)] <- miss_val[[i]]
+        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, mem_num_new, m, 1, 1),
                          count = c(1, 1, 1, 1, nrow(dat_add), ncol(dat_add)))
       }
     }
