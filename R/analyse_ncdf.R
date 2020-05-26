@@ -4,6 +4,8 @@
 #'
 #' @param ncdf filepath; to the `ensemble_output.nc` file
 #' @param model Vector of models for which to calculate the performance measures
+#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param spin_up numeric; Number of days to disregard as spin-up for analysis.
 #' @param drho numeric; density difference between top and bottom indicating stratification
 #' [kg m^-3]
@@ -19,7 +21,7 @@
 #' @importFrom gotmtools list_vars get_vari wide2long sum_stat
 #'
 #' @export
-analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
+analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0, drho = 0.1){
   
   # check if model input is correct
   model <- check_models(model)
@@ -37,7 +39,8 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
     ice_present <- TRUE
   }
   
-  temp <- load_var(ncdf, "watertemp", return = "list", print = FALSE)
+  temp <- load_var(ncdf, "watertemp", return = "list", dim = dim,
+                   dim_index = dim_index, print = FALSE)
   temp_name <- names(temp)
   temp_name <- temp_name[which(temp_name != "Obs")]
   if(sum(!(model %in% temp_name)) != 0){
@@ -46,7 +49,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   
   temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
   if(ice_present){
-    ice <- load_var(ncdf, "ice_height", return = "list", print = FALSE)
+    ice <- load_var(ncdf, var = "ice_height", return = "list", print = FALSE)
     ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
   }
   

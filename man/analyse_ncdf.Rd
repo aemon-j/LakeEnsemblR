@@ -4,12 +4,23 @@
 \alias{analyse_ncdf}
 \title{Analyse the output netCDF}
 \usage{
-analyse_ncdf(ncdf, model, spin_up = 0, drho = 0.1)
+analyse_ncdf(
+  ncdf,
+  model,
+  dim = "model",
+  dim_index = 1,
+  spin_up = 0,
+  drho = 0.1
+)
 }
 \arguments{
 \item{ncdf}{filepath; to the `ensemble_output.nc` file}
 
 \item{model}{Vector of models for which to calculate the performance measures}
+
+\item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
+
+\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.}
 
 \item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
 
