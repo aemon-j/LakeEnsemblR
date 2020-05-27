@@ -86,65 +86,85 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
   
   if(return == "list"){
     
-    if(length(dim(var1)) == 4){
-      if( dim == "model" ) {
-        
-        if ( dim_index > dim(var1)[2] ) {
-          stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
-               paste(seq_len(dim(var1)[2]), collapse = ","))
-        }
-        
-        var_list <- lapply(seq(dim(var1)[2]), function(x)var1[dim_index, x, , ])
+    if( length(mem) == 1 ) {
+      
+      if(length(dim(var1)) > 2){
+        var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, , ])
         names(var_list) <- mod_names
-      } else if ( dim == "member" ) {
         
-        if ( dim_index > dim(var1)[1] ) {
-          stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
-               paste(seq_len(dim(var1)[1]), collapse = ","))
-        }
-        
-        var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, dim_index, , ])
-        names(var_list) <- as.character(mem)
+        # Add datetime column + columns names for rLake Analyzer
+        var_list <- lapply(var_list, function(x){
+          x <- as.data.frame(x)
+          x <- cbind(time, x)
+          colnames(x) <- c("datetime", paste0("wtr_", abs(z)))
+          return(x)
+        })
       }
       
+      if (length(dim(var1)) == 2) {
+        var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, ])
+        names(var_list) <- mod_names
+        
+        # Add datetime column + columns names for rLake Analyzer
+        var_list <- lapply(var_list, function(x){
+          x <- as.data.frame(x)
+          x <- cbind(time, x)
+          colnames(x)[2] <- var
+          return(x)
+        })
+      }
       
+      return(var_list)
+    } else {
       
-      # Add datetime column + columns names for rLake Analyzer
-      var_list <- lapply(var_list, function(x){
-        x <- as.data.frame(x)
-        x <- cbind(time, x)
-        colnames(x) <- c("datetime", paste0("wtr_", abs(z)))
-        return(x)
-      })
+      if(length(dim(var1)) == 4){
+        if( dim == "model" ) {
+          
+          if ( dim_index > dim(var1)[2] ) {
+            stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
+                 paste(seq_len(dim(var1)[2]), collapse = ","))
+          }
+          
+          var_list <- lapply(seq(dim(var1)[2]), function(x)var1[dim_index, x, , ])
+          names(var_list) <- mod_names
+        } else if ( dim == "member" ) {
+          
+          if ( dim_index > dim(var1)[1] ) {
+            stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
+                 paste(seq_len(dim(var1)[1]), collapse = ","))
+          }
+          
+          var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, dim_index, , ])
+          names(var_list) <- as.character(mem)
+        }
+        
+        
+        
+        # Add datetime column + columns names for rLake Analyzer
+        var_list <- lapply(var_list, function(x){
+          x <- as.data.frame(x)
+          x <- cbind(time, x)
+          colnames(x) <- c("datetime", paste0("wtr_", abs(z)))
+          return(x)
+        })
+      }
+      
+      # For 2-D variables e.g. ice_height
+      if (length(dim(var1)) == 3) {
+        var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, , ])
+        names(var_list) <- mod_names
+        
+        # Add datetime column + columns names for variable
+        var_list <- lapply(var_list, function(x){
+          x <- as.data.frame(x)
+          x <- cbind(time, x)
+          colnames(x)[2] <- var
+          return(x)
+        })
+      }
+      
     }
 
-    # For 2-D variables e.g. ice_height
-    if (length(dim(var1)) == 3) {
-      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, , ])
-      names(var_list) <- mod_names
-      
-      # Add datetime column + columns names for rLake Analyzer
-      var_list <- lapply(var_list, function(x){
-        x <- as.data.frame(x)
-        x <- cbind(time, x)
-        colnames(x)[2] <- var
-        return(x)
-      })
-    }
-    
-    if (length(dim(var1)) == 2) {
-      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, ])
-      names(var_list) <- mod_names
-      
-      # Add datetime column + columns names for rLake Analyzer
-      var_list <- lapply(var_list, function(x){
-        x <- as.data.frame(x)
-        x <- cbind(time, x)
-        colnames(x)[2] <- var
-        return(x)
-      })
-    }
-    
     return(var_list)
   }
 
