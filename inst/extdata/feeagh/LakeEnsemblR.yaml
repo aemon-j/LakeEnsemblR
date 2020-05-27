@@ -54,7 +54,7 @@ biogeochemistry:                               # Not implemented yet
    use: false
 model_parameters:
    FLake:                                      # FLake specific parameters
-      fetch_lk: 2.0E+03                        # Typical wind fetch [m]
+      fetch_lk: 2000.0                        # Typical wind fetch [m]
       sediments_on: true                       # false if the sediments layer is switched off
    GLM:                                        # GLM specific parameters
       bsn_len: 3678                            # Length of the lake basin, at crest height [m; default=NULL]
@@ -103,8 +103,8 @@ calibration:                                   # Calibration section            
          log: false                           # log transform scaling factor
    FLake:                                  # FLake specific parameters
       fetch_lk:
-         lower: 1.60E+03                      # lower bound for parameter
-         upper: 2.20E+03                      # upper bound for parameter
-         initial: 2.0E+03                     # initial value for parameter
+         lower: 1600.0                      # lower bound for parameter
+         upper: 2200                      # upper bound for parameter
+         initial: 2000                     # initial value for parameter
          log: false                           # log transform scaling factor
 
