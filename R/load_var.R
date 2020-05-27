@@ -120,7 +120,20 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
 
     # For 2-D variables e.g. ice_height
     if (length(dim(var1)) == 3) {
-      var_list <- lapply(seq(dim(var1)[2]), function(x)var1[dim_index, x, ])
+      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, , ])
+      names(var_list) <- mod_names
+      
+      # Add datetime column + columns names for rLake Analyzer
+      var_list <- lapply(var_list, function(x){
+        x <- as.data.frame(x)
+        x <- cbind(time, x)
+        colnames(x)[2] <- var
+        return(x)
+      })
+    }
+    
+    if (length(dim(var1)) == 2) {
+      var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, ])
       names(var_list) <- mod_names
       
       # Add datetime column + columns names for rLake Analyzer
