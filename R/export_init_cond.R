@@ -40,12 +40,12 @@ export_init_cond <- function(config_file,
   # check model input
   model <- check_models(model)
   
-  if(is.null(date)){
+  if(is.null(date)) {
     date <- get_yaml_value(config_file, "time", "start")
   }
 
   # Here check if config_file, "initial_profile:" is empty or not
-  if(get_yaml_value(config_file, "init_temp_profile", "file") == ""){
+  if (get_yaml_value(config_file, "init_temp_profile", "file") == "NULL") {
     # If no initial temperature profile is given, read in the observations and
     # extract initial profile from there
     
@@ -63,7 +63,7 @@ export_init_cond <- function(config_file,
     ndeps <- length(dat)
     deps <- obs[dat, 2]
     tmp <- obs[dat, 3]
-  }else{
+  } else {
     # Read in the provided initial temperature profile
     init_prof <- read.csv(get_yaml_value(config_file, "init_temp_profile", "file"))
     ndeps <- nrow(init_prof)
