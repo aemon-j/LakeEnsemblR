@@ -78,8 +78,10 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   if(!(obs_file == "NULL" | obs_file == "")){
-    message("Loading temperature observations...")
+    message("Loading water temperature observations...", paste0("[", Sys.time(), "]"))
     obs <- read.csv(obs_file, stringsAsFactors = FALSE)
+    message("Finished loading water temperature observations!",
+            paste0("[", Sys.time(), "]"))
     obs_deps <- unique(obs$Depth_meter)
 
     # change data format from long to wide
@@ -99,6 +101,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(!(ice_file == "NULL" | ice_file == "")){
     message("Loading ice observations...")
     ice <- read.csv(ice_file, stringsAsFactors = FALSE)
+    message("Finished loading ice observations!")
     
     ice$datetime <- as.POSIXct(ice$datetime, tz = tz)
     
@@ -141,15 +144,15 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("Model run complete!", paste0("[", Sys.time(), "]"))
     
   } else {
+    message("Running models... (Have you tried parallelizing?) ",
+            paste0("[", Sys.time(), "]"))
     model_out <- setNames(
       lapply(model, function(mod_name) do.call(paste0(".run_", mod_name),
                                                run_model_args)),
       model
     )
+    message("Model run complete!", paste0("[", Sys.time(), "]"))
   }
-  
-
-  
 
 
   if(return_list | create_netcdf){
