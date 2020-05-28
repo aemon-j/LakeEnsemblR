@@ -73,6 +73,7 @@ export_init_cond <- function(config_file,
   
   deps <- signif(deps, 4)
   tmp <- signif(tmp, 4)
+  df_print <- data.frame(depths = deps, wtemp = tmp)
   
   # Do a test to see if the maximum depth in the initial profile
   # exceeds the maximum depth of the lake. If so, throw an error
@@ -204,7 +205,7 @@ export_init_cond <- function(config_file,
   }
   
   if(print == TRUE){
-    print(df)
+    print(df_print)
   }
 
 }
