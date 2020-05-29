@@ -6,6 +6,8 @@
 #' @param ncdf Path to the netcdf file created by `run_ensemble()`
 #' @param model Vector of models which should be included in the plot
 #' @param var Variable which to plot
+#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param depth If `var` has a depth dimension, for which depth should it be plotted?
 #' @param date Specific date for which depth profiles should be plotted
 #' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
@@ -30,7 +32,8 @@
 #'
 #' @export
 plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                          var, depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
+                          var, dim = "model", dim_index = 1,
+                          depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
   # check if model input is correct
   model <- check_models(model)
@@ -45,7 +48,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   }
 
   # get variable
-  var_list <- load_var(ncdf, var = var, return = "list", print = FALSE)
+  var_list <- load_var(ncdf, var = var, return = "list", dim = dim,
+                       dim_index = dim_index, print = FALSE)
   
   # check if selected models are in the ncdf file
   if(any(!(model %in% names(var_list)))) {
@@ -72,6 +76,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
     # check if the chosen depth is available
     if(length(depth) > 0) {
+      
       if(!(depth %in% deps)) {
         stop(paste0("The selected depth is not in the output. Available depths are:\n",
                     paste0(deps, collapse = ", "), "\n"))
@@ -85,6 +90,22 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       obs <- data %>% 
         dplyr::filter(Model == "Obs")
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
+      
+      # remove NAs
+      data <- data[!is.na(data$value), ] # Remove NAs
+      
+      if(nrow(data) == 0) {
+        stop("Modelled data is all NAs at ", depth, " m.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+      }
+      
+      obs <- obs[!is.na(obs$value), ] # Remove NAs
+      if(nrow(obs) == 0) {
+        stop("Observed data is all NAs at ", depth, " m.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+      }
+      
+      
       dat <- data %>% 
         dplyr::filter(Model != "Obs")
       dat_av <- dat %>% 

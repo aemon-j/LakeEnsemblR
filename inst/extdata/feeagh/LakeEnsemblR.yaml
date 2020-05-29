@@ -22,13 +22,13 @@ light:
 observations:
    temperature:
       file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
-      timezone: CET                                         # R timezone measured file is in [default=UTC]
+      timezone: UTC                                         # R timezone measured file is in [default=UTC]
    ice_height:
       file: NULL           # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
       timezone: UTC                                         # R timezone measured file is in [default=UTC]
 input:
    init_temp_profile:
-      file:                                     # initial temperature profile. CSV file or empty. If empty, the observations file will be used.
+      file: NULL                                    # initial temperature profile. CSV file or empty. If empty, the observations file will be used.
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
       time_zone: UTC                            # R timezone measured file is in [default=UTC]
@@ -54,7 +54,7 @@ biogeochemistry:                               # Not implemented yet
    use: false
 model_parameters:
    FLake:                                      # FLake specific parameters
-      fetch_lk: 2.0E+03                        # Typical wind fetch [m]
+      fetch_lk: 2000.0                        # Typical wind fetch [m]
       sediments_on: true                       # false if the sediments layer is switched off
    GLM:                                        # GLM specific parameters
       bsn_len: 3678                            # Length of the lake basin, at crest height [m; default=NULL]
@@ -88,7 +88,7 @@ calibration:                                   # Calibration section            
         lower: 0.14                            # lower bound for parameter
         upper: 0.16                            # upper bound for parameter
         initial: 0.15                          # initial value for parameter
-        log: false                             # log transform scaling factor	
+        log: false                             # log transform scaling factor   
    GOTM:                                    # GOTM specific parameters
       turb_param/k_min:
          lower: 5E-4                           # lower bound for parameter
@@ -103,8 +103,8 @@ calibration:                                   # Calibration section            
          log: false                           # log transform scaling factor
    FLake:                                  # FLake specific parameters
       fetch_lk:
-         lower: 1.60E+03                      # lower bound for parameter
-         upper: 2.20E+03                      # upper bound for parameter
-         initial: 2.0E+03                     # initial value for parameter
+         lower: 1600.0                      # lower bound for parameter
+         upper: 2200                      # upper bound for parameter
+         initial: 2000                     # initial value for parameter
          log: false                           # log transform scaling factor
 

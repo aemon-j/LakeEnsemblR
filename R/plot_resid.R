@@ -5,6 +5,8 @@
 #' 
 #' @param ncdf filepath; to the netcdf file created by `run_ensemble()`
 #' @param var string; of variable which to plot. Defaults to "watertemp"
+#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param var_list list; of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model string vector; of models which should be included in the plot. If NULL all models in the netCDF/list are plotted. Defaults to NULL.
 #' @return list with four ggplot objects: "obs_res" = Observations versus residuals,
@@ -27,8 +29,8 @@
 #' 
 #'
 #' @export
-plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
-                       model = NULL) {
+plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index = 1,
+                       var_list = NULL, model = NULL) {
   
   # check if model input is correct
   model <- check_models(model)
@@ -43,7 +45,8 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
       stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
     }
     # get variable
-    var_list <- load_var(ncdf, var = var, return = "list")
+    var_list <- load_var(ncdf, var = var, dim = dim,
+                         dim_index = dim_index, return = "list")
   }else{
     var_list <- var_list
   }
@@ -66,10 +69,24 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", var_list = NULL,
     dplyr::filter(Model != "Obs")
   colnames(dat)[3] <- "mod"
   
-  # Check for observed values
+    # Check for observed values
   if(sum(is.na(obs$obs)) == nrow(obs)){
     stop("There are no observations in netCDF/list provided.
          Please inspect the model output and re-run 'run_ensemble() if necessary.'")
+  }
+  
+  # remove NAs
+  dat <- dat[!is.na(dat$mod), ] # Remove NAs
+
+  if(nrow(dat) == 0) {
+    stop("Modelled data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+  }
+  
+  obs <- obs[!is.na(obs$obs), ] # Remove NAs
+  if(nrow(obs) == 0) {
+    stop("Observed data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
   }
   
   # Colours

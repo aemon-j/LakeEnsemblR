@@ -57,14 +57,8 @@
 #'              
 #' }
 #' @importFrom reshape2 dcast
-#' @importFrom parallel detectCores
-#' @importFrom parallel parLapply
-#' @importFrom parallel clusterExport
-#' @importFrom parallel makeCluster
-#' @importFrom parallel stopCluster
-#' @importFrom parallel clusterEvalQ
-#' @importFrom FME Latinhyper
-#' @importFrom FME modMCMC
+#' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
+#' @importFrom FME Latinhyper modMCMC
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast

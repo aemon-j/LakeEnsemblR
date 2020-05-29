@@ -40,12 +40,13 @@ export_init_cond <- function(config_file,
   # check model input
   model <- check_models(model)
   
-  if(is.null(date)){
+  if(is.null(date)) {
     date <- get_yaml_value(config_file, "time", "start")
   }
 
   # Here check if config_file, "initial_profile:" is empty or not
-  if(get_yaml_value(config_file, "init_temp_profile", "file") == ""){
+  init_temp_file <- get_yaml_value(config_file, "init_temp_profile", "file")
+  if ( init_temp_file == "NULL" | init_temp_file == "") {
     # If no initial temperature profile is given, read in the observations and
     # extract initial profile from there
     
@@ -63,7 +64,7 @@ export_init_cond <- function(config_file,
     ndeps <- length(dat)
     deps <- obs[dat, 2]
     tmp <- obs[dat, 3]
-  }else{
+  } else {
     # Read in the provided initial temperature profile
     init_prof <- read.csv(get_yaml_value(config_file, "init_temp_profile", "file"))
     ndeps <- nrow(init_prof)
@@ -73,6 +74,7 @@ export_init_cond <- function(config_file,
   
   deps <- signif(deps, 4)
   tmp <- signif(tmp, 4)
+  df_print <- data.frame(depths = deps, wtemp = tmp)
   
   # Do a test to see if the maximum depth in the initial profile
   # exceeds the maximum depth of the lake. If so, throw an error
@@ -204,7 +206,7 @@ export_init_cond <- function(config_file,
   }
   
   if(print == TRUE){
-    print(df)
+    print(df_print)
   }
 
 }
