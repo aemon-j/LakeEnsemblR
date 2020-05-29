@@ -5,6 +5,11 @@
 #'@param config_file name of the master LakeEnsemblR config file
 #'@param model vector; model to export configuration file.
 #'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'@param meteo boolean; export meteorology data. Defaults to TRUE.
+#'@param init_cond boolean; export initial conditions. Defaults to TRUE.
+#'@param light_ext boolean; export light extinction data. Defaults to TRUE.
+#'@param model_param boolean; export model parameters specificed in the yaml
+#'  configuration file. Defaults to TRUE.
 #'@param folder folder
 #'@param inflow_file filepath; to inflow file which is in the standardised LakeEnsemblR format (if
 #' a different file than the one provided in the configuration file is needed); default is NULL
@@ -15,14 +20,15 @@
 #'
 #'
 #'@importFrom stats approx
-#'@import lubridate
+#'@importFrom lubridate year floor_date ceiling_date
 #'@importFrom gotmtools get_yaml_value streams_switch input_yaml input_nml
 #'@importFrom glmtools read_nml set_nml write_nml
 #'
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          folder = ".", inflow_file = NULL) {
+                          meteo = TRUE, init_cond = TRUE, light_ext = TRUE,
+                          model_param = TRUE, folder = ".", inflow_file = NULL) {
 
   # Check if config file exists
   if(!file.exists(config_file)){
@@ -518,21 +524,30 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     message("MyLake configuration complete!")
   }
 
-  # Meteo in separate function
-  export_meteo(config_file, model = model, folder = folder)
+  if (meteo) {
+    # Meteo in separate function
+    export_meteo(config_file, model = model, folder = folder)
+  }
   
-  # Initial conditions in separate function
-  export_init_cond(config_file, model = model, print = TRUE, folder = folder)
+  if (init_cond) {
+    # Initial conditions in separate function
+    export_init_cond(config_file, model = model, print = TRUE, folder = folder)
+  } 
   
-  # Light extinction (Kw) in separate function
-  export_extinction(config_file, model = model, folder = folder)
+  if (light_ext) {
+    # Light extinction (Kw) in separate function
+    export_extinction(config_file, model = model, folder = folder)
+  }
+  
   
   # Export user-defined inflow boundary condition
-  if(use_inflows){
+  if (use_inflows) {
     export_inflow(config_file, model = model, folder = folder, use_outflows =
                     use_outflows, inflow_file = inflow_file)
   }
   
-  # Export user-defined model-specific parameters
-  export_model_parameters(config_file, model = model, folder = folder)
+  if (model_param) {
+    # Export user-defined model-specific parameters
+    export_model_parameters(config_file, model = model, folder = folder)
+  }
 }

@@ -35,15 +35,37 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
   model <- model[match(model, mod_names)]
   
   # ncdf4::ncvar_get(nc, "model")
+  deps <- abs(ncvar_get(nc, 'z'))
+  
+  # Extract the time
+  tim <- ncvar_get(nc, "time")
+  tunits <- ncatt_get(nc, "time")
+  tustr <- strsplit(tunits$units, " ")
+  # step <- tustr[[1]][1]
+  tdstr <- strsplit(unlist(tustr)[3], "-")
+  tmonth <- as.integer(unlist(tdstr)[2])
+  tday <- as.integer(unlist(tdstr)[3])
+  tyear <- as.integer(unlist(tdstr)[1])
+  tdstr <- strsplit(unlist(tustr)[4], ":")
+  thour <- as.integer(unlist(tdstr)[1])
+  tmin <- as.integer(unlist(tdstr)[2])
+  origin <- as.POSIXct(paste0(tyear, "-", tmonth,
+                              "-", tday, " ", thour, ":", tmin),
+                       format = "%Y-%m-%d %H:%M", tz = "UTC")
+  time <- as.POSIXct(tim, origin = origin, tz = "UTC")
+  datetime <- data.frame(datetime = time)
   
   # check for variables
   vars_old <- names(nc$var)
  
-  #get maximum parameter number
-  pars_num_max <- max(nc$dim$member$vals)
+  #get maximum member number
+  mem_num_max <- length(nc$dim$member$vals)
   
-  #set new parameter number to old + 1
-  pars_num_new <- pars_num_max + 1
+  #set new member number to old + 1
+  mem_num_new <- mem_num_max + 1
+  
+  # Extract missing value
+  miss_val <- lapply(seq_len(length(vars_old)), function(x)ncatt_get(nc, vars_old[x])$missing_value)
  
   
   # Loop through and add each variable
@@ -53,19 +75,49 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
     if(ncol(output_lists[[i]][[1]]) == 2) {
       # Add 2D variable
       for (m in seq_len(length(model))) {
-        dat_add <- output_lists[[i]][[m]][, -1]
-        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, pars_num_new, m, 1),
+        dat_add <- as.matrix(output_lists[[i]][[m]][, -1])
+        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, mem_num_new, m, 1),
                          count = c(1, 1, 1, 1, length(dat_add)))
       }
 
     } else if(ncol(output_lists[[i]][[1]]) > 2) {
+      
+      arr <- array(NA, dim = c(1,1,1,
+                               length(nc$dim$model$vals), length(nc$dim$time$vals),
+                               length(nc$dim$z$vals)))
       # Add 3D variable
       for (m in seq_len(length(model))) {
-        dat_add <- as.matrix(output_lists[[i]][[m]][, !colnames(output_lists[[i]][[m]]) %in%
-                                                                                        "datetime"])
-        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, pars_num_new, m, 1, 1),
-                         count = c(1, 1, 1, 1, nrow(dat_add), ncol(dat_add)))
+        
+        # mat1 <- as.matrix(output_lists[[i]][[m]][, !colnames(output_lists[[i]][[m]]) %in%
+        #                                                                                 "datetime"])
+        df <- merge(output_lists[[i]][[m]], datetime, by = 1, all.y = TRUE)
+        
+        mat1 <- matrix(NA, nrow = nc$dim$time$len, ncol = nc$dim$z$len)
+        
+        # vector of depths to input into the matrix
+        deps_tmp <- rLakeAnalyzer::get.offsets(df)
+        
+        mat <- as.matrix(df[, -1])
+        
+        for(k in seq_len(ncol(mat))) {
+          col <- which(deps == deps_tmp[k])
+          mat1[, col] <- mat[, k]
+        }
+        
+        splitted_name <- strsplit(names(output_lists[[i]])[m], "_")[[1]]
+        m_name <- splitted_name[1]
+        idx <- which(mod_names == m_name)
+        
+        arr[1,1,1,idx, , ] <- mat1
+        
       }
+      # nc <- ncdf4::nc_open(file.path(folder, "output", out_file), write=TRUE)
+      
+      ncdf4::ncvar_put(nc = nc, vars_old[i], vals = arr,
+                       start = c(1, 1, mem_num_new, 1, 1, 1),
+                       count = c(dim(arr)[1], dim(arr)[2],
+                                 dim(arr)[3], dim(arr)[4], dim(arr)[5], dim(arr)[6]))
+      # nc_close(nc)
     }
   }
 

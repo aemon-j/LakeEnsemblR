@@ -7,6 +7,10 @@
 export_config(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  meteo = TRUE,
+  init_cond = TRUE,
+  light_ext = TRUE,
+  model_param = TRUE,
   folder = ".",
   inflow_file = NULL
 )
@@ -16,6 +20,15 @@ export_config(
 
 \item{model}{vector; model to export configuration file.
 Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+
+\item{meteo}{boolean; export meteorology data. Defaults to TRUE.}
+
+\item{init_cond}{boolean; export initial conditions. Defaults to TRUE.}
+
+\item{light_ext}{boolean; export light extinction data. Defaults to TRUE.}
+
+\item{model_param}{boolean; export model parameters specificed in the yaml
+configuration file. Defaults to TRUE.}
 
 \item{folder}{folder}
 
