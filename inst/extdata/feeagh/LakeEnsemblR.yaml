@@ -40,7 +40,7 @@ inflows:
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
    mass-balance: true                          # enforce pseudo mass-balance by adding an artifical outflow for every inflow
 output:
-   file: ensemble_output.nc                    # path of output file, excluding extension
+   file: ensemble_output                    # path of output file, excluding extension
    format: netcdf                              # format [text, netcdf; default=netcdf]
    depths: 0.5                                 # depths to extract output [m; default=0.5]
    compression: 4                              # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
