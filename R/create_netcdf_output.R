@@ -24,8 +24,11 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                                  out_file = "ensemble_output.nc"){
   
   # Creat output directory
-  message("Creating directory for output: ", file.path(folder, "output"))
-  dir.create(file.path(folder, "output"), showWarnings = FALSE)
+  if(!dir.exists(file.path(folder, "output"))) {
+    message("Creating directory for output: ", file.path(folder, "output"))
+    dir.create(file.path(folder, "output"), showWarnings = FALSE)
+  }
+  
   
   #Create ncdf
   message("Writing NetCDF file... [", Sys.time(), "]")
