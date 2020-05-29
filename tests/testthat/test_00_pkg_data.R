@@ -63,6 +63,35 @@ test_that("can run models", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
+
+test_that("can add members to netCDF models", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  test <- tryCatch({
+    run_ensemble(config_file = config_file,
+                        model = model, add = TRUE)
+    }, error = function(e) return(FALSE))
+  
+  testthat::expect_null(test)
+})
+
 test_that("can run models & generate csv files", {
   
   library(LakeEnsemblR)
