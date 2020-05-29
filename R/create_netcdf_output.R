@@ -28,7 +28,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   dir.create(file.path(folder, "output"), showWarnings = FALSE)
   
   #Create ncdf
-  message("Creating NetCDF file [", Sys.time(), "]")
+  message("Writing NetCDF file... [", Sys.time(), "]")
   ref_time <- as.POSIXct("1970-01-01 00:00:00", tz = "GMT") # Reference time for netCDF time
   # Calculate seconds since reference time
   nsecs <- as.numeric(difftime(out_time$datetime, ref_time, units = "secs"))
