@@ -26,7 +26,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 # Install packages - Ensure all packages are up to date - parallel devlopment ongoing
 #install.packages("devtools")
 devtools::install_github("GLEON/GLM3r")
-devtools::install_github("hdugan/glmtools")
+devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
 devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
