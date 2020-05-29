@@ -45,7 +45,8 @@ export_init_cond <- function(config_file,
   }
 
   # Here check if config_file, "initial_profile:" is empty or not
-  if (get_yaml_value(config_file, "init_temp_profile", "file") == "NULL") {
+  init_temp_file <- get_yaml_value(config_file, "init_temp_profile", "file")
+  if ( init_temp_file == "NULL" | init_temp_file == "") {
     # If no initial temperature profile is given, read in the observations and
     # extract initial profile from there
     
