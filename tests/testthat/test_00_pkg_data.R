@@ -54,19 +54,9 @@ test_that("can run models", {
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   
   # 1. Example - creates directories with all model setup
-  export_config(config_file = config_file, model = model,
-                inflow_file = "LakeEnsemblR_inflow_standard.csv")
-  
-  # 2. Create meteo driver files
-  export_meteo(config_file = config_file, model = model,
-               meteo_file = "LakeEnsemblR_meteo_standard.csv")
-  
-  # 3. Create initial conditions
-  export_init_cond(config_file = config_file,
-                   model = model,
-                   print = TRUE)
-  
-  # 4 run models
+  export_config(config_file = config_file, model = model)
+
+  # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
   
@@ -90,19 +80,9 @@ test_that("can run models & generate csv files", {
   input_yaml(config_file, label = "output", key = "format", value = "text")
   
   # 1. Example - creates directories with all model setup
-  export_config(config_file = config_file, model = model,
-                inflow_file = "LakeEnsemblR_inflow_standard.csv")
+  export_config(config_file = config_file, model = model)
   
-  # 2. Create meteo driver files
-  export_meteo(config_file = config_file, model = model,
-               meteo_file = "LakeEnsemblR_meteo_standard.csv")
-  
-  # 3. Create initial conditions
-  export_init_cond(config_file = config_file,
-                   model = model,
-                   print = TRUE)
-  
-  # 4 run models
+  # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
   
