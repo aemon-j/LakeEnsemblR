@@ -49,28 +49,66 @@ test_that("can run models", {
   file.copy(from = template_folder, to = "example", recursive = TRUE)
   setwd("example/feeagh") # Change working directory to example folder
   
-  # Set config file
-  masterConfigFile <- "LakeEnsemblR.yaml"
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   
   # 1. Example - creates directories with all model setup
-  export_config(config_file = masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                inflow_file = "LakeEnsemblR_inflow_standard.csv", folder = ".")
+  export_config(config_file = config_file, model = model,
+                inflow_file = "LakeEnsemblR_inflow_standard.csv")
   
   # 2. Create meteo driver files
-  export_meteo(masterConfigFile, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+  export_meteo(config_file = config_file, model = model,
                meteo_file = "LakeEnsemblR_meteo_standard.csv")
   
   # 3. Create initial conditions
-  export_init_cond(config_file = masterConfigFile,
-                   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+  export_init_cond(config_file = config_file,
+                   model = model,
                    print = TRUE)
   
   # 4 run models
-  run_ensemble(config_file = masterConfigFile,
-               model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-               folder = ".", return_list = FALSE, create_netcdf = TRUE)
+  run_ensemble(config_file = config_file,
+               model = model)
   
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run models & generate csv files", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  
+  # Change to text output
+  input_yaml(config_file, label = "output", key = "format", value = "text")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model,
+                inflow_file = "LakeEnsemblR_inflow_standard.csv")
+  
+  # 2. Create meteo driver files
+  export_meteo(config_file = config_file, model = model,
+               meteo_file = "LakeEnsemblR_meteo_standard.csv")
+  
+  # 3. Create initial conditions
+  export_init_cond(config_file = config_file,
+                   model = model,
+                   print = TRUE)
+  
+  # 4 run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  
+  
+  testthat::expect_true((length(list.files("output", pattern = "csv")) > 1))
 })
 
 test_that("can calibrate models", {
@@ -103,4 +141,45 @@ test_that("can calibrate models", {
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
   
   testthat::expect_true(length(list.files("cali")) == 10 )
+})
+
+test_that("check plots", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  library(ggplot2)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  ncdf <- "output/ensemble_output.nc"
+  
+  # Change to netcdf output
+  input_yaml(config_file, label = "output", key = "format", value = "netcdf")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model,
+                inflow_file = "LakeEnsemblR_inflow_standard.csv")
+  
+  # 2. Create meteo driver files
+  export_meteo(config_file = config_file, model = model,
+               meteo_file = "LakeEnsemblR_meteo_standard.csv")
+  
+  # 3. Create initial conditions
+  export_init_cond(config_file = config_file,
+                   model = model,
+                   print = TRUE)
+  
+  # 4 run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  plist <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
+  
+  
+  testthat::expect_true(ggplot2::is.ggplot(plist[[1]]))
 })
