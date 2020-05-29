@@ -35,7 +35,7 @@ describing at what times output should be generated}
 this enables compression for the variable as it is written to the file.
 Turning compression on forces the created file to be in netcdf version 4 format.}
 
-\item{members}{integet; number of members to have in the netCDF file.}
+\item{members}{integer; number of members to have in the netCDF file.}
 
 \item{out_file}{filepath; to save netCDF file defaults to "ensemble_output.nc"}
 }
