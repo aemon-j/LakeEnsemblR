@@ -84,12 +84,23 @@ test_that("can add members to netCDF models", {
   run_ensemble(config_file = config_file,
                model = model)
   
-  test <- tryCatch({
+  test1 <- tryCatch({
+    load_var(ncdf, "watertemp", return = "array")
+  }, error = function(e) return(FALSE))
+  
+  test2 <- tryCatch({
+    load_var(ncdf, "watertemp", return = "list")
+  }, error = function(e) return(FALSE))
+  
+  testthat::expect_true(is.array(test1))
+  testthat::expect_true(is.list(test2))
+  
+  test3 <- tryCatch({
     run_ensemble(config_file = config_file,
                         model = model, add = TRUE)
     }, error = function(e) return(FALSE))
   
-  testthat::expect_null(test)
+  testthat::expect_null(test3)
 })
 
 test_that("can run models & generate csv files", {
@@ -187,8 +198,38 @@ test_that("check plots", {
   run_ensemble(config_file = config_file,
                model = model)
   
-  plist <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
+  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
+  pl2 <- plot_resid(ncdf = ncdf, model = model, var = "watertemp")
+  pl3 <- plot_heatmap(ncdf = ncdf, model = model)
   
   
-  testthat::expect_true(ggplot2::is.ggplot(plist[[1]]))
+  testthat::expect_true(ggplot2::is.ggplot(pl1[[1]]))
+  testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
+  testthat::expect_true(ggplot2::is.ggplot(pl3))
 })
+
+
+test_that("can load from netCDF", {
+  
+  library(LakeEnsemblR)
+  library(gotmtools)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  ncdf <- "output/ensemble_output.nc"
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  
+})
+
