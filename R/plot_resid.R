@@ -69,10 +69,24 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
     dplyr::filter(Model != "Obs")
   colnames(dat)[3] <- "mod"
   
-  # Check for observed values
+    # Check for observed values
   if(sum(is.na(obs$obs)) == nrow(obs)){
     stop("There are no observations in netCDF/list provided.
          Please inspect the model output and re-run 'run_ensemble() if necessary.'")
+  }
+  
+  # remove NAs
+  dat <- dat[!is.na(dat$mod), ] # Remove NAs
+
+  if(nrow(dat) == 0) {
+    stop("Modelled data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+  }
+  
+  obs <- obs[!is.na(obs$obs), ] # Remove NAs
+  if(nrow(obs) == 0) {
+    stop("Observed data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
   }
   
   # Colours

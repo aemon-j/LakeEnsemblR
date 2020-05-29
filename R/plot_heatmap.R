@@ -52,7 +52,7 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", dim = "model", dim_inde
   
   # Melt list down into long dataframe
   data <- var_list %>%
-    melt(id.vars = "datetime") %>%
+    reshape2::melt(id.vars = "datetime") %>%
     dplyr::group_by(datetime)
   colnames(data) <- c("datetime", "Depth", "value", "Model")
   data$depth <- -as.numeric(gsub("wtr_", "", data$Depth))
@@ -63,6 +63,16 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", dim = "model", dim_inde
 
   
   spec <- RColorBrewer::brewer.pal(11, "Spectral")
+  
+  # Remove NAs
+  data <- data[!is.na(data$value), ] # Remove NAs
+  if(nrow(data) == 0) {
+    stop("Modelled  and observed data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+  }
+  
+  
+  
   p1 <- ggplot(data) +
     geom_point(aes(datetime, depth, colour = value), shape = 15) +
     scale_colour_gradientn(colours = rev(spec)) +

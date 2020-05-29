@@ -76,6 +76,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
     # check if the chosen depth is available
     if(length(depth) > 0) {
+      
       if(!(depth %in% deps)) {
         stop(paste0("The selected depth is not in the output. Available depths are:\n",
                     paste0(deps, collapse = ", "), "\n"))
@@ -89,6 +90,22 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       obs <- data %>% 
         dplyr::filter(Model == "Obs")
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
+      
+      # remove NAs
+      data <- data[!is.na(data$value), ] # Remove NAs
+      
+      if(nrow(data) == 0) {
+        stop("Modelled data is all NAs at ", depth, " m.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+      }
+      
+      obs <- obs[!is.na(obs$value), ] # Remove NAs
+      if(nrow(obs) == 0) {
+        stop("Observed data is all NAs at ", depth, " m.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+      }
+      
+      
       dat <- data %>% 
         dplyr::filter(Model != "Obs")
       dat_av <- dat %>% 
