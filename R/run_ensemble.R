@@ -194,9 +194,17 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       } else {
         add_netcdf_output(output_lists = all_lists, folder = folder, model, out_file)
       }
-    } else if (format == "text") {
+      
+    } else if (format == "text") { # Write to CSV
       
       out_dir <- file.path(folder, 'output')
+      
+      # Creat output directory
+      if(!dir.exists(out_dir)) {
+        message("Creating directory for output: ", file.path(folder, "output"))
+        dir.create(out_dir, showWarnings = FALSE)
+      }
+      
       message("Writing '.csv' files... [", Sys.time(), "]")
       
       lapply(seq_len(length(all_lists)), function(x) {
@@ -207,7 +215,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
           out_fname <- file.path(out_dir, paste0(lakename, "_", mod_name,
                                                  "_", var_name, ".csv"))
-          write.csv(all_lists[[x]][[y]], out_fname, row.names = FALSE, quote = FALSE)
+          var <- all_lists[[x]][[y]]
+          var[, -1] <- round(var[, -1], 2) # round to 2 digits to reduce filesize
+          var[, 1] <- format(var[, 1], format = "%Y-%m-%d %H:%M:%S")
+          
+          write.csv(var , out_fname, row.names = FALSE, quote = FALSE)
         })
       })
       message("Finished writing '.csv' files! [", Sys.time(), "]")
