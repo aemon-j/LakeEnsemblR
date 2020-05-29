@@ -72,6 +72,7 @@ test_that("can add members to netCDF models", {
   dir.create("example") # Create example folder
   file.copy(from = template_folder, to = "example", recursive = TRUE)
   setwd("example/feeagh") # Change working directory to example folder
+  ncdf <- "output/ensemble_output.nc"
   
   # Set config file & models
   config_file <- 'LakeEnsemblR.yaml'
