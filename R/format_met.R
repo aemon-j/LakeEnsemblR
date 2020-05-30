@@ -122,10 +122,12 @@ format_met <- function(met, model, config_file, folder = "."){
     met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
                                       airt = met[[l_names$airt]],
                                       dewt = met[[l_names$dewt]])
+    chck_met$lwr <- TRUE
   } else if(!chck_met$lwr & !chck_met$dewt & chck_met$relh){
     met[[l_names$lwr]] <- gotmtools::calc_in_lwr(cc = met[[l_names$cc]],
                                       airt = met[[l_names$airt]],
                                       relh = met[[l_names$relh]])
+    chck_met$lwr <- TRUE
   }
 
   # wind speed
