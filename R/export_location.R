@@ -46,6 +46,9 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
   
+  # Output depths
+  output_depths <- get_yaml_value(config_file, "output", "depths")
+  
   ##---------------FLake-------------
   if("FLake" %in% model){
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
@@ -156,6 +159,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     
     
     # Input parameters
+    input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))
     input_json(sim_par, "Input", "Morphology", '"hypsograph.dat"')
     input_json(sim_par, "ModelParameters", "lat", lat)
     

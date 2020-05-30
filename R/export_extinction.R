@@ -195,7 +195,9 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
     file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
-
+    
+    input_json(sim_par, "Input", "Absorption", '"light_absorption.dat"')
+    
     # Write absorption file
     absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
     absorption_line_2 <- "1"

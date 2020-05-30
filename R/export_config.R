@@ -10,6 +10,8 @@
 #'@param time boolean; exports time settings. Calls export_time. Defaults to TRUE.
 #'@param location boolean; exports location and hypsograph settings. 
 #'  Calls export_location. Defaults to TRUE. 
+#'@param output_settings boolean; exports output settings. 
+#'  Calls export_output_settings. Defaults to TRUE.
 #'@param meteo boolean; export meteorology data.
 #'  Calls export_meteo. Defaults to TRUE.
 #'@param init_cond boolean; export initial conditions.
@@ -35,7 +37,7 @@
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          dirs = TRUE, time = TRUE, location = TRUE, 
+                          dirs = TRUE, time = TRUE, location = TRUE, output_settings = TRUE,
                           meteo = TRUE, init_cond = TRUE, extinction = TRUE, inflow = TRUE,
                           model_parameters = TRUE,
                           folder = ".", inflow_file = NULL){
@@ -69,21 +71,10 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Read in all information from config_file that needs to be
   # written to the model-specific config files
 
-  
-  # Output depths
-  output_depths <- get_yaml_value(config_file, "output", "depths")
-  
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
   # Use counter outflows
   use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
-  # Output timestep
-  out_tstep <- get_yaml_value(config_file, "output", "time_step")
-  # Output unit
-  out_unit <- get_yaml_value(config_file, "output", "time_unit")
-  # Output timestep in seconds
-  conv_l <- list(second = 1, hour = 3600, day = 86400)
-  out_tstep_s <- out_tstep * conv_l[[out_unit]]
   
   
 ##--------------------- Export sub-functions ---------------
@@ -102,12 +93,14 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     export_location(config_file = config_file, model = model, folder = folder)
   }
   
+  if(output_settings){
+    export_output_settings(config_file = config_file, model = model, folder = folder)
+  }
   
 ##--------------------- FLake --------------------------------------------------------------------
 
   if("FLake" %in% model){
     
-    input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
     
     if(!use_inflows){
       input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
@@ -128,9 +121,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     
 
-    inp_list <- list("nsave" = round(out_tstep_s / timestep),
-                     "out_dir" = "output",
-                     "out_fn" = "output")
+    # inp_list <- list("nsave" = round(out_tstep_s / timestep),
+    #                  "out_dir" = "output",
+    #                  "out_fn" = "output")
     if(!use_inflows){
       inp_list$num_inflows <- 0
       inp_list$num_outlet <- 0
@@ -149,19 +142,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   ##--------------------- GOTM ---------------------------------------------------------------------
   
   if("GOTM" %in% model){
-
     
-    
-    # Set GOTM output
-    out_yaml <- file.path(folder, "GOTM", "output.yaml")
-    input_yaml(out_yaml, "output", "time_step", out_tstep)
-    input_yaml(out_yaml, "output", "time_unit", out_unit)
-    # Need to input start and stop into yaml file
-    time_method <- get_yaml_value(config_file, "output", "time_method")
-    input_yaml(got_yaml, label = "output", key = "time_method", value = time_method)
-    input_yaml(got_yaml, label = "output", key = "format", value = "netcdf")
-
-
     ## Switch off streams
     if(!use_inflows){
       # streams_switch(file = got_yaml, method = "off")
@@ -177,7 +158,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                             "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
                             "method", value = 0)
-    } else {
+    }else{
       # streams_switch(file = got_yaml, method = "on")
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
                             "method", value = 2)
@@ -191,8 +172,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                             "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
                             "method", value = 0)
-      
-      
     }
 
     message("GOTM configuration complete!")
@@ -201,15 +180,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   ##--------------------- Simstrat -----------------------------------------------------------------
   
   if("Simstrat" %in% model){
-    
-    input_json(sim_par, "Output", "Path", '"output"')
-    
-    input_json(sim_par, "Input", "Absorption", '"light_absorption.dat"')
-    
-    # Set output depths
-    input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))
-    input_json(sim_par, "Output", "Depths", output_depths)
-    input_json(sim_par, "Output", "Times", round(out_tstep_s / timestep))
     
     # Turn off inflow
     if(!use_inflows){
