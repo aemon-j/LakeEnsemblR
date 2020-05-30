@@ -10,7 +10,7 @@
 #'@keywords methods
 #'@examples
 #'
-#'@importFrom gotmtools get_yaml_value
+#'@importFrom gotmtools get_yaml_value input_yaml
 #'@importFrom glmtools get_nml_value read_nml set_nml write_nml
 #'@importFrom lubridate year floor_date ceiling_date
 #'
@@ -134,7 +134,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     mylake_config[["M_stop"]] <- stop_date
     
     # save lake-specific config file for MyLake
-    temp_fil <- gsub(".*/", "", temp_fil)
+    temp_fil <- gsub(".*/", "", get_yaml_value(config_file, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
   }
   
