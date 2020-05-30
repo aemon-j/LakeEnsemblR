@@ -1,7 +1,28 @@
-# Functions based on Tadhg's input_yaml function (github.com/aemon-j/gotmtools)
-# However, these functions can take multiple levels of keys
+#' Inputs values into yaml file
+#'
+#' Inputs values into yaml file, like gotmtools::input_yaml
+#'  However, an unlimited amount of keys can be provided.
+#'  Preserves comments (#) if present.
+#'  NOTE: this does not use a yaml parser so if there are yaml formatting errors
+#'  this function will not pick them up.
+#' @param file filepath; to yaml file which you wish to edit
+#' @param value string; to be input into the the yaml file.
+#'   Note boolean values must be input as 'true'/'false' as per the json format
+#' @param out_file filepath; to write the output json file (optional);
+#'   defaults to overwriting file if not specified
+#' @param ... string key1, key2, etc.: multiple keys pointing toward the line
+#'   that you want to edit in the yaml file. Keys must be listed consecutively,
+#'   without skipping numbers. 
 #' @export
-# Jorrit Mesman, 2020-02-06
+#' @author
+#' Jorrit Mesman
+#' @examples
+#' 
+#' \dontrun{
+#' input_yaml_multiple(file = "example.yaml", value = "something",
+#'   key1 = "streams", key2 = "inflow", key3 = "file")
+#' }
+
 input_yaml_multiple <- function(file = "gotm.yaml", value, 
                                 out_file = NULL, ...){
   
@@ -21,11 +42,11 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     key = allKeys[[paste0("key",i)]]
     
     #Find index of label
-    key_id <- paste0(key,':')
+    key_id <- paste0(key,":")
     ind_key <- grep(key_id, yml)
     
     if(length(ind_key) == 0){
-      stop("Key number ",i,": ",key, ' not found in ', file)
+      stop("Key number ",i,": ",key, " not found in ", file)
     }else if(length(ind_key) > 1){
       # ind_key needs to be higher than previous key
       ind_key = ind_key[ind_key > previousKey]
@@ -64,22 +85,27 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   
   # Replace the value (with the right amount of spaces)
   #Split to extract comment
-  spl1 <- strsplit(yml[ind_key], c('#'))[[1]]
+  spl1 <- strsplit(yml[ind_key], c("#"))[[1]]
   if(length(spl1) == 2){
     comment <- spl1[2]
   }
   
   #Split to extract current value and identify pattern to sub in for
-  spl2 <- strsplit(spl1[1], ': ')[[1]][2]
+  spl2 <- strsplit(spl1[1], ": ")[[1]][2]
   
   # if(!is.na(comment)){
-  #   sub = paste0(' ', value,' #', comment)
+  #   sub = paste0(" ", value," #", comment)
   # }else{
-  sub = paste0(value,' ')
+  sub = paste0(value," ")
   # }
   
-  #Sub in new value
-  yml[ind_key] <- gsub(pattern = spl2, replacement = sub,x = yml[ind_key])
+  # Sub in new value
+  # Addition of \Q and \E is to avoid errors in case spl2 contains
+  # characters that could be interpreted as regular expressions
+  # see ?base::regex
+  yml[ind_key] <- gsub(pattern = paste0("\\Q", spl2, "\\E"),
+                       replacement = sub,
+                       x = yml[ind_key])
   
   #Write to file
   writeLines(yml, out_file)
@@ -91,12 +117,5 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     messageString = paste(messageString, i)
   }
   
-  message('Replaced', messageString, ": ", old_val, ' with ', value)
+  message("Replaced", messageString, ": ", old_val, " with ", value)
 }
-
-# # Test
-# input_yaml_multiple(file = "fabm.yaml", 2, 
-#                         key1="instances", 
-#                         key2="selmaprotbas",
-#                         key3="initialization",
-#                         key4="dd_si")
