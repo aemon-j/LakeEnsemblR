@@ -100,10 +100,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       }
       
       obs <- obs[!is.na(obs$value), ] # Remove NAs
-      if(nrow(obs) == 0) {
-        stop("Observed data is all NAs at ", depth, " m.
-         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
-      }
+      # if(nrow(obs) == 0) {
+      #   warning("No observed data at ", depth, " m.")
+      # }
       
       
       dat <- data %>% 
