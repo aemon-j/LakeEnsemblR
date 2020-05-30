@@ -91,20 +91,21 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   }
   
   #Split to extract current value and identify pattern to sub in for
-  spl2 <- strsplit(spl1[1], ": ")[[1]][2]
+  spl_tmp <- strsplit(spl1[1], ": ")[[1]]
+  if(length(spl_tmp) == 1){
+    spl2 <- ""
+  }else{
+    spl2 <- spl_tmp[2]
+  }
   
-  # if(!is.na(comment)){
-  #   sub = paste0(" ", value," #", comment)
-  # }else{
   sub = paste0(value," ")
-  # }
   
   # Sub in new value
   # Addition of \Q and \E is to avoid errors in case spl2 contains
   # characters that could be interpreted as regular expressions
   # see ?base::regex
-  yml[ind_key] <- gsub(pattern = paste0("\\Q", spl2, "\\E"),
-                       replacement = sub,
+  yml[ind_key] <- gsub(pattern = paste0("\\Q", spl1[1], "\\E"),
+                       replacement = paste0(spl_tmp[1], ": ", sub),
                        x = yml[ind_key])
   
   #Write to file
