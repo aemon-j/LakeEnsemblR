@@ -16,7 +16,7 @@
 #'
 #'@export
 
-export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                         folder = "."){
   # Set working directory
   oldwd <- getwd()

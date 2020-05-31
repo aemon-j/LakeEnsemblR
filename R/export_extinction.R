@@ -263,4 +263,6 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
     
   }
+  
+  message("export_extinction complete!")
 }

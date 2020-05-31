@@ -4,7 +4,7 @@
 #'
 #'@param config_file name of the master LakeEnsemblR config file
 #'@param model vector; model to export configuration file for.
-#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'  Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #'@param dirs boolean; create directories for each model and if needed copies templates.
 #'  Calls export_dirs. Defaults to TRUE
 #'@param time boolean; exports time settings. Calls export_time. Defaults to TRUE.
@@ -28,12 +28,6 @@
 #'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 #'@examples
 #'
-#'
-#'@importFrom stats approx
-#'@importFrom lubridate year floor_date ceiling_date
-#'@importFrom gotmtools get_yaml_value streams_switch input_yaml input_nml
-#'@importFrom glmtools read_nml set_nml write_nml
-#'
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -42,6 +36,21 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                           model_parameters = TRUE,
                           folder = "."){
 
+  # Set working directory
+  oldwd <- getwd()
+  setwd(folder)
+  
+  # Fix time zone
+  original_tz <- Sys.getenv("TZ")
+  
+  # this way if the function exits for any reason, success or failure, these are reset:
+  on.exit({
+    setwd(oldwd)
+    Sys.setenv(TZ = original_tz)
+  })
+  
+  Sys.setenv(TZ = "GMT")
+  
   # Check if config file exists
   if(!file.exists(config_file)){
     stop(config_file, " does not exist.")
@@ -53,7 +62,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   model <- check_models(model)
   
 ##--------------------- Export sub-functions ---------------
-  # Export directories and copy template files if needed
+  # Export directories and copy template files
   if(dirs){
     export_dirs(config_file = config_file, model = model, folder = folder)
   }
@@ -75,26 +84,26 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   
   # Export meteo
   if(meteo){
-    export_meteo(config_file, model = model, folder = folder)
+    export_meteo(config_file = config_file, model = model, folder = folder)
   }
   
   # Export initial conditions
   if(init_cond){
-    export_init_cond(config_file, model = model, print = TRUE, folder = folder)
+    export_init_cond(config_file = config_file, model = model, print = TRUE, folder = folder)
   } 
   
   # Export light extinction (Kw)
   if(extinction){
-    export_extinction(config_file, model = model, folder = folder)
+    export_extinction(config_file = config_file, model = model, folder = folder)
   }
   
   # Export user-defined inflow boundary condition
   if(inflow){
-    export_inflow(config_file, model = model, folder = folder)
+    export_inflow(config_file = config_file, model = model, folder = folder)
   }
   
   # Export user-defined model-specific parameters
   if(model_parameters){
-    export_model_parameters(config_file, model = model, folder = folder)
+    export_model_parameters(config_file = config_file, model = model, folder = folder)
   }
 }

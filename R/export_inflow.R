@@ -16,7 +16,6 @@
 #' }
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
-#' @importFrom zoo na.approx
 #'
 #' @export
 export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),

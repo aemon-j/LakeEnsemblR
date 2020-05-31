@@ -10,6 +10,7 @@
 #'@keywords methods
 #'@examples
 #'
+#'@importFrom stats approx
 #'@importFrom gotmtools get_yaml_value input_yaml
 #'@importFrom glmtools read_nml set_nml write_nml
 #'
