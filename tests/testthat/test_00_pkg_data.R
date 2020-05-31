@@ -166,8 +166,7 @@ test_that("check plots", {
   input_yaml(config_file, label = "output", key = "format", value = "netcdf")
   
   # 1. Example - creates directories with all model setup
-  export_config(config_file = config_file, model = model,
-                inflow_file = "LakeEnsemblR_inflow_standard.csv")
+  export_config(config_file = config_file, model = model)
   
   # 2. Run models
   run_ensemble(config_file = config_file,
