@@ -18,11 +18,11 @@
 #'  Calls export_init_cond. Defaults to TRUE.
 #'@param extinction boolean; export light extinction data.
 #'  Calls export_extinction. Defaults to TRUE.
+#'@param inflow boolean; export inflow settings.
+#'  Calls export_inflow. Defaults to TRUE.
 #'@param model_parameters boolean; export model parameters specificed in the yaml
 #'  configuration file. Calls export_model_parameters. Defaults to TRUE.
 #'@param folder folder
-#'@param inflow_file filepath; to inflow file which is in the standardised LakeEnsemblR format (if
-#' a different file than the one provided in the configuration file is needed); default is NULL
 #'@keywords methods
 #'@author
 #'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
@@ -40,7 +40,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                           dirs = TRUE, time = TRUE, location = TRUE, output_settings = TRUE,
                           meteo = TRUE, init_cond = TRUE, extinction = TRUE, inflow = TRUE,
                           model_parameters = TRUE,
-                          folder = ".", inflow_file = NULL){
+                          folder = "."){
 
   # Check if config file exists
   if(!file.exists(config_file)){
@@ -51,31 +51,6 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   check_master_config(config_file, exp_cnf = TRUE)
   # check model input
   model <- check_models(model)
-  
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
-
-  Sys.setenv(TZ = "GMT")
-
-
-  # Read in all information from config_file that needs to be
-  # written to the model-specific config files
-
-  # Use inflows
-  use_inflows <- get_yaml_value(config_file, "inflows", "use")
-  # Use counter outflows
-  use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
-  
   
 ##--------------------- Export sub-functions ---------------
   # Export directories and copy template files if needed
@@ -93,147 +68,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     export_location(config_file = config_file, model = model, folder = folder)
   }
   
+  # Export output_settings (depth and time intervals)
   if(output_settings){
     export_output_settings(config_file = config_file, model = model, folder = folder)
-  }
-  
-##--------------------- FLake --------------------------------------------------------------------
-
-  if("FLake" %in% model){
-    
-    
-    if(!use_inflows){
-      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
-    } else {
-      input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".true.")
-    }
-
-    message("FLake configuration complete!")
-
-  }
-
-  ##----------------------- GLM --------------------------------------------------------------------
-  
-  if("GLM" %in% model){
-    
-    # Read in nml and input parameters
-    nml <- read_nml(glm_nml)
-
-    
-
-    # inp_list <- list("nsave" = round(out_tstep_s / timestep),
-    #                  "out_dir" = "output",
-    #                  "out_fn" = "output")
-    if(!use_inflows){
-      inp_list$num_inflows <- 0
-      inp_list$num_outlet <- 0
-    } else {
-      inp_list$num_inflows <- 1
-      inp_list$num_outlet <- 0
-    }
-    nml <- glmtools::set_nml(nml, arg_list = inp_list)
-    write_nml(nml, glm_nml)
-
-
-    message("GLM configuration complete!")
-
-  }
-
-  ##--------------------- GOTM ---------------------------------------------------------------------
-  
-  if("GOTM" %in% model){
-    
-    ## Switch off streams
-    if(!use_inflows){
-      # streams_switch(file = got_yaml, method = "off")
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "temp", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "salt", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
-                            "method", value = 0)
-    }else{
-      # streams_switch(file = got_yaml, method = "on")
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
-                            "method", value = 2)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "temp", key4 =
-                            "method", value = 2)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "salt", key4 =
-                            "method", value = 2)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
-                            "method", value = 0)
-      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
-                            "method", value = 0)
-    }
-
-    message("GOTM configuration complete!")
-  }
-
-  ##--------------------- Simstrat -----------------------------------------------------------------
-  
-  if("Simstrat" %in% model){
-    
-    # Turn off inflow
-    if(!use_inflows){
-      ## Set Qin and Qout to 0 inflow
-      inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
-      # In case Kw is a single value for the whole simulation:
-      inflow_line_2 <- "1"
-      inflow_line_3 <- "-1 0.00"
-      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-      end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      inflow_line_4 <- paste(start_sim, 0.000)
-      inflow_line_5 <- paste(end_sim, 0.000)
-
-      file_connection <- file("Simstrat/Qin.dat")
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
-      file_connection <- file("Simstrat/Qout.dat")
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
-    }else{
-      inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
-      # In case Kw is a single value for the whole simulation:
-      inflow_line_2 <- "1"
-      inflow_line_3 <- "-1 0.00"
-      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-      end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      inflow_line_4 <- paste(start_sim, 0.000)
-      inflow_line_5 <- paste(end_sim, 0.000)
-      
-      file_connection <- file("Simstrat/Qout.dat")
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
-    }
-
-    message("Simstrat configuration complete!")
-
-  }
-
-  ##--------------------- MyLake -------------------------------------------------------------------
-  
-  if("MyLake" %in% model){
-
-    
-    if(!use_inflows){
-        mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.Date(from = as.Date(start_date),
-                                                                      to = as.Date(stop_date),
-                                                                      by = "day"))),
-                                      ncol = 8)
-    } 
-    
-    message("MyLake configuration complete!")
   }
   
   # Export meteo
@@ -251,11 +88,9 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     export_extinction(config_file, model = model, folder = folder)
   }
   
-  
   # Export user-defined inflow boundary condition
-  if(use_inflows){
-    export_inflow(config_file, model = model, folder = folder, use_outflows =
-                    use_outflows, inflow_file = inflow_file)
+  if(inflow){
+    export_inflow(config_file, model = model, folder = folder)
   }
   
   # Export user-defined model-specific parameters

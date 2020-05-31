@@ -240,6 +240,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   # Set the timezone back to the original
   Sys.setenv(TZ = original_tz)
-
+  
+  message("export_meteo complete!")
 
 }

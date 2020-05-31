@@ -208,5 +208,6 @@ export_init_cond <- function(config_file,
   if(print == TRUE){
     print(df_print)
   }
-
+  
+  message("export_init_cond complete!")
 }

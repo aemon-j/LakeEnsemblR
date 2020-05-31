@@ -73,4 +73,6 @@ export_model_parameters <- function(config_file,
       })
     }
   }
+  
+  message("export_model_parameters complete!")
 }
