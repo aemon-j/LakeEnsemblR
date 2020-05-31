@@ -36,6 +36,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   tz  <-  "UTC"
   
+  # check model input
+  model <- check_models(model)
+  
   yaml  <-  file.path(folder, config_file)
   
   

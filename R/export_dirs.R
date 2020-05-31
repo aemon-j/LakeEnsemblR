@@ -23,6 +23,9 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     setwd(oldwd)
   })
   
+  # check model input
+  model <- check_models(model)
+  
 ##---------------FLake-------------
   if("FLake" %in% model){
     # Create directory and output directory, if they do not yet exist

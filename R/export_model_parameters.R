@@ -28,6 +28,9 @@ export_model_parameters <- function(config_file,
     setwd(oldwd)
   })
   
+  # check model input
+  model <- check_models(model)
+  
   # Read config_file with configr
   master_config <- configr::read.config(file.path(folder, config_file))
   

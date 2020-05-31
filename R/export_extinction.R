@@ -32,7 +32,10 @@ export_extinction <- function(config_file,
   })
 
   Sys.setenv(TZ = "GMT")
-
+  
+  # check model input
+  model <- check_models(model)
+  
   # Check if the value in the config file is a fixed value, or a file (time series)
   Kw <- get_yaml_value(config_file, "light", "Kw")
   if(is.numeric(Kw)){

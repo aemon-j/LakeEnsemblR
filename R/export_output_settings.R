@@ -33,6 +33,9 @@ export_output_settings <- function(config_file,
   
   Sys.setenv(TZ = "GMT")
   
+  # check model input
+  model <- check_models(model)
+  
   ##-------------Read settings---------------
   
   # Time step

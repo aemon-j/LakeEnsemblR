@@ -27,6 +27,8 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     setwd(oldwd)
   })
   
+  # check model input
+  model <- check_models(model)
   
   ##-------------Read settings---------------
   

@@ -33,6 +33,9 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   
   Sys.setenv(TZ = "GMT")
   
+  # check model input
+  model <- check_models(model)
+  
 ##-------------Read settings---------------
   # Start date
   start_date <- get_yaml_value(config_file, "time", "start")
