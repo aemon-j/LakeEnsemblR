@@ -12,75 +12,77 @@
 #'   defaults to overwriting file if not specified
 #' @param ... string key1, key2, etc.: multiple keys pointing toward the line
 #'   that you want to edit in the yaml file. Keys must be listed consecutively,
-#'   without skipping numbers. 
+#'   without skipping numbers.
 #' @export
 #' @author
 #' Jorrit Mesman
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' input_yaml_multiple(file = "example.yaml", value = "something",
 #'   key1 = "streams", key2 = "inflow", key3 = "file")
 #' }
 
-input_yaml_multiple <- function(file = "gotm.yaml", value, 
+input_yaml_multiple <- function(file = "gotm.yaml", value,
                                 out_file = NULL, ...){
   
   if(is.null(out_file)){
-    out_file = file
+    out_file <- file
   }
   
-  yml = readLines(file, warn = F)
+  yml <- readLines(file, warn = F)
   
   # Users can provide multiple keys, named key1, key2, key3, etc.
-  allArgs = list(...)
-  allKeys = allArgs[grepl("key", names(allArgs))]
+  all_args <- list(...)
+  all_keys <- all_args[grepl("key", names(all_args))]
   
-  nrOfSpaces = -1
-  previousKey = 0
-  for(i in 1:length(allKeys)){
-    key = allKeys[[paste0("key",i)]]
+  nr_of_spaces <- -1
+  previous_key <- 0
+  for(i in seq_len(length(all_keys))){
+    key <- all_keys[[paste0("key", i)]]
     
     #Find index of label
-    key_id <- paste0(key,":")
+    key_id <- paste0(key, ":")
     ind_key <- grep(key_id, yml)
     
     if(length(ind_key) == 0){
-      stop("Key number ",i,": ",key, " not found in ", file)
+      stop("Key number ", i, ": ", key, " not found in ", file)
     }else if(length(ind_key) > 1){
       # ind_key needs to be higher than previous key
-      ind_key = ind_key[ind_key > previousKey]
+      ind_key <- ind_key[ind_key > previous_key]
       
       # If still multiple, calculate number of spaces at the start
       # and select the one with the least amount of spaces,
       # but still more than the previous key. 
       # Then pick the first one of this series
       if(length(ind_key) > 1){
-        spacesKeys = rep(NA,length(ind_key))
-        for(j in 1:length(ind_key)){
-          spacesKeys[j] = attr(regexpr("\\s+", yml[ind_key[j]]), "match.length")
+        spaces_keys <- rep(NA, length(ind_key))
+        for(j in seq_len(length(ind_key))){
+          spaces_keys[j] <- attr(regexpr("\\s+", yml[ind_key[j]]), "match.length")
         }
         
         # Only keep keys that have more spaces than the previous
-        ind_key = ind_key[spacesKeys > nrOfSpaces]
-        spacesKeys = spacesKeys[spacesKeys > nrOfSpaces]
+        ind_key <- ind_key[spaces_keys > nr_of_spaces]
+        spaces_keys <- spaces_keys[spaces_keys > nr_of_spaces]
         
         # Keep the keys that have least spaces
-        ind_key = ind_key[which(spacesKeys == min(spacesKeys))]
+        ind_key <- ind_key[which(spaces_keys == min(spaces_keys))]
         
         # Pick the first as ind_key
-        ind_key = ind_key[1]
+        ind_key <- ind_key[1]
       }
     }
-    # Set previousKey and nrOfSpaces
+    # Set previous_key and nr_of_spaces
     # Need to calculate spacesKeys again, in case it wasn't calculated before
     
-    previousKey = ind_key
-    nrOfSpaces = attr(regexpr("\\s+", yml[ind_key]), "match.length")
-    if(nrOfSpaces == -1){nrOfSpaces=0}
+    previous_key <- ind_key
+    nr_of_spaces <- attr(regexpr("\\s+", yml[ind_key]), "match.length")
+    if(nr_of_spaces == -1){
+      nr_of_spaces <- 0
+    }
   }
   # This is the line with the value you want to change
-  ind_key = previousKey
+  ind_key <- previous_key
   
   
   # Replace the value (with the right amount of spaces)
@@ -98,7 +100,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     spl2 <- spl_tmp[2]
   }
   
-  sub = paste0(value," ")
+  sub <- paste0(value, " ")
   
   # Sub in new value
   # Addition of \Q and \E is to avoid errors in case spl2 contains
@@ -113,10 +115,10 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   old_val <- gsub(" ", "", spl2, fixed = TRUE) #remove white space for printing
   
   # Display message
-  messageString = ""
+  message_string <- ""
   for(i in allKeys){
-    messageString = paste(messageString, i)
+    message_string <- paste(message_string, i)
   }
   
-  message("Replaced", messageString, ": ", old_val, " with ", value)
+  message("Replaced", message_string, ": ", old_val, " with ", value)
 }

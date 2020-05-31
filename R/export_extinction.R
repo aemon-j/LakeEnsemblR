@@ -14,7 +14,9 @@
 #'
 #'@export
 
-export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake"), folder = "."){
+export_extinction <- function(config_file,
+                              model = c("GOTM", "GLM", "Simstrat", "FLake"),
+                              folder = "."){
 
   # Set working directory
   oldwd <- getwd()
@@ -248,20 +250,12 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
     
     # Load MyLake config file
-    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
-    if(file.exists(temp_fil)){
-      load(temp_fil)
-    }else{
-      # Load template config file from extdata
-      mylake_path <- system.file(package = "LakeEnsemblR")
-      cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
-      load(file.path(folder, "MyLake", cnf_name))
-    }
+    load(get_yaml_value(config_file, "config_files", "MyLake"))
     
     mylake_config[["Bio.par"]][2] <- Kw
+    
     cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
-    
   }
   
   message("export_extinction complete!")
