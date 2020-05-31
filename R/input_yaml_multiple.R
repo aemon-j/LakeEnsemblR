@@ -116,7 +116,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   
   # Display message
   message_string <- ""
-  for(i in allKeys){
+  for(i in all_keys){
     message_string <- paste(message_string, i)
   }
   
