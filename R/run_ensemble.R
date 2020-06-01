@@ -26,7 +26,7 @@
 #' @export
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = ".", verbose = FALSE, parallel = FALSE,
-                         return_list = FALSE, create_output = TRUE, add = FALSE) {
+                         return_list = FALSE, create_output = TRUE, add = FALSE){
 
   # check model input
   model <- check_models(model)
@@ -129,7 +129,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          out_vars = out_vars,
                          time_step = time_step)
   
-  if(parallel) {
+  if(parallel){
     ncores <- parallel::detectCores() - 1
     clust <- parallel::makeCluster(ncores)
     parallel::clusterExport(clust, varlist = list("run_model_args"),
@@ -145,7 +145,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     parallel::stopCluster(clust)
     message("Model run complete!", paste0("[", Sys.time(), "]"))
     
-  } else {
+  }else{
     message("Running models... (Have you tried parallelizing?) ",
             paste0("[", Sys.time(), "]"))
     model_out <- setNames(
