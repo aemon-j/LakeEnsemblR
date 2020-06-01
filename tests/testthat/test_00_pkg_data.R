@@ -154,10 +154,29 @@ test_that("can add members to netCDF models", {
   testthat::expect_true(is.list(test12))
   
   test13 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "watertemp")
+    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9)
   }, error = function(e) return(FALSE))
-  
   testthat::expect_true(ggplot2::is.ggplot(test13))
+  
+  test14 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member")
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot(test14))
+  
+  test15 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member",
+                  residuals = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot((test15[[1]])) &
+                          ggplot2::is.ggplot((test15[[2]])))
+  
+  test16 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member",
+                  residuals = TRUE, boxwhisker = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot((test16[[1]])) &
+                          ggplot2::is.ggplot((test16[[2]])) &
+                          ggplot2::is.ggplot((test16[[3]])))
   
 })
 
