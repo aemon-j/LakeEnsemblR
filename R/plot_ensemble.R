@@ -36,6 +36,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           var = "watertemp", dim = "model", dim_index = 1,
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
+  
+  if(is.null(depth) & is.null(date)) {
+    stop("Need to supply a 'depth' OR a 'date' argument!")
+  }
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
@@ -55,17 +59,19 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   if(dim == "member") {
     obs_list <- load_var(ncdf, var = var, return = "list", dim = "model",
                          dim_index = 1, print = FALSE)
-    obs_list <- list(Obs = obs_list[["Obs"]])
+    obs_list <- list("Obs" = obs_list[["Obs"]])
+    var_list[["Obs"]] <- obs_list[["Obs"]]
   } else if(dim == "model") {
     # check if selected models are in the ncdf file
     if(any(!(model %in% names(var_list)))) {
       stop("Model ", paste(model[!(model %in% names(var_list))], collapse = "/"),
            " not found in the ncdf file ", ncdf)
     }
+    # only the selected models
+    var_list <- var_list[c(model, "Obs")]
   }
   
-  # only the selected models
-  var_list <- var_list[c(model, "Obs")]
+  
   
   # output list
   plist <- list()
@@ -76,7 +82,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   
   ## plot timeseries ----
   # if no date is selected plot time series
-  if(!is.null(depth)) {
+  if(!is.null(depth) & ncol(var_list[[1]]) > 2) {
     if(var == "watertemp" & is.null(depth)) {
       stop(paste0("When plotting water temperature depth must be specified"))
     }
@@ -202,7 +208,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       
       if (boxwhisker){
         dat <- var_list %>% 
-          melt( id.vars = "datetime") %>% 
+          reshape2::melt( id.vars = "datetime") %>% 
           dplyr::filter(variable == paste0("wtr_", depth)) %>%
           dplyr::group_by(datetime)
         colnames(dat) <- c("datetime", "Depth", "value", dim)
@@ -212,7 +218,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           dat[, dim] <- factor(dat[, dim], levels=c("Obs", levels(dat[, dim])
                                                     [-c(which(levels(dat[, dim]) == "Obs"))]))
         } else {
-          dat <- rbind(dat, set_colnames(obs, c("datetime", "Depth", "value", dim)))
+          colnames(obs) <- c(c("datetime", "Depth", "value", dim))
+          dat <- rbind(dat, obs)
           dat <- data.frame(dat)
           dat$member <- as.factor(dat$member)
         }
@@ -233,11 +240,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         plist[[pindex]] <- p3
         pindex <- pindex + 1
       }
-    }
       
-  }
-  ## Timeseries of non depth depending variable (ice) ----
-  if(is.null(date)) {
+    }
+    ## Timeseries of non depth depending variable (ice) ----
+  } else if(is.null(date) & ncol(var_list[[1]]) == 2) {
     
     
     dat <- var_list %>%
@@ -277,6 +283,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     plist[[pindex]] <- p1
     pindex <- pindex + 1
   }
+ 
   ## Depth profile at a certain date ----
   if(!is.null(date)) {
     
