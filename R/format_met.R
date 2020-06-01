@@ -29,11 +29,11 @@ format_met <- function(met, model, config_file, folder = "."){
 
   # Calculate other required variables
   # Relative humidity
-  if(!chck_met$relh & chck_met$airt & chck_met$dewt) {
+  if(!chck_met$relh & chck_met$airt & chck_met$dewt){
     # The function is in helpers.R the formula is from the weathermetrics package
     met[[l_names$relh]] <- dewt2relh(met[[l_names$dewt]], met[[l_names$airt]])
 
-    if(any(is.na(met[[l_names$relh]]))) {
+    if(any(is.na(met[[l_names$relh]]))){
       met[[l_names$relh]] <- na.approx(met[[l_names$relh]])
       message("Interpolated NAs")
     }
@@ -54,11 +54,25 @@ format_met <- function(met, model, config_file, folder = "."){
     chck_met$vap_p <- TRUE
 
   }
-
+  
+  # Pressure
+  if(!chck_met$p_surf & chck_met$p_sea){
+    # If only sea-level pressure is available, convert to lake surface
+    # level pressure using elevation
+    # We use the barometric formula. In reality, other factors such as temperature
+    # play a role too.
+    # https://www.math24.net/barometric-formula/#:~:text=P(h)%3DP0,exp(%E2%88%920.00012H).
+    # https://en.wikipedia.org/wiki/Barometric_formula
+    
+    met[[l_names$p_surf]] <- met[[l_names$p_sea]] * exp(-0.00012 * elev)
+    
+    chck_met$p_surf <- TRUE
+  }
+  
   # Cloud cover
   if(!chck_met$cc){
 
-    met[[l_names$cc]] <-  gotmtools::calc_cc(date = met[[l_names$time]],
+    met[[l_names$cc]] <- gotmtools::calc_cc(date = met[[l_names$time]],
                                           airt = met[[l_names$airt]],
                                           relh = met[[l_names$relh]],
                                           swr = met[[l_names$swr]],
