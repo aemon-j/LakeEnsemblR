@@ -100,6 +100,20 @@ test_that("can add members to netCDF models", {
     load_var(ncdf, "ice_height", return = "list")
   }, error = function(e) return(FALSE))
   
+  met <- read.csv('LakeEnsemblR_meteo_standard.csv')
+  met$Air_Temperature_celsius <- met$Air_Temperature_celsius + 2
+  met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond*0.75
+  write.csv(met, "LakeEnsemblR_meteo_standard.csv", row.names = F, quote = F)
+  export_config(config_file, model = model)
+  
+  test_add <- tryCatch({
+    run_ensemble(config_file = config_file,
+                 model = model, add = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_null(test_add)
+  
+  
+  
   test5 <- tryCatch({
     load_var(ncdf, "watertemp", return = "array", dim = "member")
   }, error = function(e) return(FALSE))
@@ -252,11 +266,12 @@ test_that("check plots", {
                model = model)
   
   pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
+  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
   pl2 <- plot_resid(ncdf = ncdf, model = model, var = "watertemp")
   pl3 <- plot_heatmap(ncdf = ncdf, model = model)
   
   
-  testthat::expect_true(ggplot2::is.ggplot(pl1[[1]]))
+  testthat::expect_true(ggplot2::is.ggplot(pl1))
   testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
   testthat::expect_true(ggplot2::is.ggplot(pl3))
 })
