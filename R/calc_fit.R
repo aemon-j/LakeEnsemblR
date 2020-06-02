@@ -68,7 +68,7 @@ calc_fit <- function(ncdf, list = NULL, model, var, dim = "model", dim_index = 1
     # only select depth where observations are available
     obs_col <- which(apply(obs_list$Obs, 2, function(x)sum(!is.na(x))) != 0)
     n <- names(var_list)
-    var_list <- lapply(n, function(m) dplyr::select(var_list[[m]], all_of(obs_col))
+    var_list <- lapply(n, function(m) dplyr::select(var_list[[m]], all_of(obs_col)))
     names(var_list) <- n
     n_no_obs <- n[! n %in% "Obs"]
     # create list with long format data.frames
