@@ -37,7 +37,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
   
-  if(is.null(depth) & is.null(date)) {
+  if((is.null(depth) & is.null(date)) & var != "ice_height") {
     stop("Need to supply a 'depth' OR a 'date' argument!")
   }
   # check if model input is correct
