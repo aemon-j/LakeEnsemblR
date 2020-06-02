@@ -33,9 +33,10 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
   mod_names <- ncatt_get(nc, "model", "Model")$value
   mod_names <- strsplit(mod_names, ", ")[[1]]
   mod_names <- substring(mod_names, 5)
-  mod_names <- mod_names[!mod_names %in% "Obs"]
+  
   
   # sort models so they match the attribute number
+  model <- c(model, "Obs")
   model <- model[match(model, mod_names)]
   
   # ncdf4::ncvar_get(nc, "model")
