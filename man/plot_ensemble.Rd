@@ -7,7 +7,7 @@
 plot_ensemble(
   ncdf,
   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-  var,
+  var = "watertemp",
   dim = "model",
   dim_index = 1,
   depth = NULL,
@@ -18,13 +18,14 @@ plot_ensemble(
 )
 }
 \arguments{
-\item{ncdf}{Path to the netcdf file created by `run_ensemble()`}
+\item{ncdf}{filepath; to the netcdf file created by `run_ensemble()`}
 
-\item{model}{Vector of models which should be included in the plot}
+\item{model}{string vector; of models which should be included in the plot}
 
-\item{var}{Variable which to plot}
+\item{var}{string; of variable which to plot}
 
-\item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
+\item{dim}{string; NetCDF dimensions to extract. Must be either "member" or
+"model". Defaults to "model". Only used if plotting from netCDF file.}
 
 \item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.}
 

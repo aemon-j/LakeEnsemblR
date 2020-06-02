@@ -19,9 +19,11 @@
 #' \dontrun{
 #' }
 #' @importFrom gotmtools list_vars get_vari wide2long sum_stat
+#' @importFrom ncdf4 nc_open ncvar_get nc_close
 #'
 #' @export
-analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0, drho = 0.1){
+analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
+                         drho = 0.1){
   
   # check if model input is correct
   model <- check_models(model)
@@ -41,21 +43,54 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   
   temp <- load_var(ncdf, "watertemp", return = "list", dim = dim,
                    dim_index = dim_index, print = FALSE)
-  temp_name <- names(temp)
-  temp_name <- temp_name[which(temp_name != "Obs")]
-  if(sum(!(model %in% temp_name)) != 0){
-    stop("Model(s): ", model[!(model %in% temp_name)], " is/are not present in '", ncdf, "'\nPlease select a model from: ", paste(temp_name, collapse = ", "))
+  
+  if(dim == "model") {
+    temp_name <- names(temp)
+    temp_name <- temp_name[which(temp_name != "Obs")]
+    if(sum(!(model %in% temp_name)) != 0){
+      stop("Model(s): ", paste(model[!(model %in% temp_name)], collapse = ", "),
+           " is/are not present in '", ncdf, "'\nPlease select a model from: ", paste(temp_name, collapse = ", "))
+    }
+    
+    temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
+  } else if(dim == "member") {
+    
+    # Load obs data 
+    obs_list <- load_var(ncdf, var = "watertemp", return = "list", dim = "model",
+                         dim_index = 1, print = FALSE)
+    obs_list <- obs_list[["Obs"]]
+    
+    n_val <- length(obs_list)
+    
+    nas <- sum(is.na(obs_list))
+    if(nas == n_val) {
+      warning("No temperature observations in ", ncdf)
+    }
+    
+    # Add to var list
+    temp[["Obs"]] <- obs_list
+    
   }
   
-  temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
+  
   if(ice_present){
-    ice <- load_var(ncdf, var = "ice_height", return = "list", print = FALSE)
-    ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
+    ice <- load_var(ncdf, var = "ice_height", return = "list", dim = dim,
+                    dim_index = dim_index, print = FALSE)
+    if(dim == "member") {
+      ice2 <- load_var(ncdf, var = "ice_height", return = "list", dim = "model",
+                      dim_index = 1, print = FALSE)
+      ice[["Obs"]] <- ice2[["Obs"]]
+    } else {
+      ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
+    }
   }
   
   
   # Extract latitude for determining hemisphere
-  lat <- gotmtools::get_1d(ncdf, "lat")
+  fid <- ncdf4::nc_open(ncdf)
+  lat <- ncdf4::ncvar_get(fid, "lat")
+  ncdf4::nc_close(fid)
+  
   if(lat > 0){
     NH <- TRUE
   }else{

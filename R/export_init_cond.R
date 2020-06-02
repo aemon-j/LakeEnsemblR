@@ -35,8 +35,6 @@ export_init_cond <- function(config_file,
   
   Sys.setenv(TZ = "GMT")
   
-  # check the master config file
-  check_master_config(config_file, model)
   # check model input
   model <- check_models(model)
   
@@ -208,5 +206,6 @@ export_init_cond <- function(config_file,
   if(print == TRUE){
     print(df_print)
   }
-
+  
+  message("export_init_cond complete!")
 }

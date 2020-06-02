@@ -52,21 +52,30 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
   }
   
   # only the selected models
-  if(is.null(model)){
+  if(is.null(model) & dim == "model"){
     model <- names(var_list)
     model <- model[-c(length(model))] # Remove last name "Obs"
   }
-  var_list <- var_list[c(model, "Obs")]
+  if(dim == "model") {
+    var_list <- var_list[c(model, "Obs")]
+  } else if(dim == "member") {
+    # Load obs data 
+    obs_list <- load_var(ncdf, var = var, return = "list", dim = "model",
+                         dim_index = 1, print = FALSE)
+    obs_list <- obs_list[["Obs"]]
+    var_list[["Obs"]] <- obs_list
+  }
+  
   
   data <- var_list %>%
     reshape2::melt(id.vars = "datetime") %>%
     dplyr::group_by(datetime)
-  colnames(data) <- c("datetime", "Depth", "value", "Model")
+  colnames(data) <- c("datetime", "Depth", "value", "C4")
   obs <- data %>% 
-    dplyr::filter(Model == "Obs")
+    dplyr::filter(C4 == "Obs")
   colnames(obs) <- c("datetime", "Depth", "obs", "Observed")
   dat <- data %>% 
-    dplyr::filter(Model != "Obs")
+    dplyr::filter(C4 != "Obs")
   colnames(dat)[3] <- "mod"
   
     # Check for observed values
@@ -106,12 +115,12 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
   
   # Calculate densities for p5
   dens <- lapply(model, FUN = function(x){
-    idx <- which(df$Model == x)
+    idx <- which(df$C4 == x)
     mean <- mean(df$res[idx], na.rm = TRUE)
     sd <- sd(df$res[idx], na.rm = TRUE)
     data.frame(pred,
                density = dnorm(pred, mean, sd),
-               Model = x)
+               C4 = x)
   })
   dens <- do.call("rbind", dens)
   
@@ -122,7 +131,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
   #   # geom_hex()+
   #   geom_point(alpha = 0.1)+
   #   # scale_colour_viridis_c()+
-  #   facet_wrap(~Model)+
+  #   facet_wrap(~C4)+
   #   coord_fixed(xlim = rnge, ylim = rnge)
   
   # Obs v Res
@@ -132,7 +141,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
     geom_point(alpha = 0.1) +
     coord_equal() +
     ggtitle("Observed vs. Residuals")+
-    facet_wrap(~Model)
+    facet_wrap(~C4)
   p2
   # Res v Depth
   p3 <- ggplot(df, aes(res, depth, colour = obs)) +
@@ -141,7 +150,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
     scale_colour_gradientn(colours = rev(spec)) +
     labs(colour = "temp") +
     ggtitle('Residuals vs. Depth') +
-    facet_wrap(~Model)
+    facet_wrap(~C4)
   
   # Time v Res
   p4 <- ggplot(df, aes(yday, res, colour = depth)) +
@@ -149,7 +158,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
     geom_point(alpha = 0.1) +
     scale_colour_gradientn(colours = c("black", dep_cols[2], dep_cols[1])) +
     ggtitle("Year day vs. Residuals") +
-    facet_wrap(~Model)
+    facet_wrap(~C4)
   
 
   p5 <- ggplot(df) +
@@ -159,7 +168,7 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
     geom_vline(xintercept = 0, linetype = "dashed") +
     scale_x_continuous("Residuals (\u00B0C)") +
     ggtitle("Density distribution of Residuals") +
-    facet_wrap(~Model)
+    facet_wrap(~C4)
   
   plist <- list("obs_res" = p2, "res_depth" = p3,
                 "yday_res" = p4, "res_dist" = p5)

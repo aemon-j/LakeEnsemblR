@@ -3,10 +3,11 @@
 #' Plot the outcome of the ensemble run for a given depth along with the minimum, maximum, and
 #' an average value.
 #' 
-#' @param ncdf Path to the netcdf file created by `run_ensemble()`
-#' @param model Vector of models which should be included in the plot
-#' @param var Variable which to plot
-#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param ncdf filepath; to the netcdf file created by `run_ensemble()`
+#' @param model string vector; of models which should be included in the plot
+#' @param var string; of variable which to plot
+#' @param dim string; NetCDF dimensions to extract. Must be either "member" or
+#'  "model". Defaults to "model". Only used if plotting from netCDF file.
 #' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param depth If `var` has a depth dimension, for which depth should it be plotted?
 #' @param date Specific date for which depth profiles should be plotted
@@ -32,9 +33,13 @@
 #'
 #' @export
 plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                          var, dim = "model", dim_index = 1,
+                          var = "watertemp", dim = "model", dim_index = 1,
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
+  
+  if(is.null(depth) & is.null(date)) {
+    stop("Need to supply a 'depth' OR a 'date' argument!")
+  }
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
@@ -46,24 +51,27 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   if(!(var %in% vars)){
     stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
   }
-
+  
   # get variable
   var_list <- load_var(ncdf, var = var, return = "list", dim = dim,
                        dim_index = dim_index, print = FALSE)
   # if members are selecte still get the observations
   if(dim == "member") {
     obs_list <- load_var(ncdf, var = var, return = "list", dim = "model",
-                            dim_index = 1, print = FALSE)
-    obs_list <- list(Obs = obs_list[["Obs"]])
-  }
-  # check if selected models are in the ncdf file
-  if(any(!(model %in% names(var_list)))) {
-    stop(paste0("Model ", model[!(model %in% names(var_list))],
-                " not found in the ncdf file ", ncdf))
+                         dim_index = 1, print = FALSE)
+    obs_list <- list("Obs" = obs_list[["Obs"]])
+    var_list[["Obs"]] <- obs_list[["Obs"]]
+  } else if(dim == "model") {
+    # check if selected models are in the ncdf file
+    if(any(!(model %in% names(var_list)))) {
+      stop("Model ", paste(model[!(model %in% names(var_list))], collapse = "/"),
+           " not found in the ncdf file ", ncdf)
+    }
+    # only the selected models
+    var_list <- var_list[c(model, "Obs")]
   }
   
-  # only the selected models
-  var_list <- var_list[c(model, "Obs")]
+  
   
   # output list
   plist <- list()
@@ -71,10 +79,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   
   # colors for plotting
   colfunc <- colorRampPalette(RColorBrewer::brewer.pal(length(model), 'Set2'))
-
-##-------------- plot timeseries -------------------------------------------------------------------
+  
+  ## plot timeseries ----
   # if no date is selected plot time series
-  if(!is.null(depth)) {
+  if(!is.null(depth) & ncol(var_list[[1]]) > 2) {
     if(var == "watertemp" & is.null(depth)) {
       stop(paste0("When plotting water temperature depth must be specified"))
     }
@@ -113,17 +121,26 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
          Please inspect the model output and re-run 'run_ensemble()' if necessary.")
       }
       
-      #obs <- obs[!is.na(obs$value), ] # Remove NAs
-      
-      dat <- data %>% 
-        dplyr::filter(sym(dim) != "Obs")
+      dat <- data[which(data[, 4] != "Obs"), ]
+      # dat <- data %>% 
+      #   dplyr::filter(sym(dim) != "Obs")
+      # remove NAs
+      na_dates <- c(obs$datetime[is.na(obs$value)])
+      if(length(na_dates) > 0) {
+        idx <- which(obs$datetime %in% na_dates)
+        obs <- obs[-idx, ]
+        idx <- which(dat$datetime %in% na_dates)
+        dat <- dat[-idx, ]
+        
+      }
+
       dat_av <- dat %>% 
         dplyr::filter(sym(dim) != "Obs") %>%
         dplyr::summarize(mean = get(av_fun)(value, na.rm = TRUE),
-                  max = max(value, na.rm = TRUE),
-                  min = min(value, na.rm = TRUE)) 
+                         max = max(value, na.rm = TRUE),
+                         min = min(value, na.rm = TRUE)) 
       dat_av$Type = av_fun
-     dat <- data.frame(dat)
+      dat <- data.frame(dat)
       p1 <- ggplot() +  
         geom_ribbon(data = dat_av, aes(datetime, ymin=min, ymax=max),
                     alpha=0.2) + 
@@ -138,9 +155,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         scale_colour_manual(values = c("grey42", colfunc(length(unique(dat[, dim]))), "black"),
                             breaks= c(av_fun, unique(dat[, dim]), "Obs"),
                             guide = guide_legend(override.aes = list(
-                            linetype = c(rep("solid", length(unique(dat[, dim])) + 1),
-                                         rep("blank", 1)),
-                            shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
+                              linetype = c(rep("solid", length(unique(dat[, dim])) + 1),
+                                           rep("blank", 1)),
+                              shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
         theme(text = element_text(size=10),
               axis.text.x = element_text(angle=0, hjust= 0.5),
               legend.margin=margin(0,0,0,0),
@@ -177,7 +194,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                 guide = guide_legend(override.aes = list(
                                   linetype = c(rep("solid", length(unique(dat_res[, dim])) + 1)),
                                   shape = c(rep(NA, length(unique(dat_res[, dim])) + 1))))) +
-      
             theme(text = element_text(size=10),
                   axis.text.x = element_text(angle=0, hjust= 0.5),
                   legend.margin=margin(0,0,0,0),
@@ -190,19 +206,21 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       
       if (boxwhisker){
         dat <- var_list %>% 
-          melt( id.vars = "datetime") %>% 
+          reshape2::melt( id.vars = "datetime") %>% 
           dplyr::filter(variable == paste0("wtr_", depth)) %>%
           dplyr::group_by(datetime)
         colnames(dat) <- c("datetime", "Depth", "value", dim)
         if(dim == "model") {
+          dat <- as.data.frame(dat)
           dat[, dim] <- factor(dat[, dim])
           dat[, dim] <- factor(dat[, dim], levels=c("Obs", levels(dat[, dim])
-                                                          [-c(which(levels(dat[, dim]) == "Obs"))]))
+                                                    [-c(which(levels(dat[, dim]) == "Obs"))]))
         } else {
-          dat <- rbind(dat, set_colnames(obs, c("datetime", "Depth", "value", dim)))
+          colnames(obs) <- c(c("datetime", "Depth", "value", dim))
+          dat <- rbind(dat, obs)
           dat <- data.frame(dat)
           dat$member <- as.factor(dat$member)
-          }
+        }
         p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
           geom_boxplot() +
           geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
@@ -213,21 +231,18 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                               guide = guide_legend(override.aes = list(
                                 linetype = c(rep("solid", length(unique(dat[, dim])) + 1),
                                              rep("blank", 1)),
-                                shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
+                                shape = c(rep(NA, length(unique(dat[, dim])) + 1),
+                                          rep(16, 1))))) +
           theme_classic()
-        
-        # if (residuals){
-        #   plist[[3]] <- p3
-        # } else {
-        #   plist[[2]] <- p3
-        # }
+
         plist[[pindex]] <- p3
         pindex <- pindex + 1
       }
-  
-    } 
-##------------------- plot timeseries of non depth depending variable (ice) ------------------------
-  } else if(is.null(date)) {
+      
+    }
+    ## Timeseries of non depth depending variable (ice) ----
+  } else if(is.null(date) & ncol(var_list[[1]]) == 2) {
+
     
     
     dat <- var_list %>%
@@ -267,7 +282,8 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     plist[[pindex]] <- p1
     pindex <- pindex + 1
   }
-##--------------------- plot depth profile at a certain date ---------------------------------------
+ 
+  ## Depth profile at a certain date ----
   if(!is.null(date)) {
     
     # if a specific date is selected plot a depth profile
@@ -322,7 +338,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       if (sum(!is.na(obs$value)) == 0){
         warning(paste0("Residuals can not be calculated because observed data is missing."))
       }
-    # if observations are available plot residuals
+      # if observations are available plot residuals
       if(sum(!is.na(obs$value)) > 0 ) {
         dat_res <- dat
         dat_res$value <- dat$value - obs$value
@@ -387,12 +403,16 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                            rep("blank", 1)),
                               shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
         theme_classic()
-
+      
       plist[[pindex]] <- p3
       pindex <- pindex + 1
     }
     
   }
-
+  
+  # Return plot if only one
+  if(length(plist) == 1) {
+    plist <- plist[[1]]
+  }
   return(plist)
 }

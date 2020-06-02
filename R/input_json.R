@@ -52,7 +52,9 @@ input_json <- function(file, label, key, value, out_file = NULL){
   }
   spl2 <- strsplit(spl1[1], ": ")[[1]][2]
   sub <- paste0(value, ",")
-  par[ind_map] <- gsub(pattern = spl2, replacement = sub, x = par[ind_map])
+  par[ind_map] <- gsub(pattern = paste0("\\Q", spl2, "\\E"),
+                       replacement = sub,
+                       x = par[ind_map])
   writeLines(par, out_file)
   old_val <- gsub(" ", "", spl2, fixed = TRUE)
   message("Replaced ", label, " ", key, " ",

@@ -7,6 +7,7 @@
 #' "FLake", "MyLake")
 #' @param exp_cnf boolean; check if the control files for the models are there
 #' @importFrom gotmtools get_yaml_value
+#' @export
 
 check_master_config <- function(config_file,
                                 model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
