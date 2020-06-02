@@ -33,10 +33,10 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
   mod_names <- ncatt_get(nc, "model", "Model")$value
   mod_names <- strsplit(mod_names, ", ")[[1]]
   mod_names <- substring(mod_names, 5)
-  
+  mod_names <- mod_names[!mod_names %in% "Obs"] 
   
   # sort models so they match the attribute number
-  model <- c(model, "Obs")
+  #model <- c(model, "Obs")
   model <- model[match(model, mod_names)]
   
   # ncdf4::ncvar_get(nc, "model")
@@ -93,9 +93,9 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
     
     if(ncol(output_lists[[i]][[1]]) == 2) {
       # Add 2D variable
-      for (m in seq_len(length(model))) {
-        dat_add <- as.matrix(output_lists[[i]][[m]][, -1])
-        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, mem_num_new, m, 1),
+      for (md in seq_len(length(model))) {
+        dat_add <- as.matrix(output_lists[[i]][[md]][, -1])
+        ncdf4::ncvar_put(nc, vars_old[i], dat_add, start = c(1, 1, mem_num_new, md, 1),
                          count = c(1, 1, 1, 1, length(dat_add)))
       }
 
