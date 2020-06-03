@@ -37,9 +37,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
   
-  if(is.null(depth) & is.null(date)) {
-    stop("Need to supply a 'depth' OR a 'date' argument!")
-  }
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
