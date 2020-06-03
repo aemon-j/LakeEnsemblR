@@ -114,7 +114,13 @@ plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index
   
   
   # Calculate densities for p5
-  dens <- lapply(model, FUN = function(x){
+  if(dim == "member") {
+    n <- names(var_list)
+    n <- n[!n %in% "Obs"]
+  } else {
+    n <- model
+  }
+  dens <- lapply(n, FUN = function(x){
     idx <- which(df$C4 == x)
     mean <- mean(df$res[idx], na.rm = TRUE)
     sd <- sd(df$res[idx], na.rm = TRUE)

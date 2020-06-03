@@ -37,7 +37,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
   
-  if(is.null(depth) & is.null(date)) {
+  if((is.null(depth) & is.null(date)) & var != "ice_height") {
     stop("Need to supply a 'depth' OR a 'date' argument!")
   }
   # check if model input is correct
@@ -121,7 +121,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
          Please inspect the model output and re-run 'run_ensemble()' if necessary.")
       }
       
-      
       dat <- data[which(data[, 4] != "Obs"), ]
       # dat <- data %>% 
       #   dplyr::filter(sym(dim) != "Obs")
@@ -195,7 +194,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                 guide = guide_legend(override.aes = list(
                                   linetype = c(rep("solid", length(unique(dat_res[, dim])) + 1)),
                                   shape = c(rep(NA, length(unique(dat_res[, dim])) + 1))))) +
-            
             theme(text = element_text(size=10),
                   axis.text.x = element_text(angle=0, hjust= 0.5),
                   legend.margin=margin(0,0,0,0),
@@ -244,6 +242,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     }
     ## Timeseries of non depth depending variable (ice) ----
   } else if(is.null(date) & ncol(var_list[[1]]) == 2) {
+
     
     
     dat <- var_list %>%

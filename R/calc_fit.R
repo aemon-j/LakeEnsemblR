@@ -46,23 +46,40 @@ calc_fit <- function(ncdf, list = NULL, model, var, dim = "model", dim_index = 1
   }
   
   # only the selected models
-  var_list <- var_list[c(model, "Obs")]
+  if(dim == "model") {
+    var_list <- var_list[c(model, "Obs")]
+    n <- names(var_list)
+    n_no_obs <- model
+    # only select depth where observations are available
+    obs_col <- which(apply(var_list$Obs, 2, function(x)sum(!is.na(x))) != 0)
+    var_list <- lapply(c(model, "Obs"), function(m) dplyr::select(var_list[[m]], all_of(obs_col)))
+    names(var_list) <- c(model, "Obs")
+    # create list with long format data.frames
+    var_long <-  lapply(model, function(m)
+      cbind(data.frame(reshape2::melt(var_list[[m]],id.vars = "datetime")),
+            data.frame(obs = reshape2::melt(var_list$Obs,id.vars = "datetime")$value)))
+    
+    names(var_long) <- model
+  } else {
+    # load observations
+    obs_list <- load_var(ncdf, var = var, return = "list", dim = "model",
+                         dim_index = 1, print = FALSE)
+    var_list <- c(var_list, Obs = list(obs_list$Obs))
+    # only select depth where observations are available
+    obs_col <- which(apply(obs_list$Obs, 2, function(x)sum(!is.na(x))) != 0)
+    n <- names(var_list)
+    var_list <- lapply(n, function(m) dplyr::select(var_list[[m]], all_of(obs_col)))
+    names(var_list) <- n
+    n_no_obs <- n[! n %in% "Obs"]
+    # create list with long format data.frames
+    var_long <-  lapply(n_no_obs, function(m)
+      cbind(data.frame(reshape2::melt(var_list[[m]],id.vars = "datetime")),
+            data.frame(obs = reshape2::melt(var_list$Obs,id.vars = "datetime")$value)))
+    
+    names(var_long) <- n_no_obs
+  }
 
 
-  
-  # only select depth where observations are available
-  obs_col <- which(apply(var_list$Obs, 2, function(x)sum(!is.na(x))) != 0)
-  
-  var_list <- lapply(c(model, "Obs"), function(m) dplyr::select(var_list[[m]], obs_col))
-  names(var_list) <- c(model, "Obs")
-
-  
-  # create list with long format data.frames
-  var_long <-  lapply(model, function(m)
-                       cbind(data.frame(reshape2::melt(var_list[[m]],id.vars = "datetime")),
-                       data.frame(obs = reshape2::melt(var_list$Obs,id.vars = "datetime")$value)))
- 
- names(var_long) <- model 
  
  # change water depth to nummeric
  var_long <- purrr::map(var_long,
@@ -70,8 +87,8 @@ calc_fit <- function(ncdf, list = NULL, model, var, dim = "model", dim_index = 1
                                                                                  variable)))) 
 
  # calculate ensemble average
- ens_data <- var_long[[model[1]]]
- ens_data$value <- apply(sapply(model, function(m) var_long[[m]]$value), 1, get(avfun),
+ ens_data <- var_long[[n_no_obs[1]]]
+ ens_data$value <- apply(sapply(n_no_obs, function(m) var_long[[m]]$value), 1, get(avfun),
                          na.rm = TRUE)
  var_long[[paste0("ensemble_",avfun)]] <- ens_data
  
