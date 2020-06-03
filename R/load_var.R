@@ -20,46 +20,58 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
   match.arg(return, c("list", "array"))
   match.arg(dim, c("model", "member"))
   
-  fid <- nc_open(ncdf) # Open netCDF
-  
-  # Extract the time
-  tim <- ncvar_get(fid, "time")
-  tunits <- ncatt_get(fid, "time")
-  tustr <- strsplit(tunits$units, " ")
-  # step <- tustr[[1]][1]
-  tdstr <- strsplit(unlist(tustr)[3], "-")
-  tmonth <- as.integer(unlist(tdstr)[2])
-  tday <- as.integer(unlist(tdstr)[3])
-  tyear <- as.integer(unlist(tdstr)[1])
-  tdstr <- strsplit(unlist(tustr)[4], ":")
-  thour <- as.integer(unlist(tdstr)[1])
-  tmin <- as.integer(unlist(tdstr)[2])
-  origin <- as.POSIXct(paste0(tyear, "-", tmonth,
-                              "-", tday, " ", thour, ":", tmin),
-                       format = "%Y-%m-%d %H:%M", tz = "UTC")
-  time <- as.POSIXct(tim, origin = origin, tz = "UTC")
-
-  # Extract model names
-  mod_names <- ncatt_get(fid, "model", "Model")$value
-  mod_names <- strsplit(mod_names, ", ")[[1]]
-  mod_names <- substring(mod_names, 5)
-  
-  # Extract members
-  mem <- ncvar_get(fid, "member")
-  
-  # Extract variable
-  var1 <- ncvar_get(fid, var)
-  tunits <- ncatt_get(fid, var)
-  miss_val <- tunits$missing_value 
-  var1[var1 >= miss_val] <- NA # Replace large values with NAs
-  var_dim <- strsplit(tunits$coordinates, " ")[[1]]
-  
-  # Extract depths if dimensions are greater than 2
-  if(length(dim(var1)) > 2){
-    z <- ncvar_get(fid, "z")
+  if(!file.exists(ncdf)) {
+    stop(ncdf, " does not exist. Check the filepath is correct.")
   }
   
-  nc_close(fid) # Close netCDF
+  tryCatch({
+    fid <- ncdf4::nc_open(ncdf) # Open netCDF
+    
+    # Extract the time
+    tim <- ncdf4::ncvar_get(fid, "time")
+    tunits <- ncdf4::ncatt_get(fid, "time")
+    tustr <- strsplit(tunits$units, " ")
+    # step <- tustr[[1]][1]
+    tdstr <- strsplit(unlist(tustr)[3], "-")
+    tmonth <- as.integer(unlist(tdstr)[2])
+    tday <- as.integer(unlist(tdstr)[3])
+    tyear <- as.integer(unlist(tdstr)[1])
+    tdstr <- strsplit(unlist(tustr)[4], ":")
+    thour <- as.integer(unlist(tdstr)[1])
+    tmin <- as.integer(unlist(tdstr)[2])
+    origin <- as.POSIXct(paste0(tyear, "-", tmonth,
+                                "-", tday, " ", thour, ":", tmin),
+                         format = "%Y-%m-%d %H:%M", tz = "UTC")
+    time <- as.POSIXct(tim, origin = origin, tz = "UTC")
+    
+    # Extract model names
+    mod_names <- ncdf4::ncatt_get(fid, "model", "Model")$value
+    mod_names <- strsplit(mod_names, ", ")[[1]]
+    mod_names <- substring(mod_names, 5)
+    
+    # Extract members
+    mem <- ncdf4::ncvar_get(fid, "member")
+    
+    # Extract variable
+    var1 <- ncdf4::ncvar_get(fid, var)
+    tunits <- ncdf4::ncatt_get(fid, var)
+    miss_val <- tunits$missing_value 
+    var1[var1 >= miss_val] <- NA # Replace large values with NAs
+    var_dim <- strsplit(tunits$coordinates, " ")[[1]]
+    
+    # Extract depths if dimensions are greater than 2
+    if(length(dim(var1)) > 2){
+      z <- ncvar_get(fid, "z")
+    }
+
+  }, warning = function(w) {
+    return_val <- "Warning"
+  }, error = function(e) {
+    return_val <- "Error"
+    warning("Error creating netCDF file!")
+  }, finally = {
+    ncdf4::nc_close(fid) # Close netCDF file
+  })
   
   mat <- matrix(data = c(var, tunits$units, tunits$coordinates),
                dimnames = list(c("short_name",

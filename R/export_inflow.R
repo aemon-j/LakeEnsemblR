@@ -48,6 +48,10 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Use counter outflows
   use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
   
+  # Get start & stop dates
+  start_date <- get_yaml_value(config_file, "time", "start")
+  stop_date <- get_yaml_value(config_file, "time", "stop")
+  
 ##---------------FLake-------------
   
   if("FLake" %in% model){
@@ -169,8 +173,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     load(get_yaml_value(config_file, "config_files", "MyLake"))
     
     if(!use_inflows){
-      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.Date(from = as.Date(start_date),
-                                                                    to = as.Date(stop_date),
+      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.POSIXt(from = as.POSIXct(start_date),
+                                                                    to = as.POSIXct(stop_date),
                                                                     by = "day"))),
                                          ncol = 8)
       
@@ -203,8 +207,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     # Stop date
     stop_date <- get_yaml_value(config_file, "time", "stop")
     
-    inflow_start <- which(inflow$datetime == as.Date(start_date, tz = tz))
-    inflow_stop <- which(inflow$datetime == as.Date(stop_date, tz = tz))
+    inflow_start <- which(inflow$datetime == as.POSIXct(start_date, tz = tz))
+    inflow_stop <- which(inflow$datetime == as.POSIXct(stop_date, tz = tz))
     
     inflow <- inflow[inflow_start:inflow_stop, ]
     
@@ -436,8 +440,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
       # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
-      dummy_inflow <- matrix(rep(1e-10, 8 * length(seq.Date(from = as.Date(start_date),
-                                                            to = as.Date(stop_date),
+      dummy_inflow <- matrix(rep(1e-10, 8 * 
+                                   length(seq.POSIXt(from = as.POSIXct(start_date),
+                                                            to = as.POSIXct(stop_date),
                                                             by = "day"))),
                              ncol = 8)
       dummy_inflow[, 1] <- mylake_inflow$Flow_metersCubedPerDay
