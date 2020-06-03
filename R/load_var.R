@@ -123,18 +123,18 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
       if(length(dim(var1)) == 4){
         if(dim == "model") {
           
-          if ( dim_index > dim(var1)[2] ) {
+          if ( dim_index > dim(var1)[1] ) {
             stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
-                 paste(seq_len(dim(var1)[2]), collapse = ","))
+                 paste(seq_len(dim(var1)[1]), collapse = ","))
           }
           
           var_list <- lapply(seq(dim(var1)[2]), function(x)var1[dim_index, x, , ])
           names(var_list) <- mod_names
         } else if ( dim == "member" ) {
           
-          if (dim_index > dim(var1)[1]) {
+          if (dim_index > dim(var1)[2]) {
             stop("Dimension index ", dim_index, " out of bounds!\nAvailable dimensions: ",
-                 paste(seq_len(dim(var1)[1]), collapse = ","))
+                 paste(seq_len(dim(var1)[2]), collapse = ","))
           }
           
           var_list <- lapply(seq(dim(var1)[1]), function(x)var1[x, dim_index, , ])
