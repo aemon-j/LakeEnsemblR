@@ -43,6 +43,7 @@ Suggests:
     knitr,
     rmarkdown,
     rstudioapi
+    kableExtra
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
