@@ -102,7 +102,6 @@ calibration:                                   # Calibration section            
          log: false                           # log transform scaling factor
    FLake:                                  # FLake specific parameters
       fetch_lk:
-
          lower: 1600.0                      # lower bound for parameter
          upper: 2200                      # upper bound for parameter
          initial: 2000                     # initial value for parameter
