@@ -3,6 +3,7 @@
 export(analyse_ncdf)
 export(analyse_strat)
 export(calc_fit)
+export(calc_hmix)
 export(calc_stats)
 export(cali_ensemble)
 export(check_master_config)
