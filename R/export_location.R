@@ -174,6 +174,13 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
       input_json(sim_par, "ModelConfig", "SnowModel", 0)
     }
     
+    # Calculate default value a_seiche
+    # Based on a relation between surface area and calibrated a_seiche
+    # in the study of Gaudard et al. (2019). Data used to construct this
+    # relation is to be found on https://simstrat.eawag.ch/lakes
+    surf_area <- max(sim_hyp[, 2]) / 1000000 # in km2
+    a_seiche <- 10^(-2.8591 + 0.7029 * log10(surf_area))
+    input_json(sim_par, "ModelParameters", "a_seiche", a_seiche)
   }
   
   ##---------------MyLake-------------
