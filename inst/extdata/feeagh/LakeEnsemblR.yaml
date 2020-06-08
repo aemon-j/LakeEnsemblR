@@ -62,7 +62,6 @@ model_parameters:
    GOTM:                                       # GOTM specific parameters
       k_min: 3.6E-6                            # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
    Simstrat:                                   # Simstrat specific parameters
-      a_seiche: 0.001                          # Fraction of wind energy which goes into seiche energy [-]
    MyLake:                                     # MyLake specific parameters
       Phys.par/C_shelter: 0.15                 # wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
 calibration:                                   # Calibration section                                   # Calibration section
@@ -103,14 +102,9 @@ calibration:                                   # Calibration section            
          log: false                           # log transform scaling factor
    FLake:                                  # FLake specific parameters
       fetch_lk:
-<<<<<<< HEAD
+
          lower: 1600.0                      # lower bound for parameter
          upper: 2200                      # upper bound for parameter
          initial: 2000                     # initial value for parameter
-=======
-         lower: 1.60E03                      # lower bound for parameter
-         upper: 2.20E03                      # upper bound for parameter
-         initial: 2.0E03                     # initial value for parameter
->>>>>>> upstream/master
          log: false                           # log transform scaling factor
 
