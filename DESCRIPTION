@@ -42,7 +42,7 @@ Suggests:
     testthat,
     knitr,
     rmarkdown,
-    rstudioapi
+    rstudioapi,
     kableExtra
 Encoding: UTF-8
 LazyData: true
