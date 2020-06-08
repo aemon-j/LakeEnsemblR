@@ -94,12 +94,11 @@ export_init_cond <- function(config_file,
 
     input_nml(nml_file, "SIMULATION_PARAMS", "T_wML_in", tmp[which.min(deps)])
     input_nml(nml_file, "SIMULATION_PARAMS", "T_bot_in", tmp[which.max(deps)])
-    
-    mld <- rLakeAnalyzer::thermo.depth(wtr = tmp, depths = deps)
-    if(!is.nan(mld)) {
-      input_nml(nml_file, "SIMULATION_PARAMS", "h_ML_in", round(mld, 2))
+    depth <- glmtools::get_nml_value(nml_file = nml_file, arg_name = "depth_w_lk")
+    hmix <- calc_hmix(tmp, deps)
+    if(!is.na(hmix) & hmix < depth) {
+      input_nml(nml_file, "SIMULATION_PARAMS", "h_ML_in", round(hmix, 2))
     } else {
-      depth <- glmtools::get_nml_value(nml_file = nml_file, arg_name = "depth_w_lk")
       input_nml(nml_file, "SIMULATION_PARAMS", "h_ML_in", depth)
     }
     
