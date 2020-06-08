@@ -3,8 +3,11 @@
 #' Check if the master config file is correct
 #'
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
+#' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
+#' "FLake", "MyLake")
 #' @param exp_cnf boolean; check if the control files for the models are there
 #' @importFrom gotmtools get_yaml_value
+#' @export
 
 check_master_config <- function(config_file,
                                 model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -39,31 +42,31 @@ check_master_config <- function(config_file,
   if(!exp_cnf) {
     # test if the control files are available
     if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GOTM")) &&
-       'GOTM' %in% model) {
+       "GOTM" %in% model) {
       stop(paste0("GOTM control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "GOTM"),
                   " is not existing"))
     }
     if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GLM")) &&
-       'GLM' %in% model) {
+       "GLM" %in% model) {
       stop(paste0("GLM control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "GLM"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "Simstrat")) &&
-       'Simstrat' %in% model) {
+       "Simstrat" %in% model) {
       stop(paste0("Simstrat control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "Simstrat"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "FLake")) &&
-       'FLake' %in% model) {
+       "FLake" %in% model) {
       stop(paste0("FLake control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "FLake"),
                   " is not existing"))
     }
     if(!file.exists(get_yaml_value(config_file, "config_files", "MyLake")) &&
-       'MyLake' %in% model) {
+       "MyLake" %in% model) {
       stop(paste0("MyLake control file ",
                   gotmtools::get_yaml_value(config_file, "config_files", "MyLake"),
                   " is not existing"))
@@ -104,6 +107,13 @@ check_master_config <- function(config_file,
                 ". Allowed units: ", paste0(good_vars, collapse = ", ")))
   } 
   
+  # Check if there are tabs in the config file, which will cause
+  # internal errors in some cases when relying on configr:read.config
+  config_char <- readChar(config_file, nchars = file.info(config_file)$size)
+  if(grepl("\t", config_char)){
+    warning("Tabs detected in ", config_file, ". This could lead to errors,",
+            " replace with spaces.")
+  }
 }
 
 

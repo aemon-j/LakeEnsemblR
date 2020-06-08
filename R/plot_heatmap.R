@@ -2,10 +2,12 @@
 #' 
 #' Plot a heat map of ensemble output data. It can either plot directly from the netCDF file or a list in the format when loaded in with `load_var()`.
 #' 
-#' @param ncdf Path to the netcdf file created by `run_ensemble()`
+#' @param ncdf Path to the netCDF file created by `run_ensemble()`
 #' @param var Variable which to plot. Defaults to "watertemp"
 #' @param var_list list of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model Vector of models which should be included in the plot
+#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @return ggplot object of heatmaps
 #' @author Tadhg Moore, Johannes Feldbauer
 #' @importFrom reshape2 melt
@@ -19,8 +21,8 @@
 #' plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
 #' }
 #' @export
-plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
-                       model = NULL) {
+plot_heatmap <- function(ncdf = NULL, var = "watertemp", dim = "model", dim_index = 1,
+                         var_list = NULL, model = NULL) {
   
   # check if model input is correct
   model <- check_models(model)
@@ -35,7 +37,8 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
       stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
     }
     # get variable
-    var_list <- load_var(ncdf, var = var, return = "list")
+    var_list <- load_var(ncdf, var = var, return = "list",
+                         dim = dim, dim_index = dim_index)
   }else{
     var_list <- var_list
   }
@@ -49,7 +52,7 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
   
   # Melt list down into long dataframe
   data <- var_list %>%
-    melt(id.vars = "datetime") %>%
+    reshape2::melt(id.vars = "datetime") %>%
     dplyr::group_by(datetime)
   colnames(data) <- c("datetime", "Depth", "value", "Model")
   data$depth <- -as.numeric(gsub("wtr_", "", data$Depth))
@@ -60,6 +63,16 @@ plot_heatmap <- function(ncdf = NULL, var = "watertemp", var_list = NULL,
 
   
   spec <- RColorBrewer::brewer.pal(11, "Spectral")
+  
+  # Remove NAs
+  data <- data[!is.na(data$value), ] # Remove NAs
+  if(nrow(data) == 0) {
+    stop("Modelled  and observed data is all NAs.
+         Please inspect the model output and re-run 'run_ensemble()' if necessary.")
+  }
+  
+  
+  
   p1 <- ggplot(data) +
     geom_point(aes(datetime, depth, colour = value), shape = 15) +
     scale_colour_gradientn(colours = rev(spec)) +

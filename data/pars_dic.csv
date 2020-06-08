@@ -1,0 +1,4 @@
+model,parname,label,key
+GOTM,k_min,turb_param,k_min
+GLM,coef_mix_hyp,mixing,coef_mix_hyp
+Simstrat,a_seiche,ModelParameters,

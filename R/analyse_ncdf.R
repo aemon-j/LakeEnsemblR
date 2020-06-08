@@ -4,7 +4,8 @@
 #'
 #' @param ncdf filepath; to the `ensemble_output.nc` file
 #' @param model Vector of models for which to calculate the performance measures
-#' @param var character; Name of the variable to be extracted. Must match short name in netCDF file
+#' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
+#' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param spin_up numeric; Number of days to disregard as spin-up for analysis.
 #' @param drho numeric; density difference between top and bottom indicating stratification
 #' [kg m^-3]
@@ -17,10 +18,12 @@
 #' @examples
 #' \dontrun{
 #' }
-#' @importFrom gotmtools list_vars get_vari wide2long sum_stat analyse_strat
+#' @importFrom gotmtools list_vars get_vari wide2long sum_stat
+#' @importFrom ncdf4 nc_open ncvar_get nc_close
 #'
 #' @export
-analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
+analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
+                         drho = 0.1){
   
   # check if model input is correct
   model <- check_models(model)
@@ -38,22 +41,56 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
     ice_present <- TRUE
   }
   
-  temp <- load_var(ncdf, "watertemp", return = "list", print = FALSE)
-  temp_name <- names(temp)
-  temp_name <- temp_name[which(temp_name != "Obs")]
-  if(sum(!(model %in% temp_name)) != 0){
-    stop("Model(s): ", model[!(model %in% temp_name)], " is/are not present in '", ncdf, "'\nPlease select a model from: ", paste(temp_name, collapse = ", "))
+  temp <- load_var(ncdf, "watertemp", return = "list", dim = dim,
+                   dim_index = dim_index, print = FALSE)
+  
+  if(dim == "model") {
+    temp_name <- names(temp)
+    temp_name <- temp_name[which(temp_name != "Obs")]
+    if(sum(!(model %in% temp_name)) != 0){
+      stop("Model(s): ", paste(model[!(model %in% temp_name)], collapse = ", "),
+           " is/are not present in '", ncdf, "'\nPlease select a model from: ", paste(temp_name, collapse = ", "))
+    }
+    
+    temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
+  } else if(dim == "member") {
+    
+    # Load obs data 
+    obs_list <- load_var(ncdf, var = "watertemp", return = "list", dim = "model",
+                         dim_index = 1, print = FALSE)
+    obs_list <- obs_list[["Obs"]]
+    
+    n_val <- length(obs_list)
+    
+    nas <- sum(is.na(obs_list))
+    if(nas == n_val) {
+      warning("No temperature observations in ", ncdf)
+    }
+    
+    # Add to var list
+    temp[["Obs"]] <- obs_list
+    
   }
   
-  temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
+  
   if(ice_present){
-    ice <- load_var(ncdf, "ice_height", return = "list", print = FALSE)
-    ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
+    ice <- load_var(ncdf, var = "ice_height", return = "list", dim = dim,
+                    dim_index = dim_index, print = FALSE)
+    if(dim == "member") {
+      ice2 <- load_var(ncdf, var = "ice_height", return = "list", dim = "model",
+                      dim_index = 1, print = FALSE)
+      ice[["Obs"]] <- ice2[["Obs"]]
+    } else {
+      ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
+    }
   }
   
   
   # Extract latitude for determining hemisphere
-  lat <- gotmtools::get_1d(ncdf, "lat")
+  fid <- ncdf4::nc_open(ncdf)
+  lat <- ncdf4::ncvar_get(fid, "lat")
+  ncdf4::nc_close(fid)
+  
   if(lat > 0){
     NH <- TRUE
   }else{
@@ -81,7 +118,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   # Remove temp spin-up period ----
   obs_temp <- temp[["Obs"]]
   z <- rLakeAnalyzer::get.offsets(obs_temp)
-  obs_temp <- wide2long(obs_temp, z)
+  obs_temp <- gotmtools::wide2long(obs_temp, z)
   # obs_temp <- na.exclude(obs_temp)
   if(!is.null(spin_up)){
     spin_date <- obs_temp[1, 1] + spin_up * (24 * 60 * 60)
@@ -119,7 +156,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
   out_list <- lapply(seq_len(length(temp)), function(x){
     
     z <- rLakeAnalyzer::get.offsets(temp[[x]])
-    tmp <- wide2long(temp[[x]], z)
+    tmp <- gotmtools::wide2long(temp[[x]], z)
     # obs_temp <- na.exclude(obs_temp)
     if(!is.null(spin_up)){
       spin_date <- tmp[1, 1] + spin_up * (24 * 60 * 60)
@@ -140,7 +177,7 @@ analyse_ncdf <- function(ncdf, model, spin_up = 0, drho = 0.1){
       str <- analyse_strat(data = tmp, NH = NH, H_ice = NULL, drho = drho)
     }
     
-    stats <- sum_stat(tmp, obs_temp, depth = T)
+    stats <- gotmtools::sum_stat(tmp, obs_temp, depth = T)
     
     tmp$model <- names(temp)[x]
     str$model <- names(temp)[x]

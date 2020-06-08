@@ -46,7 +46,7 @@
   "ModelParameters" : {
     "lat"           : 53.9,! /LER/ Latitude in [°]
     "p_air"         : 1011,                              ! Air pressure in [mbar]
-    "a_seiche"      : 0.001,                            ! Fraction of wind energy which goes into seiche energy [-]
+    "a_seiche"      : 0.003,                            ! Fraction of wind energy which goes into seiche energy [-]
     "a_seiche_w"    : 0,                                ! Fraction of wind energy which goes into seiche energy in winter [-] (only used if SplitSeicheParameter=true)
     "strat_sumr"    : 0,                                ! If maximum N2 (Brundt-Vaisala frequency) is below this threshold, a_seiche_w is used instead of a_seiche (only used if SplitSeicheParameter=true)
     "q_nn"          : 1.0,                             ! Fit parameter for distribution of seiche energy [-]
