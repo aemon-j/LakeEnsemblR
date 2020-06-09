@@ -121,15 +121,6 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       dat <- data[which(data[, 4] != "Obs"), ]
       # dat <- data %>% 
       #   dplyr::filter(sym(dim) != "Obs")
-      # remove NAs
-      na_dates <- c(obs$datetime[is.na(obs$value)])
-      if(length(na_dates) > 0) {
-        idx <- which(obs$datetime %in% na_dates)
-        obs <- obs[-idx, ]
-        idx <- which(dat$datetime %in% na_dates)
-        dat <- dat[-idx, ]
-        
-      }
 
       dat_av <- dat %>% 
         dplyr::filter(sym(dim) != "Obs") %>%
