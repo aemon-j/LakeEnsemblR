@@ -21,17 +21,17 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
   })
-  
+
   # check model input
   model <- check_models(model)
-  
+
   ##-------------Read settings---------------
-  
+
   # Latitude
   lat <- get_yaml_value(config_file, "location", "latitude")
   # Longitude
@@ -40,6 +40,9 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   elev <- get_yaml_value(config_file, "location", "elevation")
   # Maximum Depth
   max_depth <- get_yaml_value(config_file, "location", "depth")
+  # initial depth
+  init_depth <- get_yaml_value(config_file, "location", "init_depth")
+
   # Read in hypsograph data
   hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
   if(!file.exists(hyp_file)){
@@ -48,23 +51,31 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   hyp <- read.csv(hyp_file)
   # Use ice
   use_ice <- get_yaml_value(config_file, "ice", "use")
-  
+
   # Output depths
   output_depths <- get_yaml_value(config_file, "output", "depths")
-  
+
   ##---------------FLake-------------
   if("FLake" %in% model){
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
-    
+
     # Calculate mean depth from hypsograph (mdepth = V / SA)
     # Calculate volume from hypsograph - converted to function?
     ## Needs to be double checked!
     bth_area <- hyp$Area_meterSquared
     bth_depth <- hyp$Depth_meter
+
+
     top <- min(bth_depth)
     bottom <- max(bth_depth)
     layer_d <- seq(top, bottom, 0.1)
     layer_a <- stats::approx(bth_depth, bth_area, layer_d)$y
+    # if init depth is smaller than max depth change hypsograph
+    if(init_depth < max_depth) {
+      layer_a <- layer_a[(init_depth + (layer_d - max_depth)) >= 0]
+      layer_d <- layer_d[(init_depth + (layer_d - max_depth)) >= 0]
+      layer_d <- layer_d - min(layer_d)
+    }
     vols <- c()
     for(i in 2:length(layer_d)){
       h <- layer_d[i] - layer_d[i - 1]
@@ -72,39 +83,40 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
       vols <- c(vols, cal_v)
     }
     vol <- sum(vols)
-    mean_depth <- signif((vol / bth_area[1]), 4)
+    mean_depth <- signif((vol / layer_a[1]), 4)
     ##
-    
-    
+
+
     input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "h_ML_in", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "depth_w_lk", mean_depth)
     input_nml(fla_fil, label = "LAKE_PARAMS", key = "latitude_lk", lat)
-    
+
   }
-  
+
   ##---------------GLM-------------
-  
+
   if("GLM" %in% model){
     glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
-    
+
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
-    
+
     # Format hypsograph
     glm_hyp <- hyp
     glm_hyp[, 1] <- elev - glm_hyp[, 1] # this doesn't take into account GLM's lake elevation
-    
+
     # Calculate bsn_len & bsn_wid:
     # Calculate basin dims assume ellipse with width is twice the length
     Ao <- max(glm_hyp[, 2])
     bsn_wid <- sqrt((2 * Ao) / pi)
     bsn_len <- 2 * bsn_wid
     # Can be overwritten by providing values in the model_parameters section of config_file
-    
+
     # Calculate max number of layers
     min_layer_thick <- get_nml_value(nml, "min_layer_thick")
     max_layers <- round(max_depth / min_layer_thick)
-    
+
+
     inp_list <- list("lake_name" = get_yaml_value(config_file, "location", "name"),
                      "latitude" = lat,
                      "longitude" = lon,
@@ -116,28 +128,32 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
                      "bsn_len" = bsn_len,
                      "bsn_wid" = bsn_wid,
                      "max_layers" = max_layers,
-                     "max_layer_thick" = 1.0)
-    
+                     "max_layer_thick" = 1.0,
+                     "lake_depth" = init_depth)
+
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     write_nml(nml, glm_nml)
   }
-  
+
   ##---------------GOTM-------------
   if("GOTM" %in% model){
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
-    
+
     # Write input parameters to got_yaml
     input_yaml(got_yaml, "location", "name", get_yaml_value(config_file, "location", "name"))
     input_yaml(got_yaml, "location", "latitude", lat)
     input_yaml(got_yaml, "location", "longitude", lon)
-    
+
     # Set max depth
     input_yaml(got_yaml, "location", "depth", max_depth)
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
-    
+
+    # set initial depth
+    input_yaml(got_yaml, "zeta", "constant_value", (init_depth - max_depth))
+
     # Switch on ice model - MyLake
     # input_yaml(got_yaml, "ice", "model", 2)
-    
+
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
     got_hyp <- hyp
@@ -146,26 +162,34 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     write.table(got_hyp, "GOTM/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
     input_yaml(got_yaml, "location", "hypsograph", "hypsograph.dat")
-    
+
   }
-  
+
   ##---------------Simstrat-------------
   if("Simstrat" %in% model){
     sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
-    
+
     # Create Simstrat bathymetry
     sim_hyp <- hyp
     sim_hyp[, 1] <- -sim_hyp[, 1]
     colnames(sim_hyp) <- c("Depth [m]",	"Area [m^2]")
+
+    # if init depth is lower than max depth change hypsograph
+    if(init_depth < max_depth) {
+      sim_hyp<- sim_hyp[(sim_hyp$`Depth [m]` - min(sim_hyp$`Depth [m]`)) <= init_depth, ]
+
+      sim_hyp$`Depth [m]` <- sim_hyp$`Depth [m]` - max(sim_hyp$`Depth [m]`)
+    }
+
     write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
-    
-    
+
+
     # Input parameters
     input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))
     input_json(sim_par, "Input", "Morphology", '"hypsograph.dat"')
     input_json(sim_par, "ModelParameters", "lat", lat)
-    
+
     # Turn off ice and snow
     if(use_ice){
       input_json(sim_par, "ModelConfig", "IceModel", 1)
@@ -173,7 +197,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
       input_json(sim_par, "ModelConfig", "IceModel", 0)
       input_json(sim_par, "ModelConfig", "SnowModel", 0)
     }
-    
+
     # Calculate default value a_seiche
     # Based on a relation between surface area and calibrated a_seiche
     # in the study of Gaudard et al. (2019). Data used to construct this
@@ -182,20 +206,26 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     a_seiche <- 10^(-2.8591 + 0.7029 * log10(surf_area))
     input_json(sim_par, "ModelParameters", "a_seiche", a_seiche)
   }
-  
+
   ##---------------MyLake-------------
   if("MyLake" %in% model){
     # Load config file MyLake
     load(get_yaml_value(config_file, "config_files", "MyLake"))
-    
+
     # wind sheltering coefficient (C_shelter)
     c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
-    
+
     mylake_config[["Phys.par"]][5] <- c_shelter
     mylake_config[["Phys.par"]][6] <- lat
     mylake_config[["Phys.par"]][7] <- lon
     mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
     mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
+    if(init_depth < max_depth) {
+      myl_hyp <- hyp[(hyp$Depth_meter - max_depth) >= -init_depth, ]
+      myl_hyp$Depth_meter <- myl_hyp$Depth_meter - min(myl_hyp$Depth_meter)
+      mylake_config[["In.Az"]] <- as.matrix(myl_hyp$Area_meterSquared)
+      mylake_config[["In.Z"]] <- as.matrix(myl_hyp$Depth_meter)
+    }
     mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(hyp)), ncol = 1)
     mylake_config[["In.Chlz.sed"]] <- matrix(rep(196747, nrow(hyp)), ncol = 1)
     mylake_config[["In.TPz.sed"]] <- matrix(rep(756732, nrow(hyp)), ncol = 1)
@@ -205,11 +235,11 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     mylake_config[["In.TPz"]] <- matrix(rep(21, nrow(hyp)), ncol = 1)
     mylake_config[["In.Sz"]] <- matrix(rep(0, nrow(hyp)), ncol = 1)
     mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(hyp)), ncol = 1)
-    
+
     # save lake-specific config file for MyLake
     temp_fil <- gsub(".*/", "", get_yaml_value(config_file, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
   }
-  
+
   message("export_location complete!")
 }
