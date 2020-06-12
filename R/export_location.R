@@ -217,23 +217,25 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     mylake_config[["Phys.par"]][5] <- c_shelter
     mylake_config[["Phys.par"]][6] <- lat
     mylake_config[["Phys.par"]][7] <- lon
-    mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
-    mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
     if(init_depth < max_depth) {
       myl_hyp <- hyp[(hyp$Depth_meter - max_depth) >= -init_depth, ]
       myl_hyp$Depth_meter <- myl_hyp$Depth_meter - min(myl_hyp$Depth_meter)
       mylake_config[["In.Az"]] <- as.matrix(myl_hyp$Area_meterSquared)
       mylake_config[["In.Z"]] <- as.matrix(myl_hyp$Depth_meter)
+    } else {
+      myl_hyp <- hyp
+      mylake_config[["In.Az"]] <- as.matrix(hyp$Area_meterSquared)
+      mylake_config[["In.Z"]] <- as.matrix(hyp$Depth_meter)
     }
-    mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(hyp)), ncol = 1)
-    mylake_config[["In.Chlz.sed"]] <- matrix(rep(196747, nrow(hyp)), ncol = 1)
-    mylake_config[["In.TPz.sed"]] <- matrix(rep(756732, nrow(hyp)), ncol = 1)
-    mylake_config[["In.DOCz"]] <- matrix(rep(3000, nrow(hyp)), ncol = 1)
-    mylake_config[["In.Chlz"]] <- matrix(rep(7, nrow(hyp)), ncol = 1)
-    mylake_config[["In.DOPz"]] <- matrix(rep(7, nrow(hyp)), ncol = 1)
-    mylake_config[["In.TPz"]] <- matrix(rep(21, nrow(hyp)), ncol = 1)
-    mylake_config[["In.Sz"]] <- matrix(rep(0, nrow(hyp)), ncol = 1)
-    mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(hyp)), ncol = 1)
+    mylake_config[["In.FIM"]] <- matrix(rep(0.92, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.Chlz.sed"]] <- matrix(rep(196747, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.TPz.sed"]] <- matrix(rep(756732, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.DOCz"]] <- matrix(rep(3000, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.Chlz"]] <- matrix(rep(7, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.DOPz"]] <- matrix(rep(7, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.TPz"]] <- matrix(rep(21, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.Sz"]] <- matrix(rep(0, nrow(myl_hyp)), ncol = 1)
+    mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(myl_hyp)), ncol = 1)
 
     # save lake-specific config file for MyLake
     temp_fil <- gsub(".*/", "", get_yaml_value(config_file, "config_files", "MyLake"))
