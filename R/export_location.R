@@ -148,9 +148,6 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     input_yaml(got_yaml, "location", "depth", max_depth)
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
-    # set initial depth
-    input_yaml(got_yaml, "zeta", "constant_value", (init_depth - max_depth))
-
     # Switch on ice model - MyLake
     # input_yaml(got_yaml, "ice", "model", 2)
 
@@ -158,6 +155,10 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     ndeps <- nrow(hyp)
     got_hyp <- hyp
     got_hyp[, 1] <- -got_hyp[, 1]
+    # if init depth is lower than max depth change hypsograph
+    if(init_depth < max_depth) {
+      got_hyp$Depth_meter <- got_hyp$Depth_meter + (max_depth - init_depth)
+    }
     colnames(got_hyp) <- c(as.character(ndeps), "2")
     write.table(got_hyp, "GOTM/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
@@ -176,9 +177,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
     # if init depth is lower than max depth change hypsograph
     if(init_depth < max_depth) {
-      sim_hyp<- sim_hyp[(sim_hyp$`Depth [m]` - min(sim_hyp$`Depth [m]`)) <= init_depth, ]
-
-      sim_hyp$`Depth [m]` <- sim_hyp$`Depth [m]` - max(sim_hyp$`Depth [m]`)
+      sim_hyp$Depth_meter <- sim_hyp$Depth_meter + (max_depth - init_depth)
     }
 
     write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
