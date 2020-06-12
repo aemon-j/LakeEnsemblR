@@ -4,7 +4,14 @@
 \alias{load_var}
 \title{Extract variables from NetCDF file}
 \usage{
-load_var(ncdf, var, return = "list", print = TRUE)
+load_var(
+  ncdf,
+  var,
+  return = "list",
+  dim = "model",
+  dim_index = 1,
+  print = TRUE
+)
 }
 \arguments{
 \item{ncdf}{filepath; Name of the netCDF file to extract variable}
@@ -12,6 +19,10 @@ load_var(ncdf, var, return = "list", print = TRUE)
 \item{var}{character; Name of the variable to be extracted. Must match short name in netCDF file}
 
 \item{return}{character; Must be either list or array}
+
+\item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model".}
+
+\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1.}
 
 \item{print}{logical; Print the name and units of the variable extracted, defaults to TRUE}
 }

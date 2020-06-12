@@ -1,6 +1,6 @@
 #' Export LakeEnsemblR standardized input to model specific driver format
 #'
-#'Export driver files for each model
+#' Export driver files for each model
 #'
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include
@@ -55,18 +55,20 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   met_timestep <- get_meteo_time_step(file.path(folder, meteo_file))
 
   ### Import data
-  message("Loading met data...")
+  message("Loading met data...", paste0("[", Sys.time(), "]"))
   if(is.null(meteo_file)){
     meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "meteo_file")
   }
   met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = FALSE)
+  message("Finished loading met data!", paste0("[", Sys.time(), "]"))
+  
   met[, 1] <- as.POSIXct(met[, 1])
   # Check time step
   tstep <- diff(as.numeric(met[, 1]))
 
   if((mean(tstep) - 86400) / 86400 < -0.05) {
     subdaily <- TRUE
-  } else {
+  }else{
     subdaily <- FALSE
   }
 
@@ -238,6 +240,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   # Set the timezone back to the original
   Sys.setenv(TZ = original_tz)
-
+  
+  message("export_meteo complete!")
 
 }

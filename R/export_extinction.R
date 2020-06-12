@@ -14,7 +14,9 @@
 #'
 #'@export
 
-export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake"), folder = "."){
+export_extinction <- function(config_file,
+                              model = c("GOTM", "GLM", "Simstrat", "FLake"),
+                              folder = "."){
 
   # Set working directory
   oldwd <- getwd()
@@ -30,7 +32,10 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
   })
 
   Sys.setenv(TZ = "GMT")
-
+  
+  # check model input
+  model <- check_models(model)
+  
   # Check if the value in the config file is a fixed value, or a file (time series)
   Kw <- get_yaml_value(config_file, "light", "Kw")
   if(is.numeric(Kw)){
@@ -195,7 +200,9 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
     file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
-
+    
+    input_json(sim_par, "Input", "Absorption", '"light_absorption.dat"')
+    
     # Write absorption file
     absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
     absorption_line_2 <- "1"
@@ -246,19 +253,13 @@ export_extinction <- function(config_file, model = c("GOTM", "GLM", "Simstrat", 
     }
     
     # Load MyLake config file
-    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
-    if(file.exists(temp_fil)){
-      load(temp_fil)
-    }else{
-      # Load template config file from extdata
-      mylake_path <- system.file(package = "LakeEnsemblR")
-      cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
-      load(file.path(folder, "MyLake", cnf_name))
-    }
+    load(get_yaml_value(config_file, "config_files", "MyLake"))
     
     mylake_config[["Bio.par"]][2] <- Kw
+    
     cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
-    
   }
+  
+  message("export_extinction complete!")
 }
