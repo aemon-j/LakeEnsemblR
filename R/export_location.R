@@ -173,12 +173,12 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     # Create Simstrat bathymetry
     sim_hyp <- hyp
     sim_hyp[, 1] <- -sim_hyp[, 1]
-    colnames(sim_hyp) <- c("Depth [m]",	"Area [m^2]")
 
     # if init depth is lower than max depth change hypsograph
     if(init_depth < max_depth) {
       sim_hyp$Depth_meter <- sim_hyp$Depth_meter + (max_depth - init_depth)
     }
+    colnames(sim_hyp) <- c("Depth [m]",	"Area [m^2]")
 
     write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
