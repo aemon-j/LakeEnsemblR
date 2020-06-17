@@ -1,6 +1,6 @@
 #' Extract FLake output
 #'
-#'Read in FLake results, interpolate to a gridded struture and return a dataframe in long or wide format for vars = "temp"
+#'Read in FLake results, interpolate to a gridded struture and return a dataframe in long or wide format for vars = "watertemp"
 #'
 #' @name read_flake_out
 #' @param output filepath; to FLake output file
@@ -34,7 +34,7 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
   flake_out <- read.table(output, header = TRUE, skip = 1, stringsAsFactors = FALSE)
 
   out_list <- list()
-  if("temp" %in% vars){
+  if("watertemp" %in% vars){
     # calculate temperature profile
     Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
     Tb <- flake_out[["Tb"]] # bottom temperature
@@ -93,7 +93,7 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     }
     wtr2 <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
     out_list[[length(out_list) + 1]] <- wtr2
-    names(out_list)[length(out_list)] <- "temp"
+    names(out_list)[length(out_list)] <- "watertemp"
   }
 
   if("ice_height" %in% vars){
