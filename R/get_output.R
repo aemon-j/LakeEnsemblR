@@ -65,7 +65,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
       glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
                                                                  "output.nc"),
-                                                var_name = "watertemp", reference = "surface",
+                                                var_name = "temp", reference = "surface",
                                                 z_out = depths)
       colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("wtr_", depths, sep = ""))
       names(glm_out)[length(glm_out)] <- "watertemp"
