@@ -100,7 +100,7 @@ check_master_config <- function(config_file,
   
   # check if time_method in output is OK
   variables <- gotmtools::get_yaml_value(config_file, "output", "variables")
-  good_vars <- c("temp", "ice_height")
+  good_vars <- c("watertemp", "ice_height")
   if(any(!variables %in% good_vars)) {
     stop(paste0('Unknown output variable: "', variables[!variables %in% good_vars],
                 '" in control file ', config_file,
