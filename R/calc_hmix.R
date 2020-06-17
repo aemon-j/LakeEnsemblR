@@ -12,7 +12,7 @@
 #' (plot=TRUE), marking the surface layer and inflection point in red and the 
 #' thermocline in blue.
 #' @name calc_hmix
-#' @param temps a numeric vector of water temperature in \u00BoC.
+#' @param temps a numeric vector of water temperature in degC.
 #' @param depth a numeric vector corresponding to the depths (in m) of the temps
 #'  measurements
 #' @param min.dT numeric; minimum change in water temperature
@@ -21,6 +21,7 @@
 #' @param plot boolean; plot temperature profile with calculated mixed depth.
 #' Defaults to FALSE
 #' @param ... arguments to be passed to base plot
+#' @encoding UTF-8
 #' @author Tom Shatwell
 #'
 #' @export
