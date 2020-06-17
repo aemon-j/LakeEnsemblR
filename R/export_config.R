@@ -31,9 +31,9 @@
 #'@export
 
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          dirs = TRUE, time = TRUE, location = TRUE, output_settings = TRUE,
-                          meteo = TRUE, init_cond = TRUE, extinction = TRUE, inflow = TRUE,
-                          model_parameters = TRUE,
+                          dirs = TRUE, time = TRUE, location = TRUE,
+                          output_settings = TRUE, meteo = TRUE, init_cond = TRUE,
+                          extinction = TRUE, inflow = TRUE, model_parameters = TRUE,
                           folder = "."){
 
   # Set working directory
