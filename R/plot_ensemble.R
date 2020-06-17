@@ -37,6 +37,16 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
   
+  # Fix time zone
+  original_tz <- Sys.getenv("TZ")
+  
+  # this way if the function exits for any reason, success or failure, these are reset:
+  on.exit({
+    Sys.setenv(TZ = original_tz)
+  })
+  
+  Sys.setenv(TZ = "GMT")
+  
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
@@ -284,6 +294,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   if(!is.null(date)) {
     
     # if a specific date is selected plot a depth profile
+    date <- as.POSIXct(date)
     dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>% 
       dplyr::filter(datetime == date) %>%
       dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
