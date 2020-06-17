@@ -159,9 +159,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if (return_list | create_output) {
 
-    if("temp" %in% out_vars){
+    if("watertemp" %in% out_vars){
       temp_list <- setNames(
-        lapply(model, function(mod_name) model_out[[mod_name]][["temp"]]),
+        lapply(model, function(mod_name) model_out[[mod_name]][["watertemp"]]),
         paste0(model, "_watertemp")
       )
       if(!is.null(obs_deps)){
