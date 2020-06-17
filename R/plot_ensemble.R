@@ -296,9 +296,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
     } else {
-      obs <- dat %>% dplyr::filter(Model == "Obs")
+      obs <- dat %>% dplyr::filter(model == "Obs")
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
-      dat <- dat %>% dplyr::filter(Model != "Obs")
+      dat <- dat %>% dplyr::filter(model != "Obs")
     }
     
     dat_av <- dat %>% dplyr::filter(sym(dim) != "Obs") %>%
