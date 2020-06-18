@@ -50,7 +50,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
   if("GLM" %in% model){
     # Extract output
     glm_out <- list()
-    if("watertemp" %in% vars){
+    if("temp" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
@@ -68,7 +68,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                                                 var_name = "temp", reference = "surface",
                                                 z_out = depths)
       colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("wtr_", depths, sep = ""))
-      names(glm_out)[length(glm_out)] <- "watertemp"
+      names(glm_out)[length(glm_out)] <- "temp"
     }
 
     if("ice_height" %in% vars){
@@ -93,7 +93,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
   if("GOTM" %in% model){
 
     got_out <- list()
-    if("watertemp" %in% vars){
+    if("temp" %in% vars){
 
       temp <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
                        print = FALSE)
@@ -123,7 +123,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
 
       got_out[[length(got_out) + 1]] <- got
-      names(got_out)[length(got_out)] <- "watertemp"
+      names(got_out)[length(got_out)] <- "temp"
 
     }
 
@@ -154,7 +154,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     sim_out <- list()
 
-    if("watertemp" %in% vars){
+    if("temp" %in% vars){
 
       temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
                          sep = ",", check.names = FALSE)
@@ -204,7 +204,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       }
 
       sim_out[[length(sim_out) + 1]] <- temp
-      names(sim_out)[length(sim_out)] <- "watertemp"
+      names(sim_out)[length(sim_out)] <- "temp"
 
     }
 
@@ -233,7 +233,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     load(file.path(folder, "MyLake", "output", "output.RData"))
 
-    if("watertemp" %in% vars){
+    if("temp" %in% vars){
 
       output_depths <- get_yaml_value(config_file, "output", "depths")
       #max_depth <- get_yaml_value(config_file, "location", "depth")
@@ -262,7 +262,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
                                                       paste("wtr_", depths, sep = ""))
 
-      names(mylake_out)[length(mylake_out)] <- "watertemp"
+      names(mylake_out)[length(mylake_out)] <- "temp"
 
     }
 

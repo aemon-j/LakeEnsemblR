@@ -36,7 +36,7 @@ read_flake_out(
 Dataframe if only one variable otherwise a list
 }
 \description{
-Read in FLake results, interpolate to a gridded struture and return a dataframe in long or wide format for vars = "watertemp"
+Read in FLake results, interpolate to a gridded struture and return a dataframe in long or wide format for vars = "temp"
 }
 \examples{
 \dontrun{
