@@ -371,7 +371,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       
       if(dim == "model") {
         dat[, dim] <- factor(dat[, dim])
-        dat[, dim]l <- factor(dat[, dim], levels=c("Obs", levels(dat[, dim])
+        dat[, dim] <- factor(dat[, dim], levels=c("Obs", levels(dat[, dim])
                                                 [-c(which(levels(dat[, dim]) == "Obs"))]))
       } else {
         dat <- rbind(dat, set_colnames(obs, c("datetime", "Depth", "value", dim)))
