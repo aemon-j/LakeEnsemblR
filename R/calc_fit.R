@@ -35,9 +35,14 @@ calc_fit <- function(ncdf, list = NULL, model, var, dim = "model", dim_index = 1
   model <- check_models(model)
   
   if(is.null(list)) {
-  # get variable
-  var_list <- load_var(ncdf, var = var, return = "list", dim = dim,
-                       dim_index = dim_index, print = FALSE)
+    # get variable
+    var_list <- load_var(ncdf, var = var, return = "list", dim = dim,
+                         dim_index = dim_index, print = FALSE)
+    if(dim_index != 1 & dim == "model") {
+      obs_l <- load_var(ncdf, var = var, return = "list", dim = dim,
+                        dim_index = 1, print = FALSE)
+      var_list$Obs <- obs_l$Obs
+    }
   } else {
     var_list <- list
     if(any(names(var_list) %in% paste0(c(model, "Obs"), "_", var))) {
