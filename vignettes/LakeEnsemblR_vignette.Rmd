@@ -95,10 +95,10 @@ Depth_meter,Area_meterSquared
 In the "Time" section, you fill in the start and end date of the simulation, and the model time step. `time_step` indicates the model integration time step, so each time step that the model performs a calculation. 
 
 ## Config files
-In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc.) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
+In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
 
 ## Light
-Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
+Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
 
 ## Observations
 If you have observations of water temperature or ice cover, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
@@ -106,19 +106,32 @@ If you have observations of water temperature or ice cover, you can fill them in
 For water temperature, the data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Depths are positive and relative to the water surface. Water temperature is in degrees Celsius. The column names *must* be `datetime`, `Depth_meter` and `Water_Temperature_celsius` (templates available).
 
 Example of data:
-```{}
+```{csv}
 datetime,Depth_meter,Water_Temperature_celsius
 2004-01-05 00:00:00,0.9,6.97
-2004-01-05 00:00:00,2.5,6.71
-2004-01-05 00:00:00,5,6.73
-2004-01-05 00:00:00,8,6.76
+2004-01-06 00:00:00,2.5,6.71
+2004-01-07 00:00:00,5,6.73
+2004-01-08 00:00:00,8,6.76
+...
+```
+
+
+For ice height, the data must also be a comma separated values (.csv) file, with datetime column in format `YYYY-mm-dd HH:MM:SS` and has the column name `datetime`. Ice height must be provided in meters and the column must be named `Ice_Height_meter`.
+
+Example of data:
+
+```{csv}
+datetime, Ice_Height_meter
+2004-01-01 00:00:00,0.3
+2004-01-02 00:00:00,0.3
+2004-01-03 00:00:00,0.35
 ...
 ```
 
 ## Input
 In the "Input" section, you give information about the initial temperature profile, meteorological forcing, and ice.
 
-Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
+Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available using `get_template("Initial temperature profile")`). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
 
 Secondly, you give the link to the file with your meteorological data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. See Table 1 for the list of variables, units and column names. The `time_zone` setting has not been implemented yet.
 
@@ -141,7 +154,7 @@ kable_styling(x_html, position = "left", font_size = 11)
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available).
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ).
 
 Example of data:
 ```{csv}
@@ -174,7 +187,7 @@ or:
 ```
 
 ## Calibration
-This section is used when calibrating the models. In the package, the run_LHC (Latin-Hypercube) and run_MCMC (Monte-Carlo Markov Chain) functions do this, but this is currently still in a beta-phase and this will be more clearly explained in a later version of this vignette.
+This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For information on how to run the calibration and how to structure this section of the config file, see section 5.7 "Model calibration". 
 
 # Workflow
 In this chapter, we quickly show you how your workflow with LakeEnsemblR could look like. 
@@ -240,46 +253,18 @@ wtemp_list <- run_ensemble(config_file = config_file,
 
 ```
 
-Post-processing:
+Plotting the model outputs is very easy using the `plot_heatmap()` function:
 
 ```{r eval = FALSE}
 
-# Load libraries for post-processing
-library(ggpubr)
-library(ggplot2)
+g1 <- plot_heatmap("output/ensemble_output.nc")
 
-## Plot model output using gotmtools/ggplot2
-
-# Extract names of all the variables in netCDF
-ens_out <- "output/ensemble_output.nc"
-vars <- gotmtools::list_vars(ens_out)
-vars # Print variables
-
-plist <- list() # Initialize empty list for storing plots of each variable
-for(i in 1:5){
-  p1 <- gotmtools::plot_vari(ncdf = ens_out,
-                             var = vars[i],
-                             incl_time = FALSE,
-                             limits = c(0,25),
-                             zlab = "degC")
-  p1 <- p1 + scale_y_reverse() + #Reverse y-axis
-    coord_cartesian(ylim = c(45,0))+ # ggplot2 v3.3 is sensitive to order of ylim
-    ggtitle(vars[i]) + # Add title using variable name
-    xlab("")+ # Remove x-label
-    theme_bw(base_size = 18) # Increase font size of plots
-  plist[[i]] <- p1
-}
-
-# Plot all model simulations
-# install.packages("ggpubr")
-g1 <- ggpubr::ggarrange(plotlist = plist, ncol = 1, common.legend = TRUE, legend = "right")
-g1
 ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300,width = 384,height = 300,
        units = "mm")
 
 ```
 
-## More Post-processing
+## Post-processing
 
 Once LakeEnsemblR did successfully run all lake models, you can either extract the output data from the netcdf file for custom analysis and plotting, or use post-processing scripts for an initial look at the output.
 
@@ -345,7 +330,7 @@ include_graphics("../images/model_ensemble_diagnostics.png")
 ### Further custom post-processing
 ```{r further, eval = FALSE}
 # Load post-processed output data into your workspace
-analyse_df <- analyse_ncdf(ncdf = ens_out, spin_up = NULL, drho = 0.1)
+analyse_df <- analyse_ncdf(ncdf = ens_out, model = model, spin_up = NULL, drho = 0.1)
 
 # Example plot the summer stratification period
 strat_df <- analyse_df$strat
@@ -365,6 +350,123 @@ include_graphics("../images/model_ensemble_stratification.png")
 
 
 We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.
+
+
+## Model calibration
+
+LakeEnsemblR includes some tools for automatic model calibration which are included in the `cali_ensemble()` function. The function profides three methods:
+
+ - method "LHC": Lathin hypercube calibration
+ - method "MCMC": Markov Chain Monte Carlo simulation using the `modMCMC` function from the `FME` package (@soetaert_inverse_2010)
+ - method "modFit": model fitting using one of the algorithms provided in the `modFit` function from the `FME` package (@soetaert_inverse_2010)
+
+For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are definded in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be foundand separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
+
+```{yaml}
+calibration:                                   # Calibration section                                   # Calibration section
+   met:                                        # Meteo scaling parameter
+      wind_speed:                              # Wind speed scaling
+         lower: 0.5                            # lower bound for wind speed scaling        
+         upper: 2                              # upper bound for wind speed scaling
+         initial: 1                            # initial value for wind speed scaling
+         log: false                            # log transform scaling factor
+      swr:                                     # shortwave radiation scaling
+         lower: 0.5                            # lower bound for shortwave radiation scaling
+         upper: 1.5                            # upper bound for shortwave radiation scaling
+         initial: 1                            # initial value for shortwave radiation scaling
+         log: false                            # log transform scaling factor
+   Simstrat:                                # Simstrat specific parameters                                 
+      a_seiche:
+         lower: 0.0008                         # lower bound for parameter
+         upper: 0.003                          # upper bound for parameter
+         initial: 0.001                        # initial value for parameter
+         log: false                            # log transform scaling factor                          
+   MyLake:                                  # MyLake specific parameters                                    
+     Phys.par/C_shelter:
+        lower: 0.14                            # lower bound for parameter
+        upper: 0.16                            # upper bound for parameter
+        initial: 0.15                          # initial value for parameter
+        log: false                             # log transform scaling factor	
+   GOTM:                                    # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-4                           # lower bound for parameter
+         upper: 5E-6                           # upper bound for parameter
+         initial: 1E-5                         # initial value for parameter
+         log: true
+   GLM:                                     # GLM specific parameters
+      mixing/coef_mix_hyp:
+         lower: 0.1                           # lower bound for parameter
+         upper: 2                             # upper bound for parameter
+         initial: 1                           # initial value for parameter
+         log: false                           # log transform scaling factor
+   FLake:                                  # FLake specific parameters
+      fetch_lk:
+         lower: 1.60E+03                      # lower bound for parameter
+         upper: 2.20E+03                      # upper bound for parameter
+         initial: 2.0E+03                     # initial value for parameter
+         log: false                           # log transform scaling factor
+
+
+```
+
+
+The calibration process can then be run using the `cali_ensemble()` function. Methods "LHC" and "MCMC" will write intermediate results to .csv text files in the folder specified by the `out_f` argument. It is possible to parallelize the calibration procedure using the `parallel` argument. This will distribute the calibration of the models to different cores. It is worth noting that in the current state the bottle neck for the computation speed is running MyLake (as it is written in R and significantly slower than the other four models).
+
+You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that are often calibrated in each model:
+
+ - FLake: is usually not calibrated
+ - GLM: several meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw (@hipsey_general_2019) (@bruce_mlca_glm_2018)
+ - GOTM: shf_factor, wind_factor, swr_factor, k_min, g2 (@ayala_simulations_gotm_2020)
+ - Simstrat: a_seiche, f_wind, p_radin, p_albedo (@gaudard_toward_2019)
+ - MyLake: based on sensitivity analysis (@saloranta_mylakemulti_year_2007)
+ 
+### LHC method
+
+The "LHC" method will sample a number of parameter sets definded by the `num` argument within the bounds definded by `upper` and `lower` in the master config file. For each model given in the `model` argument a set of parameters consisting of the meteo scaling factors and the model spüecific parameters will be sampled and the model will be run for each set, calculating model performance indices for each run. Both the parameter set and the model results will be written to the `out_f` folder. By default the model performance indices are:
+
+ - rmse: root mean squared error
+ - nse: Nash-Sutcliff model efficiency
+ - r: Pearson corelation coefficient
+ - re: relative error
+ - nmae: normalized mean absolute error
+ 
+But you can provide your own function to calculate model performances using the `qualfun` argument. The provided function must take the two arguments: observed data, and simulated data, both are data.frames with first column being datetime and then columns with depth specific values (lokking like the return value of the `get_output()` function).
+
+The function returns a list with an entry for every model, containing the path to the files containing the parameter sets and the model performance indices for every model run.
+
+```{r eval = FALSE}
+# calibrate the 
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "LHC", num = 300, out_f = "calibration")
+
+```
+
+### MCMC method
+
+The "MCMC" method utalizes the `modMCMC()` function from the `FME` package (@soetaert_inverse_2010), using an adaptive Metropolis algorithm and including a delayed rejection procedure. Internally the function calculates the sum of squares, which is equivalent to -2 log(likelihood) for a Gaussian likelihood and prior. The MCMC will run `num` evaluations for every model. The outcome of every model call during the MCMC simulation is written to a model specific file in the `out_f` folder, containing the parameter values and the sum of squares of the residuals. Additional arguments can be supplied to `modMCMC()` using the ellipsis argument (`...`).
+
+The function returns a list with an entry for every model, containing the return value of `modMCMC()` for every model run. 
+
+```{r eval = FALSE}
+# calibrate the 
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "MCMC", num = 3000, out_f = "calibration")
+
+```
+
+### modFit method
+
+The "modFit" method utalizes the `modFit()` function from the `FME` package (@soetaert_inverse_2010), Fitting a model to data. Additional arguments can be supplied to `modFit()` using the ellipsis argument (`...`).
+
+The function returns a list with an entry for every model, containing the return value of `modFit()` for every model run. 
+
+```{r eval = FALSE}
+# calibrate the models using a Nelder-Mead algorithm
+cali_ensemble(config_file, model = c("GLM", "GOTM", "FLake", "MyLake", "Simstrat"),
+              cmethod = "modFit", out_f = "calibration", method = "Nelder-Mead")
+
+```
+
 
 # Citation
 See 

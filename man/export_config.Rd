@@ -7,26 +7,56 @@
 export_config(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-  folder = ".",
-  inflow_file = NULL
+  dirs = TRUE,
+  time = TRUE,
+  location = TRUE,
+  output_settings = TRUE,
+  meteo = TRUE,
+  init_cond = TRUE,
+  extinction = TRUE,
+  inflow = TRUE,
+  model_parameters = TRUE,
+  folder = "."
 )
 }
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export configuration file.
-Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+\item{model}{vector; model to export configuration file for.
+Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
+
+\item{dirs}{boolean; create directories for each model and if needed copies templates.
+Calls export_dirs. Defaults to TRUE}
+
+\item{time}{boolean; exports time settings. Calls export_time. Defaults to TRUE.}
+
+\item{location}{boolean; exports location and hypsograph settings. 
+Calls export_location. Defaults to TRUE.}
+
+\item{output_settings}{boolean; exports output settings. 
+Calls export_output_settings. Defaults to TRUE.}
+
+\item{meteo}{boolean; export meteorology data.
+Calls export_meteo. Defaults to TRUE.}
+
+\item{init_cond}{boolean; export initial conditions.
+Calls export_init_cond. Defaults to TRUE.}
+
+\item{extinction}{boolean; export light extinction data.
+Calls export_extinction. Defaults to TRUE.}
+
+\item{inflow}{boolean; export inflow settings.
+Calls export_inflow. Defaults to TRUE.}
+
+\item{model_parameters}{boolean; export model parameters specificed in the yaml
+configuration file. Calls export_model_parameters. Defaults to TRUE.}
 
 \item{folder}{folder}
-
-\item{inflow_file}{filepath; to inflow file which is in the standardised LakeEnsemblR format (if
-a different file than the one provided in the configuration file is needed); default is NULL}
 }
 \description{
-Create directory with file setups for each model based on a master LakeEnsemblR config file
+Exports all settings from the master LakeEnsemblR config file
 }
 \examples{
-
 
 }
 \author{

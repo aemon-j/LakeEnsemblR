@@ -21,6 +21,7 @@
 get_output <- function(config_file, model, vars, obs_depths = NULL, folder = ".", out_time,
                        out_hour){
 
+##--------------------------- FLake -----------------------------------------
   if("FLake" %in% model) {
 
     # Extract output
@@ -44,13 +45,18 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     return(fla_out)
   }
 
+##--------------------------------- GLM ---------------------------------------
+  
   if("GLM" %in% model){
     # Extract output
     glm_out <- list()
     if("temp" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")),
+      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
+                                                                   get_yaml_value(config_file,
+                                                                                  "config_files",
+                                                                                  "GLM")),
                                               arg_name = "lake_depth"))
       depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
@@ -82,6 +88,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
   }
 
+##--------------------------- GOTM ------------------------------------------------
+  
   if("GOTM" %in% model){
 
     got_out <- list()
@@ -103,7 +111,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
 
+      message("Interpolating GOTM temp to include obs depths... ",
+              paste0("[", Sys.time(), "]"))
       got <- setmodDepths(temp, z, depths = depths, print = T)
+      message("Finished interpolating! ",
+              paste0("[", Sys.time(), "]"))
 
       got <- dcast(got, date ~ depths)
       got <- got[, c(1, (ncol(got):2))]
@@ -130,6 +142,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     return(got_out)
   }
+  
+##------------------- Simstrat ----------------------------------------------------
 
   if("Simstrat" %in% model){
 
@@ -166,7 +180,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       depths <- depths[order(-depths)]
 
       if(length(depths) != (ncol(temp) - 1)){
-        message("Interpolating Simstrat temp to include obs depths")
+        message("Interpolating Simstrat temp to include obs depths... ",
+                paste0("[", Sys.time(), "]"))
+
 
         # Create empty matrix and interpolate to new depths
         wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
@@ -174,6 +190,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
           y <- as.vector(unlist(temp[i, -1]))
           wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
         }
+        message("Finished interpolating! ",
+                paste0("[", Sys.time(), "]"))
         df <- data.frame(wat_mat)
         df$datetime <- temp[, 1]
         df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
@@ -207,6 +225,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
   }
 
+##--------------------- MyLake ------------------------------------------------
+  
   if("MyLake" %in% model){
 
     mylake_out <- list()

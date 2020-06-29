@@ -4,12 +4,23 @@
 \alias{plot_heatmap}
 \title{Plot heat map of ensemble model output}
 \usage{
-plot_heatmap(ncdf = NULL, var = "watertemp", var_list = NULL, model = NULL)
+plot_heatmap(
+  ncdf = NULL,
+  var = "watertemp",
+  dim = "model",
+  dim_index = 1,
+  var_list = NULL,
+  model = NULL
+)
 }
 \arguments{
-\item{ncdf}{Path to the netcdf file created by `run_ensemble()`}
+\item{ncdf}{Path to the netCDF file created by `run_ensemble()`}
 
 \item{var}{Variable which to plot. Defaults to "watertemp"}
+
+\item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
+
+\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.}
 
 \item{var_list}{list of variables in the format when loaded using `load_var()`. Defaults to NULL}
 

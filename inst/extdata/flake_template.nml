@@ -31,7 +31,7 @@ outputfile    = 'output/output.dat',
 !------------------------------------------------------------------------------
 &LAKE_PARAMS
 depth_w_lk  = 16.05,! /LER/ Lake depth [m]
-fetch_lk    = 2.0E+03,      ! Typical wind fetch [m] 
+fetch_lk    = 2000.0,      ! Typical wind fetch [m] 
 depth_bs_lk =  5.0,         ! Depth of the thermally active layer of the bottom sediments [m]
 T_bs_lk     =  4.0,         ! Temperature at the outer edge of the thermally active layer of the bottom sediments [C]
 latitude_lk = 53.9,! /LER/ Geographical latitude [dgr]

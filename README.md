@@ -1,7 +1,7 @@
 LakeEnsemblR
 =====
 
-[![Build Status](https://travis-ci.org/aemon-j/LakeEnsemblR.svg?branch=master)](https://travis-ci.org/aemon-j/LakeEnsemblR)   [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/)
+[![Build Status](https://travis-ci.org/aemon-j/LakeEnsemblR.svg?branch=master)](https://travis-ci.org/aemon-j/LakeEnsemblR)   [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
@@ -9,8 +9,21 @@ Tools for running an ensemble of lake models using standardised input data. Lake
 You can find example setups here: https://github.com/aemon-j/LER_examples.
 
 ## Installation
+Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up to date as there is parallel devlopment ongoing.
 
-You can install `LakeEnsemblR` from Github with:
+```{r gh-installation, eval = FALSE}
+#install.packages("devtools")
+devtools::install_github("GLEON/GLM3r")
+devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+devtools::install_github("aemon-j/FLakeR", ref = "inflow")
+devtools::install_github("aemon-j/GOTMr")
+devtools::install_github("aemon-j/gotmtools")
+devtools::install_github("aemon-j/SimstratR")
+devtools::install_github("aemon-j/LakeEnsemblR")
+devtools::install_github("aemon-j/MyLakeR")
+```
+
+Following this you can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
 # install.packages("devtools")
@@ -23,16 +36,6 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 
 ## Example model run
 ```{r gh-installation, eval = FALSE}
-# Install packages - Ensure all packages are up to date - parallel devlopment ongoing
-#install.packages("devtools")
-devtools::install_github("GLEON/GLM3r")
-devtools::install_github("hdugan/glmtools")
-devtools::install_github("aemon-j/FLakeR", ref = "inflow")
-devtools::install_github("aemon-j/GOTMr")
-devtools::install_github("aemon-j/gotmtools")
-devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/LakeEnsemblR")
-devtools::install_github("aemon-j/MyLakeR")
 
 # Load libraries
 library(gotmtools)
@@ -44,24 +47,16 @@ dir.create("example") # Create example folder
 file.copy(from = template_folder, to = "example", recursive = TRUE)
 setwd("example/feeagh") # Change working directory to example folder
 
-# Set config file
+# Set config file & models
 config_file <- 'LakeEnsemblR.yaml'
+model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
-# 1. Example - creates directories with all model setup
-export_config(config_file = config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"), folder = ".")
+# Example run
+# 1. Export settings - creates directories with all model setups and exports settings from the LER configuration file
+export_config(config_file = config_file, model = model)
 
-# 2. Create meteo driver files for each model
-export_meteo(config_file, model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
-
-# 3. Create initial conditions for each model
-export_init_cond(config_file = config_file, 
-                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                 print = TRUE)
-
-# 4. Run ensemble lake models
-wtemp_list <- run_ensemble(config_file = config_file,
-                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                           return_list = TRUE)
+# 2. Run ensemble lake models
+run_ensemble(config_file = config_file, model = model)
 
 ```
 
@@ -91,6 +86,7 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ## Plot Ensemble output
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
+model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
 
 # Load watertemp from netCDF file as a list

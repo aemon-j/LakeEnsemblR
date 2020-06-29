@@ -13,6 +13,9 @@ check_master_config(
 \arguments{
 \item{config_file}{filepath; to LakeEnsemblr yaml master config file}
 
+\item{model}{vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
+"FLake", "MyLake")}
+
 \item{exp_cnf}{boolean; check if the control files for the models are there}
 }
 \description{
