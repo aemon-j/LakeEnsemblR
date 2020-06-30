@@ -33,15 +33,15 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   }
 
   vars <- gotmtools::list_vars(ncdf)
-  if(!("watertemp" %in% vars)){
-    stop(paste("Variable 'watertemp', is not present in", ncdf,
-               "\nAdd 'watertemp' to variables list in the yaml file and re-run 'run_ensemble()'"))
+  if(!("temp" %in% vars)){
+    stop(paste("Variable 'temp', is not present in", ncdf,
+               "\nAdd 'temp' to variables list in the yaml file and re-run 'run_ensemble()'"))
   }
   if(("ice_height" %in% vars)){
     ice_present <- TRUE
   }
   
-  temp <- load_var(ncdf, "watertemp", return = "list", dim = dim,
+  temp <- load_var(ncdf, "temp", return = "list", dim = dim,
                    dim_index = dim_index, print = FALSE)
   
   if(dim == "model") {
@@ -56,7 +56,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   } else if(dim == "member") {
     
     # Load obs data 
-    obs_list <- load_var(ncdf, var = "watertemp", return = "list", dim = "model",
+    obs_list <- load_var(ncdf, var = "temp", return = "list", dim = "model",
                          dim_index = 1, print = FALSE)
     obs_list <- obs_list[["Obs"]]
     
@@ -136,7 +136,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   }
   
 
-  # Remove obs_watertemp
+  # Remove obs_temp
   temp[["Obs"]] <- NULL
   
   

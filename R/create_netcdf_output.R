@@ -113,7 +113,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   fname <- file.path(folder, "output", out_file) # Ensemble output filename
   
   # If file exists - delete it
-  if(file.exists(fname)){
+  if(file.exists(fname)) {
     unlink(fname, recursive = TRUE)
   }
   
