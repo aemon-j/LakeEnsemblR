@@ -114,16 +114,16 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # Set times
     reference_year <- lubridate::year(as.POSIXct(start_date))
     input_json(sim_par, "Simulation", "Start year", reference_year)
-    start_date_simulation <- lubridate::floor_date(as.POSIXct(start_date), unit = "days")
-    end_date_simulation <- lubridate::ceiling_date(as.POSIXct(stop_date), unit = "days")
+    start_date_simulation <- as.POSIXct(start_date)
+    end_date_simulation <- as.POSIXct(stop_date)
     input_json(sim_par, "Simulation", "Start d",
-               round(as.numeric(difftime(start_date_simulation,
+               as.numeric(difftime(start_date_simulation,
                                          as.POSIXct(paste0(reference_year, "-01-01")),
-                                         units = "days"))))
+                                         units = "days")))
     input_json(sim_par, "Simulation", "End d",
-               round(as.numeric(difftime(end_date_simulation,
+               as.numeric(difftime(end_date_simulation,
                                          as.POSIXct(paste0(reference_year, "-01-01")),
-                                         units = "days"))))
+                                         units = "days")))
     input_json(sim_par, "Simulation", "Timestep s", timestep)
   }
   
