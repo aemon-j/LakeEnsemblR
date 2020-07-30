@@ -179,11 +179,35 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         ice_list <- append(ice_list, list("Obs_ice_height" = ice_out))
       }
     }
+    
+    if("dens" %in% out_vars){
+      dens_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["dens"]]),
+        paste0(model, "_dens")
+      )
+      # if(!is.null(obs_deps)){
+      #   temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
+      # }
+      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+    }
+    
+    if("salt" %in% out_vars){
+      sal_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["salt"]]),
+        paste0(model, "_salt")
+      )
+      # if(!is.null(obs_deps)){
+      #   temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
+      # }
+      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+    }
 
     # Put all lists with output into a single, named list
     all_lists <- NULL
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
     if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
+    if(exists("dens_list")) all_lists[["dens_list"]] <- dens_list
+    if(exists("sal_list")) all_lists[["sal_list"]] <- sal_list
 
     if(format == "netcdf") {
       if (!add & !file.exists(out_file)) {
