@@ -19,7 +19,6 @@ devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
 devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/LakeEnsemblR")
 devtools::install_github("aemon-j/MyLakeR")
 ```
 
