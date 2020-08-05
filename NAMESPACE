@@ -2,6 +2,8 @@
 
 export(analyse_ncdf)
 export(analyse_strat)
+export(analyze_ncdf)
+export(analyze_strat)
 export(calc_fit)
 export(calc_hmix)
 export(calc_stats)

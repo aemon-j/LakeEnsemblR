@@ -2,9 +2,12 @@
 % Please edit documentation in R/analyse_strat.R
 \name{analyse_strat}
 \alias{analyse_strat}
+\alias{analyze_strat}
 \title{Returns stratification statstics}
 \usage{
 analyse_strat(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE)
+
+analyze_strat(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE)
 }
 \arguments{
 \item{data}{dataframe; water temperature data in long format with date, depths, value. Defaults
