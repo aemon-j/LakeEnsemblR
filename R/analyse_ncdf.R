@@ -225,3 +225,11 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   return(out)
 
 }
+
+# Create alias for American-English spelling
+
+#' @export
+#' @rdname analyse_ncdf
+analyze_ncdf <- analyse_ncdf
+
+

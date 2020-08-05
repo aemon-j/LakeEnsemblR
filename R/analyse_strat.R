@@ -330,3 +330,10 @@ rho_water <- function(t) {
   999.842594 + (6.793952e-2 * t) - (9.095290e-3 * t^2) +
     (1.001685e-4 * t^3) - (1.120083e-6 * t^4) + (6.536336e-9 * t^5)
 }
+
+
+# Create alias for American-English spelling
+
+#' @export
+#' @rdname analyse_strat
+analyze_strat <- analyse_strat
