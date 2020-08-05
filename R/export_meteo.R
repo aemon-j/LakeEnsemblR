@@ -15,7 +15,7 @@
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml calc_in_lwr
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom zoo na.approx
-#' @importFrom lubridate floor_date
+#' @importFrom lubridate floor_date seconds
 #'
 #' @export
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -78,7 +78,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   # FLake
   #####
-  if("FLake" %in% model) {
+  if("FLake" %in% model){
 
     fla_met <- format_met(met = met, model = "FLake", config_file = config_file)
 
@@ -144,7 +144,19 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     met_outfpath <- file.path(folder, "GOTM", met_outfile)
 
     got_met <- format_met(met, model = "GOTM", config_file = config_file)
-
+    
+    # Avoid bug where GOTM can crash if last date of met file == last date of simulation
+    if(got_met[nrow(got_met), 1] == get_yaml_value(config_file, "time", "stop")){
+      last_line <- got_met[nrow(got_met),]
+      new_last_date <- format(as.POSIXct(last_line[, 1]) + seconds(met_timestep),
+                              "%Y-%m-%d %H:%M:%S")
+      last_line[1, 1] <- new_last_date
+      got_met <- rbind(got_met, last_line)
+      
+      warning("Last date of met file equals last date of simulation. This could cause GOTM to crash ",
+              "and therefore one extra time step has been added to the GOTM met file.")
+    }
+    
     # Write meteo file, potentially with the scaling factors in the config_file 
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "GOTM", folder)
