@@ -348,7 +348,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
                               header = FALSE)
       colnames(met_m) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
-                           "Air_Temperature_celsius", "Vapor_Pressure_milliBar",
+                           "Air_Temperature_celsius", "Vapour_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
                            "Cloud_Cover_decimalFraction", "datetime")
     } else if (m == "GOTM") {
