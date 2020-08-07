@@ -114,6 +114,20 @@ check_master_config <- function(config_file,
     warning("Tabs detected in ", config_file, ". This could lead to errors,",
             " replace with spaces.")
   }
+  
+  # issue a warning if dens is used together with models that don't directly give dens output
+  if("dens" %in% variables & any(c("MyLake", "FLake") %in% model)) {
+    warning(paste0("Models ", paste0(model[model %in% c("MyLake", "FLake")], collapse = " and "),
+                   " do not directly output density and the results in the output ncdf file ",
+                   "are calculated from the models temperature output."))
+  }
+  
+  # issue a warning if sens is used together with models that don't give sens output
+  if("salt" %in% variables & any(c("MyLake", "FLake") %in% model)) {
+    warning(paste0("Models ", paste0(model[model %in% c("MyLake", "FLake")], collapse = " and "),
+                   " do not output salinity and the results in the output ncdf file ",
+                   "are just NAs."))
+  }
 }
 
 
