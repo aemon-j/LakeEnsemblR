@@ -3,7 +3,7 @@
 #' Plot a heat map of ensemble output data. It can either plot directly from the netCDF file or a list in the format when loaded in with `load_var()`.
 #' 
 #' @param ncdf Path to the netCDF file created by `run_ensemble()`
-#' @param var Variable which to plot. Defaults to "watertemp"
+#' @param var Variable which to plot. Defaults to "temp"
 #' @param var_list list of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model Vector of models which should be included in the plot
 #' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
@@ -18,10 +18,10 @@
 #' \dontrun{
 #' ncdf <- 'output/ensemble_output.nc'
 #' # Plot ensemble mean at 0.9m
-#' plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
+#' plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
 #' }
 #' @export
-plot_heatmap <- function(ncdf = NULL, var = "watertemp", dim = "model", dim_index = 1,
+plot_heatmap <- function(ncdf = NULL, var = "temp", dim = "model", dim_index = 1,
                          var_list = NULL, model = NULL) {
   
   # check if model input is correct
