@@ -8,7 +8,8 @@
 #' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if using the netCDF file. Currently only works with "model".
 #' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if using the netCDF file.
 #' @param model Vector of models for which to calculate the performance measures
-#' @param var Variable for which to calculate the performance measures
+#' @param var Variable for which to calculate the performance measures.
+#' Defaults to "temp".
 #' @param qualfun Function to calculate the performance measures. Per default calculates root
 #'    mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
 #'    relative error (re), and normalized mean absolute error (nmae). Can be any function that
@@ -22,13 +23,13 @@
 #' # using standard quality measures
 #' calc_fit(ncdf = "output/ensemble_output.nc",
 #'                    model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
-#'                    var = "watertemp")
+#'                    var = "temp")
 #' # using own performance measure
 #'  calc_fit(ncdf = "output/ensemble_output.nc",
 #'                   model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
-#'                   var = "watertemp", qualfun = function(O, S) mean(O - S, na.rm = TRUE))
+#'                   var = "temp", qualfun = function(O, S) mean(O - S, na.rm = TRUE))
 #' }
-calc_fit <- function(ncdf, list = NULL, model, var, dim = "model", dim_index = 1,
+calc_fit <- function(ncdf, list = NULL, model, var = "temp", dim = "model", dim_index = 1,
                      qualfun = qual_meas, avfun = "mean") {
   
   # check if model input is correct

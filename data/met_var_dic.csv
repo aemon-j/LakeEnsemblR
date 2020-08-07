@@ -15,5 +15,5 @@ Rainfall_meterPerSecond,rain
 Snowfall_meterPerDay,snow
 Sea_Level_Barometric_Pressure_pascal,p_sea
 Surface_Level_Barometric_Pressure_pascal,p_surf
-Vapor_Pressure_milliBar,vap_p
+Vapour_Pressure_milliBar,vap_p
 Extinction_Coefficient_perMeter,ext_coef

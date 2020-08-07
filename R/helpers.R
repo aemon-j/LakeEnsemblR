@@ -142,8 +142,7 @@ calc_wind_dir <- function(u, v) {
 #' @name get_meteo_time_step
 #' @param met_file filepath; to meteo file in LakeEnsemblR standard format
 #' @noRd
-
-get_meteo_time_step <- function(met_file) {
+get_meteo_time_step <- function(met_file){
   
   # Fix time zone
   original_tz <- Sys.getenv("TZ")
@@ -177,5 +176,40 @@ get_meteo_time_step <- function(met_file) {
   }else{
     return(-1 * unique(timesteps))
   }
+}
+
+
+#' Create scaling factor dataframe from the config_file that is needed as input to scale_met
+#' @description
+#' Creates dataframe for the pars argument of the scale_met function, based on the config_file 
+#'
+#' @name create_scaling_factors
+#' @param config_file string; name of the master LakeEnsemblR config file
+#' @param model string; model to create scaling_factors dataframe for
+#' @param folder string; file path to the config_file
+#' @noRd
+create_scaling_factors <- function(config_file, model, folder){
+  
+  master_config <- configr::read.config(file.path(folder, config_file))
+  
+  pars <- data.frame(wind_speed = 1,
+                     swr = 1,
+                     lwr = 1)
+  
+  for(i in colnames(pars)){
+    # Fill the scaling_factors based on what is filled in for "all"
+    if(!is.null(master_config[["scaling_factors"]][["all"]][[i]])){
+      pars[[i]][1] = master_config[["scaling_factors"]][["all"]][[i]]
+    }
+    
+    # Overwrite with value filled in for the specific model
+    if(!is.null(master_config[["scaling_factors"]][[model]][[i]])){
+      pars[[i]][1] = master_config[["scaling_factors"]][[model]][[i]]
+    }
+  }
+  
+  
+  # Return the data frame
+  return(pars)
 }
 

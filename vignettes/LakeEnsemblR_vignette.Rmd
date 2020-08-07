@@ -167,7 +167,7 @@ datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalS
 ```
 
 ## Output
-In the "Output" section, you specify how the output should look like. Currently, only the netcdf option is in place. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently only "temp" and "ice_height").
+In the "Output" section, you specify how the output should look like. This can be "netcdf" or "text", which will generate a series of csv files in rLakeAnalyzer format. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently only "temp" and "ice_height").
 
 ## Biogeochemistry
 Currently not implemented

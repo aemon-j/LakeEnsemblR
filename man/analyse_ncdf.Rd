@@ -2,9 +2,19 @@
 % Please edit documentation in R/analyse_ncdf.R
 \name{analyse_ncdf}
 \alias{analyse_ncdf}
+\alias{analyze_ncdf}
 \title{Analyse the output netCDF}
 \usage{
 analyse_ncdf(
+  ncdf,
+  model,
+  dim = "model",
+  dim_index = 1,
+  spin_up = 0,
+  drho = 0.1
+)
+
+analyze_ncdf(
   ncdf,
   model,
   dim = "model",

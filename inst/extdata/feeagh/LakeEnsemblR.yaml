@@ -17,8 +17,6 @@ config_files:
    Simstrat: Simstrat/simstrat.par                    # Simstrat config file (json format)
    FLake: FLake/flake.nml                          # FLake config file (nml format)
    MyLake: MyLake/mylake.Rdata      # MyLake config file (Rdata format)
-light:
-   Kw: 0.98                                     # light extinction coefficient [m-1]
 observations:
    temperature:
       file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [if none use NULL]
@@ -32,6 +30,8 @@ input:
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary
       time_zone: UTC                            # R timezone measured file is in [default=UTC]
+   light:
+      Kw: 0.98                                     # light extinction coefficient [m-1]
    ice:
       use: true                                 # turn on ice models? [default=true]
       H: 0.0                                    # initial ice thickness [m; default=0.0]. Not implemented yet
@@ -52,6 +52,12 @@ output:
       - ice_height
 biogeochemistry:                               # Not implemented yet
    use: false
+scaling_factors:                               # Scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
+   all:
+      wind_speed: 1.0
+      swr: 1.0
+   Simstrat:
+      wind_speed: 1.0
 model_parameters:
    FLake:                                      # FLake specific parameters
       fetch_lk: 2000.0                        # Typical wind fetch [m]

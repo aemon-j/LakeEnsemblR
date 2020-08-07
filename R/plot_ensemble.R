@@ -296,9 +296,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
     } else {
-      obs <- dat %>% dplyr::filter(Model == "Obs")
+      obs <- dat %>% dplyr::filter(model == "Obs")
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
-      dat <- dat %>% dplyr::filter(Model != "Obs")
+      dat <- dat %>% dplyr::filter(model != "Obs")
     }
     
     dat_av <- dat %>% dplyr::filter(sym(dim) != "Obs") %>%
@@ -381,9 +381,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       colnames(dat) <- c("datetime", "Depth", "value", dim)
       
       if(dim == "model") {
-        dat$Model <- factor(dat$Model)
-        dat$Model <- factor(dat$Model, levels=c("Obs", levels(dat$Model)
-                                                [-c(which(levels(dat$Model) == "Obs"))]))
+        dat$model <- factor(dat$model)
+        dat$model <- factor(dat$model, levels=c("Obs", levels(dat$model)
+                                                [-c(which(levels(dat$model) == "Obs"))]))
       } else {
         dat <- rbind(dat, set_colnames(obs, c("datetime", "Depth", "value", dim)))
         dat <- data.frame(dat)

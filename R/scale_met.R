@@ -92,7 +92,7 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     }
 
     if("lwr" %in% par_nams) {
-      met[[l_names$lwr]] <- met[[l_names$jwr]] * pars$lwr
+      met[[l_names$lwr]] <- met[[l_names$lwr]] * pars$lwr
     }
     
     #Reduce number of digits

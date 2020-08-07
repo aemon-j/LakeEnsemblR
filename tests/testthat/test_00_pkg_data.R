@@ -77,11 +77,11 @@ test_that("can add members to netCDF models", {
                model = model)
   
   test1 <- tryCatch({
-    load_var(ncdf, "watertemp", return = "array")
+    load_var(ncdf, "temp", return = "array")
   }, error = function(e) return(FALSE))
   
   test2 <- tryCatch({
-    load_var(ncdf, "watertemp", return = "list")
+    load_var(ncdf, "temp", return = "list")
   }, error = function(e) return(FALSE))
   test3 <- tryCatch({
     load_var(ncdf, "ice_height", return = "array")
@@ -106,11 +106,11 @@ test_that("can add members to netCDF models", {
   
   
   test5 <- tryCatch({
-    load_var(ncdf, "watertemp", return = "array", dim = "member")
+    load_var(ncdf, "temp", return = "array", dim = "member")
   }, error = function(e) return(FALSE))
   
   test6 <- tryCatch({
-    load_var(ncdf, "watertemp", return = "list", dim = "member")
+    load_var(ncdf, "temp", return = "list", dim = "member")
   }, error = function(e) return(FALSE))
   test7 <- tryCatch({
     load_var(ncdf, "ice_height", return = "array", dim = "member")
@@ -142,11 +142,11 @@ test_that("can add members to netCDF models", {
   testthat::expect_true(is.list(test10))
   
   test11 <- tryCatch({
-    plot_resid(ncdf, var = "watertemp")
+    plot_resid(ncdf, var = "temp")
   }, error = function(e) return(FALSE))
   
   test12 <- tryCatch({
-    plot_resid(ncdf, var = "watertemp", dim = "member")
+    plot_resid(ncdf, var = "temp", dim = "member")
   }, error = function(e) return(FALSE))
   
   
@@ -154,24 +154,24 @@ test_that("can add members to netCDF models", {
   testthat::expect_true(is.list(test12))
   
   test13 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9)
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9)
   }, error = function(e) return(FALSE))
   testthat::expect_true(ggplot2::is.ggplot(test13))
   
   test14 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member")
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member")
   }, error = function(e) return(FALSE))
   testthat::expect_true(ggplot2::is.ggplot(test14))
   
   test15 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member",
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
                   residuals = TRUE)
   }, error = function(e) return(FALSE))
   testthat::expect_true(ggplot2::is.ggplot((test15[[1]])) &
                           ggplot2::is.ggplot((test15[[2]])))
   
   test16 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "watertemp", depth = 0.9, dim = "member",
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
                   residuals = TRUE, boxwhisker = TRUE)
   }, error = function(e) return(FALSE))
   testthat::expect_true(ggplot2::is.ggplot((test16[[1]])) &
@@ -257,9 +257,9 @@ test_that("check plots", {
   run_ensemble(config_file = config_file,
                model = model)
   
-  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
-  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "watertemp", depth = 0.9)
-  pl2 <- plot_resid(ncdf = ncdf, model = model, var = "watertemp")
+  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
+  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
+  pl2 <- plot_resid(ncdf = ncdf, model = model, var = "temp")
   pl3 <- plot_heatmap(ncdf = ncdf, model = model)
   
   
