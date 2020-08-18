@@ -9,8 +9,8 @@ Wind speed at 10m,m/s,Ten_Meter_Elevation_Wind_Speed_meterPerSecond,Either wind 
 Wind direction at 10m,°,Ten_Meter_Elevation_Wind_Direction_degree,"Not required, but if provided u and v vectors are calculated internally"
 Wind u-vector at 10m,m/s,Ten_Meter_Uwind_vector_meterPerSecond,Either wind speed or u and v vectors is required
 Wind v-vector at 10m,m/s,Ten_Meter_Vwind_vector_meterPerSecond,Either wind speed or u and v vectors is required
-Precipitation,m/s,Precipitation_meterPerSecond,Not strictly required but is important for mass budgets in some models
-Rainfall,m/s,Rainfall_meterPerSecond,"If not provided,it is calculated internally from precipitation"
+Precipitation,m/day,Precipitation_meterPerDay,Not strictly required but is important for mass budgets in some models
+Rainfall,m/day,Rainfall_meterPerDay,"If not provided,it is calculated internally from precipitation"
 Snowfall,m/day,Snowfall_meterPerDay,"If not provided, it is calculated internally from rain or precipitation when air temperature < 0 degC"
 Sea level pressure,Pa,Sea_Level_Barometric_Pressure_pascal,Not required
 Surface level pressure,Pa,Surface_Level_Barometric_Pressure_pascal,Is calculated from sea level pressure if not provided

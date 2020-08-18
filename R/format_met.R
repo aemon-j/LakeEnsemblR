@@ -92,8 +92,7 @@ format_met <- function(met, model, config_file, folder = "."){
     
     # In case snowfall is also provided, add snowfall to precipitation
     if(chck_met$snow){
-      snow_to_add <- met[[l_names$snow]] / 86400
-      met[[l_names$precip]] <- met[[l_names$precip]] + snow_to_add
+      met[[l_names$precip]] <- met[[l_names$precip]] + met[[l_names$snow]]
     }
     chck_met$precip <- TRUE
   }
@@ -103,17 +102,17 @@ format_met <- function(met, model, config_file, folder = "."){
     # If snowfall is provided, subtract snow from precipitation to get rainfall.
     if(chck_met$snow){
       met[[l_names$rain]] <- met[[l_names$precip]] -
-        met[[l_names$snow]] / 86400
+        met[[l_names$snow]]
       met[[l_names$rain]][met[[l_names$rain]] < 0] <- 0
     }else{
       met[[l_names$rain]] <- met[[l_names$precip]]
     }
   }
   
-  # Precipitation needs to be in m h-1: 1 m s-1 = 3600 m h-1, or 1 m d-1 = 1/24 m h-1
+  # Precipitation needs to be in m h-1 for Simstrat
   # If no precipitation is provided, precipitation is assumed to be 0
   if(chck_met$precip){
-    met$`Precipitation_meterPerHour` <- met[[l_names$precip]] * 3600
+    met$`Precipitation_meterPerHour` <- met[[l_names$precip]] / 24
   }else{
     met[[l_names$precip]] <- 0
     met[[l_names$rain]] <- 0
@@ -127,7 +126,6 @@ format_met <- function(met, model, config_file, folder = "."){
     freez_ind <- which(met[[l_names$airt]] < 0)
     met[[l_names$snow]] <- 0
     met[[l_names$snow]][freez_ind] <- met[[l_names$precip]][freez_ind]
-    met[[l_names$snow]] <- met[[l_names$snow]] * 86400 # m s-1 to m d-1
     chck_met$snow <- TRUE
   }
 
