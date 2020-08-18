@@ -214,8 +214,8 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   out_df$model <- factor(out_df$model)
   
   # Put the model in the first column
-  out_stat <- out_stat[,c(ncol(out_stat), 1:(ncol(out_stat)-1))]
-  out_strat <- out_strat[,c(ncol(out_strat), 1:(ncol(out_strat)-1))]
+  out_stat <- out_stat[, c(ncol(out_stat), 1:(ncol(out_stat) - 1))]
+  out_strat <- out_strat[, c(ncol(out_strat), 1:(ncol(out_strat) - 1))]
   
   
   out <- list(out_df = out_df,
@@ -231,5 +231,3 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
 #' @export
 #' @rdname analyse_ncdf
 analyze_ncdf <- analyse_ncdf
-
-
