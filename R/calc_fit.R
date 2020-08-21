@@ -12,9 +12,9 @@
 #' Defaults to "temp".
 #' @param qualfun Function to calculate the performance measures. Per default calculates root
 #'    mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
-#'    relative error (re), and normalized mean absolute error (nmae). Can be any function that
-#'    takes observed data as first, and simulated data at the same time and depth as the second
-#'    argument
+#'    relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae). 
+#'    Can be any function that takes observed data as first, and simulated data at the same time 
+#'    and depth as the second argument. 
 #' @param avfun Name of the function to calculate the ensemble average, defaults to "mean"
 #' @author Johannes Feldbauer
 #' @export
@@ -113,7 +113,7 @@ qual_meas <- function(O, P){
   
   # function that calculates different estimations for model accuracy, namely: root mean squared
   # error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
-  # relative error (re) and normalized mean absolute error (nmae)
+  # relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae)
   #
   # Arguments:
   #^^^^^^^^^^
@@ -122,7 +122,7 @@ qual_meas <- function(O, P){
   #
   # Return Value:
   #^^^^^^^^^^^^^^
-  # qual: A data.frame containing the five quality estimates
+  # qual: A data.frame containing the six quality estimates
   
   # rmse
   rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
@@ -138,10 +138,13 @@ qual_meas <- function(O, P){
   # relative error
   re <- mean((P - O)/O, na.rm = TRUE)
   
+  # mean absolute error
+  mae <- mean(abs(O - P), na.rm = TRUE)
+  
   # normalised mean absolute error
   nmae <- mean(abs((O - P)/O), na.rm = TRUE)
   
-  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, nmae = nmae)
+  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, mae = mae, nmae = nmae)
   
   return(qual)
 }

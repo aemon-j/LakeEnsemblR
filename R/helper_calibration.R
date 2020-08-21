@@ -287,8 +287,8 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
 #'
 #' function that calculates different estimations for model accuracy, namely: root mean squared
 #' error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
-#' relative error (re) and normalized mean absolute error (nmae). returns  a data.frame
-#' containing the five quality estimates
+#' relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae).
+#' returns  a data.frame containing the six quality estimates
 #' 
 #' @param O data.frame containing observed values, first row is datetime
 #' @param P: data.frame containing predicted values, first row is datetime
@@ -315,10 +315,13 @@ qual_fun <- function(O, P){
   # relative error
   re <- mean((P - O)/O, na.rm = TRUE)
   
+  # mean absolute error
+  mae <- mean(abs(O - P), na.rm = TRUE)
+  
   # normalised mean absolute error
   nmae <- mean(abs((O - P)/O), na.rm = TRUE)
   
-  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, nmae = nmae)
+  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, mae = mae, nmae = nmae)
   
   return(qual)
 }

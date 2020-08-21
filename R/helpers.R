@@ -51,7 +51,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
   input_yaml(file = yaml, label = "swr", key = "scale_factor", value = 1)
   # precip
   input_yaml(file = yaml, label = "precip", key = "column",
-             value = (which(colnames(df) == l_names$precip) - 1))
+             value = (which(colnames(df) == "Precipitation_meterPerSecond") - 1))
   input_yaml(file = yaml, label = "precip", key = "scale_factor", value = 1)
 
   if(l_names$relh %in% colnames(df)){
