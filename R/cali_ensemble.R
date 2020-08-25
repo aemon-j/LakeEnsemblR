@@ -61,11 +61,6 @@
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast
-#' @importFrom FLakeR run_flake
-#' @importFrom GLM3r run_glm
-#' @importFrom GOTMr run_gotm
-#' @importFrom SimstratR run_simstrat
-#' @importFrom MyLakeR run_mylake
 #' @importFrom lubridate round_date seconds_to_period
 #' @importFrom configr read.config
 #'

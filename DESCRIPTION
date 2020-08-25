@@ -1,7 +1,7 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 0.4.10
+Version: 0.4.11
 Date: 2020-08-07
 URL: https://github.com/aemon-j/LakeEnsemblR
 Author: Authors@R: c( person("Tadhg", "Moore", role = c("aut","cre"),
@@ -20,12 +20,8 @@ Depends:
     R (>= 3.5)
 Imports:
     configr,
-    FLakeR,
+    import,
     FME,
-    GLM3r,
-    GOTMr,
-    MyLakeR,
-    SimstratR,
     glmtools,
     gotmtools,
     lintr,
@@ -39,6 +35,11 @@ Imports:
     dplyr,
     RColorBrewer
 Suggests:
+    FLakeR,
+    GLM3r,
+    GOTMr,
+    MyLakeR,
+    SimstratR,
     testthat,
     knitr,
     rmarkdown,
