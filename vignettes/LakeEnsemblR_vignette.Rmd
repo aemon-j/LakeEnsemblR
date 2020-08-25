@@ -277,7 +277,7 @@ ens_out <- "output/ensemble_output.nc"
 
 # Plot depth and time-specific results
 p <- plot_ensemble(ncdf = ens_out, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                   depth = 0.9, var = 'watertemp', date = as.POSIXct("2010-06-13", tz = "UTC"),
+                   depth = 0.9, var = 'temp', date = as.POSIXct("2010-06-13", tz = "UTC"),
                    boxwhisker = TRUE, residuals = TRUE)
 ```
 
@@ -292,7 +292,7 @@ include_graphics("../images/model_ensemble_vertical_depth.png")
 # Take a look at the model fits to the observed data
 calc_fit(ncdf = "output/ensemble_output.nc",
          model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
-         var = "watertemp")
+         var = "temp")
 
 print(calc_fit)
 $FLake
@@ -318,7 +318,7 @@ $MyLake
 
 ```{r diagnostics, eval = FALSE}
 # Take a look at the model performance against residuals, time and depth
-plist <- plot_resid(ncdf = ens_out,var = "watertemp",
+plist <- plot_resid(ncdf = ens_out,var = "temp",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
 ```
 
