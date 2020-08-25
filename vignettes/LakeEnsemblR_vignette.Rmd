@@ -147,7 +147,7 @@ kable_styling(x_html, position = "left", font_size = 11)
 #                                           "within LakeEnsemblR with units and required ",
 #                                           "column names."), format = "latex",
 #                   align = c("p{0cm}", "p{1.8cm}", "p{0.5cm}", "p{7.2cm}", "p{5.1cm}"))
-# print(x_latex, size = "\\scriptsize", include.rownames=FALSE )
+# print(x_latex, size = "\\tiny", include.rownames=FALSE )
 
 ```
 
@@ -171,6 +171,19 @@ In the "Output" section, you specify how the output should look like. This can b
 
 ## Biogeochemistry
 Currently not implemented
+
+## Scaling factors
+In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. 
+
+```{yaml}
+scaling_factors:
+   all:
+      wind_speed: 1.0
+      swr: 1.0
+   Simstrat:
+      wind_speed: 1.0
+```
+
 
 ## Model parameters
 All models in LakeEnsemblR have different parameterizations. In this section, you can set the value of any parameter in one of the model-specific configuration files. 
