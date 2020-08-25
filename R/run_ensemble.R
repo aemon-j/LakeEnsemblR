@@ -186,7 +186,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         paste0(model, "_dens")
       )
       # if(!is.null(obs_deps)){
-      #   temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
+      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
       # }
       # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
@@ -197,7 +197,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         paste0(model, "_salt")
       )
       # if(!is.null(obs_deps)){
-      #   temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
+      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
       # }
       # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }

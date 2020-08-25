@@ -121,7 +121,7 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
       dimnames(var1) <- list(paste0("member_", seq_len(dim(var1)[1])),
                              mod_names, as.character(time), z)
     }
-    if(length(dim(var1)) == 3 & var == "watertemp") {
+    if(length(dim(var1)) == 3 & var == "temp") {
       dimnames(var1) <- list(mod_names, as.character(time), z)
     }
     if(length(dim(var1)) == 3 & var == "ice_height") {

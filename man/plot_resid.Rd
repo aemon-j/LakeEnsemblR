@@ -6,7 +6,7 @@
 \usage{
 plot_resid(
   ncdf = NULL,
-  var = "watertemp",
+  var = "temp",
   dim = "model",
   dim_index = 1,
   var_list = NULL,
@@ -16,7 +16,7 @@ plot_resid(
 \arguments{
 \item{ncdf}{filepath; to the netcdf file created by `run_ensemble()`}
 
-\item{var}{string; of variable which to plot. Defaults to "watertemp"}
+\item{var}{string; of variable which to plot. Defaults to "temp"}
 
 \item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
 
@@ -38,7 +38,7 @@ Plot residual diagnostic plots. Residuals are calculated by (sim - obs)
 }
 \examples{
 \dontrun{
-plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "watertemp",
+plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "temp",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
 plist[['obs_res']]+
 theme_classic()
