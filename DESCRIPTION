@@ -1,7 +1,7 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 0.5.1
+Version: 0.5.2
 Date: 2020-08-07
 URL: https://github.com/aemon-j/LakeEnsemblR
 Author: Authors@R: c( person("Tadhg", "Moore", role = c("aut","cre"),
@@ -24,7 +24,6 @@ Imports:
     FME,
     glmtools,
     gotmtools,
-    lintr,
     lubridate,
     ncdf4,
     plyr,
@@ -43,6 +42,7 @@ Suggests:
     knitr,
     rmarkdown,
     rstudioapi,
+    lintr,
     kableExtra
 Encoding: UTF-8
 LazyData: true
