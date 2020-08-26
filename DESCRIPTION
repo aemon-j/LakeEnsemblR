@@ -12,10 +12,10 @@ Author: Authors@R: c( person("Tadhg", "Moore", role = c("aut","cre"),
     email = "johannes.feldbauer@tu-dresden.de"),
     person("Jorrit", "Mesman", role = "aut",
     email = "jorrit.mesman@unige.ch", role = "aut"))
-Maintainer: The package maintainer <yourself@somewhere.net>
+Maintainer: See authors
 Description: Run ensemble of lake models cross-platform and tools for analyzing
   model output.
-License: CCO
+License: GPL-2.0
 Depends:
     R (>= 3.5)
 Imports:
