@@ -13,7 +13,6 @@
 #'
 #' @importFrom glmtools read_nml set_nml write_nml get_nml_value
 #' @importFrom gotmtools input_yaml
-#' @importFrom rLakeAnalyzer thermo.depth
 #'
 #' @export
 
