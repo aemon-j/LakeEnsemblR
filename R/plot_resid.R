@@ -14,7 +14,6 @@
 #'  "yday_res" = residuals for day of year,
 #'  "res_dist" = distribution of residuals
 #' @author Tadhg Moore, Johannes Feldbauer
-#' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @import ggplot2
 #' @import dplyr
