@@ -27,29 +27,29 @@
 #' print(depths)
 #' @noRd
 get.offsets <- function(data){
-
-  header = names(drop.datetime(data))
-
+  
+  header <- names(data)
+  
   #check for existence of datetime header and drop if there
-  dt_indx = grep(pattern= "datetime", x= header, ignore.case= TRUE)
+  dt_indx <- grep(pattern = "datetime", x = header, ignore.case= TRUE)
   if(length(dt_indx) > 0){
-    header = header[-dt_indx] #Drop datetime
+    header <- header[-dt_indx] #Drop datetime
   }
 
   #match anything digits after the last _ (at the end of the line)
-  matches = regexpr("_\\d+\\.?\\d*$" ,header)
+  matches <- regexpr("_\\d+\\.?\\d*$", header)
 
-  lengths = attr(matches,'match.length')
-  offsets = vector(mode="numeric", length=length(matches))
+  lengths <- attr(matches, "match.length")
+  offsets <- vector(mode = "numeric", length = length(matches))
 
   for(i in 1:length(matches)){
-    offsets[i] = as.numeric(substr(header[i], matches[i]+1, matches[i] + lengths[i]))
+    offsets[i] <- as.numeric(substr(header[i], matches[i]+1, matches[i] + lengths[i]))
   }
 
   if(any(is.na(offsets))){
-    warning('Problem determining variable depths from column names.
-Please use the \'var_#.#\' format for your data.frame header.' )
-  }
+    warning("Problem determining variable depths from column names. 
+            Please use the 'var_#.#' format for your data.frame header." )
+    }
 
   return(offsets)
 }
@@ -270,4 +270,3 @@ create_scaling_factors <- function(config_file, model, folder){
   # Return the data frame
   return(pars)
 }
-
