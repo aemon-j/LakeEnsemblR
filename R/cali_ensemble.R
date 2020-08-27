@@ -127,7 +127,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   }
   
   # check model input
-  model <- check_models(model)
+  model <- check_models(model, check_package_install = TRUE)
   # check the master config file
   check_master_config(config_file, model)
   

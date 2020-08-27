@@ -132,7 +132,7 @@ check_master_config <- function(config_file,
 
 
 #' @keywords internal
-check_models <- function(model){
+check_models <- function(model, check_package_install = FALSE){
 
   # test if there are any duplicates  
   if(any(duplicated(model))){
@@ -154,6 +154,25 @@ check_models <- function(model){
       model[!model %in% av_models] <- av_models[!model %in% av_models]
     }
   }
+  
+  # test if the required packages are installed
+  if(check_package_install){
+    model_packages <- list("FLake" = "FLakeR",
+                           "GLM" = "GLM3r",
+                           "GOTM" = "GOTMr",
+                           "Simstrat" = "SimstratR",
+                           "MyLake" = "MyLakeR")
+    
+    check_package_installation <- function(model){
+      if(isFALSE(requireNamespace(model_packages[[model]], quietly = TRUE))){
+        stop("You can't include ", model, " in this function call without having the ",
+             "package ", model_packages[[model]], " installed!")
+      }
+    }
+    
+    sapply(model, check_package_installation)
+  }
+  
   # return model vector
   return(model)
 }

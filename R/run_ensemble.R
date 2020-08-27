@@ -23,7 +23,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          return_list = FALSE, create_output = TRUE, add = FALSE){
 
   # check model input
-  model <- check_models(model)
+  model <- check_models(model, check_package_install = TRUE)
   # check the master config file
   check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
