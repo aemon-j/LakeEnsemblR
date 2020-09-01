@@ -80,11 +80,12 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     # Make sure that key is in the section of previous_key
     # If any of the lines in between has the same number or less spaces than nr_of_spaces
     # key is in another section
-    if(ind_key - previous_key > 1){
+    if(ind_key - previous_key > 1 & previous_key != 0){
       
       spaces <- sapply((previous_key + 1L):(ind_key - 1L), function(x) find_spaces(line = yml[x],
                                                                                    key = key_id))
       spaces[spaces < 0] <- 0
+      spaces[is.na(spaces)] <- nr_of_spaces + 1 # Empty lines should not cause errors
       
       if(any(spaces <= nr_of_spaces)){
         stop("'", key, "' is not in the same section as the previous key!")
@@ -142,3 +143,4 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
 find_spaces <- function(line, key){
   attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
 }
+
