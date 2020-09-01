@@ -23,6 +23,9 @@ r_packages:
 after_success:
   - Rscript -e 'library(covr); codecov()'
 
+after_failure:
+  - cat 00install.out
+
 r_github_packages:
   - cran/XML@3.99-0.3
   - GLEON/GLM3r
