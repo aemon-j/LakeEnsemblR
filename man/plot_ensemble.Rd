@@ -51,7 +51,7 @@ p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
                    var = "temp", date = as.POSIXct("2010-06-13", tz = "UTC"),
                    boxwhisker = TRUE)
-                   
+
 }
 
 }

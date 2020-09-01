@@ -16,7 +16,6 @@
 #' describing at what times output should be generated
 #' @param out_file filepath; to save netCDF file defaults to "ensemble_output.nc"
 #' @import ncdf4
-#' @importFrom rLakeAnalyzer get.offsets
 #'
 #' @keywords internal
 
@@ -86,7 +85,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
       
       lengths <- lapply(output_lists[[i]], ncol) # Extract ncols in each output
       lon_list <- which.max(lengths) # Select largest depths
-      deps <- rLakeAnalyzer::get.offsets(output_lists[[i]][[lon_list]]) # Extract depths
+      deps <- get.offsets(output_lists[[i]][[lon_list]]) # Extract depths
       
       # Depth dimension
       depthdim <- ncdf4::ncdim_def("z", units = "meters", vals = as.double((-deps)),
@@ -169,7 +168,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                          ncol = nc_vars[[i]]$dim[[6]]$len)
           
           # vector of depths to input into the matrix
-          deps_tmp <- rLakeAnalyzer::get.offsets(output_lists[[i]][[j]])
+          deps_tmp <- get.offsets(output_lists[[i]][[j]])
           
           mat <- as.matrix(output_lists[[i]][[j]][, -1])
           

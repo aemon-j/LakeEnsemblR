@@ -13,7 +13,6 @@
 #' @param date Specific date for which depth profiles should be plotted
 #' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
 #' @author Johannes Feldbauer, Robert Ladwig
-#' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @importFrom RColorBrewer brewer.pal
 #' @examples
@@ -94,7 +93,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       stop(paste0("When plotting water temperature depth must be specified"))
     }
     # get depths
-    deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
+    deps <- get.offsets(var_list[[1]])
     # check if the chosen depth is available
     if(length(depth) > 0) {
 

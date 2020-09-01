@@ -58,7 +58,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
       if(length(ind_key) > 1){
         spaces_keys <- rep(NA, length(ind_key))
         for(j in seq_len(length(ind_key))){
-          spaces_keys[j] <- attr(regexpr("\\s+", yml[ind_key[j]]), "match.length")
+          spaces_keys[j] <- find_spaces(yml[ind_key[j]], key_id)
         }
         
         # Only keep keys that have more spaces than the previous
@@ -72,11 +72,28 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
         ind_key <- ind_key[1]
       }
     }
-    # Set previous_key and nr_of_spaces
-    # Need to calculate spacesKeys again, in case it wasn't calculated before
     
+    if(ind_key < previous_key){
+      stop("'", key, "' occurs at a lower line number than the previous key!")
+    }
+    
+    # Make sure that key is in the section of previous_key
+    # If any of the lines in between has the same number or less spaces than nr_of_spaces
+    # key is in another section
+    if(ind_key - previous_key > 1){
+      
+      spaces <- sapply((previous_key + 1L):(ind_key - 1L), function(x) find_spaces(line = yml[x],
+                                                                                   key = key_id))
+      spaces[spaces < 0] <- 0
+      
+      if(any(spaces <= nr_of_spaces)){
+        stop("'", key, "' is not in the same section as the previous key!")
+      }
+    }
+    
+    # Set previous_key and nr_of_spaces
     previous_key <- ind_key
-    nr_of_spaces <- attr(regexpr("\\s+", yml[ind_key]), "match.length")
+    nr_of_spaces <- find_spaces(yml[ind_key], key_id)
     if(nr_of_spaces == -1){
       nr_of_spaces <- 0
     }
@@ -88,9 +105,6 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   # Replace the value (with the right amount of spaces)
   #Split to extract comment
   spl1 <- strsplit(yml[ind_key], c("#"))[[1]]
-  if(length(spl1) == 2){
-    comment <- spl1[2]
-  }
   
   #Split to extract current value and identify pattern to sub in for
   spl_tmp <- strsplit(spl1[1], ": ")[[1]]
@@ -121,4 +135,10 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   }
   
   message("Replaced", message_string, ": ", old_val, " with ", value)
+}
+
+# Find the number of spaces before a key in a line.
+#' @keywords internal
+find_spaces <- function(line, key){
+  attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
 }

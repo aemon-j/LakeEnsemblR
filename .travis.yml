@@ -18,6 +18,9 @@ warnings_are_errors: false
 
 r_packages:
   - covr
+  - deSolve
+  - minpack.lm
+  - gstat
 
 after_success:
   - Rscript -e 'library(covr); codecov()'
