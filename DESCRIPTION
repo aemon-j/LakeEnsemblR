@@ -1,48 +1,48 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 0.4.6
+Version: 0.5.3
 Date: 2020-08-07
 URL: https://github.com/aemon-j/LakeEnsemblR
-Author: Authors@R: c( person("Tadhg", "Moore", role = c("aut","cre"),
+Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),
     email = "tadhg.moore@dkit.ie"),
     person("Robert", "Ladwig", role = "aut",
     email = "rladwig2@wisc.edu"), 
     person("Johannes", "Feldbauer", role = "aut", 
     email = "johannes.feldbauer@tu-dresden.de"),
     person("Jorrit", "Mesman", role = "aut",
-    email = "jorrit.mesman@unige.ch", role = "aut"))
-Maintainer: The package maintainer <yourself@somewhere.net>
+    email = "jorrit.mesman@unige.ch"))
+Maintainer: Tadhg Moore <tadhg.moore@dkit.ie>
 Description: Run ensemble of lake models cross-platform and tools for analyzing
   model output.
-License: CCO
+License: GPL-2.0
 Depends:
     R (>= 3.5)
 Imports:
     configr,
-    FLakeR,
+    import,
     FME,
-    GLM3r,
-    GOTMr,
-    MyLakeR,
-    SimstratR,
     glmtools,
     gotmtools,
-    lintr,
     lubridate,
     ncdf4,
     plyr,
-    rLakeAnalyzer,
     reshape2,
     zoo,
     ggplot2,
     dplyr,
     RColorBrewer
 Suggests:
+    FLakeR,
+    GLM3r,
+    GOTMr,
+    MyLakeR,
+    SimstratR,
     testthat,
     knitr,
     rmarkdown,
     rstudioapi,
+    lintr,
     kableExtra
 Encoding: UTF-8
 LazyData: true

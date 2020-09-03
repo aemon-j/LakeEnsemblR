@@ -13,7 +13,6 @@
 #' "FLake", "MyLake")
 #' @param out_file filepath; to save netCDF file defaults to "ensemble_output.nc"
 #' @import ncdf4
-#' @importFrom rLakeAnalyzer get.offsets
 #'
 #' @keywords internal
 
@@ -113,7 +112,7 @@ add_netcdf_output <- function(output_lists, folder = ".", model, out_file) {
         mat1 <- matrix(NA, nrow = nc$dim$time$len, ncol = nc$dim$z$len)
         
         # vector of depths to input into the matrix
-        deps_tmp <- rLakeAnalyzer::get.offsets(df)
+        deps_tmp <- get.offsets(df)
         
         mat <- as.matrix(df[, -1])
         

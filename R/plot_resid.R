@@ -4,7 +4,7 @@
 #'  for each corresponding depth and time step there is an observed value.
 #' 
 #' @param ncdf filepath; to the netcdf file created by `run_ensemble()`
-#' @param var string; of variable which to plot. Defaults to "watertemp"
+#' @param var string; of variable which to plot. Defaults to "temp"
 #' @param dim character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".
 #' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param var_list list; of variables in the format when loaded using `load_var()`. Defaults to NULL 
@@ -14,14 +14,13 @@
 #'  "yday_res" = residuals for day of year,
 #'  "res_dist" = distribution of residuals
 #' @author Tadhg Moore, Johannes Feldbauer
-#' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @import ggplot2
 #' @import dplyr
 #' @import RColorBrewer
 #' @examples
 #' \dontrun{
-#' plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "watertemp",
+#' plist <- plot_resid(ncdf = "output/ensemble_output.nc",var = "temp",
 #'                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
 #' plist[['obs_res']]+
 #' theme_classic()
@@ -29,7 +28,7 @@
 #' 
 #'
 #' @export
-plot_resid <- function(ncdf = NULL, var =  "watertemp", dim = "model", dim_index = 1,
+plot_resid <- function(ncdf = NULL, var =  "temp", dim = "model", dim_index = 1,
                        var_list = NULL, model = NULL) {
   
   # check if model input is correct
