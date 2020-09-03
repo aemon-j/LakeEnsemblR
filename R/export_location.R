@@ -148,9 +148,13 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     input_yaml(got_yaml, "location", "depth", max_depth)
     input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
 
-    # Switch on ice model - MyLake
-    # input_yaml(got_yaml, "ice", "model", 2)
-
+    # Turn on/off ice model ("MyLake" option)
+    if(use_ice){
+      input_yaml(got_yaml, "ice", "model", 2)
+    }else{
+      input_yaml(got_yaml, "ice", "model", 0)
+    }
+    
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
     got_hyp <- hyp
