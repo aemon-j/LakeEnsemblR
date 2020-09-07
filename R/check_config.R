@@ -98,7 +98,7 @@ check_master_config <- function(config_file,
                 ". Allowed units: ", paste0(good_umethod, collapse = ", ")))
   }
   
-  # check if time_method in output is OK
+  # check if variables in output are OK
   variables <- gotmtools::get_yaml_value(config_file, "output", "variables")
   good_vars <- c("temp", "ice_height", "dens", "salt")
   if(any(!variables %in% good_vars)) {

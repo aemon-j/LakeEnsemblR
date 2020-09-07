@@ -28,8 +28,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
-  Sys.setenv(TZ = "GMT")
-  tz  <-  "UTC"
+  Sys.setenv(TZ = "UTC")
 
   # Set working directory
   oldwd <- getwd()
@@ -51,7 +50,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   # Get output configurations
   out_file <- get_yaml_value(config_file, "output", "file")
-  out_depths <- get_yaml_value(config_file, "output", "depths")
   format <- get_yaml_value(config_file, "output", "format")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
   if(time_unit == "second"){
@@ -68,8 +66,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   # Create output time vector
-  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start, tz = tz),
-                                               as.POSIXct(stop, tz = tz),
+  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start),
+                                               as.POSIXct(stop),
                                                by = paste(time_step, time_unit)))
 
 
@@ -84,7 +82,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
     colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
-    obs_out$datetime <- as.POSIXct(obs_out$datetime, tz = tz)
+    obs_out$datetime <- as.POSIXct(obs_out$datetime)
 
     # Subset to out_time
     obs_out <- obs_out[obs_out$datetime %in% out_time$datetime, ]
@@ -99,7 +97,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     ice <- read.csv(ice_file, stringsAsFactors = FALSE)
     message("Finished loading ice observations!")
 
-    ice$datetime <- as.POSIXct(ice$datetime, tz = tz)
+    ice$datetime <- as.POSIXct(ice$datetime)
 
     # Subset to out_time
     ice_out <- ice[ice$datetime %in% out_time$datetime, ]
@@ -114,14 +112,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          folder = folder,
                          return_list = return_list,
                          create_output = create_output,
-                         tz = tz,
                          start = start,
                          stop = stop,
                          verbose = verbose,
                          obs_deps = obs_deps,
                          out_time = out_time,
-                         out_vars = out_vars,
-                         time_step = time_step)
+                         out_vars = out_vars)
 
   if (parallel) {
     ncores <- parallel::detectCores() - 1
@@ -255,8 +251,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
 #' @keywords internal
-.run_GLM <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                     verbose, obs_deps, out_time, out_hour, out_vars, time_step){
+.run_GLM <- function(config_file, folder, return_list, create_output, start, stop,
+                     verbose, obs_deps, out_time, out_hour, out_vars){
 
   #Delete previous output
   # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
@@ -289,8 +285,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 #' @importFrom lubridate hour
-.run_FLake <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                       verbose, obs_deps, out_time, out_hour, out_vars, time_step){
+.run_FLake <- function(config_file, folder, return_list, create_output, start, stop,
+                       verbose, obs_deps, out_time, out_hour, out_vars){
 
 
 
@@ -331,8 +327,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_GOTM <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                      verbose, obs_deps,out_time, out_vars, time_step){
+.run_GOTM <- function(config_file, folder, return_list, create_output, start, stop,
+                      verbose, obs_deps,out_time, out_vars){
 
   yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
 
@@ -366,8 +362,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_Simstrat <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                          verbose, obs_deps, out_time, out_vars, time_step){
+.run_Simstrat <- function(config_file, folder, return_list, create_output, start, stop,
+                          verbose, obs_deps, out_time, out_vars){
 
   par_file <- basename(get_yaml_value(config_file, "config_files", "Simstrat"))
 
@@ -401,8 +397,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_MyLake <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                        verbose, obs_deps, out_time, out_vars, time_step){
+.run_MyLake <- function(config_file, folder, return_list, create_output, start, stop,
+                        verbose, obs_deps, out_time, out_vars){
 
   cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
   MyLakeR::run_mylake(sim_folder = folder, config_dat = cnfg_file)
