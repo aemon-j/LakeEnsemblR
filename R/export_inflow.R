@@ -184,7 +184,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   if(use_inflows == TRUE){
 
-    inflow_file <- get_yaml_value(file = yaml, label = "inflows", key = "file")
+    inflow_file <- get_yaml_value(file = config_file, label = "inflows", key = "file")
     # Check if file exists
     if(!file.exists(inflow_file)){
       stop(inflow_file, " does not exist. Check filepath in ", config_file)
