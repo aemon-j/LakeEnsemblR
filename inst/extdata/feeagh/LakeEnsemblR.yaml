@@ -37,16 +37,16 @@ inflows:
    mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false]
 output:
    file: ensemble_output                        # name of output file, excluding extension
-   format: netcdf                               # format [text, netcdf; default=netcdf]
-   depths: 0.5                                  # depths to extract output [m; default=0.5]
-   compression: 4                               # Set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file [default = 4].
-   time_unit: hour                              # time unit [second, hour, day, dt=model time step; default=day]
-   time_step: 24                                # number of time units between output [min=1; default=1]
-   time_method: mean                            # treatment of time dimension [point=instantaneous, mean, integrated; default=point]
+   format: netcdf                               # format [text/netcdf]
+   depths: 0.5                                  # depths to extract output [m]
+   compression: 4                               # set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file
+   time_unit: hour                              # time unit [second, hour, day]
+   time_step: 24                                # number of time units between output [min=1]
+   time_method: mean                            # treatment of time dimension [point=instantaneous, mean, integrated; only used in GOTM]
    variables:
       - temp
       - ice_height
-scaling_factors:                                # Scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
+scaling_factors:                                # scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
    all:
       wind_speed: 1.0
       swr: 1.0
@@ -54,17 +54,18 @@ scaling_factors:                                # Scaling factors to apply to me
       wind_speed: 1.0
 model_parameters:
    FLake:                                       # FLake specific parameters
+      fetch_lk: 2000.0                          # typical wind fetch [m]
    GLM:                                         # GLM specific parameters
-      bsn_len: 3678                             # Length of the lake basin, at crest height [m; default=NULL]
-      bsn_wid: 944                              # Width of the lake basin, at crest height [m; default=NULL]
+      bsn_len: 3678                             # length of the lake basin, at crest height [m]
+      bsn_wid: 944                              # width of the lake basin, at crest height [m]
    GOTM:                                        # GOTM specific parameters
-      k_min: 3.6E-6                             # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
+      k_min: 3.6E-6                             # minimum turbulent kinetic energy [m^2/s^2; min=0.0]
    Simstrat:                                    # Simstrat specific parameters
    MyLake:                                      # MyLake specific parameters
-      Phys.par/C_shelter: 0.15                  # wind sheltering coefficient [min=0; max=1; default=NULL to calculate C_shelter=1.0-exp(-0.3*SA)]
-calibration:                                    # Calibration section
-   met:                                         # Meteo scaling parameter
-      wind_speed:                               # Wind speed scaling
+      Phys.par/C_shelter: 0.15                  # wind sheltering coefficient [min=0; max=1; if not specified, C_shelter=1.0-exp(-0.3*surface_area)]
+calibration:                                    # calibration section
+   met:                                         # meteo scaling parameter
+      wind_speed:                               # wind speed scaling
          lower: 0.5                             # lower bound for wind speed scaling        
          upper: 2                               # upper bound for wind speed scaling
          initial: 1                             # initial value for wind speed scaling
@@ -104,4 +105,3 @@ calibration:                                    # Calibration section
          upper: 2200                            # upper bound for parameter
          initial: 2000                          # initial value for parameter
          log: false                             # log transform scaling factor
-
