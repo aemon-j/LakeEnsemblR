@@ -115,18 +115,11 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     scale_param <- create_scaling_factors(config_file, "GLM", folder)
     scale_met(glm_met, pars = scale_param, model = "GLM", out_file = met_outfile)
 
-    if("LongWave" %in% colnames(glm_met)){
-      lw_type <- "LW_IN"
-    } else {
-      lw_type <- "LW_IN" ### Needs to be developed catch if no LW
-    }
-
-
     # Input to nml file
     nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     nml <- glmtools::read_nml(nml_path)
 
-    nml_list <- list("subdaily" = subdaily, "lw_type" = lw_type, "meteo_fl" = "meteo_file.csv")
+    nml_list <- list("subdaily" = subdaily, "lw_type" = "LW_IN", "meteo_fl" = "meteo_file.csv")
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
 
     glmtools::write_nml(nml, nml_path)
