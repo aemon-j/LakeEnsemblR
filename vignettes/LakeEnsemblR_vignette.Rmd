@@ -92,7 +92,9 @@ Depth_meter,Area_meterSquared
 ```
 
 ## Time
-In the "Time" section, you fill in the start and end date of the simulation, and the model time step. `time_step` indicates the model integration time step, so each time step that the model performs a calculation. 
+In the "Time" section, you fill in the start and end date of the simulation, and the model time step. `time_step` indicates the model integration time step, i.e. each time step that the model performs a calculation. 
+
+LakeEnsemblR will work with any time zone, provided that the time columns in all input files are in the same time zone and there are no shifts from/to daylight saving time in the files. Of all models, only GLM requires to know the time zone. In LakeEnsemblR this is automatically set to UTC. However, this information is only used in GLM's `albedo_mode` 2 and 3, or when GLM's `rad_mode` is set to 5 (i.e. computing shortwave radiation if this is not provided). In LakeEnsemblR, the default `albedo_mode` is 1, and shortwave radiation must be provided, so providing the timezone is not required. Yet if you are changing `albedo_mode` to 2 or 3, make sure you enter your data in UTC. GOTM also assumes the time to be in UTC, but this is only used when computing shortwave radiation if it is not provided, which does not happen when using LakeEnsemblR.
 
 ## Config files
 In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
