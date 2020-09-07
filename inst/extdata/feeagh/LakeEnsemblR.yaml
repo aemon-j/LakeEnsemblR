@@ -32,7 +32,7 @@ input:
       use: true                                 # turn on ice models? [true/false]
 inflows:
    use: true                                    # use in- and outflows? [true/false]
-   file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows:use is true]
+   file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
    scale_param: 1.0                             # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow
    mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false]
 output:
