@@ -4,15 +4,13 @@
 \alias{format_inflow}
 \title{Format inflow data for each model}
 \usage{
-format_inflow(inflow, model, daily = FALSE, config_file, folder = ".")
+format_inflow(inflow, model, config_file, folder = ".")
 }
 \arguments{
 \item{inflow}{dataframe; as read.csv() from standardised input.}
 
 \item{model}{character; Model for which scaling parameters will be applied. Options include
 c('GOTM', 'GLM', 'Simstrat', 'FLake')}
-
-\item{daily}{logical; Is the data on a daily timestep. Defaults to FALSE}
 
 \item{config_file}{filepath; To LER config yaml file. Only used if model = 'GOTM'}
 
