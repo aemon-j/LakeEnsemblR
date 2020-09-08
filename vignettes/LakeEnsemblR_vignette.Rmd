@@ -144,12 +144,12 @@ x_html <- kable(met_input, caption = paste0("Table 1. Description of meteorologi
                                           "column names."), row.names = FALSE, format = "html")
 kable_styling(x_html, position = "left", font_size = 11)
 
-# # for pdf output
+# # for pdf
 # x_latex <- xtable(met_input, caption = paste0("Description of meteorological variables used ",
 #                                           "within LakeEnsemblR with units and required ",
 #                                           "column names."), format = "latex",
-#                   align = c("p{0cm}", "p{1.8cm}", "p{0.5cm}", "p{7.2cm}", "p{5.1cm}"))
-# print(x_latex, size = "\\tiny", include.rownames=FALSE )
+#                   align = c("p{0cm}", "p{2.4cm}", "p{0.6cm}", "p{6.5cm}", "p{5.cm}"))
+# print(x_latex, size = "\\tiny", include.rownames = FALSE )
 
 ```
 
