@@ -158,7 +158,8 @@ Next you can either give a value for Kw (light extinction coefficient) in 1/m, o
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ).
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be mad in the
+corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master controll file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
 
 Example of data:
 ```{csv}

@@ -309,12 +309,12 @@ streams:
          column: 1                              # index of column to read from [default=1]
       temp:                                     # flow temperature
          method: 0                              # method [0=constant, 2=from file; default=0]
-         constant_value: 0.0                   # value to use throughout the simulation [Celcius; default=-1.0]
+         constant_value: -1.0                   # value to use throughout the simulation [Celcius; default=-1.0]
          file: outflow_file.dat                       # path to file with time series [default=]
          column: 2                              # index of column to read from [default=1]
       salt:                                     # flow salinity
          method: 0                              # method [0=constant, 2=from file; default=0]
-         constant_value: 0.0                   # value to use throughout the simulation [PSU; default=-1.0]
+         constant_value: -1.0                  # value to use throughout the simulation [PSU; default=-1.0]
          file: outflow_file.dat                            # path to file with time series [default=]
          column: 3                              # index of column to read from [default=1]
 physical_constants:
