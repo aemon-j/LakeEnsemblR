@@ -2,10 +2,7 @@
 % Please edit documentation in R/helper_calibration.R
 \name{wrap_model}
 \alias{wrap_model}
-\title{warpper function for other two methods (modMCMC and modFit)
- 
-A wrapper function for the modMCMC and modFit calibration methods, used in cali_ensemble when
-cmethod == "modMCMC" or "modFit".}
+\title{warpper function for other two methods (modMCMC and modFit)}
 \usage{
 wrap_model(
   pars,
@@ -61,8 +58,6 @@ set is written}
 \item{nout_fun}{number of values returned by `qualfun`.}
 }
 \description{
-warpper function for other two methods (modMCMC and modFit)
- 
 A wrapper function for the modMCMC and modFit calibration methods, used in cali_ensemble when
 cmethod == "modMCMC" or "modFit".
 }

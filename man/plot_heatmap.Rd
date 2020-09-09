@@ -6,7 +6,7 @@
 \usage{
 plot_heatmap(
   ncdf = NULL,
-  var = "watertemp",
+  var = "temp",
   dim = "model",
   dim_index = 1,
   var_list = NULL,
@@ -16,7 +16,7 @@ plot_heatmap(
 \arguments{
 \item{ncdf}{Path to the netCDF file created by `run_ensemble()`}
 
-\item{var}{Variable which to plot. Defaults to "watertemp"}
+\item{var}{Variable which to plot. Defaults to "temp"}
 
 \item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
 
@@ -36,7 +36,7 @@ Plot a heat map of ensemble output data. It can either plot directly from the ne
 \dontrun{
 ncdf <- 'output/ensemble_output.nc'
 # Plot ensemble mean at 0.9m
-plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
+plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
 }
 }
 \author{

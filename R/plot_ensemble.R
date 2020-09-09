@@ -1,8 +1,8 @@
 #' Function to plot results of the ensemble run
-#' 
+#'
 #' Plot the outcome of the ensemble run for a given depth along with the minimum, maximum, and
 #' an average value.
-#' 
+#'
 #' @param ncdf filepath; to the netcdf file created by `run_ensemble()`
 #' @param model string vector; of models which should be included in the plot
 #' @param var string; of variable which to plot
@@ -13,7 +13,6 @@
 #' @param date Specific date for which depth profiles should be plotted
 #' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
 #' @author Johannes Feldbauer, Robert Ladwig
-#' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 melt
 #' @importFrom RColorBrewer brewer.pal
 #' @examples
@@ -21,32 +20,32 @@
 #' # time series
 #' p1 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
 #'                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-#'                    var = "watertemp", depth = 0.9, boxwhisker = TRUE)
+#'                    var = "temp", depth = 0.9, boxwhisker = TRUE)
 #'
 #'# depth profiles
 #' p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
 #'                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-#'                    var = "watertemp", date = as.POSIXct("2010-06-13", tz = "UTC"),
+#'                    var = "temp", date = as.POSIXct("2010-06-13", tz = "UTC"),
 #'                    boxwhisker = TRUE)
-#'                    
+#'
 #' }
 #'
 #' @export
 plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                          var = "watertemp", dim = "model", dim_index = 1,
+                          var = "temp", dim = "model", dim_index = 1,
                           depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
                           residuals = FALSE) {
-  
+
   # Fix time zone
   original_tz <- Sys.getenv("TZ")
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     Sys.setenv(TZ = original_tz)
   })
-  
+
   Sys.setenv(TZ = "GMT")
-  
+
   # check if model input is correct
   model <- check_models(model)
   # Check if netCDF exists
@@ -58,7 +57,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
   if(!(var %in% vars)){
     stop("Variable '", var, "' is not present in the netCDF file '", ncdf, "'")
   }
-  
+
   # get variable
   var_list <- load_var(ncdf, var = var, return = "list", dim = dim,
                        dim_index = dim_index, print = FALSE)
@@ -77,32 +76,32 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     # only the selected models
     var_list <- var_list[c(model, "Obs")]
   }
-  
-  
-  
+
+
+
   # output list
   plist <- list()
   pindex <- 1
-  
+
   # colors for plotting
   colfunc <- colorRampPalette(RColorBrewer::brewer.pal(length(model), 'Set2'))
-  
+
   ## plot timeseries ----
   # if no date is selected plot time series
   if(!is.null(depth) & ncol(var_list[[1]]) > 2) {
-    if(var == "watertemp" & is.null(depth)) {
+    if(var %in% c("temp", "salt", "dens") & is.null(depth)) {
       stop(paste0("When plotting water temperature depth must be specified"))
     }
     # get depths
-    deps <- rLakeAnalyzer::get.offsets(var_list[[1]])
+    deps <- get.offsets(var_list[[1]])
     # check if the chosen depth is available
     if(length(depth) > 0) {
-      
+
       if(!(depth %in% deps)) {
         stop(paste0("The selected depth is not in the output. Available depths are:\n",
                     paste0(deps, collapse = ", "), "\n"))
-      } 
-      
+      }
+
       data <- var_list %>%
         reshape2::melt( id.vars = "datetime") %>%
         dplyr::filter(variable == paste0("wtr_", depth)) %>%
@@ -115,38 +114,39 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           dplyr::group_by(datetime)
         colnames(obs) <- c("datetime", "Depth", "value", "Observed")
       } else {
-        obs <- data %>% 
+        obs <- data %>%
           dplyr::filter(model == "Obs")
         colnames(obs) <- c("datetime", "Depth", "value", "Observed")
       }
-      
+
       # remove NAs
       #data <- data[!is.na(data$value), ] # Remove NAs
-      
+
       if(nrow(data) == 0) {
         stop("Modelled data is all NAs at ", depth, " m.
          Please inspect the model output and re-run 'run_ensemble()' if necessary.")
       }
-      
+
       dat <- data[which(data[, 4] != "Obs"), ]
-      # dat <- data %>% 
+      # dat <- data %>%
       #   dplyr::filter(sym(dim) != "Obs")
 
-      dat_av <- dat %>% 
+      dat_av <- dat %>%
         dplyr::filter(sym(dim) != "Obs") %>%
         dplyr::summarize(mean = get(av_fun)(value, na.rm = TRUE),
                          max = max(value, na.rm = TRUE),
-                         min = min(value, na.rm = TRUE)) 
+                         min = min(value, na.rm = TRUE))
       dat_av$Type = av_fun
       dat <- data.frame(dat)
-      p1 <- ggplot() +  
+      p1 <- ggplot() +
         geom_ribbon(data = dat_av, aes(datetime, ymin=min, ymax=max),
-                    alpha=0.2) + 
+                    alpha=0.2) +
         geom_line(data = dat, aes_string(x = "datetime", y = "value", col = dim),
                   lwd = ifelse(dim == "member", 0.75, 1),
-                  alpha = ifelse(dim == "member", 0.75, 1)) +
-        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33) +
-        geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1) +
+                  alpha = ifelse(dim == "member", 0.75, 1), na.rm = TRUE) +
+        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
+        geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1,
+                   na.rm = TRUE) +
         ylab(var) +
         xlab("") +
         ggtitle(paste0("Time Series ",paste0("at depth = ", depth, " m"))) +
@@ -160,34 +160,36 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
               axis.text.x = element_text(angle=0, hjust= 0.5),
               legend.margin=margin(0,0,0,0),
               legend.box.margin=margin(0,0,0,0),
-              legend.position="bottom",legend.title=element_blank()) 
+              legend.position="bottom",legend.title=element_blank())
       plist[[pindex]] <- p1
       pindex <- pindex + 1
-      
+
       if (residuals){
         if (sum(!is.na(obs$value)) == 0){
           warning(paste0("Residuals can not be calculated because observed data is missing."))
-        }
+        } else {
         # if observations are available plot residuals
         if(sum(!is.na(obs$value)) > 0 ) {
           dat_res <- dat
           dat_res$value <- dat$value - obs$value
-          dat_res <- dat_res[!is.na(dat_res$value), ]
-          dat_resav <- dat_av 
+          #dat_res <- dat_res[!is.na(dat_res$value), ]
+          dat_resav <- dat_av
           dat_resav$mean <- dat_av$mean - obs$value
           dat_resav$max <- dat_av$max - obs$value
           dat_resav$min <- dat_av$min - obs$value
           dat_resav <- dat_resav[!is.na(dat_resav$mean), ]
-          
-          p2 <- ggplot() +  
+
+          p2 <- ggplot() +
             geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
-                        alpha=0.2) + 
-            geom_line(data = dat_res, aes_string(x = "datetime", y = "value", col = dim)) +
-            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
+                        alpha=0.2) +
+            geom_line(data = dat_res, aes_string(x = "datetime", y = "value", col = dim), na.rm = TRUE) +
+            geom_line(data = na.omit(dat_res), aes_string(x = "datetime", y = "value", col = dim),
+                      na.rm = TRUE) +
+            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
             ylab(var) +
             xlab("") +
             ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
-            scale_colour_manual(values = c("grey42", colfunc(length(unique(dat[, dim]))), "black"),
+            scale_colour_manual(values = c("grey42", colfunc(length(unique(dat_res[, dim]))), "black"),
                                 breaks= c(av_fun, unique(dat_res[, dim]), "Obs"),
                                 guide = guide_legend(override.aes = list(
                                   linetype = c(rep("solid", length(unique(dat_res[, dim])) + 1)),
@@ -196,15 +198,15 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                   axis.text.x = element_text(angle=0, hjust= 0.5),
                   legend.margin=margin(0,0,0,0),
                   legend.box.margin=margin(0,0,0,0),
-                  legend.position="bottom",legend.title=element_blank()) 
+                  legend.position="bottom",legend.title=element_blank())
           plist[[pindex]] <- p2
           pindex <- pindex + 1
         }
-      }
-      
+      }}
+
       if (boxwhisker){
-        dat <- var_list %>% 
-          reshape2::melt( id.vars = "datetime") %>% 
+        dat <- var_list %>%
+          reshape2::melt( id.vars = "datetime") %>%
           dplyr::filter(variable == paste0("wtr_", depth)) %>%
           dplyr::group_by(datetime)
         colnames(dat) <- c("datetime", "Depth", "value", dim)
@@ -220,9 +222,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           dat$member <- as.factor(dat$member)
         }
         p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
-          geom_boxplot() +
-          geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-          stat_summary(fun = mean, geom = "point", shape = 10, size = 4) +
+          geom_boxplot(na.rm = TRUE) +
+          geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3, na.rm = TRUE) +
+          stat_summary(fun = mean, geom = "point", shape = 10, size = 4, na.rm = TRUE) +
           ylab(var) +
           ggtitle(paste0("Box-Whisker-Plot ",paste0("at depth = ", depth, " m"))) +
           scale_colour_manual(breaks= c(av_fun, unique(dat[, dim]), "Obs"),
@@ -236,13 +238,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         plist[[pindex]] <- p3
         pindex <- pindex + 1
       }
-      
+
     }
     ## Timeseries of non depth depending variable (ice) ----
   } else if(is.null(date) & ncol(var_list[[1]]) == 2) {
 
-    
-    
+
+
     dat <- var_list %>%
       reshape2::melt( id.vars = "time") %>%
       dplyr::group_by(time)
@@ -251,16 +253,16 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     dat_av <- dat %>% dplyr::filter(L1 != "Obs") %>%
       summarize(mean = get(av_fun)(value, na.rm = TRUE),
                 max = max(value, na.rm = TRUE),
-                min = min(value, na.rm = TRUE)) 
+                min = min(value, na.rm = TRUE))
     dat_av$Type = av_fun
-    
-    
-    p1 <- ggplot() +  
+
+
+    p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
-                  alpha=0.2) + 
-      geom_line(data = dat, aes(x = time, y = value, col = L1)) +
-      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33) +
-      geom_point(data = obs, aes(x = time, y = value, col = L1), size = 1) +
+                  alpha=0.2) +
+      geom_line(data = dat, aes(x = time, y = value, col = L1), na.rm = TRUE) +
+      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
+      geom_point(data = obs, aes(x = time, y = value, col = L1), size = 1, na.rm = TRUE) +
       ylab(var) +
       xlab("") +
       ggtitle(paste0("Time Series of ",paste0(var))) +
@@ -274,24 +276,24 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             axis.text.x = element_text(angle=0, hjust= 0.5),
             legend.margin=margin(0,0,0,0),
             legend.box.margin=margin(0,0,0,0),
-            legend.position="bottom",legend.title=element_blank()) 
-    
+            legend.position="bottom",legend.title=element_blank())
+
     # plist[[1]] <- p1
     plist[[pindex]] <- p1
     pindex <- pindex + 1
   }
- 
+
   ## Depth profile at a certain date ----
   if(!is.null(date)) {
-    
+
     # if a specific date is selected plot a depth profile
     date <- as.POSIXct(date)
-    dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>% 
+    dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>%
       dplyr::filter(datetime == date) %>%
       dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
     colnames(dat) <- c("datetime", "Depth", "value", dim)
     if(dim == "member") {
-      obs <- obs_list %>% reshape2::melt( id.vars = "datetime") %>% 
+      obs <- obs_list %>% reshape2::melt( id.vars = "datetime") %>%
         dplyr::filter(datetime == date) %>%
         dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
@@ -300,7 +302,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       colnames(obs) <- c("datetime", "Depth", "value", "Observed")
       dat <- dat %>% dplyr::filter(model != "Obs")
     }
-    
+
     dat_av <- dat %>% dplyr::filter(sym(dim) != "Obs") %>%
       dplyr::group_by(Depth) %>%
       dplyr::summarize(mean = get(av_fun)(value, na.rm = TRUE),
@@ -308,13 +310,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                        min = min(value, na.rm = TRUE))
     dat_av <- dat_av[order(dat_av$Depth, decreasing = TRUE), ]
     dat_av$Type = av_fun
-    
+
     p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(ymin=min, ymax=max, x = Depth),
-                  alpha=0.2) + geom_line(data = dat,
+                  alpha=0.2) + geom_line(data = dat, na.rm = TRUE,
                                          aes_string(y = "value", x = "Depth", col = dim)) +
-      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33) +
-      geom_point(data = obs, aes(y = value, x = Depth, col = Observed), size = 1) +
+      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33, na.rm = TRUE) +
+      geom_point(data = obs, aes(y = value, x = Depth, col = Observed), size = 1, na.rm = TRUE) +
       xlab(var) + coord_flip() +
       ggtitle(paste0("Depth profile ", paste0("at date ", format(date)))) +
       scale_colour_manual(values = c("grey42", colfunc(length(unique(dat[, dim]))), "black"),
@@ -327,59 +329,60 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
             axis.text.x = element_text(angle=0, hjust= 0.5),
             legend.margin=margin(0,0,0,0),
             legend.box.margin=margin(0,0,0,0),
-            legend.position="bottom",legend.title=element_blank()) 
-    
+            legend.position="bottom",legend.title=element_blank())
+
     plist[[pindex]] <- p1
     pindex <- pindex + 1
-    
-    
+
+
     if (residuals){
       if (sum(!is.na(obs$value)) == 0){
         warning(paste0("Residuals can not be calculated because observed data is missing."))
-      }
+      } else {
       # if observations are available plot residuals
       if(sum(!is.na(obs$value)) > 0 ) {
         dat_res <- dat
         dat_res$value <- dat$value - obs$value
         dat_res <- na.exclude(dat_res)
-        dat_resav <- dat_av 
+        dat_resav <- dat_av
         dat_resav$mean <- dat_av$mean - obs$value
         dat_resav$max <- dat_av$max - obs$value
         dat_resav$min <- dat_av$min - obs$value
         dat_resav <- na.exclude(dat_resav)
-        
-        p2 <- ggplot() +  
-          geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),alpha=0.2) + 
-          geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
+
+        p2 <- ggplot() +
+          geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),alpha=0.2) +
+          geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
           geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type),
-                    lwd = 1.33) +
-          geom_point(data = dat_res, aes_string(x = "Depth", y = "value", col = dim)) + 
-          geom_line(data = na.exclude(dat_res), aes_string(x = "Depth", y = "value", col = dim)) +
+                    lwd = 1.33, na.rm = TRUE) +
+          geom_point(data = dat_res, aes_string(x = "Depth", y = "value", col = dim), na.rm = TRUE) +
+          geom_line(data = na.exclude(dat_res), aes_string(x = "Depth", y = "value", col = dim),
+                    na.rm = TRUE) +
           coord_flip() + ylab(var) + xlab("") +
           ggtitle(paste0("Residuals over depth ", paste0("at date ", format(date)))) +
-          scale_colour_manual(values = c("grey42", colfunc(length(unique(dat[, dim]))), "black"),
+          scale_colour_manual(values = c("grey42", colfunc(length(unique(dat_res[, dim]))), "black"),
                               breaks= c(av_fun, unique(dat_res[, dim]), "Obs"),
                               guide = guide_legend(override.aes = list(
                                 linetype = c(rep("solid", length(unique(dat_res[, dim])) + 1)),
                                 shape = c(rep(NA, length(unique(dat_res[, dim])) + 1))))) +
-          
+
           theme(text = element_text(size=10),
                 axis.text.x = element_text(angle=0, hjust= 0.5),
                 legend.margin=margin(0,0,0,0),
                 legend.box.margin=margin(0,0,0,0),
-                legend.position="bottom",legend.title=element_blank()) 
-        
+                legend.position="bottom",legend.title=element_blank())
+
         plist[[pindex]] <- p2
         pindex <- pindex + 1
       }
-    }
+    }}
     if (boxwhisker){
-      
-      dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>% 
+
+      dat <- var_list %>% reshape2::melt( id.vars = "datetime") %>%
         dplyr::filter(datetime == date) %>%
         dplyr::mutate(variable = -as.numeric(gsub("wtr_", "", variable)))
       colnames(dat) <- c("datetime", "Depth", "value", dim)
-      
+
       if(dim == "model") {
         dat$model <- factor(dat$model)
         dat$model <- factor(dat$model, levels=c("Obs", levels(dat$model)
@@ -389,11 +392,11 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
         dat <- data.frame(dat)
         dat$member <- as.factor(dat$member)
       }
-      
+
       p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
-        geom_boxplot() +
-        geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-        stat_summary(fun.y = mean, geom = "point", shape = 10, size = 4) +
+        geom_boxplot(na.rm = TRUE) +
+        geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3, na.rm = TRUE) +
+        stat_summary(fun = mean, geom = "point", shape = 10, size = 4, na.rm = TRUE) +
         ylab(var) +
         ggtitle(paste0("Box-Whisker-Plot for depth profile ", paste0("at date ", format(date)))) +
         scale_colour_manual(breaks= c(av_fun, unique(dat[, dim]), "Obs"),
@@ -402,13 +405,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                                            rep("blank", 1)),
                               shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
         theme_classic()
-      
+
       plist[[pindex]] <- p3
       pindex <- pindex + 1
     }
-    
+
   }
-  
+
   # Return plot if only one
   if(length(plist) == 1) {
     plist <- plist[[1]]

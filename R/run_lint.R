@@ -6,7 +6,7 @@
 #' \dontrun{
 #' run_lint(file = "export_config.R")
 #' }
-#' @import lintr
+
 
 run_lint <- function(file){
   LER_linters <- lintr::with_defaults(line_length_linter = line_length_linter(100),

@@ -2,10 +2,7 @@
 % Please edit documentation in R/helper_calibration.R
 \name{LHC_model}
 \alias{LHC_model}
-\title{wrapper function for LHC calibration
- 
-A wrapper function for the latin hypercube calibration, used in cali_ensemble when
-cmethod == "LHC".}
+\title{wrapper function for LHC calibration}
 \usage{
 LHC_model(
   pars,
@@ -59,8 +56,6 @@ model performance metrics}
 \item{nout_fun}{number of values returned by `qualfun`.}
 }
 \description{
-wrapper function for LHC calibration
- 
 A wrapper function for the latin hypercube calibration, used in cali_ensemble when
 cmethod == "LHC".
 }
