@@ -7,7 +7,7 @@
 #'  this function will not pick them up.
 #' @param file filepath; to yaml file which you wish to edit
 #' @param value string; to be input into the the yaml file.
-#'   Note boolean values must be input as 'true'/'false' as per the json format
+#'   Note boolean values must be input as "true"/"false" as per the json format
 #' @param out_file filepath; to write the output json file (optional);
 #'   defaults to overwriting file if not specified
 #' @param ... string key1, key2, etc.: multiple keys pointing toward the line
@@ -30,7 +30,10 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     out_file <- file
   }
   
-  yml <- readLines(file, warn = F)
+  yml <- readLines(file, warn = FALSE)
+  
+  # Prevent from finding labels/keys in comments
+  yml_no_comments <- unname(sapply(yml, function(x) strsplit(x, "#")[[1]][1]))
   
   # Users can provide multiple keys, named key1, key2, key3, etc.
   all_args <- list(...)
@@ -43,7 +46,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     
     #Find index of label
     key_id <- paste0(key, ":")
-    ind_key <- grep(key_id, yml)
+    ind_key <- grep(key_id, yml_no_comments)
     
     if(length(ind_key) == 0){
       stop("Key number ", i, ": ", key, " not found in ", file)
@@ -58,7 +61,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
       if(length(ind_key) > 1){
         spaces_keys <- rep(NA, length(ind_key))
         for(j in seq_len(length(ind_key))){
-          spaces_keys[j] <- find_spaces(yml[ind_key[j]], key_id)
+          spaces_keys[j] <- find_spaces(yml_no_comments[ind_key[j]], key_id)
         }
         
         # Only keep keys that have more spaces than the previous
@@ -82,8 +85,9 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     # key is in another section
     if(ind_key - previous_key > 1 & previous_key != 0){
       
-      spaces <- sapply((previous_key + 1L):(ind_key - 1L), function(x) find_spaces(line = yml[x],
-                                                                                   key = key_id))
+      spaces <- sapply((previous_key + 1L):(ind_key - 1L),
+                       function(x) find_spaces(line = yml_no_comments[x],
+                                               key = key_id))
       spaces[spaces < 0] <- 0
       spaces[is.na(spaces)] <- nr_of_spaces + 1 # Empty lines should not cause errors
       
@@ -94,7 +98,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     
     # Set previous_key and nr_of_spaces
     previous_key <- ind_key
-    nr_of_spaces <- find_spaces(yml[ind_key], key_id)
+    nr_of_spaces <- find_spaces(yml_no_comments[ind_key], key_id)
     if(nr_of_spaces == -1){
       nr_of_spaces <- 0
     }

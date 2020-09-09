@@ -11,7 +11,6 @@ test_that("test data can be created", {
 test_that("create model meteo & config files", {
 
   library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   dir.create("example") # Create example folder
   file.copy(from = template_folder, to = "example", recursive = TRUE)
@@ -34,7 +33,6 @@ test_that("create model meteo & config files", {
 test_that("can run models", {
 
   library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   dir.create("example") # Create example folder
   file.copy(from = template_folder, to = "example", recursive = TRUE)
@@ -58,7 +56,6 @@ test_that("can run models", {
 test_that("can add members to netCDF models", {
 
   library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   dir.create("example") # Create example folder
   file.copy(from = template_folder, to = "example", recursive = TRUE)
@@ -211,7 +208,6 @@ test_that("can run models & generate csv files", {
 test_that("can calibrate models", {
 
   library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   dir.create("example") # Create example folder
   file.copy(from = template_folder, to = "example", recursive = TRUE)

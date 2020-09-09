@@ -44,11 +44,15 @@ export_init_cond <- function(config_file,
 
   # Here check if config_file, "initial_profile:" is empty or not
   init_temp_file <- get_yaml_value(config_file, "init_temp_profile", "file")
-  if ( init_temp_file == "NULL" | init_temp_file == "") {
+  if(init_temp_file == "NULL" | init_temp_file == ""){
     # If no initial temperature profile is given, read in the observations and
     # extract initial profile from there
     
     wtemp_file <- get_yaml_value(config_file, "observations", "file")
+    
+    if(wtemp_file == "NULL" | wtemp_file == ""){
+      stop("Neither an initial temperature profile, nor an observations file is provided!")
+    }
     
     message("Loading wtemp_file...")
     obs <- read.csv(wtemp_file)

@@ -19,7 +19,6 @@ devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
 devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/LakeEnsemblR")
 devtools::install_github("aemon-j/MyLakeR")
 ```
 
@@ -37,8 +36,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 ## Example model run
 ```{r gh-installation, eval = FALSE}
 
-# Load libraries
-library(gotmtools)
+# Load LakeEnsemblR
 library(LakeEnsemblR)
 
 # Copy template folder
@@ -64,6 +62,7 @@ run_ensemble(config_file = config_file, model = model)
 ```{r gh-installation, eval = FALSE}
 
 # Load libraries for post-processing
+library(gotmtools)
 library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2

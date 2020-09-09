@@ -143,9 +143,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                     alpha=0.2) +
         geom_line(data = dat, aes_string(x = "datetime", y = "value", col = dim),
                   lwd = ifelse(dim == "member", 0.75, 1),
-                  alpha = ifelse(dim == "member", 0.75, 1)) +
-        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33) +
-        geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1) +
+                  alpha = ifelse(dim == "member", 0.75, 1), na.rm = TRUE) +
+        geom_line(data = dat_av, aes(datetime, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
+        geom_point(data = obs, aes(x = datetime, y = value, col = Observed), size = 1,
+                   na.rm = TRUE) +
         ylab(var) +
         xlab("") +
         ggtitle(paste0("Time Series ",paste0("at depth = ", depth, " m"))) +
@@ -181,9 +182,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           p2 <- ggplot() +
             geom_ribbon(data = dat_resav, aes(datetime, ymin=min, ymax=max),
                         alpha=0.2) +
-            geom_line(data = dat_res, aes_string(x = "datetime", y = "value", col = dim)) +
-            geom_line(data = na.omit(dat_res), aes_string(x = "datetime", y = "value", col = dim)) +
-            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33) +
+            geom_line(data = dat_res, aes_string(x = "datetime", y = "value", col = dim), na.rm = TRUE) +
+            geom_line(data = na.omit(dat_res), aes_string(x = "datetime", y = "value", col = dim),
+                      na.rm = TRUE) +
+            geom_line(data = dat_resav, aes(datetime, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
             ylab(var) +
             xlab("") +
             ggtitle(paste0("Residuals ",paste0("at depth = ", depth, " m"))) +
@@ -220,9 +222,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
           dat$member <- as.factor(dat$member)
         }
         p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
-          geom_boxplot() +
-          geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-          stat_summary(fun = mean, geom = "point", shape = 10, size = 4) +
+          geom_boxplot(na.rm = TRUE) +
+          geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3, na.rm = TRUE) +
+          stat_summary(fun = mean, geom = "point", shape = 10, size = 4, na.rm = TRUE) +
           ylab(var) +
           ggtitle(paste0("Box-Whisker-Plot ",paste0("at depth = ", depth, " m"))) +
           scale_colour_manual(breaks= c(av_fun, unique(dat[, dim]), "Obs"),
@@ -277,7 +279,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                   alpha=0.2) +
       geom_line(data = dat, aes(x = time, y = value, col = L1)) +
       geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33) +
-      {if(incl_obs) geom_point(data = obs,aes(x = time,y = value, col = L1), size = 1)}+
+      {if(incl_obs) geom_point(data = obs,aes(x = time,y = value, col = L1), size = 1)} +
       ylab(var) +
       xlab("") +
       ggtitle(paste0("Time Series of ", paste0(var))) +
@@ -342,7 +344,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
 
     p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(ymin=min, ymax=max, x = Depth),
-                  alpha=0.2) + geom_line(data = dat,
+                  alpha=0.2) + geom_line(data = dat, na.rm = TRUE,
                                          aes_string(y = "value", x = "Depth", col = dim)) +
       geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33) +
       {if(incl_obs) geom_point(data = obs, aes(y = value, x = Depth, col = Observed),
@@ -379,11 +381,12 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
 
         p2 <- ggplot() +
           geom_ribbon(data = na.exclude(dat_resav), aes(ymin=min, ymax=max, x = Depth),alpha=0.2) +
-          geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33) +
+          geom_point(data = dat_resav, aes(Depth, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
           geom_line(data = na.exclude(dat_resav), aes(Depth, mean, col = Type),
-                    lwd = 1.33) +
-          geom_point(data = dat_res, aes_string(x = "Depth", y = "value", col = dim)) +
-          geom_line(data = na.exclude(dat_res), aes_string(x = "Depth", y = "value", col = dim)) +
+                    lwd = 1.33, na.rm = TRUE) +
+          geom_point(data = dat_res, aes_string(x = "Depth", y = "value", col = dim), na.rm = TRUE) +
+          geom_line(data = na.exclude(dat_res), aes_string(x = "Depth", y = "value", col = dim),
+                    na.rm = TRUE) +
           coord_flip() + ylab(var) + xlab("") +
           ggtitle(paste0("Residuals over depth ", paste0("at date ", format(date)))) +
           scale_colour_manual(values = c("grey42", colfunc(length(unique(dat_res[, dim]))), "black"),
@@ -420,9 +423,9 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       }
 
       p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
-        geom_boxplot() +
-        geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-        stat_summary(fun.y = mean, geom = "point", shape = 10, size = 4) +
+        geom_boxplot(na.rm = TRUE) +
+        geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3, na.rm = TRUE) +
+        stat_summary(fun = mean, geom = "point", shape = 10, size = 4, na.rm = TRUE) +
         ylab(var) +
         ggtitle(paste0("Box-Whisker-Plot for depth profile ", paste0("at date ", format(date)))) +
         scale_colour_manual(breaks= c(av_fun, unique(dat[, dim]), "Obs"),
