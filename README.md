@@ -36,7 +36,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 ## Example model run
 ```{r gh-installation, eval = FALSE}
 
-# Load LER
+# Load LakeEnsemblR
 library(LakeEnsemblR)
 
 # Copy template folder
