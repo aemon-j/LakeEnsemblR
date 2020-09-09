@@ -32,8 +32,8 @@ Defaults to "temp".}
 
 \item{qualfun}{Function to calculate the performance measures. Per default calculates root
 mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
-relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae). 
-Can be any function that takes observed data as first, and simulated data at the same time 
+bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae).
+Can be any function that takes observed data as first, and simulated data at the same time
 and depth as the second argument.}
 
 \item{avfun}{Name of the function to calculate the ensemble average, defaults to "mean"}
