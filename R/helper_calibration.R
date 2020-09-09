@@ -1,8 +1,8 @@
 #' wrapper function for LHC calibration
-#'  
+#'
 #' A wrapper function for the latin hypercube calibration, used in cali_ensemble when
 #' cmethod == "LHC".
-#'  
+#'
 #' @param pars data.frame with all parameter sets for the latinhypercube sampling, each row is
 #'    a set of parameters for which the model is to be run. colnames must be the parameter names
 #' @param type character vector specifying the type of parameter. can be either `"met"` for meteo
@@ -21,12 +21,12 @@
 #' @param qualfun function that takes data.frames of observations and simulations and returns
 #'    model performance metrics
 #' @param nout_fun number of values returned by `qualfun`.
-#' 
+#'
 #' @keywords internal
 
 LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, outf_n,
                       obs_deps, obs_out, out_hour, qualfun, config_f, nout_fun) {
-  
+
   message(paste0("\nStarted LHC for model: ", model, "\n"))
   # name of the output file to be written
   out_name <- paste0(model, "_", outf_n, ".csv")
@@ -54,9 +54,9 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     write.table(x = out_i, file = file.path(folder, out_f, out_name),
                 append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
                 col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
-    
+
   }
-  
+
   message(paste0("\nFinished LHC for model: ", model, "\n"))
   return(data.frame(results = file.path(folder, out_f, out_name),
                     parameters = file.path(folder, out_f,
@@ -65,10 +65,10 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
 }
 
 #' warpper function for other two methods (modMCMC and modFit)
-#'  
+#'
 #' A wrapper function for the modMCMC and modFit calibration methods, used in cali_ensemble when
 #' cmethod == "modMCMC" or "modFit".
-#'  
+#'
 #' @param pars named vector with a set of parameter for wich the model is to be run and a
 #'    performance metric is to be returned
 #' @param type character vector specifying the type of parameter. can be either `"met"` for meteo
@@ -88,7 +88,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
 #'    model performance metrics
 #' @param nout_fun number of values returned by `qualfun`.
 #' @param write write the results to a file?
-#' 
+#'
 #' @keywords internal
 
 wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
@@ -100,7 +100,7 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   # name of the parameter
   pars <- data.frame(matrix(pars, nrow = 1))
   colnames(pars) <- par_name
-  
+
   # change the paremeter/meteo scaling
   change_pars(config_file = config_file, model = model, pars = pars,
               type = type, met = met, folder = folder)
@@ -129,9 +129,9 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
 ##---------------------------------- utility functions ---------------------------------------------
 
 #' Change parameter or meteo scaling for a model
-#' 
+#'
 #' Input a specific parameter or scale the meteorological forcing for a selected model
-#' 
+#'
 #' @param config_file path to master config file
 #' @param model name of the model
 #' @param pars named vector of parameters to change
@@ -142,20 +142,20 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
 #' @keywords internal
 
 change_pars <- function(config_file, model, pars, type, met, folder) {
-  
+
   if(length(pars) != length(type)) {
     stop(paste0("pars and type vectors need to have the same length"))
   }
-  
+
   # get name of model config file
   config_f <- gotmtools::get_yaml_value(config_file, "config_files", model)
   # names of the parameters
-  par_names <- names(pars)  
-  # meteo pars  
+  par_names <- names(pars)
+  # meteo pars
   met_pars <- pars[type == "met"]
   # model specific pars
   model_pars <- pars[type == "model"]
-  
+
   if (length(met_pars) > 0){
     met_name <- get_model_met_name(model, config_f)
     met_pars <- setNames(data.frame(met_pars), names(met_pars))
@@ -163,9 +163,9 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     scale_met(met = met, pars = met_pars, model = model,
               out_file = file.path(folder, model, met_name))
   }
-  
+
   if (length(model_pars) > 0){
-    
+
     for (i in seq_len(length(model_pars))) {
       # get right names for parameter
       spl <- strsplit(names(model_pars)[i], "/")
@@ -182,13 +182,13 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
                                           value = model_pars[i]))
     }
   }
-  
-} 
+
+}
 
 #' get the name of model meteo file
-#' 
+#'
 #' get the name of the meteo file from the model config file
-#' 
+#'
 #' @param model Model name
 #' @param config_f path to model specific controll file
 #' @keywords internal
@@ -214,14 +214,14 @@ get_model_met_name <- function(model, config_f){
   }
   return(met_name)
 }
-#' Run a model and calculate model cost 
-#' 
+#' Run a model and calculate model cost
+#'
 #' Runns the selected model and calculates fit metrics using a provided funtion
-#' 
+#'
 #' @param config_file path to master config file
 #' @param model name of the model
 #' @param var name of variable for which to calculate model performance
-#' @param folder root folder 
+#' @param folder root folder
 #' @param obs_deps depths of observations
 #' @param obs_out data.frame with the observations of `var`
 #' @param out_hour FLake specific: hout of output
@@ -232,21 +232,29 @@ get_model_met_name <- function(model, config_f){
 
 cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_hour, qualfun,
                        config_f) {
-  # list with the function arguments for run_model()
+  # list with the function arguments for run_model() and load corresponding function
   if(model == "FLake") {
     mod_arg <- list(sim_folder = file.path(folder, model),
                     nml_file =basename(config_f),
                     verbose = FALSE)
+    import::here("run_flake", .from = "FLakeR")
   } else if (model == "Simstrat") {
     mod_arg <- list(sim_folder = file.path(folder, model),
                     par_file = basename(config_f),
                     verbose = FALSE)
+    import::here("run_simstrat", .from = "SimstratR")
   } else if(model == "MyLake") {
     mod_arg <- list(sim_folder = file.path(folder),
                     config_dat = basename(config_f))
-  } else {
+    import::here("run_mylake", .from = "MyLakeR")
+  } else if(model == "GLM"){
     mod_arg <- list(sim_folder = file.path(folder, model),
                     verbose = FALSE)
+    import::here("run_glm", .from = "GLM3r")
+  } else if(model == "GOTM"){
+    mod_arg <- list(sim_folder = file.path(folder, model),
+                    verbose = FALSE)
+    import::here("run_gotm", .from = "GOTMr")
   }
   # did de model runn successfully?
   ran <- FALSE
@@ -274,12 +282,12 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
       # calculate quality function
       quali <- qualfun(O = obs_out[obs_out$datetime %in% out$datetime, c(1, id_obs)],
                        P = out)
-      
+
     }, error = function(e){})
   }
-  
+
   return(quali)
-  
+
 }
 
 
@@ -287,39 +295,42 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
 #'
 #' function that calculates different estimations for model accuracy, namely: root mean squared
 #' error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
-#' relative error (re) and normalized mean absolute error (nmae). returns  a data.frame
-#' containing the five quality estimates
-#' 
+#' relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae).
+#' returns  a data.frame containing the six quality estimates
+#'
 #' @param O data.frame containing observed values, first row is datetime
 #' @param P: data.frame containing predicted values, first row is datetime
 #' @keywords internal
 
 qual_fun <- function(O, P){
-  
+
   # remove datetime column
   O <- as.matrix(O[, -1])
   P <- as.matrix(P[, -1])
-  
+
   # rmse
   rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
-  
-  
+
+
   # nash sutcliff
   nse <- 1 - sum((O - P)^2, na.rm = TRUE)/sum((O - mean(O, na.rm=TRUE))^2, na.rm = TRUE)
-  
+
   # pearson corelation coef
   r <- sum((O - mean(O, na.rm = TRUE))*(P - mean(P, na.rm = TRUE)),
            na.rm = TRUE)/sqrt(sum((O - mean(O, na.rm = TRUE))^2, na.rm = TRUE)*
                                 sum((P - mean(P, na.rm = TRUE))^2, na.rm = TRUE))
-  
+
   # relative error
   re <- mean((P - O)/O, na.rm = TRUE)
-  
+
+  # mean absolute error
+  mae <- mean(abs(O - P), na.rm = TRUE)
+
   # normalised mean absolute error
   nmae <- mean(abs((O - P)/O), na.rm = TRUE)
-  
-  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, nmae = nmae)
-  
+
+  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, mae = mae, nmae = nmae)
+
   return(qual)
 }
 
@@ -331,7 +342,7 @@ qual_fun <- function(O, P){
 #' @keywords internal
 make_script <- function(call, name) {
   script <- tempfile()
-  
+
   call$job_name <- NULL
   wd <- getwd()
 

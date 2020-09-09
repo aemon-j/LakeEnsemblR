@@ -31,8 +31,7 @@ c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake')}
 
 \item{create_output}{boolean; Create ensemble output file otherwise it just runs the models and generates model output in their respective folders. Defaults to TRUE}
 
-\item{add}{boolean; Add results to an existing netcdf file with new dimension "member"
-#' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ}
+\item{add}{boolean; Add results to an existing netcdf file with new dimension "member"}
 }
 \description{
 Run each of the lake models
