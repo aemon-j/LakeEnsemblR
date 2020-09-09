@@ -36,8 +36,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 ## Example model run
 ```{r gh-installation, eval = FALSE}
 
-# Load libraries
-library(gotmtools)
+# Load LakeEnsemblR
 library(LakeEnsemblR)
 
 # Copy template folder
@@ -63,6 +62,7 @@ run_ensemble(config_file = config_file, model = model)
 ```{r gh-installation, eval = FALSE}
 
 # Load libraries for post-processing
+library(gotmtools)
 library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
