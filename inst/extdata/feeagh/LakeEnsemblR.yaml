@@ -82,11 +82,11 @@ calibration:                                    # calibration section
          initial: 0.001                         # initial value for parameter
          log: false                             # log transform scaling factor                          
    MyLake:                                      # MyLake specific parameters                                    
-     Phys.par/C_shelter:
-        lower: 0.14                             # lower bound for parameter
-        upper: 0.16                             # upper bound for parameter
-        initial: 0.15                           # initial value for parameter
-        log: false                              # log transform scaling factor   
+      Phys.par/C_shelter:
+         lower: 0.14                            # lower bound for parameter
+         upper: 0.16                            # upper bound for parameter
+         initial: 0.15                          # initial value for parameter
+         log: false                             # log transform scaling factor
    GOTM:                                        # GOTM specific parameters
       turb_param/k_min:
          lower: 5E-4                            # lower bound for parameter

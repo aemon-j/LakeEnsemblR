@@ -1,15 +1,10 @@
-#' Inputs values into yaml file
+#' Extract values from yaml file
 #'
-#' Inputs values into yaml file, like gotmtools::input_yaml
+#' Extract values from yaml file, like gotmtools::get_yaml_value
 #'  However, an unlimited amount of keys can be provided.
-#'  Preserves comments (#) if present.
 #'  NOTE: this does not use a yaml parser so if there are yaml formatting errors
 #'  this function will not pick them up.
 #' @param file filepath; to yaml file which you wish to edit
-#' @param value string; to be input into the the yaml file.
-#'   Note boolean values must be input as "true"/"false" as per the json format
-#' @param out_file filepath; to write the output json file (optional);
-#'   defaults to overwriting file if not specified
 #' @param ... string key1, key2, etc.: multiple keys pointing toward the line
 #'   that you want to edit in the yaml file. Keys must be listed consecutively,
 #'   without skipping numbers.
@@ -19,16 +14,10 @@
 #' @examples
 #'
 #' \dontrun{
-#' input_yaml_multiple(file = "example.yaml", value = "something",
-#'   key1 = "streams", key2 = "inflow", key3 = "file")
+#' get_yaml_multiple(file = "example.yaml", key1 = "streams", key2 = "inflow", key3 = "file")
 #' }
 
-input_yaml_multiple <- function(file = "gotm.yaml", value,
-                                out_file = NULL, ...){
-  
-  if(is.null(out_file)){
-    out_file <- file
-  }
+get_yaml_multiple <- function(file = "gotm.yaml", ...){
   
   yml <- readLines(file, warn = FALSE)
   
@@ -49,7 +38,7 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
     ind_key <- grep(key_id, yml_no_comments)
     
     if(length(ind_key) == 0){
-      stop("Key number ", i, ": ", key, " not found in ", file)
+      stop("Key number ", i, ": '", key, "' not found in ", file)
     }else if(length(ind_key) > 1){
       # ind_key needs to be higher than previous key
       ind_key <- ind_key[ind_key > previous_key]
@@ -110,36 +99,61 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
   # Replace the value (with the right amount of spaces)
   #Split to extract comment
   spl1 <- strsplit(yml[ind_key], c("#"))[[1]]
+  spl2 <- strsplit(spl1[1], ": ")[[1]][2]
+  val <- gsub(" ", "", spl2, fixed = TRUE)
   
-  #Split to extract current value and identify pattern to sub in for
-  spl_tmp <- strsplit(spl1[1], ": ")[[1]]
-  if(length(spl_tmp) == 1){
-    spl2 <- ""
+  # check if item is a list
+  if(length(grep("  - ",yml[ind_key+1]))>0){
+    lst <- list(yml[ind_key + 1])
+    k <- 2
+    while (length(grep("  - ",yml[ind_key + k]))>0) {
+      lst[[k]] <- yml[ind_key + k]
+      k <- k+1
+    }
+    val <- unlist(lapply(lst,function(x){strsplit(x,"- ")[[1]][2]}))
+  }
+  
+  
+  if(length(val)==1){
+    val2 <- NULL
+    
+    if(val == "false"){
+      val2 <- FALSE
+    }else if(val == "true"){
+      val2 <- TRUE
+    }
+    
+    flg <- TRUE
+    flg <- tryCatch({!is.na(as.numeric(val))},
+                    warning = function(x)return(FALSE))
+    if(flg){
+      val2 <- as.numeric(val)
+    }
+    if(is.null(val2)){
+      val2 <- gsub('\"', "", val)
+      val2 <- as.character(val2)
+    }
   }else{
-    spl2 <- spl_tmp[2]
+    val2 <- NULL
+    
+    if(all(val %in% c("false", "true"))){
+      val2 <- rep(TRUE, length(val))
+      val2[val %in% "false"] = FALSE
+    }
+    
+    flg <- TRUE
+    flg <- tryCatch({!is.na(as.numeric(val))},
+                    warning = function(x)return(FALSE))
+    if(all(flg)){
+      val2 <- as.numeric(val)
+    }
+    if(is.null(val2)){
+      val2 <- gsub('\"', "", val)
+      val2 <- as.character(val2)
+    }
   }
   
-  sub <- paste0(value, " ")
-  
-  # Sub in new value
-  # Addition of \Q and \E is to avoid errors in case spl2 contains
-  # characters that could be interpreted as regular expressions
-  # see ?base::regex
-  yml[ind_key] <- gsub(pattern = paste0("\\Q", spl1[1], "\\E"),
-                       replacement = paste0(spl_tmp[1], ": ", sub),
-                       x = yml[ind_key])
-  
-  #Write to file
-  writeLines(yml, out_file)
-  old_val <- gsub(" ", "", spl2, fixed = TRUE) #remove white space for printing
-  
-  # Display message
-  message_string <- ""
-  for(i in all_keys){
-    message_string <- paste(message_string, i)
-  }
-  
-  message("Replaced", message_string, ": ", old_val, " with ", value)
+  return(val2)
 }
 
 # Find the number of spaces before a key in a line.
