@@ -393,7 +393,7 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
       p3 <- ggplot(dat, aes_string(x = dim, y = "value")) +
         geom_boxplot() +
         geom_jitter(shape=16, position=position_jitter(0.2), alpha = 0.3) +
-        stat_summary(fun.y = mean, geom = "point", shape = 10, size = 4) +
+        stat_summary(fun = mean, geom = "point", shape = 10, size = 4) +
         ylab(var) +
         ggtitle(paste0("Box-Whisker-Plot for depth profile ", paste0("at date ", format(date)))) +
         scale_colour_manual(breaks= c(av_fun, unique(dat[, dim]), "Obs"),

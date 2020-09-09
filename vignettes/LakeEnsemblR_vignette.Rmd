@@ -61,7 +61,7 @@ The code of LakeEnsemblR is hosted on the AEMON-J Github page (https://github.co
 devtools::install_github("aemon-j/LakeEnsemblR)
 ```
 
-The package relies on multiple other packages that also need to be installed. Most notably, to run the multiple models, it requires the packages FLakeR, GLM3r, GOTMr, SimstratR, and MyLakeR. These packages run the individual models, and contain ways of running the models for the platforms Windows, MacOS, or UNIX, through either executables, or by having the model code in R. 
+The package relies on multiple other packages that also need to be installed. Most notably, to run the multiple models, it requires the packages FLakeR, GLM3r, GOTMr, SimstratR, and MyLakeR. These packages run the individual models, and contain ways of running the models for the platforms Windows, MacOS, or Linux, through either executables, or by having the model code in R. 
 
 # The LakeEnsemblR configuration file
 In this section, we go through the LakeEnsemblR configuration file. This file controls the settings with which the models are run. It is written in [YAML](https://yaml.org/) (Yaml Ain't Markup Language) format, and can be opened by text-editors such as Notepad or Notepad++. Although not needed to use LakeEnsemblR, you can read this file into R with the `configr` package (`read.config` function). Within LakeEnsemblR, we provide the `get_yaml_value` and `input_yaml` functions to get and input values into this file type.
@@ -99,8 +99,6 @@ LakeEnsemblR will work with any time zone, provided that the time columns in all
 ## Config files
 In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
 
-## Light
-Here you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
 
 ## Observations
 If you have observations of water temperature or ice cover, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
@@ -131,7 +129,7 @@ datetime, Ice_Height_meter
 ```
 
 ## Input
-In the "Input" section, you give information about the initial temperature profile, meteorological forcing, and ice.
+In the "Input" section, you give information about the initial temperature profile, meteorological forcing, the light extinction coefficient, and ice.
 
 Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available using `get_template("Initial temperature profile")`). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
 
@@ -153,6 +151,10 @@ kable_styling(x_html, position = "left", font_size = 11)
 
 ```
 
+
+Next you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
+
+
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
@@ -171,8 +173,8 @@ datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalS
 ## Output
 In the "Output" section, you specify how the output should look like. This can be "netcdf" or "text", which will generate a series of csv files in rLakeAnalyzer format. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently only "temp" and "ice_height").
 
-## Biogeochemistry
-Currently not implemented
+<!-- ## Biogeochemistry -->
+<!-- Currently not implemented -->
 
 ## Scaling factors
 In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. 
@@ -223,19 +225,18 @@ The next step would be to call `run_ensemble`, which runs all the models. A new 
 See below for an example run, and some post-processing of the data.
 ```{r eval = FALSE}
 # Install packages - Ensure all packages are up to date - parallel development ongoing
-#install.packages("devtools")
 devtools::install_github("GLEON/GLM3r")
-devtools::install_github(‘USGS-R/glmtools’, ref = ‘ggplot_overhaul’)
-devtools::install_github("aemon-j/FLakeR", ref = “inflow”)
+devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
 devtools::install_github("aemon-j/gotmtools")
 devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/LakeEnsemblR")
 devtools::install_github("aemon-j/MyLakeR")
+devtools::install_github("aemon-j/LakeEnsemblR")
 
 # Load libraries
-library(gotmtools)
 library(LakeEnsemblR)
+library(ggplot2)
 
 # Set working directory with example data from Lough Feeagh, Ireland
 template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
@@ -245,23 +246,13 @@ setwd("example/feeagh") # Change working directory to example folder
 
 # Set models & config file
 model <- c("GLM",  "FLake", "GOTM", "Simstrat", "MyLake")
-config_file <- "Feeagh_master_config.yaml"
+config_file <- "LakeEnsemblR.yaml"
 
 # 1. Example - creates directories with all model setup
 export_config(config_file = config_file, model = model, folder = ".")
 
-# 2. Create meteo driver files
-export_meteo(config_file = config_file, model = model)
 
-# 3. Create initial conditions
-start_date <- get_yaml_value(file = config_file, label =  "time", key = "start")
-
-export_init_cond(config_file = config_file, 
-                 model = model,
-                 date = start_date,
-                 print = TRUE)
-
-# 4. Run ensemble lake models
+# 2. Run ensemble lake models
 wtemp_list <- run_ensemble(config_file = config_file,
                            model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                            return_list = TRUE)
@@ -309,26 +300,29 @@ calc_fit(ncdf = "output/ensemble_output.nc",
          model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
          var = "temp")
 
-print(calc_fit)
 $FLake
-      rmse      nse         r         re      nmae
-1 3.356338 0.651542 0.6452533 -0.1836044 0.1877008
+      rmse       nse         r      bias      mae      nmae
+1 3.353107 0.6522126 0.6448119 -2.048613 2.090902 0.1863813
 
 $GLM
-      rmse       nse         r         re      nmae
-1 2.677758 0.5880857 0.8791993 -0.2142704 0.2230113
+      rmse       nse         r      bias      mae      nmae
+1 2.671799 0.5899169 0.8976564 -2.078693 2.116857 0.2334367
 
 $GOTM
-      rmse       nse         r         re      nmae
-1 2.855198 0.5303783 0.8983338 -0.2464723 0.2478081
+      rmse       nse         r      bias      mae      nmae
+1 2.076912 0.7515084 0.9373982 -1.642189 1.691141 0.1990019
 
 $Simstrat
-      rmse        nse        r         re      nmae
-1 4.111067 0.02639042 0.653375 -0.2212801 0.2915025
+      rmse       nse         r      bias      mae      nmae
+1 2.517848 0.6347966 0.8378958 -1.237562 1.983922 0.2224387
 
 $MyLake
-      rmse       nse         r         re      nmae
-1 2.548408 0.6258777 0.9059941 -0.1880694 0.1946865
+      rmse       nse         r      bias      mae      nmae
+1 2.548408 0.6258777 0.9059941 -1.922304 1.958271 0.1946865
+
+$ensemble_mean
+      rmse       nse         r      bias      mae      nmae
+1 2.385461 0.6721914 0.9118315 -1.781649 1.874828 0.1992386
 ```
 
 ```{r diagnostics, eval = FALSE}
@@ -337,7 +331,7 @@ plist <- plot_resid(ncdf = ens_out,var = "temp",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
 ```
 
-```{r, out.width = "650px", echo = FALSE}
+```{r, out.width = "450px", echo = FALSE}
 include_graphics("../images/model_ensemble_diagnostics.png")
 ```
 
@@ -364,8 +358,20 @@ include_graphics("../images/model_ensemble_stratification.png")
 ```
 
 
-We are currently working on a function to add new simulations (for example with a different meteorology file) to the same netcdf and including them in the analysis.
+### Adding several model runs to a single netcdf file
 
+The `run_ensemble` function allows to add different model runs to a single netcdf file.
+This is done by setting the argument `add = TRUE`. Only model runs that go over the same
+time period and use the same time steps can be combined to a single netcdf file. Using this
+functionality e.g. model runs with different parametrizations can be ran and compared. Many
+diagnostic functions like `calc_fit` or `plot_ensemble` have two additional arguments `dim`
+and `dim_index` to select which dimension should be used. The argument `dim` can either be
+"model" or "member" and `dim_index` then gives the index of the other dimension to be used, e.g.
+if the netcdf file contains 3 different ensemble runs (member) with the two models "FLake" and
+"GLM" `calc_fit("ncfile.nc", model = c("FLake", "GLM"), dim = "model", dim_index = 2)` calculates
+the model performance of both model for the second ensemble run (`dim_index = 2`). Whereas,  
+`calc_fit("ncfile.nc", model = c("FLake", "GLM"), dim = "member", dim_index = 2)` calculates
+the performance of all model runs (members) of the GLM runs (the second model).
 
 ## Model calibration
 
@@ -408,18 +414,18 @@ calibration:                                   # Calibration section            
          upper: 5E-6                           # upper bound for parameter
          initial: 1E-5                         # initial value for parameter
          log: true
-   GLM:                                     # GLM specific parameters
+   GLM:                               # GLM specific parameters
       mixing/coef_mix_hyp:
-         lower: 0.1                           # lower bound for parameter
-         upper: 2                             # upper bound for parameter
-         initial: 1                           # initial value for parameter
-         log: false                           # log transform scaling factor
-   FLake:                                  # FLake specific parameters
-      fetch_lk:
-         lower: 1.60E+03                      # lower bound for parameter
-         upper: 2.20E+03                      # upper bound for parameter
-         initial: 2.0E+03                     # initial value for parameter
-         log: false                           # log transform scaling factor
+         lower: 0.1                       # lower bound for parameter
+         upper: 2                         # upper bound for parameter
+         initial: 1                       # initial value for parameter
+         log: false                       # log transform scaling factor
+   FLake:                             # FLake specific parameters
+      c_relax_C:
+         lower: 0.00003                  # lower bound for parameter
+         upper: 0.3                      # upper bound for parameter
+         initial: 0.003                  # initial value for parameter
+         log: true                       # log transform scaling factor
 
 
 ```
@@ -429,7 +435,7 @@ The calibration process can then be run using the `cali_ensemble()` function. Me
 
 You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that are often calibrated in each model:
 
- - FLake: is usually not calibrated
+ - FLake: e.g. c_relax_C
  - GLM: several meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw (@hipsey_general_2019) (@bruce_mlca_glm_2018)
  - GOTM: shf_factor, wind_factor, swr_factor, k_min, g2 (@ayala_simulations_gotm_2020)
  - Simstrat: a_seiche, f_wind, p_radin, p_albedo (@gaudard_toward_2019)
@@ -442,7 +448,7 @@ The "LHC" method will sample a number of parameter sets definded by the `num` ar
  - rmse: root mean squared error
  - nse: Nash-Sutcliff model efficiency
  - r: Pearson corelation coefficient
- - re: relative error
+ - bias: the mean error
  - nmae: normalized mean absolute error
  
 But you can provide your own function to calculate model performances using the `qualfun` argument. The provided function must take the two arguments: observed data, and simulated data, both are data.frames with first column being datetime and then columns with depth specific values (lokking like the return value of the `get_output()` function).
