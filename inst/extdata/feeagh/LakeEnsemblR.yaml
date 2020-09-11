@@ -75,6 +75,24 @@ calibration:                                    # calibration section
          upper: 1.5                             # upper bound for shortwave radiation scaling
          initial: 1                             # initial value for shortwave radiation scaling
          log: false                             # log transform scaling factor
+   FLake:                                       # FLake specific parameters
+      c_relax_C:
+         lower: 0.0001                          # lower bound for parameter
+         upper: 0.01                            # upper bound for parameter
+         initial: 0.0030                        # initial value for parameter
+         log: false                             # log transform scaling factor
+   GLM:                                         # GLM specific parameters
+      mixing/coef_mix_hyp:
+         lower: 0.1                             # lower bound for parameter
+         upper: 2                               # upper bound for parameter
+         initial: 1                             # initial value for parameter
+         log: false                             # log transform scaling factor
+   GOTM:                                        # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-4                            # lower bound for parameter
+         upper: 5E-6                            # upper bound for parameter
+         initial: 1E-5                          # initial value for parameter
+         log: true
    Simstrat:                                    # Simstrat specific parameters                                 
       a_seiche:
          lower: 0.0008                          # lower bound for parameter
@@ -86,22 +104,4 @@ calibration:                                    # calibration section
          lower: 0.14                            # lower bound for parameter
          upper: 0.16                            # upper bound for parameter
          initial: 0.15                          # initial value for parameter
-         log: false                             # log transform scaling factor
-   GOTM:                                        # GOTM specific parameters
-      turb_param/k_min:
-         lower: 5E-4                            # lower bound for parameter
-         upper: 5E-6                            # upper bound for parameter
-         initial: 1E-5                          # initial value for parameter
-         log: true
-   GLM:                                         # GLM specific parameters
-      mixing/coef_mix_hyp:
-         lower: 0.1                             # lower bound for parameter
-         upper: 2                               # upper bound for parameter
-         initial: 1                             # initial value for parameter
-         log: false                             # log transform scaling factor
-   FLake:                                       # FLake specific parameters
-      fetch_lk:
-         lower: 1600.0                          # lower bound for parameter
-         upper: 2200                            # upper bound for parameter
-         initial: 2000                          # initial value for parameter
          log: false                             # log transform scaling factor

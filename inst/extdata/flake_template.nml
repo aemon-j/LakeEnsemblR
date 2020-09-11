@@ -5,7 +5,7 @@
 !------------------------------------------------------------------------------
 
 &SIMULATION_PARAMS
-del_time_lk   = 86400,! Time step [s]
+del_time_lk   = 86400,! /LER/ Time step [s]
 time_step_number = 366,! /LER/ The total number of time steps (17 years 1980-1996)
 save_interval_n  = 1        ! Saving interval in time steps 
 T_wML_in = 6.128,! /LER/ initial temperature of the upper mixed layer
@@ -21,8 +21,8 @@ h_ML_in = 16.05,! /LER/ initial mixed layer thickness
 z_wind_m(1) =  10.00,
 z_Taqa_m(1) =  2.00,
 z_Tw_m(1)   =  0.00,
-meteofile     = 'meteo_file.dat',
-outputfile    = 'output/output.dat',
+meteofile     = 'meteo_file.dat',! /LER/
+outputfile    = 'output/output.dat',! /LER/
 /
 
 
@@ -53,7 +53,7 @@ extincoef_optic = 1.5,! /LER/ Extinction coefficients
 DTinflow = 0.0,    ! 
 DTfixed  = .true., ! 
 QS       = 0.0,    ! inflow rate per lake area [m/s], 
-Qfromfile = .true.,
+Qfromfile = .true.,! /LER/
 Qfile='Tinflow',   ! a filename with inflow data should be subsituted for 'Tinflow' 
-time_step_number = 1653 ! number of the model time steps, should be less than or equal to the number of rows in file
+time_step_number = 1653 ! /LER/ number of the model time steps, should be less than or equal to the number of rows in file
 / 
