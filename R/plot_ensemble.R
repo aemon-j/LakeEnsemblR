@@ -277,9 +277,10 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
     p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(time, ymin=min, ymax=max),
                   alpha=0.2) +
-      geom_line(data = dat, aes(x = time, y = value, col = L1)) +
-      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33) +
-      {if(incl_obs) geom_point(data = obs,aes(x = time,y = value, col = L1), size = 1)} +
+      geom_line(data = dat, aes(x = time, y = value, col = L1), na.rm = TRUE) +
+      geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
+      {if(incl_obs) geom_point(data = obs, aes(x = time,y = value, col = L1),
+                               size = 1, na.rm = TRUE)} +
       ylab(var) +
       xlab("") +
       ggtitle(paste0("Time Series of ", paste0(var))) +
@@ -344,11 +345,13 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
 
     p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(ymin=min, ymax=max, x = Depth),
-                  alpha=0.2) + geom_line(data = dat, na.rm = TRUE,
-                                         aes_string(y = "value", x = "Depth", col = dim)) +
-      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33) +
+                  alpha=0.2) + 
+      geom_line(data = dat, na.rm = TRUE,
+                aes_string(y = "value", x = "Depth", col = dim)) +
+      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type),
+                lwd = 1.33, na.rm = TRUE) +
       {if(incl_obs) geom_point(data = obs, aes(y = value, x = Depth, col = Observed),
-                               size = 1)} +
+                               size = 1, na.rm = TRUE)} +
       xlab(var) + coord_flip() +
       ggtitle(paste0("Depth profile ", paste0("at date ", format(date)))) +
       scale_colour_manual(values = values,
