@@ -292,6 +292,13 @@ format_met <- function(met, model, config_file, folder = "."){
       snow_module <- FALSE
       input_json(par_file, "ModelConfig", "SnowModel", 0)
     }
+    
+    # If pressure is given, set p_air to the average air pressure. Otherwise set it to 1 atm
+    if(chck_met$p_surf){
+      input_json(par_file, "ModelParameters", "p_air", round(mean(met[[l_names$p_surf]]) / 100))
+    }else{
+      input_json(par_file, "ModelParameters", "p_air", 1013)
+    }
 
     ### Pre-processing
     # Time
