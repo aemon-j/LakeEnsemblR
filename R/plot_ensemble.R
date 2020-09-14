@@ -255,6 +255,23 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                 max = max(value, na.rm = TRUE),
                 min = min(value, na.rm = TRUE))
     dat_av$Type = av_fun
+    
+    # Check if observations are there - remove from legend if not
+    incl_obs <- !all(is.na(obs$value))
+    if(incl_obs) {
+      values = c("grey42", colfunc(length(unique(dat$L1))), "black")
+      breaks= c(av_fun, unique(dat$L1), "Obs")
+      guide = guide_legend(override.aes = list(
+        linetype = c(rep("solid", length(unique(dat$L1)) + 1),
+                     rep("blank", 1)),
+        shape = c(rep(NA, length(unique(dat$L1)) + 1), 16)))
+    } else { 
+      values = c("grey42", colfunc(length(unique(dat$L1))))
+      breaks= c(av_fun, unique(dat$L1))
+      guide = guide_legend(override.aes = list(
+        linetype = c(rep("solid", length(unique(dat$L1)) + 1)),
+        shape = c(rep(NA, length(unique(dat$L1)) + 1))))
+      }
 
 
     p1 <- ggplot() +
@@ -262,16 +279,14 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                   alpha=0.2) +
       geom_line(data = dat, aes(x = time, y = value, col = L1), na.rm = TRUE) +
       geom_line(data = dat_av, aes(time, mean, col = Type), lwd = 1.33, na.rm = TRUE) +
-      geom_point(data = obs, aes(x = time, y = value, col = L1), size = 1, na.rm = TRUE) +
+      {if(incl_obs) geom_point(data = obs, aes(x = time,y = value, col = L1),
+                               size = 1, na.rm = TRUE)} +
       ylab(var) +
       xlab("") +
-      ggtitle(paste0("Time Series of ",paste0(var))) +
-      scale_colour_manual(values = c("grey42", colfunc(length(unique(dat$L1))), "black"),
-                          breaks= c(av_fun, unique(dat$L1), "Obs"),
-                          guide = guide_legend(override.aes = list(
-                            linetype = c(rep("solid", length(unique(dat$L1)) + 1),
-                                         rep("blank", 1)),
-                            shape = c(rep(NA, length(unique(dat$L1)) + 1), rep(16, 1))))) +
+      ggtitle(paste0("Time Series of ", paste0(var))) +
+      scale_colour_manual(values = values,
+                          breaks= breaks,
+                          guide = guide) +
       theme(text = element_text(size=10),
             axis.text.x = element_text(angle=0, hjust= 0.5),
             legend.margin=margin(0,0,0,0),
@@ -310,21 +325,38 @@ plot_ensemble <- function(ncdf, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', '
                        min = min(value, na.rm = TRUE))
     dat_av <- dat_av[order(dat_av$Depth, decreasing = TRUE), ]
     dat_av$Type = av_fun
+    
+    # Check if observations are there - remove from legend if not
+    incl_obs <- !all(is.na(obs$value))
+    if(incl_obs) {
+      values = c("grey42", colfunc(length(unique(dat$model))), "black")
+      breaks = c(av_fun, unique(dat$model), "Obs")
+      guide = guide_legend(override.aes = list(
+        linetype = c(rep("solid", length(unique(dat$model)) + 1),
+                     rep("blank", 1)),
+        shape = c(rep(NA, length(unique(dat$model)) + 1), 16)))
+    } else { 
+      values = c("grey42", colfunc(length(unique(dat$model))))
+      breaks= c(av_fun, unique(dat$model))
+      guide = guide_legend(override.aes = list(
+        linetype = c(rep("solid", length(unique(dat$model)) + 1)),
+        shape = c(rep(NA, length(unique(dat$model)) + 1))))
+    }
 
     p1 <- ggplot() +
       geom_ribbon(data = dat_av, aes(ymin=min, ymax=max, x = Depth),
-                  alpha=0.2) + geom_line(data = dat, na.rm = TRUE,
-                                         aes_string(y = "value", x = "Depth", col = dim)) +
-      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type), lwd = 1.33, na.rm = TRUE) +
-      geom_point(data = obs, aes(y = value, x = Depth, col = Observed), size = 1, na.rm = TRUE) +
+                  alpha=0.2) + 
+      geom_line(data = dat, na.rm = TRUE,
+                aes_string(y = "value", x = "Depth", col = dim)) +
+      geom_line(data = dat_av, aes(y = mean, x = Depth, col = Type),
+                lwd = 1.33, na.rm = TRUE) +
+      {if(incl_obs) geom_point(data = obs, aes(y = value, x = Depth, col = Observed),
+                               size = 1, na.rm = TRUE)} +
       xlab(var) + coord_flip() +
       ggtitle(paste0("Depth profile ", paste0("at date ", format(date)))) +
-      scale_colour_manual(values = c("grey42", colfunc(length(unique(dat[, dim]))), "black"),
-                          breaks= c(av_fun, unique(dat[, dim]), "Obs"),
-                          guide = guide_legend(override.aes = list(
-                            linetype = c(rep("solid", length(unique(dat[, dim])) + 1),
-                                         rep("blank", 1)),
-                            shape = c(rep(NA, length(unique(dat[, dim])) + 1), rep(16, 1))))) +
+      scale_colour_manual(values = values,
+                          breaks= breaks,
+                          guide = guide) +
       theme(text = element_text(size=10),
             axis.text.x = element_text(angle=0, hjust= 0.5),
             legend.margin=margin(0,0,0,0),
