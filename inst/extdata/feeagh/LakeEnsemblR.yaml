@@ -27,7 +27,7 @@ input:
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary [csv file]
    light:
-      Kw: 0.98                                  # light extinction coefficient [m-1]
+      Kw: 0.98                                  # light extinction coefficient [m-1, or csv file]
    ice:
       use: true                                 # turn on ice models? [true/false]
 inflows:
