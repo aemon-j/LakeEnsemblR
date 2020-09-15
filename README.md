@@ -36,8 +36,7 @@ You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-
 ## Example model run
 ```{r gh-installation, eval = FALSE}
 
-# Load libraries
-library(gotmtools)
+# Load LakeEnsemblR
 library(LakeEnsemblR)
 
 # Copy template folder
@@ -63,6 +62,7 @@ run_ensemble(config_file = config_file, model = model)
 ```{r gh-installation, eval = FALSE}
 
 # Load libraries for post-processing
+library(gotmtools)
 library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
@@ -86,10 +86,10 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-plot_ensemble(ncdf = ncdf, model = model, var = 'watertemp', depth = 0.9)
+plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
 
 # Load watertemp from netCDF file as a list
-wtemp <- load_var(ncdf = ncdf, var = 'watertemp', return = 'list')
+wtemp <- load_var(ncdf = ncdf, var = 'temp', return = 'list')
 names(wtemp)
 
 # Plot residual diagnostic plots

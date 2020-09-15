@@ -7,7 +7,7 @@
 plot_ensemble(
   ncdf,
   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-  var = "watertemp",
+  var = "temp",
   dim = "model",
   dim_index = 1,
   depth = NULL,
@@ -44,14 +44,14 @@ an average value.
 # time series
 p1 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                   var = "watertemp", depth = 0.9, boxwhisker = TRUE)
+                   var = "temp", depth = 0.9, boxwhisker = TRUE)
 
 # depth profiles
 p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                   var = "watertemp", date = as.POSIXct("2010-06-13", tz = "UTC"),
+                   var = "temp", date = as.POSIXct("2010-06-13", tz = "UTC"),
                    boxwhisker = TRUE)
-                   
+
 }
 
 }

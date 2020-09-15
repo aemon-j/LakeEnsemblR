@@ -34,18 +34,6 @@ export_model_parameters <- function(config_file,
   # Read config_file with configr
   master_config <- configr::read.config(file.path(folder, config_file))
   
-  # Now for each model:
-  # - Check if model_parameters -> Model exists or is not empty (if not, continue)
-  # - If it does, check if the model config file can be found, if not, warn and continue
-  # - Loop through all variables in the master config files and write replacement
-  #   value to the config file specified under config_files
-  
-  # Ideally, all this in a loop (but need if statement as for each model it's
-  # different how to write to a model)
-  # Place reference to this function in export_config.R
-  # The hard-coded reference in export_config for GLM bsn_width, etc. can then be removed
-  
-  # Try to turn this into a loop, then later maybe into apply
   for(i in model){
     # Only continue if model-specific parameters are specified for this model
     if(is.null(master_config[["model_parameters"]][[i]])) next
