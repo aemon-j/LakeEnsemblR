@@ -21,11 +21,9 @@
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = "."){
 
-  # check the master config file
-  check_master_config(config_file, model)
   # check model input
   model <- check_models(model)
-  
+
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
@@ -47,7 +45,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(!file.exists(meteo_file)){
     stop(meteo_file, " does not exist. Check filepath in ", config_file)
   }
-  
+
   met_timestep <- get_meteo_time_step(file.path(folder, meteo_file))
 
   ### Import data
@@ -55,7 +53,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   met <- read.csv(file.path(folder, meteo_file), stringsAsFactors = FALSE)
   message("Finished loading met data!", paste0("[", Sys.time(), "]"))
-  
+
   met[, 1] <- as.POSIXct(met[, 1])
   # Check time step
   tstep <- diff(as.numeric(met[, 1]))
@@ -87,7 +85,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     met_outfpath <- file.path(folder, "FLake", met_outfile)
 
 
-    # Write meteo file, potentially with the scaling factors in the config_file 
+    # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "FLake", folder)
     scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfpath)
@@ -109,24 +107,17 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     glm_met <- format_met(met = met, model = "GLM", config_file = config_file)
 
     met_outfile <- file.path("GLM", "meteo_file.csv")
-    
-    # Write meteo file, potentially with the scaling factors in the config_file 
+
+    # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "GLM", folder)
     scale_met(glm_met, pars = scale_param, model = "GLM", out_file = met_outfile)
-
-    if("LongWave" %in% colnames(glm_met)){
-      lw_type <- "LW_IN"
-    } else {
-      lw_type <- "LW_IN" ### Needs to be developed catch if no LW
-    }
-
 
     # Input to nml file
     nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
     nml <- glmtools::read_nml(nml_path)
 
-    nml_list <- list("subdaily" = subdaily, "lw_type" = lw_type, "meteo_fl" = "meteo_file.csv")
+    nml_list <- list("subdaily" = subdaily, "lw_type" = "LW_IN", "meteo_fl" = "meteo_file.csv")
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
 
     glmtools::write_nml(nml, nml_path)
@@ -144,7 +135,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     met_outfpath <- file.path(folder, "GOTM", met_outfile)
 
     got_met <- format_met(met, model = "GOTM", config_file = config_file)
-    
+
     # Avoid bug where GOTM can crash if last date of met file == last date of simulation
     if(got_met[nrow(got_met), 1] == get_yaml_value(config_file, "time", "stop")){
       last_line <- got_met[nrow(got_met),]
@@ -152,12 +143,12 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                               "%Y-%m-%d %H:%M:%S")
       last_line[1, 1] <- new_last_date
       got_met <- rbind(got_met, last_line)
-      
+
       warning("Last date of met file equals last date of simulation. This could cause GOTM to crash ",
               "and therefore one extra time step has been added to the GOTM met file.")
     }
-    
-    # Write meteo file, potentially with the scaling factors in the config_file 
+
+    # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "GOTM", folder)
     scale_met(got_met, pars = scale_param, model = "GOTM", out_file = met_outfpath)
@@ -177,10 +168,10 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
 
     met_outfpath <- file.path(folder, "Simstrat", met_outfile)
-    
+
     sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file)
-    
-    # Write meteo file, potentially with the scaling factors in the config_file 
+
+    # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "Simstrat", folder)
     scale_met(sim_met, pars = scale_param, model = "Simstrat", out_file = met_outfpath)
@@ -196,7 +187,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     met_outfile <- "meteo_file.dat"
     met_outfpath <- file.path(folder, "MyLake", met_outfile)
-    
+
     # If met_timestep is not 24 hours, MyLake would crash
     # If met_timestep is lower than 24 hours, met is averaged to 24 hours
     if(met_timestep < 86400){
@@ -211,20 +202,20 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     }else{
       met_temp <- met
     }
-    
+
     mylake_met <- format_met(met = met_temp, model = "MyLake", config_file = config_file)
-    
-    # Write meteo file, potentially with the scaling factors in the config_file 
+
+    # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
     scale_param <- create_scaling_factors(config_file, "MyLake", folder)
     scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
-    
+
     message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
   }
 
   # Set the timezone back to the original
   Sys.setenv(TZ = original_tz)
-  
+
   message("export_meteo complete!")
 
 }

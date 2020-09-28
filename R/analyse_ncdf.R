@@ -117,7 +117,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
 
   # Remove temp spin-up period ----
   obs_temp <- temp[["Obs"]]
-  z <- rLakeAnalyzer::get.offsets(obs_temp)
+  z <- get.offsets(obs_temp)
   obs_temp <- gotmtools::wide2long(obs_temp, z)
   # obs_temp <- na.exclude(obs_temp)
   if(!is.null(spin_up)){
@@ -155,7 +155,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   # Loop through each model output
   out_list <- lapply(seq_len(length(temp)), function(x){
     
-    z <- rLakeAnalyzer::get.offsets(temp[[x]])
+    z <- get.offsets(temp[[x]])
     tmp <- gotmtools::wide2long(temp[[x]], z)
     # obs_temp <- na.exclude(obs_temp)
     if(!is.null(spin_up)){
@@ -214,8 +214,8 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   out_df$model <- factor(out_df$model)
   
   # Put the model in the first column
-  out_stat <- out_stat[,c(ncol(out_stat), 1:(ncol(out_stat)-1))]
-  out_strat <- out_strat[,c(ncol(out_strat), 1:(ncol(out_strat)-1))]
+  out_stat <- out_stat[, c(ncol(out_stat), 1:(ncol(out_stat) - 1))]
+  out_strat <- out_strat[, c(ncol(out_strat), 1:(ncol(out_strat) - 1))]
   
   
   out <- list(out_df = out_df,
@@ -231,5 +231,3 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
 #' @export
 #' @rdname analyse_ncdf
 analyze_ncdf <- analyse_ncdf
-
-

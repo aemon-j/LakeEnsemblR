@@ -1,3 +1,61 @@
+#' @title Gets depths from data frame containing profile info.
+#'
+#' @description Extracts the depth information from a data frame containing multi-depth
+#' observation data. Relies on the format of the header to get information and
+#' may fail if your file format is incorrect. Please follow 'VAR_##.#' format,
+#' where ##.# is the depth of data for that column. VAR is typically 'wtr' to
+#' indicate water temperature. The function is taken from the rLakeAnalyzer package and
+#' all credit is to the rLakeAnalyzer authors (https://github.com/GLEON/rLakeAnalyzer)
+#'
+#'
+#' @param data Data frame returned from \code{\link{load.ts}}.
+#' @return A numeric vector of depth values. Should be the \code{ncol(data) -
+#' 1} in length as the first column contains date/time data.
+#' @keywords manip
+#' @examples
+#'
+#'
+#' #Get the path for the package example file included
+#' exampleFilePath <- system.file('extdata', 'Sparkling.wtr', package="rLakeAnalyzer")
+#'
+#' #Load
+#' sparkling.temp = load.ts(exampleFilePath)
+#'
+#' #get the lake depths associated with each column
+#' depths = get.offsets(sparkling.temp)
+#'
+#' print(depths)
+#' @noRd
+get.offsets <- function(data){
+  
+  header <- names(data)
+  
+  #check for existence of datetime header and drop if there
+  dt_indx <- grep(pattern = "datetime", x = header, ignore.case= TRUE)
+  if(length(dt_indx) > 0){
+    header <- header[-dt_indx] #Drop datetime
+  }
+
+  #match anything digits after the last _ (at the end of the line)
+  matches <- regexpr("_\\d+\\.?\\d*$", header)
+
+  lengths <- attr(matches, "match.length")
+  offsets <- vector(mode = "numeric", length = length(matches))
+
+  for(i in 1:length(matches)){
+    offsets[i] <- as.numeric(substr(header[i], matches[i]+1, matches[i] + lengths[i]))
+  }
+
+  if(any(is.na(offsets))){
+    warning("Problem determining variable depths from column names. 
+            Please use the 'var_#.#' format for your data.frame header." )
+    }
+
+  return(offsets)
+}
+
+
+
 #' Set met files and column numbers in gotm.yaml
 #'@description
 #' Set met files and column numbers in gotm.yaml
@@ -51,7 +109,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
   input_yaml(file = yaml, label = "swr", key = "scale_factor", value = 1)
   # precip
   input_yaml(file = yaml, label = "precip", key = "column",
-             value = (which(colnames(df) == l_names$precip) - 1))
+             value = (which(colnames(df) == "Precipitation_meterPerSecond") - 1))
   input_yaml(file = yaml, label = "precip", key = "scale_factor", value = 1)
 
   if(l_names$relh %in% colnames(df)){
@@ -143,34 +201,34 @@ calc_wind_dir <- function(u, v) {
 #' @param met_file filepath; to meteo file in LakeEnsemblR standard format
 #' @noRd
 get_meteo_time_step <- function(met_file){
-  
+
   # Fix time zone
   original_tz <- Sys.getenv("TZ")
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     Sys.setenv(TZ = original_tz)
   })
-  
+
   Sys.setenv(TZ = "GMT")
-  
+
   # Read meteo file
   met <- read.csv(met_file)
-  
+
   # Check if met file has a datetime column
   if(!("datetime" %in% colnames(met))){
     stop("Meteo file has no datetime column")
   }
-  
+
   # Check for missing forcing
   if(any(is.na(met))){
     stop("Meteo file contains NA values; forcing cannot contain missing values!")
   }
-  
+
   # Check for irregular time steps
   met[["datetime"]] <- as.POSIXct(met[["datetime"]])
   timesteps <- difftime(head(met[["datetime"]], -1), tail(met[["datetime"]], -1), units = "secs")
-  
+
   if(length(unique(timesteps)) > 1){
     stop("Meteo file has irregular time steps!")
   }else{
@@ -181,7 +239,7 @@ get_meteo_time_step <- function(met_file){
 
 #' Create scaling factor dataframe from the config_file that is needed as input to scale_met
 #' @description
-#' Creates dataframe for the pars argument of the scale_met function, based on the config_file 
+#' Creates dataframe for the pars argument of the scale_met function, based on the config_file
 #'
 #' @name create_scaling_factors
 #' @param config_file string; name of the master LakeEnsemblR config file
@@ -189,27 +247,26 @@ get_meteo_time_step <- function(met_file){
 #' @param folder string; file path to the config_file
 #' @noRd
 create_scaling_factors <- function(config_file, model, folder){
-  
+
   master_config <- configr::read.config(file.path(folder, config_file))
-  
+
   pars <- data.frame(wind_speed = 1,
                      swr = 1,
                      lwr = 1)
-  
+
   for(i in colnames(pars)){
     # Fill the scaling_factors based on what is filled in for "all"
     if(!is.null(master_config[["scaling_factors"]][["all"]][[i]])){
       pars[[i]][1] = master_config[["scaling_factors"]][["all"]][[i]]
     }
-    
+
     # Overwrite with value filled in for the specific model
     if(!is.null(master_config[["scaling_factors"]][[model]][[i]])){
       pars[[i]][1] = master_config[["scaling_factors"]][[model]][[i]]
     }
   }
-  
-  
+
+
   # Return the data frame
   return(pars)
 }
-
