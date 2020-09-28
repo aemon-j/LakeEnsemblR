@@ -89,8 +89,8 @@ calibration:                                    # calibration section
          log: false                             # log transform scaling factor
    GOTM:                                        # GOTM specific parameters
       turb_param/k_min:
-         lower: 5E-4                            # lower bound for parameter
-         upper: 5E-6                            # upper bound for parameter
+         lower: 5E-6                            # lower bound for parameter
+         upper: 5E-4                            # upper bound for parameter
          initial: 1E-5                          # initial value for parameter
          log: true
    Simstrat:                                    # Simstrat specific parameters                                 
