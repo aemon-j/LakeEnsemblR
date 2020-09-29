@@ -4,7 +4,7 @@
 \alias{get_json_value}
 \title{Extracts values from a json file}
 \usage{
-get_json_value(file, label, key, out_file = NULL)
+get_json_value(file, label, key)
 }
 \arguments{
 \item{file}{filepath; to json file}

@@ -13,15 +13,23 @@ input_json(file, label, key, value, out_file = NULL)
 
 \item{key}{string; name of key in which to input the value}
 
-\item{value}{string; to be input into the key/value pair. Note boolean values must be input as 'true'/'false' as per the json format}
+\item{value}{string; to be input into the key/value pair.
+Note boolean values must be input as 'true'/'false' as per the json format}
 
-\item{out_file}{filepath; to write the output json file (optional); defaults to overwriting file if not specified}
+\item{out_file}{filepath; to write the output json file (optional);
+defaults to overwriting file if not specified}
 }
 \description{
-Inputs values into json file by locating the label and key within the json file. Preserves comments (!) if present. NOTE: this does not use a json parser so if there are json formatting errors this function will not pick them up.
+Inputs values into json file by locating the label and key within the json file.
+ Preserves comments (!) if present.
+ NOTE: this does not use a json parser so if there are json formatting errors
+ this function will not pick them up.
 }
 \examples{
+
+\dontrun{
 input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
+}
 }
 \author{
 Tadhg Moore, Jorrit Mesman

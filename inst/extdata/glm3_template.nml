@@ -11,8 +11,8 @@
    surface_mixing = 1
    coef_mix_conv = 0.2
    coef_wind_stir = 0.23
-   coef_mix_shear = 0.3
-   coef_mix_turb = 0.51
+   coef_mix_shear = 0.51
+   coef_mix_turb = 0.3
    coef_mix_KH = 0.3
    deep_mixing = 2
    coef_mix_hyp = 0.5
@@ -76,7 +76,7 @@
    subdaily = .false.
    meteo_fl = 'meteo_file.csv'
    wind_factor = 1
-   sw_factor = 1.08
+   sw_factor = 1
    lw_factor = 1
    at_factor = 1
    rh_factor = 1
@@ -104,16 +104,16 @@
    Kw = 1.5
 /
 &inflow
-   num_inflows = 0
-   names_of_strms = 'Riv1','Riv2'
+   num_inflows = 1
+   names_of_strms = 'Riv1'
    subm_flag = .false.
-   strm_hf_angle = 65, 65
-   strmbd_slope = 2, 2
-   strmbd_drag = 0.016, 0.016
-   inflow_factor = 1, 1
-   inflow_fl = 'bcs/inflow_1.csv','bcs/inflow_2.csv'
-   inflow_varnum = 4
-   inflow_vars = 'FLOW','TEMP','SALT','OXY_oxy','SIL_rsi','NIT_amm','NIT_nit','PHS_frp','OGM_don','OGM_pon','OGM_dop','OGM_pop','OGM_doc','OGM_poc','PHY_green','PHY_crypto','PHY_diatom'
+   strm_hf_angle = 65
+   strmbd_slope = 2
+   strmbd_drag = 0.016
+   inflow_factor = 1
+   inflow_fl = 'inflow_file.csv'
+   inflow_varnum = 3
+   inflow_vars = 'FLOW','TEMP','SALT'
 /
 &outflow
    num_outlet = 0
@@ -121,8 +121,8 @@
    outl_elvs = 1
    bsn_len_outl = 5
    bsn_wid_outl = 5
-   outflow_fl = 'bcs/outflow.csv'
-   outflow_factor = 0.8
+   outflow_fl = 'outflow.csv'
+   outflow_factor = 1.
    crest_width = 100
    crest_factor = 0.61
 /

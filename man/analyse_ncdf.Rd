@@ -2,18 +2,46 @@
 % Please edit documentation in R/analyse_ncdf.R
 \name{analyse_ncdf}
 \alias{analyse_ncdf}
+\alias{analyze_ncdf}
 \title{Analyse the output netCDF}
 \usage{
-analyse_ncdf(ncdf, spin_up = NULL)
+analyse_ncdf(
+  ncdf,
+  model,
+  dim = "model",
+  dim_index = 1,
+  spin_up = 0,
+  drho = 0.1
+)
+
+analyze_ncdf(
+  ncdf,
+  model,
+  dim = "model",
+  dim_index = 1,
+  spin_up = 0,
+  drho = 0.1
+)
 }
 \arguments{
 \item{ncdf}{filepath; to the `ensemble_output.nc` file}
 
+\item{model}{Vector of models for which to calculate the performance measures}
+
+\item{dim}{character; NetCDF dimensions to extract. Must be either "member" or "model". Defaults to "model". Only used if plotting from netCDF file. Currently only works with "model".}
+
+\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.}
+
 \item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
+
+\item{drho}{numeric; density difference between top and bottom indicating stratification
+[kg m^-3]}
 }
 \value{
-list with the dataframes used for comparison, statistics on model performance,
-stratification
+list of four dataframes: 'out_df' = long data frame with date, depths, temp and model,
+'stats' = summary statistics of model fitness compared to observed and mean differences between modelled and observed phenological events,
+'strat' = stratification statistics for each year,
+'obs_temp' = long dataframe of observed data within the netCDF file
 }
 \description{
 Analyse the LER output neCDF and produce summary statistics
@@ -21,4 +49,7 @@ Analyse the LER output neCDF and produce summary statistics
 \examples{
 \dontrun{
 }
+}
+\author{
+Tadhg Moore
 }

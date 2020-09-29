@@ -1,24 +1,24 @@
 title: GOTM Simulation                  # simulation title used in output [default=GOTM simulation] (Code /LER/ means that this is overwritten by settings in the LakeEnsemblR master config file)
 location:
-   name: Feeagh # /LER/ station name used in output [default=GOTM site]
-   latitude: 53.9 # /LER/ latitude [degrees North; min=-90.0; max=90.0; default=0.0]
-   longitude: -9.5 # /LER/ longitude [degrees East; min=-360.0; max=360.0; default=0.0]
-   depth: 46 # /LER/ water depth [m; min=0.0; default=100.0]
-   hypsograph: hypsograph.dat # /LER/ hypsograph [default=]
+   name: Feeagh                         # /LER/ station name used in output [default=GOTM site]
+   latitude: 53.9                       # /LER/ latitude [degrees North; min=-90.0; max=90.0; default=0.0]
+   longitude: -9.5                      # /LER/ longitude [degrees East; min=-360.0; max=360.0; default=0.0]
+   depth: 46                            # /LER/ water depth [m; min=0.0; default=100.0]
+   hypsograph: hypsograph.dat           # /LER/ hypsograph [default=]
 time:
-   start: 2010-01-01 00:00:00 # /LER/ start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
-   stop: 2011-01-01 00:00:00 # /LER/ stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
-   dt: 86400 # /LER/ time step for integration [s; min=0.0; default=3600.0]
+   start: 2010-01-01 00:00:00           # /LER/ start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
+   stop: 2011-01-01 00:00:00            # /LER/ stop date and time [yyyy-mm-dd HH:MM:SS; default=2018-01-01 00:00:00]
+   dt: 86400                            # /LER/ time step for integration [s; min=0.0; default=3600.0]
 grid:
-   nlev: 100                            # number of layers [min=1; default=100]
+   nlev: 100                            # /LER/ number of layers [min=1; default=100]
    method: 0                            # layer thicknesses [0=equal by default with optional zooming, 1=prescribed relative fractions, 2=prescribed thicknesses; default=0]
    ddu: 0.0                             # surface zooming [dimensionless; min=0.0; default=0.0]
    ddl: 0.0                             # bottom zooming [dimensionless; min=0.0; default=0.0]
    file:                                # file with custom grid [default=]
 temperature:                            # temperature profile used for initialization and optionally relaxation
-   method: 2 # method [0=off, 1=analytical, 2=from file; default=0]
-   file: init_cond.dat # path to file with series of profiles [default=]
-   column: 1 # index of column to read from [default=1]
+   method: 2                            # /LER/ method [0=off, 1=analytical, 2=from file; default=0]
+   file: init_cond.dat                  # /LER/ path to file with series of profiles [default=]
+   column: 1                            # /LER/ index of column to read from [default=1]
    analytical:
       method: 1                         # type of analytical initial temperature profile [1=constant, 2=two layers, 3=from salinity and buoyancy frequency; default=1]
       z_t1: 30.0                        # upper layer thickness [m; min=0.0; default=0.0]
@@ -42,7 +42,7 @@ salinity:                               # salinity profile used for initializati
       s_1: 20.0                         # upper layer salinity [psu; min=0.0; max=40.0; default=0.0]
       z_s2: 40.0                        # lower layer thickness [m; min=0.0; default=0.0]
       s_2: 15.0                         # lower layer salinity [psu; min=0.0; max=40.0; default=0.0]
-      obs_NN: 2.56000000E-04            # constant buoyancy frequency [s^-2; min=0.0; default=0.0]
+      obs_NN: 0.0                       # constant buoyancy frequency [s^-2; min=0.0; default=0.0]
    relax:                               # relax model salinity to observed/prescribed value
       tau: 1.00000000E+15               # time scale for interior layer [s; min=0.0; default=1.00000000E+15]
 surface:
@@ -68,56 +68,56 @@ surface:
       u10:                              # wind speed in West-East direction @ 10 m
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [m/s; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 1 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 1                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       v10:                              # wind speed in South-North direction @ 10 m
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [m/s; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 2 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 2                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       airp:                             # air pressure
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [Pa; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 3 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 3                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       airt:                             # air temperature @ 2 m
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [Celsius or K; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 4 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 4                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       hum:                              # humidity @ 2 m
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 5 # index of column to read from [default=1]
-         type: 1 # humidity metric [1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg); default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 5                      # index of column to read from [default=1]
+         type: 1                        # humidity metric [1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature, 4=specific humidity (kg/kg); default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       cloud:                            # cloud cover
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [fraction; min=0.0; max=1.0; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 6 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 6                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       swr:                              # shortwave radiation
          method: 2                      # method [0=constant, 2=from file, 3=from time, location and cloud cover; default=0]
          constant_value: 0.0            # value to use throughout the simulation [W/m^2; min=0.0; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 7 # index of column to read from [default=1]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 7                      # index of column to read from [default=1]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       precip:                           # precipitation
          method: 2                      # method [0=constant, 2=from file; default=0]
          constant_value: 0.0            # value to use throughout the simulation [m/s; default=0.0]
-         file: meteo_file.dat # path to file with time series [default=]
-         column: 8 # index of column to read from [default=1]
+         file: meteo_file.dat           # path to file with time series [default=]
+         column: 8                      # index of column to read from [default=1]
          flux_impact: true              # include effect on fluxes of sensible heat and momentum [default=false]
-         scale_factor: 1 # scale factor to be applied to values read from file [default=1.0]
+         scale_factor: 1                # scale factor to be applied to values read from file [default=1.0]
       calc_evaporation: true            # calculate evaporation from meteorological conditions [default=false]
       ssuv_method: 0                    # wind treatment [0=use absolute wind speed, 1=use wind speed relative to current velocity; default=1]
-   back_radiation:                      # net longwave radiation
+   longwave_radiation:                  # net longwave radiation
       method: 1                         # method [0=from file, 1=Clark, 2=Hastenrath, 3=Bignami, 4=Berliand; default=1]
       file:                             # path to file with time series [default=]
       column: 1                         # index of column to read from [default=1]
@@ -125,7 +125,7 @@ surface:
       method: 1                         # method to compute albedo [0=constant, 1=Payne (1972), 2=Cogley (1979); default=1]
       constant_value: 0.0               # constant value to use throughout the simulation [fraction; min=0.0; max=1.0; default=0.0]
    ice:
-      model: 0                          # model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
+      model: 0                          # /LER/ model [0=none, 1=Lebedev (1938), 2=MyLake, 3=Winton; default=0]
       H: 0.0                            # initial ice thickness [m; default=0.0]
    roughness:
       charnock: false                   # use Charnock (1955) roughness adaptation [default=false]
@@ -146,10 +146,10 @@ light_extinction:
       file:                             # path to file with time series [default=]
       column: 1                         # index of column to read from [default=1]
    g2:                                  # e-folding depth of visible shortwave radiation
-      method: 0                         # method [0=constant, 2=from file; default=0]
-      constant_value: 2.0               # value to use throughout the simulation [m; min=0.0; default=8.0]
-      file:                             # path to file with time series [default=]
-      column: 1                         # index of column to read from [default=1]
+      method: 0                         # /LER/ method [0=constant, 2=from file; default=0]
+      constant_value: 2.0               # /LER/ value to use throughout the simulation [m; min=0.0; default=8.0]
+      file:                             # /LER/ path to file with time series [default=]
+      column: 1                         # /LER/ index of column to read from [default=1]
 turbulence:
    turb_method: 3                       # turbulence closure [0=convective adjustment, 2=first-order, 3=second-order; default=3]
    tke_method: 2                        # turbulent kinetic energy equation [1=algebraic length scale equation, 2=differential equation for tke (k-epsilon style), 3=differential equation for q^2/2 (Mellor-Yamada style); default=2]
@@ -164,7 +164,7 @@ turbulence:
       compute_c3: true                  # compute c3 (E3 for Mellor-Yamada) from steady-state Richardson number [default=true]
       Ri_st: 0.25                       # desired steady-state Richardson number [dimensionless; min=0.0; default=0.25]
       length_lim: true                  # apply Galperin et al. (1988) length scale limitation [default=true]
-      galp: 0.53                        # coefficient for length scale limitation [dimensionless; min=0.0; default=0.27]
+      galp: 0.27                        # coefficient for length scale limitation [dimensionless; min=0.0; default=0.27]
       const_num: 5.00000000E-04         # constant eddy diffusivity [m^2/s; min=0.0; default=5.00000000E-04]
       const_nuh: 5.00000000E-04         # constant heat diffusivity [m^2/s; min=0.0; default=5.00000000E-04]
       k_min: 3.60000000E-06             # minimum turbulent kinetic energy [m^2/s^2; min=0.0; default=1.00000000E-10]
@@ -172,22 +172,22 @@ turbulence:
       kb_min: 1.00000000E-10            # minimum buoyancy variance [m^2/s^4; min=0.0; default=1.00000000E-10]
       epsb_min: 1.00000000E-14          # minimum buoyancy variance destruction rate [m^2/s^5; min=0.0; default=1.00000000E-14]
    generic:                             # generic length scale (GLS) model
-      gen_m: 1.0                        # exponent for k [dimensionless; default=1.5]
-      gen_n: -0.67                      # exponent for l [dimensionless; default=-1.0]
-      cpsi1: 1.0                        # empirical coefficient cpsi1 in psi equation [dimensionless; default=1.44]
-      cpsi2: 1.22                       # empirical coefficient cpsi2 in psi equation [dimensionless; default=1.92]
-      cpsi3minus: 0.05                  # cpsi3 for stable stratification [dimensionless; default=0.0]
-      sig_kpsi: 0.8                     # Schmidt number for TKE diffusivity [dimensionless; default=1.0]
-      sig_psi: 1.07                     # Schmidt number for psi diffusivity [dimensionless; default=1.3]
+      gen_m: 1.5                        # exponent for k [dimensionless; default=1.5]
+      gen_n: -1.0                       # exponent for l [dimensionless; default=-1.0]
+      cpsi1: 1.44                       # empirical coefficient cpsi1 in psi equation [dimensionless; default=1.44]
+      cpsi2: 1.92                       # empirical coefficient cpsi2 in psi equation [dimensionless; default=1.92]
+      cpsi3minus: 0.0                   # cpsi3 for stable stratification [dimensionless; default=0.0]
+      sig_kpsi: 1.0                     # Schmidt number for TKE diffusivity [dimensionless; default=1.0]
+      sig_psi: 1.3                      # Schmidt number for psi diffusivity [dimensionless; default=1.3]
    keps:                                # k-epsilon model
-      ce3minus: -0.4                    # ce3 for stable stratification [dimensionless; default=0.0]
+      ce3minus: 0.0                     # ce3 for stable stratification [dimensionless; default=0.0]
    my:                                  # Mellor-Yamada model
-      length: 3                         # barotropic length scale in q^2 l equation [1=parabolic, 2=triangular, 3=linear from surface; default=1]
+      length: 1                         # barotropic length scale in q^2 l equation [1=parabolic, 2=triangular, 3=linear from surface; default=1]
    scnd:                                # second-order model
-      method: 1                         # method [1=quasi-equilibrium, 2=weak equilibrium with algebraic buoyancy variance; default=2]
-      scnd_coeff: 7                     # coefficients of second-order model [0=custom, 1=Gibson and Launder (1978), 2=Mellor and Yamada (1982), 3=Kantha and Clayson (1994), 4=Luyten et al. (1996), 5=Canuto et al. (2001) (version A), 6=Canuto et al. (2001) (version B), 7=Cheng et al. (2002); default=5]
+      method: 2                         # method [1=quasi-equilibrium, 2=weak equilibrium with algebraic buoyancy variance; default=2]
+      scnd_coeff: 5                     # coefficients of second-order model [0=custom, 1=Gibson and Launder (1978), 2=Mellor and Yamada (1982), 3=Kantha and Clayson (1994), 4=Luyten et al. (1996), 5=Canuto et al. (2001) (version A), 6=Canuto et al. (2001) (version B), 7=Cheng et al. (2002); default=5]
    iw:                                  # internal wave mixing
-      alpha: 0.7                        # coefficient for Mellor internal wave model [dimensionless; default=0.0]
+      alpha: 0.0                        # coefficient for Mellor internal wave model [dimensionless; default=0.0]
 mimic_3d:                               # effects of horizontal gradients
    ext_pressure:                        # external pressure
       mode: 0                           # formulation [0=horizontal gradient in surface elevation, 1=horizontal velocities at given height above bed, 2=vertically averaged horizontal velocities; default=0]
@@ -244,7 +244,7 @@ mimic_3d:                               # effects of horizontal gradients
       constant_value: 0.0               # value to use throughout the simulation [m; default=0.0]
       file:                             # path to file with time series [default=]
       column: 1                         # index of column to read from [default=1]
-      offset: -10.312                   # offset to be added to values read from file [m; default=0.0]
+      offset: 0.0                       # offset to be added to values read from file [m; default=0.0]
       period_1: 44714.0                 # period of 1st harmonic (eg. M2-tide) [s; default=44714.0]
       amp_1: 0.0                        # amplitude of 1st harmonic [m; default=0.0]
       phase_1: 0.0                      # phase of 1st harmonic [s; min=0.0; default=0.0]
@@ -276,29 +276,47 @@ velocities:                             # observed/prescribed horizontal velocit
       tau: 1.00000000E+15               # time scale [s; min=0.0; default=1.00000000E+15]
       ramp: 1.00000000E+15              # duration of initial relaxation period [s; min=0.0; default=1.00000000E+15]
 o2:                                     # oxygen
-   scale_factor: 31.25                  # scale factor to be applied to values read from file [default=1.0]
+   scale_factor: 1.0                    # scale factor to be applied to values read from file [default=1.0]
    offset: 0.0                          # offset to be added to values read from file [default=0.0]     
 streams:
-########################   inflow:                                    # stream configuration
-########################      method: 4                                 # inflow method [default=1]
-########################      zu: 0.0                                   # upper limit [m; default=0.0]
-########################      zl: 0.0                                   # lower limit [m; default=0.0]
-########################      flow:                                     # water flow
-########################         method: 2                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: 0.0                    # value to use throughout the simulation [m^3/s; default=0.0]
-########################         file: inflow.dat                       # path to file with time series [default=]
-########################         column: 1                              # index of column to read from [default=1]
-########################      temp:                                     # flow temperature
-########################         method: 2                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: -1.0                   # value to use throughout the simulation [Celcius; default=-1.0]
-########################         file: inflow.dat                       # path to file with time series [default=]
-########################         column: 2                              # index of column to read from [default=1]
-########################      salt:                                     # flow salinity
-########################         method: 0                              # method [0=constant, 2=from file; default=0]
-########################         constant_value: -1.0                   # value to use throughout the simulation [PSU; default=-1.0]
-########################         file:                                  # path to file with time series [default=]
-########################         column: 1                              # index of column to read from [default=1]
-########################
+   inflow:                              # stream configuration
+      method: 1                         # inflow method [default=1]
+      zu: 0.0                           # upper limit [m; default=0.0]
+      zl: 0.0                           # lower limit [m; default=0.0]
+      flow:                             # water flow
+         method: 2                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: 0.0            # value to use throughout the simulation [m^3/s; default=0.0]
+         file: inflow_file.dat          # path to file with time series [default=]
+         column: 1                      # index of column to read from [default=1]
+      temp:                             # flow temperature
+         method: 2                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: 0.0            # value to use throughout the simulation [Celcius; default=-1.0]
+         file: inflow_file.dat          # path to file with time series [default=]
+         column: 2                      # index of column to read from [default=1]
+      salt:                             # flow salinity
+         method: 2                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: 0.0            # value to use throughout the simulation [PSU; default=-1.0]
+         file: inflow_file.dat          # path to file with time series [default=]
+         column: 3                      # index of column to read from [default=1]
+   outflow:                             # outflow configuration
+      method: 1                         # inflow method [default=1]
+      zu: 0.0                           # upper limit [m; default=0.0]
+      zl: 0.0                           # lower limit [m; default=0.0]
+      flow:                             # water flow
+         method: 0                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: 0.0            # value to use throughout the simulation [m^3/s; default=0.0]
+         file: outflow_file.dat         # path to file with time series [default=]
+         column: 1                      # index of column to read from [default=1]
+      temp:                             # flow temperature
+         method: 0                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: -1.0           # value to use throughout the simulation [Celcius; default=-1.0]
+         file: outflow_file.dat         # path to file with time series [default=]
+         column: 2                      # index of column to read from [default=1]
+      salt:                             # flow salinity
+         method: 0                      # /LER/ method [0=constant, 2=from file; default=0]
+         constant_value: -1.0           # value to use throughout the simulation [PSU; default=-1.0]
+         file: outflow_file.dat         # path to file with time series [default=]
+         column: 3                      # index of column to read from [default=1]
 physical_constants:
    rho_0: 1000.0                        # reference density [kg/m^3; min=0.0; default=1027.0]
 buoyancy:
