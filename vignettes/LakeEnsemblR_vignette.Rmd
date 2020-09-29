@@ -53,7 +53,7 @@ LakeEnsemblR is an R package that lets you run multiple one-dimensional physical
 
 The settings for a model run are controlled by one centralised, "master" configuration file in [YAML](https://yaml.org/) format. In this configuration file, you can set all the specifications for your model run, including start and end time, time steps, links to meteorological forcing and bathymetry files, etc. The package then converts these settings to the configuration files required by each model, through the `export_config` function. This sets up all models to run with the settings specified by the user, and the models are then run through the `run_ensemble` function. A netcdf file is created with the outputs of all the models, and the package provides functions to extract and plot this data.
 
-Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the international standard format ([ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)), which is `YYYY-mm-dd HH:MM:SS`, for example `2020-04-03 09:00:00`. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in `package/inst/extdata`, or extracted by the function `get_template`).
+Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the format `YYYY-mm-dd HH:MM:SS`, for example `2020-04-03 09:00:00`. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in `package/inst/extdata`, or extracted by the function `get_template`).
 
 # Installation
 The code of LakeEnsemblR is hosted on the AEMON-J Github page (https://github.com/aemon-j/LakeEnsemblR), and can be installed using the `devtools` package
@@ -152,7 +152,7 @@ kable_styling(x_html, position = "left", font_size = 11)
 ```
 
 
-Next you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
+Next you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in the format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
 
 
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
