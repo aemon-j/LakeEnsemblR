@@ -473,7 +473,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     if(cmethod == "MCMC") {
       model_out <- setNames(
                   lapply(model, function(m){
-                    message(paste0("\nStrated MCMC for model ", m, "\n"))
+                    message(paste0("\nStarted MCMC for model ", m, "\n"))
                       res <- FME::modMCMC(f = wrap_model,
                                           p = setNames(pars_l[[m]]$pars,
                                                        pars_l[[m]]$name),
@@ -506,7 +506,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     if(cmethod == "modFit") {
       model_out <- setNames(
         lapply(model, function(m){
-          message(paste0("\nStrated fitting of model ", m, "\n"))
+          message(paste0("\nStarted fitting of model ", m, "\n"))
           res <- FME::modFit(f = wrap_model,
                              p = setNames(pars_l[[m]]$pars,
                                    pars_l[[m]]$name),
