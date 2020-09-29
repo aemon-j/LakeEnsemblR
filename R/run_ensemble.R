@@ -11,14 +11,8 @@
 #' @param return_list boolean; Return a list of dataframes of model output. Defaults to FALSE
 #' @param create_output boolean; Create ensemble output file otherwise it just runs the models and generates model output in their respective folders. Defaults to TRUE
 #' @param add boolean; Add results to an existing netcdf file with new dimension "member"
-#' #' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
-#' @importFrom FLakeR run_flake
-#' @importFrom GLM3r run_glm
-#' @importFrom GOTMr run_gotm
-#' @importFrom SimstratR run_simstrat
-#' @importFrom MyLakeR run_mylake
+#' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
 #' @importFrom gotmtools get_yaml_value get_vari
-#' @importFrom rLakeAnalyzer get.offsets
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value get_var
 #' @importFrom lubridate year round_date seconds_to_period
@@ -29,13 +23,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          return_list = FALSE, create_output = TRUE, add = FALSE){
 
   # check model input
-  model <- check_models(model)
+  model <- check_models(model, check_package_install = TRUE)
   # check the master config file
   check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
-  Sys.setenv(TZ = "GMT")
-  tz  <-  "UTC"
+  Sys.setenv(TZ = "UTC")
 
   # Set working directory
   oldwd <- getwd()
@@ -54,10 +47,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   lakename <- get_yaml_value(config_file, "location", "name")
   obs_file <- get_yaml_value(config_file, "temperature", "file")
   ice_file <- get_yaml_value(config_file, "ice_height", "file")
-  
+
   # Get output configurations
   out_file <- get_yaml_value(config_file, "output", "file")
-  out_depths <- get_yaml_value(config_file, "output", "depths")
   format <- get_yaml_value(config_file, "output", "format")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
   if(time_unit == "second"){
@@ -74,8 +66,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   # Create output time vector
-  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start, tz = tz),
-                                               as.POSIXct(stop, tz = tz),
+  out_time <- data.frame(datetime = seq.POSIXt(as.POSIXct(start),
+                                               as.POSIXct(stop),
                                                by = paste(time_step, time_unit)))
 
 
@@ -90,7 +82,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
     colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
-    obs_out$datetime <- as.POSIXct(obs_out$datetime, tz = tz)
+    obs_out$datetime <- as.POSIXct(obs_out$datetime)
 
     # Subset to out_time
     obs_out <- obs_out[obs_out$datetime %in% out_time$datetime, ]
@@ -99,37 +91,35 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }else{
     obs_deps <- NULL
   }
-  
+
   if(!(ice_file == "NULL" | ice_file == "")){
     message("Loading ice observations...")
     ice <- read.csv(ice_file, stringsAsFactors = FALSE)
     message("Finished loading ice observations!")
-    
-    ice$datetime <- as.POSIXct(ice$datetime, tz = tz)
-    
+
+    ice$datetime <- as.POSIXct(ice$datetime)
+
     # Subset to out_time
     ice_out <- ice[ice$datetime %in% out_time$datetime, ]
     ice_out <- merge(out_time, ice_out, by = "datetime", all.x = TRUE)
-    
+
   }else{
     ice_out <- NULL
   }
-  
+
 
   run_model_args <- list(config_file = config_file,
                          folder = folder,
                          return_list = return_list,
                          create_output = create_output,
-                         tz = tz,
                          start = start,
                          stop = stop,
                          verbose = verbose,
                          obs_deps = obs_deps,
                          out_time = out_time,
-                         out_vars = out_vars,
-                         time_step = time_step)
-  
-  if(parallel){
+                         out_vars = out_vars)
+
+  if (parallel) {
     ncores <- parallel::detectCores() - 1
     clust <- parallel::makeCluster(ncores)
     parallel::clusterExport(clust, varlist = list("run_model_args"),
@@ -144,8 +134,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     )
     parallel::stopCluster(clust)
     message("Model run complete!", paste0("[", Sys.time(), "]"))
-    
-  }else{
+
+  } else {
     message("Running models... (Have you tried parallelizing?) ",
             paste0("[", Sys.time(), "]"))
     model_out <- setNames(
@@ -157,15 +147,15 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }
 
 
-  if(return_list | create_output){
+  if (return_list | create_output) {
 
     if("temp" %in% out_vars){
       temp_list <- setNames(
         lapply(model, function(mod_name) model_out[[mod_name]][["temp"]]),
-        paste0(model, "_watertemp")
+        paste0(model, "_temp")
       )
       if(!is.null(obs_deps)){
-        temp_list <- append(temp_list, list("Obs_watertemp" = obs_out))
+        temp_list <- append(temp_list, list("Obs_temp" = obs_out))
       }
       # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
@@ -180,10 +170,34 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       }
     }
 
+    if("dens" %in% out_vars){
+      dens_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["dens"]]),
+        paste0(model, "_dens")
+      )
+      # if(!is.null(obs_deps)){
+      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
+      # }
+      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+    }
+
+    if("salt" %in% out_vars){
+      sal_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["salt"]]),
+        paste0(model, "_salt")
+      )
+      # if(!is.null(obs_deps)){
+      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
+      # }
+      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+    }
+
     # Put all lists with output into a single, named list
     all_lists <- NULL
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
     if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
+    if(exists("dens_list")) all_lists[["dens_list"]] <- dens_list
+    if(exists("sal_list")) all_lists[["sal_list"]] <- sal_list
 
     if(format == "netcdf") {
       if (!add & !file.exists(out_file)) {
@@ -194,22 +208,22 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       } else {
         add_netcdf_output(output_lists = all_lists, folder = folder, model, out_file)
       }
-      
+
     } else if (format == "text") { # Write to CSV
-      
+
       out_dir <- file.path(folder, 'output')
-      
+
       # Creat output directory
       if(!dir.exists(out_dir)) {
         message("Creating directory for output: ", file.path(folder, "output"))
         dir.create(out_dir, showWarnings = FALSE)
       }
-      
+
       message("Writing '.csv' files... [", Sys.time(), "]")
-      
+
       lapply(seq_len(length(all_lists)), function(x) {
         lapply(seq_len(length(all_lists[[x]])), function(y) {
-          
+
           var_name <- strsplit(names(all_lists[[x]])[y], "_")[[1]][2]
           mod_name <- strsplit(names(all_lists[[x]])[y], "_")[[1]][1]
 
@@ -218,12 +232,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
           var <- all_lists[[x]][[y]]
           var[, -1] <- round(var[, -1], 2) # round to 2 digits to reduce filesize
           var[, 1] <- format(var[, 1], format = "%Y-%m-%d %H:%M:%S")
-          
+
           write.csv(var , out_fname, row.names = FALSE, quote = FALSE)
         })
       })
       message("Finished writing '.csv' files! [", Sys.time(), "]")
-      
+
     }
   }
 
@@ -237,15 +251,15 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
 #' @keywords internal
-.run_GLM <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                     verbose, obs_deps, out_time, out_hour, out_vars, time_step){
+.run_GLM <- function(config_file, folder, return_list, create_output, start, stop,
+                     verbose, obs_deps, out_time, out_hour, out_vars){
 
   #Delete previous output
   # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
   old_output <- list.files(file.path(folder, "GLM", "output"))
   unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
 
-  run_glm(sim_folder = file.path(folder, "GLM"), verbose = verbose)
+  GLM3r::run_glm(sim_folder = file.path(folder, "GLM"), verbose = verbose)
 
   message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
 
@@ -271,11 +285,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 #' @importFrom lubridate hour
-.run_FLake <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                       verbose, obs_deps, out_time, out_hour, out_vars, time_step){
-  
-  
-  
+.run_FLake <- function(config_file, folder, return_list, create_output, start, stop,
+                       verbose, obs_deps, out_time, out_hour, out_vars){
+
+
+
   nml_file <- basename(get_yaml_value(config_file, "config_files", "FLake"))
 
   #Delete previous output
@@ -283,7 +297,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   unlink(file.path(folder, "FLake", "output", old_output), recursive = TRUE)
 
 
-  run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file,
+  FLakeR::run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file,
             verbose = verbose)
 
   if(return_list | create_output){
@@ -313,8 +327,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_GOTM <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                      verbose, obs_deps,out_time, out_vars, time_step){
+.run_GOTM <- function(config_file, folder, return_list, create_output, start, stop,
+                      verbose, obs_deps,out_time, out_vars){
 
   yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
 
@@ -322,7 +336,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   old_output <- list.files(file.path(folder, "GOTM", "output"))
   unlink(file.path(folder, "GOTM", "output", old_output), recursive = TRUE)
 
-  run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file),
+  GOTMr::run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file),
            verbose = verbose)
 
   message("GOTM run is complete! ", paste0("[", Sys.time(), "]"))
@@ -348,9 +362,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_Simstrat <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                          verbose, obs_deps, out_time, out_vars, time_step){
-  
+.run_Simstrat <- function(config_file, folder, return_list, create_output, start, stop,
+                          verbose, obs_deps, out_time, out_vars){
+
   par_file <- basename(get_yaml_value(config_file, "config_files", "Simstrat"))
 
   #Delete previous output
@@ -359,7 +373,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
 
 
-  run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = verbose)
+  SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = verbose)
 
   message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
 
@@ -383,11 +397,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 }
 
 #' @keywords internal
-.run_MyLake <- function(config_file, folder, return_list, create_output, tz, start, stop,
-                        verbose, obs_deps, out_time, out_vars, time_step){
-  
+.run_MyLake <- function(config_file, folder, return_list, create_output, start, stop,
+                        verbose, obs_deps, out_time, out_vars){
+
   cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
-  run_mylake(sim_folder = folder, config_dat = cnfg_file)
+  MyLakeR::run_mylake(sim_folder = folder, config_dat = cnfg_file)
 
   message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
 

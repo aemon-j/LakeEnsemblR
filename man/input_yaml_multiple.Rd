@@ -10,7 +10,7 @@ input_yaml_multiple(file = "gotm.yaml", value, out_file = NULL, ...)
 \item{file}{filepath; to yaml file which you wish to edit}
 
 \item{value}{string; to be input into the the yaml file.
-Note boolean values must be input as 'true'/'false' as per the json format}
+Note boolean values must be input as "true"/"false" as per the json format}
 
 \item{out_file}{filepath; to write the output json file (optional);
 defaults to overwriting file if not specified}

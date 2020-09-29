@@ -7,7 +7,7 @@
 #' @param pars dataframe; scaling factors for meteorological data with column names corresponding
 #'    to variable dictionary
 #' @param model character; Model for which scaling parameters will be applied. Options include
-#'    c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'    c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #' @param out_file filepath; For scaled meteorlogical data
 #' @export
 scale_met <- function(met, pars, model, out_file = NULL) {
@@ -92,7 +92,7 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     }
 
     if("lwr" %in% par_nams) {
-      met[[l_names$lwr]] <- met[[l_names$jwr]] * pars$lwr
+      met[[l_names$lwr]] <- met[[l_names$lwr]] * pars$lwr
     }
     
     #Reduce number of digits

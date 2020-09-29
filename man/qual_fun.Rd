@@ -14,7 +14,7 @@ qual_fun(O, P)
 \description{
 function that calculates different estimations for model accuracy, namely: root mean squared
 error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
-relative error (re) and normalized mean absolute error (nmae). returns  a data.frame
-containing the five quality estimates
+relative error (re), mean absolute error (mae), and normalized mean absolute error (nmae).
+returns  a data.frame containing the six quality estimates
 }
 \keyword{internal}

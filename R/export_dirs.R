@@ -77,8 +77,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                 to = file.path(folder, temp_fil))
     }
     
-    # Get output.yaml from the GOTMr package and copy to the GOTM folder
-    out_fil <- system.file("extdata/output.yaml", package = "GOTMr")
+    # Get output.yaml from the template in the package and copy to the GOTM folder
+    out_fil <- system.file("extdata/gotm_files/output.yaml", package = packageName())
     file.copy(from = out_fil, to = "GOTM/output.yaml")
   }
   
@@ -98,10 +98,10 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
     
     # Copy in template files from examples folder in the package
-    qin_fil <- system.file("extdata/Qin.dat", package = "SimstratR")
-    qout_fil <- system.file("extdata/Qout.dat", package = "SimstratR")
-    tin_fil <- system.file("extdata/Tin.dat", package = "SimstratR")
-    sin_fil <- system.file("extdata/Sin.dat", package = "SimstratR")
+    qin_fil <- system.file("extdata/simstrat_files/Qin.dat", package = packageName())
+    qout_fil <- system.file("extdata/simstrat_files/Qout.dat", package = packageName())
+    tin_fil <- system.file("extdata/simstrat_files/Tin.dat", package = packageName())
+    sin_fil <- system.file("extdata/simstrat_files/Sin.dat", package = packageName())
     file.copy(from = qin_fil, to = file.path(folder, "Simstrat", "Qin.dat"))
     file.copy(from = qout_fil, to = file.path(folder, "Simstrat", "Qout.dat"))
     file.copy(from = tin_fil, to = file.path(folder, "Simstrat", "Tin.dat"))
