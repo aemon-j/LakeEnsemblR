@@ -6,4 +6,3 @@ output/output:                              # path of output file, excluding ext
    sync_interval: 0                  # number of output steps between sychronization to disk (<= 0: sync on close only) [default=1]
    variables:
    - source: /*                      # variable name in model
-   
