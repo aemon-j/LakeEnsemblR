@@ -33,8 +33,19 @@ input:
 inflows:
    use: true                                    # use in- and outflows? [true/false]
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
-   scale_param: 1.0                             # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow
-   mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false]
+   number_inflows: 1                            # number of inflows in the inflow file
+   scale_param: 1.0                             # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow. If there are more than one inflow in the inflow file, this must be a list with one value per inflow
+   mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false] only used if now outflows are given
+outflows:
+   use: true                                    # use outflows? [true/false]
+   file: LakeEnsemblR_outflow_standard.csv      # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
+   number_outflows: 2                           # number of outflows in the outflow file
+   scale_param:                                 # scaling factor for discharge in outflows. If there are more than one outflow in the outflow file, this must be a list with one value per outflow
+      - 1
+      - 1
+   outflow_lvl:                                 # height of the outflow above the ground. If the outflow is a surface outflow use "-1". If there are more than one outflow in the outflow file, this must be a list with one value per outflow
+      - -1
+      - 15
 output:
    file: ensemble_output                        # name of output file, excluding extension
    format: netcdf                               # format [text/netcdf]
