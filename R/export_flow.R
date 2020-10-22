@@ -108,6 +108,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     if (use_outflows){
       outf_surf <- rep(FALSE, num_outflows)
       outf_surf[lvl_outflows == -1] <- TRUE
+      #!! outflow elevations need to be in meters above sea level!!
       lvl_outflows[lvl_outflows == -1] <- 0
       inp_list$num_outlet <- num_outflows
       inp_list <- c(inp_list, list("flt_off_sw" = outf_surf,
@@ -125,9 +126,22 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   if("GOTM" %in% model){
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    yml_no_comment <- unname(sapply(readLines(got_yaml), function(x) strsplit(x, "#")[[1]][1]))
+    # number of inflows in the yaml file so far
+    num_inf_yaml <- length(grep("inflow\\_*\\d*:", yml_no_comment, value = TRUE))
 
+    # number of outflows in the yaml file so far
+    num_outf_yaml <- length(grep("outflow\\_*\\d*:", yml_no_comment, value = TRUE))
+      
+      
     ## Switch off streams
     if(!use_inflows){
+      # remove all inflows but one
+      if (num_inf_yaml > 1) {
+        for (i in 2:(num_inf_yaml + 1)) {
+          rm_yaml_sec(got_yaml, paste0("inflow_", i))
+        }
+      }
       # streams_switch(file = got_yaml, method = "off")
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "flow", key4 =
                             "method", value = 0)
@@ -135,65 +149,89 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                             "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "inflow", key3 = "salt", key4 =
                             "method", value = 0)
+    }
+    if (!use_outflows) {
+      # remove all outflows but one
+      if (num_outf_yaml > 1) {
+        for (i in 2:(num_outf_yaml + 1)) {
+          rm_yaml_sec(got_yaml, paste0("outflow_", i))
+        }
+      }
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
                             "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
                             "method", value = 0)
       input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
                             "method", value = 0)
-    }else{
+    }
+    # set inflows
+    if (use_inflows) {
       
-      # add additional inflows
+      # add additional inflows if necessary
       if(num_inflows > 1) {
-        
         for (i in num_inflows:2) {
           doubl_yaml_sec(got_yaml, "inflow", paste0("_", i)) 
         }
         
-      }
-      # add additional outflows
-      if(num_inflows > 1) {
+        # set inflow settings for all inflows
+        for (i in 1:num_inflows) {
+          
+          if(i == 1) {
+            inf_sec <- "inflow"
+          } else {
+            inf_sec <- paste0("inflow_", i)
+          }
+          
+          # streams_switch(file = got_yaml, method = "on")
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
+                                "method", value = 2)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
+                                "method", value = 2)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
+                                "method", value = 2)
+          
+        }
         
+        
+      }
+    }
+    # set water balance outflows
+    if (use_c_outflows) {
+      
+    }
+
+    # set outflows  
+    if (use_outflows) {
+      
+      # add additional outflows if necessary
+      if(num_outflows > 1) {
         for (i in num_outflows:2) {
           doubl_yaml_sec(got_yaml, "outflow", paste0("_", i)) 
         }
         
-      }
-      
-      for (i in 1:num_inflows) {
-        
-        if(i == 1) {
-          inf_sec <- "inflow"
-        } else {
-          inf_sec <- paste0("inflow_", i)
+        # set outflow settings for all outflows
+        for (i in 1:num_outflows) {
+          
+          if(i == 1) {
+            inf_sec <- "outflow"
+          } else {
+            inf_sec <- paste0("outflow_", i)
+          }
+          
+          # streams_switch(file = got_yaml, method = "on")
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
+                                "method", value = 2)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
+                                "method", value = 2)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
+                                "method", value = 2)
+          
         }
         
-        # streams_switch(file = got_yaml, method = "on")
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
-                              "method", value = 2)
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
-                              "method", value = 2)
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
-                              "method", value = 2)
         
-      }
-      
-      for (i in 1:num_outflows) {
-        
-        if(i == 1) {
-          outf_sec <- "outflow"
-        } else {
-          outf_sec <- paste0("outflow_", i)
-        }
-        
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "flow", key4 =
-                              "method", value = 0)
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "temp", key4 =
-                              "method", value = 0)
-        input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "salt", key4 =
-                              "method", value = 0) 
       }
     }
+    
 
   }
 
