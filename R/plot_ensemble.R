@@ -113,13 +113,13 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
     }
     
     var_list_long <- reshape2::melt(var_list, id.vars = "datetime")
-    var_list_long <- var_list_long[var_list_long[[selec_col]] == selec_const,]
+    var_list_long <- var_list_long[var_list_long[[selec_col]] == selec_const, ]
     
     colnames(var_list_long) <- c("datetime", "Depth", "value", dim)
     
     var_list_long$Depth <- -as.numeric(gsub("wtr_", "", var_list_long$Depth))
     
-    obs <- var_list_long[var_list_long[[4]] == "Obs",]
+    obs <- var_list_long[var_list_long[[4]] == "Obs", ]
     colnames(obs) <- c("datetime", "Depth", "value", "Observed")
     
     if(nrow(var_list_long) == 0){
@@ -134,12 +134,12 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
     colnames(var_list_long) <- c("datetime", "Depth", "value", dim)
     var_list_long$Depth <- 0
     
-    obs <- var_list_long[var_list_long[[4]] == "Obs",]
+    obs <- var_list_long[var_list_long[[4]] == "Obs", ]
     colnames(obs) <- c("datetime", "Depth", "value", "Observed")
   }
   
   # Calculating averages
-  var_list_long_temp <- var_list_long[var_list_long[[4]] != "Obs",]
+  var_list_long_temp <- var_list_long[var_list_long[[4]] != "Obs", ]
   dat_av <- aggregate(var_list_long_temp[, "value"],
                       by = list(var_list_long_temp[[selec_col2]]),
                       FUN = get(av_fun),
@@ -175,7 +175,8 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
     geom_line(data = var_list_long, aes_string(x = selec_col2, y = "value", col = dim),
               lwd = ifelse(dim == "member", 0.75, 1),
               alpha = ifelse(dim == "member", 0.75, 1), na.rm = TRUE) +
-    geom_line(data = dat_av, aes_string(selec_col2, "mean", col = "Type"), lwd = 1.33, na.rm = TRUE) +
+    geom_line(data = dat_av, aes_string(selec_col2, "mean", col = "Type"),
+              lwd = 1.33, na.rm = TRUE) +
     geom_point(data = obs, aes_string(x = selec_col2, y = "value", col = "Observed"), size = 1,
                na.rm = TRUE) +
     scale_colour_manual(values = values,
@@ -217,7 +218,7 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
       dat_res$value <- var_list_long$value - obs$value
       dat_res <- na.exclude(dat_res)
       if(!is.null(date)){
-        dat_av2 <- dat_av[order(dat_av$Depth, decreasing = T),]
+        dat_av2 <- dat_av[order(dat_av$Depth, decreasing = T), ]
       }else{
         dat_av2 <- dat_av
       }
