@@ -89,6 +89,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       nml <- glmtools::set_nml(nml, arg_list = list("outl_elvs" = max(max_elv)))
       glmtools::write_nml(nml, glm_nml)
 
+    }
   }
 
 ##---------------GOTM-------------
@@ -276,7 +277,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       message("GLM: Created outflow file ", file.path(folder, "GLM", "outflow.csv"))
       }
 
-    }
 
     ## GOTM
     if("GOTM" %in% model){
