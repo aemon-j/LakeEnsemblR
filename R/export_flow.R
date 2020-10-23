@@ -487,13 +487,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
       load(temp_fil)
 
-      if(num_inflows > 1) {
-        # mylake_inflow <- average inflows from list
-      } else {
-        mylake_inflow <- inflow[[1]]
-      }
-
-      mylake_inflow <- format_inflow(inflow = mylake_inflow, model = "MyLake",
+      mylake_inflow <- format_inflow(inflow = inflow, model = "MyLake",
                                      config_file = config_file)
 
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive

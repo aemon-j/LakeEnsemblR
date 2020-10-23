@@ -38,10 +38,11 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     # temperature
     temp <-  reshape2::dcast(flake_in_l, datetime ~ variable)
     temp <- temp[, grepl("Water_Temperature_celsius", colnames(temp))]
-    temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
+    if(num_inflows > 1) {
+      temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
+    }
 
-    flake_inflow <- data.frame(datetime = unique(flake_in_l$datetime),
-                               Flow_metersCubedPerSecond = sum_flow$flow,
+    flake_inflow <- data.frame(Flow_metersCubedPerSecond = sum_flow$flow,
                                Water_Temperature_celsius = temp)
 
 
@@ -127,11 +128,15 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     # salt
     salt <-  reshape2::dcast(mylake_in_l, datetime ~ variable)
     salt <- salt[, grepl("Salinity_practicalSalinityUnits", colnames(salt))]
-    salt <- apply(salt * weights, 1, sum, na.rm = TRUE)
+    if(num_inflows > 1) {
+      salt <- apply(salt * weights, 1, sum, na.rm = TRUE)
+    }
     # temperature
     temp <-  reshape2::dcast(mylake_in_l, datetime ~ variable)
     temp <- temp[, grepl("Water_Temperature_celsius", colnames(temp))]
-    temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
+    if(num_inflows > 1) {
+      temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
+    }
 
     mylake_inflow <- data.frame(datetime = unique(mylake_in_l$datetime),
                                Flow_metersCubedPerSecond = sum_flow$flow,
