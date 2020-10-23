@@ -7,7 +7,8 @@
 #' num = number of parameters in that file.
 #' @param param_file filepath; to previously created parameter file set. If NULL creates a new
 #' parameter set. Defaults to NULL
-#' @param cmethod character; Method for calibration. Can be "LHC", "MCMC" or "". Defaults to "LHC"
+#' @param cmethod character; Method for calibration. Can be "LHC", "MCMC" or "modFit".
+#'  Defaults to "LHC"
 #' @param config_file filepath; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 #' "FLake", "MyLake")
@@ -19,10 +20,11 @@
 #' @param nout_fun integer; number of return values from qualfun
 #' @param parallel Boolean; should the model calibration be parallelized
 #' @param job_name character; optional name to use as an RStudio job and as output variable
-#'  name. It has to be a syntactically valid name. Check out thos webpage for more info on jobs: https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/
-#' @param ... additional arguments passed to modFit or modMCMC. Only used when method is
+#'  name. It has to be a syntactically valid name. Check out thos webpage for more info on jobs:
+#'  https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/
+#' @param ... additional arguments passed to FME::modFit or FME::modMCMC. Only used when method is
 #'    modFit or MCMC
-#' @details Parallelization is done using the `parallel` package and `parLapply()`. The number of
+#' @details Parallelisation is done using the `parallel` package and `parLapply()`. The number of
 #'    cores used is set to the number of available cores minus one.
 #'
 #' @examples
@@ -149,10 +151,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # path to master config file
   yaml <- file.path(folder, config_file)
   # get setup parameter
-  lat <- get_yaml_value(file = yaml, label = "location", key = "latitude")
   start <- get_yaml_value(file = yaml, label = "time", key = "start")
   stop <- get_yaml_value(file = yaml, label = "location", key = "stop")
-  meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "file")
   obs_file <- get_yaml_value(file = yaml, label = "temperature", key = "file")
   time_unit <- get_yaml_value(config_file, "output", "time_unit")
   time_step <- get_yaml_value(config_file, "output", "time_step")
@@ -277,7 +277,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       pars_lhc <- list()
       for (m in model) {
         # range of parametes
-        prange <- matrix(c(pars_l[[m]]$lower, pars_l[[m]]$upper),ncol = 2)
+        prange <- matrix(c(pars_l[[m]]$lower, pars_l[[m]]$upper), ncol = 2)
         # calculate log if wanted
         prange[pars_l[[m]]$log, ] <- log10(prange[pars_l[[m]]$log, ])
         # sample parameter sets
@@ -290,7 +290,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         colnames(pars_lhc[[m]]) <- pars_l[[m]]$name
         pars_lhc[[m]] <- as.data.frame(pars_lhc[[m]])
         # add identifier for every set
-        pars_lhc[[m]]$par_id <- paste0("p", formatC(seq_len(num), width = round(log10(num))+1,
+        pars_lhc[[m]]$par_id <- paste0("p", formatC(seq_len(num), width = round(log10(num)) + 1,
                                                     format = "d", flag = "0"))
         # write parameter sets to file
         write.table(pars_lhc[[m]], file = file.path(folder, out_f,
@@ -304,8 +304,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       pars_lhc <- lapply(model, function(m) read.csv(param_file, stringsAsFactors = FALSE))
       names(pars_lhc) <- model
       # check if the number of columns in the file fit the number of parameters to be calibrated
-      if((ncol(pars_lhc[[1]])-1) != unique(par_sets)) {
-        stop(paste0("Number of parameters in file ", param_file, " (", (ncol(pars_lhc[[1]])-1),
+      if((ncol(pars_lhc[[1]]) - 1) != unique(par_sets)) {
+        stop(paste0("Number of parameters in file ", param_file, " (", (ncol(pars_lhc[[1]]) - 1),
                     ") ", "and number of parameters to calibrate in master config file (",
                     unique(par_sets), ") do not match!"))
       }
@@ -316,13 +316,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     pars_lhc <- NULL
   }
 
-# Call to export_config removed on 05-08-2020; users need to run export_config before calling function.
-# ##--------- prepare models to be run ---------------------------------------------------------------
+# Call to export_config removed on 05-08-2020; users need to run export_config before
+# calling function.
+# ##--------- prepare models to be run -----------------------------------------------------------
 #
 #   # prepare config files of the models
 #   export_config(config_file = config_file, model = model, folder = folder)
 
-##----------------- read in model meteo files ------------------------------------------------------
+##----------------- read in model meteo files ----------------------------------------------------
 
   ## read in meteo
   met_l <- lapply(model, function(m){
@@ -364,7 +365,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 ##------------------------- parallel LCH calibration -----------------------------------------------
 
   if(parallel){
-    ncores <- detectCores() -1
+    ncores <- detectCores() - 1
     clust <- makeCluster(ncores)
     clusterExport(clust, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
                                         "folder", "out_f", "cnfg_l", "obs_deps",
@@ -416,7 +417,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       message("\nFinished parallel MCMC\n")
     }
 
-##------------------------- parallel modFit calibration ----------------------------------------------
+##------------------------- parallel modFit calibration ------------------------------------------
     if(cmethod == "modFit") {
       message("\nStarted parallel modFit\n")
       model_out <- setNames(
@@ -494,14 +495,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                           lower = setNames(pars_l[[m]]$lower,
                                                            pars_l[[m]]$name),
                                           upper = setNames(pars_l[[m]]$upper,
-                                                           pars_l[[m]]$name),...)
+                                                           pars_l[[m]]$name), ...)
                       message(paste0("\nFinished MCMC for model ", m, "\n"))
                       return(res)}),
                   model
       )
     }
 
-##------------------------- modFit calibration -------------------------------------------------------
+##------------------------- modFit calibration ---------------------------------------------------
 
     if(cmethod == "modFit") {
       model_out <- setNames(
