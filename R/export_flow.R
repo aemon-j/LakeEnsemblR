@@ -181,7 +181,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         for (i in num_inflows:2) {
           doubl_yaml_sec(got_yaml, "inflow", paste0("_", i))
         }
-
+      }
         # set inflow settings for all inflows
         for (i in 1:num_inflows) {
 
@@ -194,8 +194,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
           # streams_switch(file = got_yaml, method = "on")
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
                                 "method", value = 2)
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "method",
-                              value = 4)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
                                 "method", value = 2)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
@@ -208,7 +206,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                 "file", value = paste0("inflow_file_", i, ".dat"))
         }
       }
-    }
 
     # set outflows
     if (use_outflows) {
@@ -227,6 +224,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         for (i in num_outflows:2) {
           doubl_yaml_sec(got_yaml, "outflow", paste0("_", i))
         }
+      }
         # set outflow settings for all outflows
         for (i in 1:num_outflows) {
           if(i == 1) {
@@ -235,14 +233,14 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
             outf_sec <- paste0("outflow_", i)
           }
           # streams_switch(file = got_yaml, method = "on")
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "flow", key4 =
-                                "method", value = ifelse(outf_surf[i], 2, 3))
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "method",
-                              value = 3)
+                              value = ifelse(outf_surf[i], 1, 3))
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "zl",
                               value = lvl_outflows_gotm[i] - 0.5)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "zu",
                               value = lvl_outflows_gotm[i] + 0.5)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "flow", key4 =
+                                "method", value = 2)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "temp", key4 =
                                 "method", value = 0)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "salt", key4 =
@@ -253,7 +251,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                 "file", value = paste0("outflow_file_", i, ".dat"))
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = outf_sec, key3 = "salt", key4 =
                                 "file", value = paste0("outflow_file_", i, ".dat"))
-        }
       }
     }
   }
