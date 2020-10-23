@@ -369,12 +369,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ##### FLake
     if("FLake" %in% model){
 
-      if(num_inflows > 1) {
-        # flake_inflow <- average inflows from list
-      } else {
-        flake_inflow <- inflow[[1]]
-      }
-      flake_inflow <- format_inflow(inflow = flake_inflow, model = "FLake", config_file = config_file)
+
+      flake_inflow <- format_inflow(inflow = inflow, model = "FLake", config_file = config_file)
 
       flake_outfile <- "Tinflow"
 
@@ -501,7 +497,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         mylake_inflow <- inflow[[1]]
       }
       
-      mylake_inflow <- format_inflow(inflow = mylake_inflow, model = "MyLake", config_file = config_file)
+      mylake_inflow <- format_inflow(inflow = mylake_inflow, model = "MyLake",
+                                     config_file = config_file)
 
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
       # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
@@ -524,9 +521,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       message("MyLake: Created file ", file.path(folder, "MyLake", temp_fil))
 
-      if(use_outflows){
-        message("MyLake does not need specific outflows, as it employs automatic overflow.")
-      }
     }
   }
   

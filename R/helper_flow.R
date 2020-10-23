@@ -104,3 +104,57 @@ rm_yaml_sec <- function(yaml_file, sec_name) {
   #Write to file
   writeLines(yml_out, yaml_file)
 }
+
+#' check naming convention for in/outflows
+#'@description
+#'check if the headder in in/outflow files follow the naming convention
+#'
+#' @name chk_names_flow
+#' @param flow data.frame of the read in flow data
+#' @param num_flows number of in/outflows
+#' @param file_n file name
+#' @noRd
+chk_names_flow <- function(flow, num_flows, file_n) {
+  
+  # colnames of the data
+  cln <- colnames(flow)
+  # remove numbers if multiple in/outflows are there
+  if(num_flows > 1) {
+    cln <- gsub("(\\w+)\\_\\d+\\>", "\\1", cln)
+  }
+  # test if names are right
+  chck_flow <- sapply(list(cln), function(x) x %in% lake_var_dic$standard_name)
+  if(any(!chck_flow)){
+    chck_flow[which(chck_flow == FALSE)] <- sapply(list(cln[which(
+      chck_flow == FALSE)]), function(x) x %in% met_var_dic$standard_name)
+    
+    if(any(!chck_flow)){
+      stop(paste0("Colnames of",  file_n, " file are not in standard notation! ",
+           "They should be one of: \ndatetime\nFlow_metersCubedPerSecond\n",
+           "Water_Temperature_celsius\nSalinity_practicalSalinityUnits"))
+    }
+  }
+}
+
+#' scale in/outflows
+#'@description
+#' scale the flow of in/outflow data.frames
+#'
+#' @name scale_flow
+#' @param flow data.frame of the read in flow data
+#' @param num_flows number of in/outflows
+#' @param scale_param scaling parameters
+#' @noRd
+scale_flow <- function(flow, num_flows, scale_param) {
+  
+  if(num_flows == 1) {
+    flow[["Flow_metersCubedPerSecond"]] <- flow[["Flow_metersCubedPerSecond"]] *
+      scale_param
+  } else if(num_flows > 1) {
+    for (i in 1:num_flows) {
+      flow[[paste0("Flow_metersCubedPerSecond_", i)]] <-
+        flow[[paste0("Flow_metersCubedPerSecond_", i)]] * scale_param[i]
+    }
+  }
+  return(flow)
+}
