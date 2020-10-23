@@ -13,8 +13,8 @@
 #' @param depth If `var` has a depth dimension, for which depth should it be plotted?
 #' @param date Specific date for which depth profiles should be plotted
 #' @param av_fun Averaging function to use, defaults to the arithmetic mean (`mean()`)
-#' @param boxwhisker Create additional box-whisker plots for each model
 #' @param residuals Create an additional plot with model residuals over time
+#' @param boxwhisker Create additional box-whisker plots for each model
 #' @author Johannes Feldbauer, Robert Ladwig, Jorrit Mesman
 #' @importFrom reshape2 melt
 #' @importFrom RColorBrewer brewer.pal
@@ -36,8 +36,8 @@
 #' @export
 plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
                           var = "temp", dim = "model", dim_index = 1,
-                          depth = NULL, date = NULL, av_fun = "mean", boxwhisker = FALSE,
-                          residuals = FALSE){
+                          depth = NULL, date = NULL, av_fun = "mean", residuals = FALSE,
+                          boxwhisker = FALSE){
 
   # Fix time zone
   original_tz <- Sys.getenv("TZ")
@@ -216,7 +216,6 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
       # if observations are available plot residuals
       dat_res <- var_list_long
       dat_res$value <- var_list_long$value - obs$value
-      dat_res <- na.exclude(dat_res)
       if(!is.null(date)){
         dat_av2 <- dat_av[order(dat_av$Depth, decreasing = T), ]
       }else{
@@ -226,7 +225,6 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
       dat_resav$mean <- dat_av2$mean - obs$value
       dat_resav$max <- dat_av2$max - obs$value
       dat_resav$min <- dat_av2$min - obs$value
-      dat_resav <- dat_resav[!is.na(dat_resav$mean), ]
       dat_resav <- na.exclude(dat_resav)
       
       p2 <- ggplot() +
@@ -239,7 +237,7 @@ plot_ensemble <- function(ncdf, model = c("FLake", "GLM",  "GOTM", "Simstrat", "
         geom_line(data = dat_resav, aes_string(selec_col2, "mean", col = "Type"), lwd = 1.33,
                   na.rm = TRUE) +
         scale_colour_manual(values = c("grey42", colfunc(length(unique(dat_res[, dim])) - 1),
-                                       "black"),
+                                       "grey66"),
                             breaks = c(av_fun, unique(dat_res[, dim]), "Obs"),
                             guide = guide_legend(override.aes = list(
                               linetype = c(rep("solid", length(unique(dat_res[, dim])) + 1)),

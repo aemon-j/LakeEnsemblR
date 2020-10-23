@@ -13,8 +13,8 @@ plot_ensemble(
   depth = NULL,
   date = NULL,
   av_fun = "mean",
-  boxwhisker = FALSE,
-  residuals = FALSE
+  residuals = FALSE,
+  boxwhisker = FALSE
 )
 }
 \arguments{
@@ -36,9 +36,9 @@ Only used if plotting from netCDF file.}
 
 \item{av_fun}{Averaging function to use, defaults to the arithmetic mean (`mean()`)}
 
-\item{boxwhisker}{Create additional box-whisker plots for each model}
-
 \item{residuals}{Create an additional plot with model residuals over time}
+
+\item{boxwhisker}{Create additional box-whisker plots for each model}
 }
 \description{
 Plot the outcome of the ensemble run for a given depth along with the minimum, maximum, and
