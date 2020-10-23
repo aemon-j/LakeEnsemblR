@@ -11,17 +11,17 @@
 #' @return dataframe of met data in the model format
 #' @export
 format_inflow <- function(inflow, model, config_file, folder = "."){
-  
-  
+
+
   hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }
   num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
   hyp <- read.csv(hyp_file)
-  
+
   if("FLake" %in% model){
-    
+
     flake_in_l <- reshape2::melt(inflow, id.vars = "datetime")
     sum_flow <- aggregate(list(flow = flake_in_l$value),
                           by = list(var = flake_in_l$variable,
@@ -32,86 +32,85 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     # calculate weights to weight the salinity and temperature in proportion to the flow
     weights <- reshape2::dcast(flake_in_l, datetime ~ variable)
     weights <- weights[, grepl("Flow_metersCubedPerSecond", colnames(weights))]
-    weights <- weights/sum_flow$flow
-    
-    
+    weights <- weights / sum_flow$flow
+
+
     # temperature
     temp <-  reshape2::dcast(flake_in_l, datetime ~ variable)
     temp <- temp[, grepl("Water_Temperature_celsius", colnames(temp))]
     temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
-    
+
     flake_inflow <- data.frame(datetime = unique(flake_in_l$datetime),
                                Flow_metersCubedPerSecond = sum_flow$flow,
                                Water_Temperature_celsius = temp)
-    
-    
+
+
     colnames(flake_inflow) <- c("FLOW", "TEMP")
-    
+
     flake_inflow[, 1] <- (flake_inflow[, 1]) / max(hyp$Area_meterSquared)
-    
+
     #Reduce number of digits
     flake_inflow <- signif(flake_inflow, digits = 8)
-    
+
     return(flake_inflow)
-    
+
   }
-  
+
   if("GLM" %in% model){
-    
+
     glm_inflow <- inflow
-    
+
     glm_inflow <- glm_inflow[, c("datetime", "Flow_metersCubedPerSecond",
                            "Water_Temperature_celsius",
                            "Salinity_practicalSalinityUnits")]
-    
+
     colnames(glm_inflow) <- c("Time", "FLOW", "TEMP", "SALT")
     glm_inflow[, 1] <- format(glm_inflow[, 1], format = "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     glm_inflow[, -1] <- signif(glm_inflow[, -1], digits = 8)
-    
+
     return(glm_inflow)
   }
-  
+
   if("GOTM" %in% model){
-    
+
     gotm_inflow <- inflow
-    
+
     gotm_inflow <- gotm_inflow[, c("datetime", "Flow_metersCubedPerSecond",
                                  "Water_Temperature_celsius",
                                  "Salinity_practicalSalinityUnits")]
-    
+
     colnames(gotm_inflow)[1] <- paste0("!", colnames(gotm_inflow)[1])
     gotm_inflow[, 1] <- format(gotm_inflow[, 1], "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     gotm_inflow[, -1] <- signif(gotm_inflow[, -1], digits = 8)
-    
+
     return(gotm_inflow)
   }
-  
+
   if("Simstrat" %in% model){
-    
+
     simstrat_inflow <- reshape2::melt(inflow, id.vars = "datetime")
-    
+
     simstrat_inflow$variable <- paste0(simstrat_inflow$variable,
                                         gsub("inflow", "", simstrat_inflow$L1))
     simstrat_inflow <- reshape2::dcast(simstrat_inflow, datetime ~ variable)
-    
-    
+
     if(num_inflows == 1){
       simstrat_inflow <- simstrat_inflow[, c("datetime", "Flow_metersCubedPerSecond",
                                      "Water_Temperature_celsius",
                                      "Salinity_practicalSalinityUnits")]
     }
     simstrat_inflow[, 1] <- format(simstrat_inflow[, 1], "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     simstrat_inflow[, -1] <- signif(simstrat_inflow[, -1], digits = 8)
-    
+
     return(simstrat_inflow)
   }
-  
+
   if("MyLake" %in% model) {
 
     mylake_in_l <- reshape2::melt(inflow, id.vars = "datetime")
@@ -124,30 +123,28 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     # calculate weights to weight the salinity and temperature in proportion to the flow
     weights <- reshape2::dcast(mylake_in_l, datetime ~ variable)
     weights <- weights[, grepl("Flow_metersCubedPerSecond", colnames(weights))]
-    weights <- weights/sum_flow$flow
-    
+    weights <- weights / sum_flow$flow
     # salt
     salt <-  reshape2::dcast(mylake_in_l, datetime ~ variable)
     salt <- salt[, grepl("Salinity_practicalSalinityUnits", colnames(salt))]
     salt <- apply(salt * weights, 1, sum, na.rm = TRUE)
-    
     # temperature
     temp <-  reshape2::dcast(mylake_in_l, datetime ~ variable)
     temp <- temp[, grepl("Water_Temperature_celsius", colnames(temp))]
     temp <- apply(temp * weights, 1, sum, na.rm = TRUE)
-    
+
     mylake_inflow <- data.frame(datetime = unique(mylake_in_l$datetime),
                                Flow_metersCubedPerSecond = sum_flow$flow,
                                Water_Temperature_celsius = temp,
                                Salinity_practicalSalinityUnits = salt)
-    
+
     mylake_inflow$Flow_metersCubedPerDay <- mylake_inflow$Flow_metersCubedPerSecond * (86400.)
-    
+
     mylake_inflow[, 1] <- format(mylake_inflow[, 1], "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     mylake_inflow[, -1] <- signif(mylake_inflow[, -1], digits = 8)
-    
+
     return(mylake_inflow)
   }
 }
@@ -166,67 +163,67 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
 #' @return dataframe of met data in the model format
 #' @export
 format_outflow <- function(outflow, model, config_file, folder = "."){
-  
+
   num_outflows <- get_yaml_value(config_file, "outflows", "number_outflows")
-  
+
   if("FLake" %in% model){
     stop("FLake does not need outflows, as mass fluxes are not considered.")
   }
-  
+
   if("GLM" %in% model){
-    
+
     glm_outflow <- outflow
-    
+
     glm_outflow <- glm_outflow[, c("datetime", "Flow_metersCubedPerSecond")]
-    
+
     colnames(glm_outflow) <- c("Time", "FLOW")
     glm_outflow[, 1] <- format(glm_outflow[, 1], format = "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     glm_outflow[, -1] <- signif(glm_outflow[, -1], digits = 8)
-    
+
     return(glm_outflow)
   }
-  
-  if("GOTM" %in% model){
-    
+
+  if("GOTM" %in% model) {
+
     gotm_outflow <- outflow
-    
+
     gotm_outflow <- gotm_outflow[, c("datetime", "Flow_metersCubedPerSecond")]
-    
+
     colnames(gotm_outflow)[1] <- paste0("!", colnames(gotm_outflow)[1])
     gotm_outflow[, 1] <- format(gotm_outflow[, 1], "%Y-%m-%d %H:%M:%S")
-    
+
     # set flow values negative
     gotm_outflow$Flow_metersCubedPerSecond <- -1 * gotm_outflow$Flow_metersCubedPerSecond
-    
+
     #Reduce number of digits
     gotm_outflow[, -1] <- signif(gotm_outflow[, -1], digits = 8)
-    
+
     return(gotm_outflow)
   }
-  
-  if("Simstrat" %in% model){
-    
+
+  if("Simstrat" %in% model) {
+
     simstrat_outflow <- reshape2::melt(outflow, id.vars = "datetime")
     # set flow values to negative
     simstrat_outflow$value <- -1 * simstrat_outflow$value
-    
+
     simstrat_outflow$variable <- paste0(simstrat_outflow$variable,
                                         gsub("outflow", "", simstrat_outflow$L1))
     simstrat_outflow <- reshape2::dcast(simstrat_outflow, datetime ~ variable)
-    
-    if(num_outflows == 1){
+
+    if(num_outflows == 1) {
       simstrat_outflow <- simstrat_inflow[, c("datetime", "Flow_metersCubedPerSecond")]
     }
     simstrat_outflow[, 1] <- format(simstrat_outflow[, 1], "%Y-%m-%d %H:%M:%S")
-    
+
     #Reduce number of digits
     simstrat_outflow[, -1] <- signif(simstrat_outflow[, -1], digits = 8)
-    
+
     return(simstrat_outflow)
   }
-  
+
   if("MyLake" %in% model) {
     stop("MyLake does not need specific outflows, as it employs automatic overflow.")
   }
