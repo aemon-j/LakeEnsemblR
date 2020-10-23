@@ -36,6 +36,13 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   model <- check_models(model)
 
 ##-------------Read settings---------------
+  # initial water level
+  init_lvl <- get_yaml_value(config_file, "location", "init_depth")
+  # surface elevation
+  surf_lvl <- get_yaml_value(config_file, "location", "elevation")
+  # bottom elevation
+  bot_lvl <- surf_lvl - get_yaml_value(config_file, "location", "depth")
+  
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
   # Use outflows
@@ -109,10 +116,12 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       outf_surf <- rep(FALSE, num_outflows)
       outf_surf[lvl_outflows == -1] <- TRUE
       #!! outflow elevations need to be in meters above sea level!!
-      lvl_outflows[lvl_outflows == -1] <- 0
+      lvl_outflows_glm <- lvl_outflows + bot_lvl
+      # outflow lvl for floating outflows is set to 0
+      lvl_outflows_glm[lvl_outflows == -1] <- 0
       inp_list$num_outlet <- num_outflows
       inp_list <- c(inp_list, list("flt_off_sw" = outf_surf,
-                                   "outl_elvs" = lvl_outflows,
+                                   "outl_elvs" = lvl_outflows_glm,
                                    "outflow_fl" = paste0("outflow_", 1:num_outflows, ".csv"),
                                    "outflow_factor" = rep(1, num_outflows)))
     }
@@ -197,12 +206,22 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }
     # set water balance outflows
     if (use_c_outflows) {
-      
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "method",
+                          value = 1)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow", key4 =
+                            "method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "temp", key4 =
+                            "method", value = 0)
+      input_yaml_multiple(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
+                            "method", value = 0)
     }
 
     # set outflows  
     if (use_outflows) {
-      
+      outf_surf <- rep(FALSE, num_outflows)
+      outf_surf[lvl_outflows == -1] <- TRUE
+      # outflow lvl in GOTM are meters below initial surface lvl
+      lvl_outflows_gotm <- lvl_outflows - init_lvl
       # add additional outflows if necessary
       if(num_outflows > 1) {
         for (i in num_outflows:2) {
@@ -220,11 +239,17 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
           
           # streams_switch(file = got_yaml, method = "on")
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
-                                "method", value = 2)
+                                "method", value = ifelse(outf_surf[i], 2, 3))
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "method",
+                              value = 3)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "zl",
+                              value = lvl_outflows_gotm[i] - 0.5)
+          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "zu",
+                              value = lvl_outflows_gotm[i] + 0.5)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
-                                "method", value = 2)
+                                "method", value = 0)
           input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
-                                "method", value = 2)
+                                "method", value = 0)
           
         }
         
@@ -749,18 +774,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                  file_connection)
       close(file_connection)
       
-      # #Scale met
-      # if(!is.null(scale_param_inf)){
-      #   scale_met(sim_met, pars = scale_param_inf, model = "Simstrat", out_file = met_outfpath)
-      # } else {
-      #   # Write to file
-      #   write.table(sim_met, met_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
-      #               col.names = TRUE)
-      # }
-      
-      ### Write the table in the present working directory
-      # input_json(file = par_file, label = "Input", key = "Forcing", "\"meteo_file.dat\"")
-      
       message("Simstrat: Created file ", file.path(folder, "Simstrat", inflow_outfile))
       
       if(use_c_outflows){
@@ -787,39 +800,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ## MyLake
     if("MyLake" %in% model){
       
-      temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
-      load(temp_fil)
-      
-      mylake_inflow <- format_inflow(inflow = inflow, model = "MyLake", config_file = config_file)
-      
-      # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
-      # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
-      dummy_inflow <- matrix(rep(1e-10, 8 *
-                                   length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                     to = as.POSIXct(stop_date),
-                                                     by = "day"))),
-                             ncol = 8)
-      dummy_inflow[, 1] <- mylake_inflow$Flow_metersCubedPerDay
-      dummy_inflow[, 2] <- mylake_inflow$Water_Temperature_celsius
-      dummy_inflow[, 5] <- dummy_inflow[, 5] * 1e7
-      dummy_inflow[, 6] <- dummy_inflow[, 6] * 1e1
-      
-      
-      mylake_config[["Inflw"]] <- dummy_inflow
-      
-      temp_fil <- gsub(".*/", "", temp_fil)
-      # save lake-specific config file for MyLake
-      save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
-      
-      message("MyLake: Created file ", file.path(folder, "MyLake", temp_fil))
-      
-      if(use_outflows){
         message("MyLake does not need specific outflows, as it employs automatic overflow.")
-      }
-    }
   }
   
-  
-  
+
   message("export_inflow complete!")
 }
