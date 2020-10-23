@@ -56,7 +56,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     warning(paste0("The 'mass-balance' argument is no longer used ",
                    "if you would like to have outflows matching the ",
                    "inflows please add them manually to the 'outflows'",
-                   "section"))},
+                   " section. You can use the same file as for inflows."))},
            error = function(e) { })
   if(use_outflows) {
     # number of outflows

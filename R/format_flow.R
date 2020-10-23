@@ -99,11 +99,6 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
                                         gsub("inflow", "", simstrat_inflow$L1))
     simstrat_inflow <- reshape2::dcast(simstrat_inflow, datetime ~ variable)
 
-    if(num_inflows == 1){
-      simstrat_inflow <- simstrat_inflow[, c("datetime", "Flow_metersCubedPerSecond",
-                                     "Water_Temperature_celsius",
-                                     "Salinity_practicalSalinityUnits")]
-    }
     simstrat_inflow[, 1] <- format(simstrat_inflow[, 1], "%Y-%m-%d %H:%M:%S")
 
     #Reduce number of digits
