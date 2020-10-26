@@ -57,6 +57,7 @@ output:
    variables:
       - temp
       - ice_height
+      - w_level
 scaling_factors:                                # scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
    all:
       wind_speed: 1.0
