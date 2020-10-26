@@ -157,7 +157,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       if(!is.null(obs_deps)){
         temp_list <- append(temp_list, list("Obs_temp" = obs_out))
       }
-      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
     if("ice_height" %in% out_vars){
@@ -175,10 +174,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         lapply(model, function(mod_name) model_out[[mod_name]][["dens"]]),
         paste0(model, "_dens")
       )
-      # if(!is.null(obs_deps)){
-      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
-      # }
-      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
     if("salt" %in% out_vars){
@@ -186,10 +181,13 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         lapply(model, function(mod_name) model_out[[mod_name]][["salt"]]),
         paste0(model, "_salt")
       )
-      # if(!is.null(obs_deps)){
-      #   temp_list <- append(temp_list, list("Obs_temp" = obs_out))
-      # }
-      # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
+    }
+
+    if("w_level" %in% out_vars){
+      sal_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["_w_level"]]),
+        paste0(model, "_w_level")
+      )
     }
 
     # Put all lists with output into a single, named list
