@@ -21,6 +21,8 @@ observations:
       file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [csv file; if none use NULL or leave empty]
    ice_height:
       file: NULL                                            # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [csv file; if none use NULL or leave empty]
+   water_level:
+      file: NULL                                            # file with observed water level in meter above bottom of the lake
 input:
    init_temp_profile:
       file: NULL                                # initial temperature profile [csv file; if none use NULL or leave empty; if empty/NULL, the observations file will be used]
@@ -78,7 +80,7 @@ model_parameters:
 calibration:                                    # calibration section
    met:                                         # meteo scaling parameter
       wind_speed:                               # wind speed scaling
-         lower: 0.5                             # lower bound for wind speed scaling        
+         lower: 0.5                             # lower bound for wind speed scaling
          upper: 2                               # upper bound for wind speed scaling
          initial: 1                             # initial value for wind speed scaling
          log: false                             # log transform scaling factor
@@ -105,13 +107,13 @@ calibration:                                    # calibration section
          upper: 5E-4                            # upper bound for parameter
          initial: 1E-5                          # initial value for parameter
          log: true
-   Simstrat:                                    # Simstrat specific parameters                                 
+   Simstrat:                                    # Simstrat specific parameters
       a_seiche:
          lower: 0.0008                          # lower bound for parameter
          upper: 0.003                           # upper bound for parameter
          initial: 0.001                         # initial value for parameter
-         log: false                             # log transform scaling factor                          
-   MyLake:                                      # MyLake specific parameters                                    
+         log: false                             # log transform scaling factor
+   MyLake:                                      # MyLake specific parameters
       Phys.par/C_shelter:
          lower: 0.14                            # lower bound for parameter
          upper: 0.16                            # upper bound for parameter
