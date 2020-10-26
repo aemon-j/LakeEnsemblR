@@ -30,10 +30,10 @@ Calls export_dirs. Defaults to TRUE}
 
 \item{time}{boolean; exports time settings. Calls export_time. Defaults to TRUE.}
 
-\item{location}{boolean; exports location and hypsograph settings. 
+\item{location}{boolean; exports location and hypsograph settings.
 Calls export_location. Defaults to TRUE.}
 
-\item{output_settings}{boolean; exports output settings. 
+\item{output_settings}{boolean; exports output settings.
 Calls export_output_settings. Defaults to TRUE.}
 
 \item{meteo}{boolean; export meteorology data.
