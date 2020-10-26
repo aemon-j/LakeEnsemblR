@@ -185,13 +185,13 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     if("w_level" %in% out_vars){
       wlvl_list <- setNames(
-        lapply(model, function(mod_name) model_out[[mod_name]][["_w_level"]]),
+        lapply(model, function(mod_name) model_out[[mod_name]][["w_level"]]),
         paste0(model, "_w_level")
       )
     }
 
     # Put all lists with output into a single, named list
-    all_lists <- NULL
+    all_lists <- list()
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
     if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
     if(exists("dens_list")) all_lists[["dens_list"]] <- dens_list
