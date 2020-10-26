@@ -47,6 +47,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   lakename <- get_yaml_value(config_file, "location", "name")
   obs_file <- get_yaml_value(config_file, "temperature", "file")
   ice_file <- get_yaml_value(config_file, "ice_height", "file")
+  wlvl_file <- get_yaml_value(config_file, "water_level", "file")
 
   # Get output configurations
   out_file <- get_yaml_value(config_file, "output", "file")
@@ -107,7 +108,20 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     ice_out <- NULL
   }
 
+  if(!(wlvl_file == "NULL" | ice_file == "")){
+    message("Loading ice observations...")
+    wlvl <- read.csv(wlvl_file, stringsAsFactors = FALSE)
+    message("Finished loading water level observations!")
 
+    wlvl$datetime <- as.POSIXct(wlvl$datetime)
+
+    # Subset to out_time
+    wlvl_out <- wlvl[wlvl$datetime %in% out_time$datetime, ]
+    wlvl_out <- merge(out_time, wlvl_out, by = "datetime", all.x = TRUE)
+
+  }else{
+    wlvl_out <- NULL
+  }
   run_model_args <- list(config_file = config_file,
                          folder = folder,
                          return_list = return_list,
