@@ -184,7 +184,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     }
 
     if("w_level" %in% out_vars){
-      sal_list <- setNames(
+      wlvl_list <- setNames(
         lapply(model, function(mod_name) model_out[[mod_name]][["_w_level"]]),
         paste0(model, "_w_level")
       )
@@ -196,6 +196,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(exists("ice_list")) all_lists[["ice_list"]] <- ice_list
     if(exists("dens_list")) all_lists[["dens_list"]] <- dens_list
     if(exists("sal_list")) all_lists[["sal_list"]] <- sal_list
+    if(exists("wlvl_list")) all_lists[["wlvl_list"]] <- wlvl_list
 
     if(format == "netcdf") {
       if (!add & !file.exists(out_file)) {
