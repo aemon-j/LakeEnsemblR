@@ -202,6 +202,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         lapply(model, function(mod_name) model_out[[mod_name]][["w_level"]]),
         paste0(model, "_w_level")
       )
+      if(!is.null(wlvl_out)){
+        wlvl_list <- append(wlvl_list, list("Obs_w_level" = wlvl_out))
+      }
     }
 
     # Put all lists with output into a single, named list
