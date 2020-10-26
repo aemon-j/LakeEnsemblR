@@ -267,6 +267,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                                 "file", value = paste0("outflow_file_", i, ".dat"))
       }
     }
+   }
   }
 
 ##---------------Simstrat-------------

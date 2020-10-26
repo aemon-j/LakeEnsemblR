@@ -9,7 +9,8 @@
 #' @param verbose Boolean; Should model output be shown in the console. Defaults to FALSE
 #' @param parallel Boolean; should the model calibration be parallelized
 #' @param return_list boolean; Return a list of dataframes of model output. Defaults to FALSE
-#' @param create_output boolean; Create ensemble output file otherwise it just runs the models and generates model output in their respective folders. Defaults to TRUE
+#' @param create_output boolean; Create ensemble output file otherwise it just runs the models and
+#'    generates model output in their respective folders. Defaults to TRUE
 #' @param add boolean; Add results to an existing netcdf file with new dimension "member"
 #' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
 #' @importFrom gotmtools get_yaml_value get_vari
@@ -227,7 +228,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     } else if (format == "text") { # Write to CSV
 
-      out_dir <- file.path(folder, 'output')
+      out_dir <- file.path(folder, "output")
 
       # Creat output directory
       if(!dir.exists(out_dir)) {
@@ -248,8 +249,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
           var <- all_lists[[x]][[y]]
           var[, -1] <- round(var[, -1], 2) # round to 2 digits to reduce filesize
           var[, 1] <- format(var[, 1], format = "%Y-%m-%d %H:%M:%S")
-
-          write.csv(var , out_fname, row.names = FALSE, quote = FALSE)
+          write.csv(var, out_fname, row.names = FALSE, quote = FALSE)
         })
       })
       message("Finished writing '.csv' files! [", Sys.time(), "]")
@@ -344,7 +344,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 .run_GOTM <- function(config_file, folder, return_list, create_output, start, stop,
-                      verbose, obs_deps,out_time, out_vars){
+                      verbose, obs_deps, out_time, out_vars){
 
   yaml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
 
@@ -389,8 +389,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
 
 
-  SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = verbose)
-
+  SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file,
+                          verbose = verbose)
   message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
 
   if(return_list | create_output){
