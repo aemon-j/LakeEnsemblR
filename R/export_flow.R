@@ -186,7 +186,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         }
       }
       # add additional inflows if necessary
-      if(num_inflows > 1) {
+      if(num_inflows > 1 & num_inflows != num_inf_yaml) {
         for (i in num_inflows:2) {
           doubl_yaml_sec(got_yaml, "inflow", paste0("_", i))
         }
@@ -235,7 +235,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       # outflow lvl in GOTM are meters below initial surface lvl
       lvl_outflows_gotm <- lvl_outflows - init_lvl
       # add additional outflows if necessary
-      if(num_outflows > 1) {
+      if(num_outflows > 1 & num_outflows != num_outf_yaml) {
         for (i in num_outflows:2) {
           doubl_yaml_sec(got_yaml, "outflow", paste0("_", i))
         }
