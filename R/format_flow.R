@@ -214,7 +214,7 @@ format_outflow <- function(outflow, model, config_file, folder = "."){
     simstrat_outflow <- reshape2::dcast(simstrat_outflow, datetime ~ variable)
 
     if(num_outflows == 1) {
-      simstrat_outflow <- simstrat_inflow[, c("datetime", "Flow_metersCubedPerSecond")]
+      simstrat_outflow <- simstrat_outflow[, c("datetime", "Flow_metersCubedPerSecond")]
     }
     simstrat_outflow[, 1] <- format(simstrat_outflow[, 1], "%Y-%m-%d %H:%M:%S")
 
