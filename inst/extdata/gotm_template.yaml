@@ -337,25 +337,6 @@ streams:
          constant_value: -1.0           # value to use throughout the simulation [PSU; default=-1.0]
          file: outflow_file_2.dat # path to file with time series [default=]
          column: 3                      # index of column to read from [default=1]
-   outflow_2:                             # outflow_2 configuration
-      method: 3 # inflow method [default=1]
-      zu: -31.3 # upper limit [m; default=0.0]
-      zl: -32.3 # lower limit [m; default=0.0]
-      flow:                             # water flow
-         method: 2 # /LER/ method [0=constant, 2=from file; default=0]
-         constant_value: 0.0            # value to use throughout the simulation [m^3/s; default=0.0]
-         file: outflow_file_2.dat # path to file with time series [default=]
-         column: 1                      # index of column to read from [default=1]
-      temp:                             # flow temperature
-         method: 0 # /LER/ method [0=constant, 2=from file; default=0]
-         constant_value: -1.0           # value to use throughout the simulation [Celcius; default=-1.0]
-         file: outflow_file_2.dat # path to file with time series [default=]
-         column: 2                      # index of column to read from [default=1]
-      salt:                             # flow salinity
-         method: 0 # /LER/ method [0=constant, 2=from file; default=0]
-         constant_value: -1.0           # value to use throughout the simulation [PSU; default=-1.0]
-         file: outflow_file_2.dat # path to file with time series [default=]
-         column: 3                      # index of column to read from [default=1]
 physical_constants:
    rho_0: 1000.0                        # reference density [kg/m^3; min=0.0; default=1027.0]
 buoyancy:
