@@ -18,8 +18,8 @@
 #'  Calls export_init_cond. Defaults to TRUE.
 #'@param extinction boolean; export light extinction data.
 #'  Calls export_extinction. Defaults to TRUE.
-#'@param inflow boolean; export inflow settings.
-#'  Calls export_inflow. Defaults to TRUE.
+#'@param flow boolean; export flow settings.
+#'  Calls export_flow. Defaults to TRUE.
 #'@param model_parameters boolean; export model parameters specificed in the yaml
 #'  configuration file. Calls export_model_parameters. Defaults to TRUE.
 #'@param folder folder
@@ -33,7 +33,7 @@
 export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           dirs = TRUE, time = TRUE, location = TRUE,
                           output_settings = TRUE, meteo = TRUE, init_cond = TRUE,
-                          extinction = TRUE, inflow = TRUE, model_parameters = TRUE,
+                          extinction = TRUE, flow = TRUE, model_parameters = TRUE,
                           folder = "."){
 
   # Set working directory
@@ -98,8 +98,8 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   }
 
   # Export user-defined inflow boundary condition
-  if(inflow){
-    export_inflow(config_file = config_file, model = model, folder = folder)
+  if(flow){
+    export_flow(config_file = config_file, model = model, folder = folder)
   }
 
   # Export user-defined model-specific parameters

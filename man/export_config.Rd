@@ -14,7 +14,7 @@ export_config(
   meteo = TRUE,
   init_cond = TRUE,
   extinction = TRUE,
-  inflow = TRUE,
+  flow = TRUE,
   model_parameters = TRUE,
   folder = "."
 )
@@ -45,8 +45,8 @@ Calls export_init_cond. Defaults to TRUE.}
 \item{extinction}{boolean; export light extinction data.
 Calls export_extinction. Defaults to TRUE.}
 
-\item{inflow}{boolean; export inflow settings.
-Calls export_inflow. Defaults to TRUE.}
+\item{flow}{boolean; export flow settings.
+Calls export_flow. Defaults to TRUE.}
 
 \item{model_parameters}{boolean; export model parameters specificed in the yaml
 configuration file. Calls export_model_parameters. Defaults to TRUE.}

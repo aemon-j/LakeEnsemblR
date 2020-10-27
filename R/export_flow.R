@@ -9,13 +9,13 @@
 #'
 #' @examples
 #' \dontrun{
-#' export_inflow(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"))
+#' export_flow(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"))
 #' }
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
 #'
 #' @export
-export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           folder = ".") {
 
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
@@ -660,6 +660,6 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   }
 
 
-  message("export_inflow complete!")
+  message("export_flow complete!")
   }
 }
