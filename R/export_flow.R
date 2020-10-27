@@ -630,7 +630,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       # add withdrawal depth below and above the given withdrawals for deep withdrawal
       zerowith <- c(lvl_outflows_simstrat[!outf_surf] - 1,
                     lvl_outflows_simstrat[!outf_surf] + 1, 0)
-      zerowith <- zerowith[<= 0]
+      zerowith <- zerowith[zerowith <= 0]
       zerowith <- unique(zerowith)
       zerowith <- zerowith[!(zerowith %in% lvl_outflows_simstrat[!outf_surf])]
       
