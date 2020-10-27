@@ -286,11 +286,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       # In case Kw is a single value for the whole simulation:
       inflow_line_2 <- "1"
-      inflow_line_3 <- "-1 0.00"
+      inflow_line_3 <- "-1\t0.00"
       start_sim <- get_json_value(sim_par, "Simulation", "Start d")
       end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      inflow_line_4 <- paste(start_sim, 0.000)
-      inflow_line_5 <- paste(end_sim, 0.000)
+      inflow_line_4 <- paste0(start_sim, "\t", 0.000)
+      inflow_line_5 <- paste0(end_sim, "\t", 0.000)
 
       file_connection <- file("Simstrat/Qin.dat")
       writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
@@ -308,11 +308,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
       outflow_line_2 <- "1"
-      outflow_line_3 <- "-1 0.00"
+      outflow_line_3 <- "-1\t0.00"
       start_sim <- get_json_value(sim_par, "Simulation", "Start d")
       end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      outflow_line_4 <- paste(start_sim, 0.000)
-      outflow_line_5 <- paste(end_sim, 0.000)
+      outflow_line_4 <- paste0(start_sim, "\t", 0.000)
+      outflow_line_5 <- paste0(end_sim, "\t", 0.000)
       file_connection <- file(outflow_outfpath)
       writeLines(c(outflow_line_1, outflow_line_2, outflow_line_3, outflow_line_4,
                    outflow_line_5), file_connection)
