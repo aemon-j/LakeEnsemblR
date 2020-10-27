@@ -450,15 +450,15 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       ## inflow file
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       inflow_line_2 <- as.character(num_inflows)
-      inflow_line_3 <- paste0("-1",  rep(" 0.00", num_inflows))
+      inflow_line_3 <- paste0("-1",  rep("\t0.00", num_inflows))
       if(num_inflows > 1) {
         inflow_line_4 <- seq_len(length(sim_inflow$datetime))
         for (i in 1:num_inflows) {
-          inflow_line_4 <- paste(inflow_line_4,
+          inflow_line_4 <- paste0(inflow_line_4, "\t",
                                  sim_inflow[, paste0("Flow_metersCubedPerSecond_", i)])
         }
       } else {
-        inflow_line_4 <- paste(seq_len(length(sim_inflow$datetime)),
+        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
                                sim_inflow$Flow_metersCubedPerSecond)
       }
       file_connection <- file(inflow_outfpath)
@@ -469,11 +469,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       if(num_inflows > 1) {
         inflow_line_4 <- seq_len(length(sim_inflow$datetime))
         for (i in 1:num_inflows) {
-          inflow_line_4 <- paste(inflow_line_4,
+          inflow_line_4 <- paste0(inflow_line_4, "\t",
                                  sim_inflow[, paste0("Water_Temperature_celsius_", i)])
         }
       } else {
-        inflow_line_4 <- paste(seq_len(length(sim_inflow$datetime)),
+        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
                                sim_inflow$Water_Temperature_celsius)
       }
       file_connection <- file(temp_outfpath)
@@ -484,11 +484,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       if(num_inflows > 1) {
         inflow_line_4 <- seq_len(length(sim_inflow$datetime))
         for (i in 1:num_inflows) {
-          inflow_line_4 <- paste(inflow_line_4,
+          inflow_line_4 <- paste0(inflow_line_4, "\t",
                                  sim_inflow[, paste0("Salinity_practicalSalinityUnits_", i)])
         }
       } else {
-        inflow_line_4 <- paste(seq_len(length(sim_inflow$datetime)),
+        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
                                sim_inflow$Salinity_practicalSalinityUnits)
       }
       file_connection <- file(salt_outfpath)
@@ -627,19 +627,19 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       sim_outflow <- format_outflow(outflow, "Simstrat", config_file, folder)
       ## inflow file
       outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
-      outflow_line_2 <- paste0(as.character(sum(!outf_surf)), " ", as.character(sum(outf_surf)))
-      outflow_line_3 <- paste("-1",  lvl_outflows_simstrat[!outf_surf],
-                              lvl_outflows_simstrat[outf_surf])
+      outflow_line_2 <- paste0(as.character(sum(!outf_surf)), "\t", as.character(sum(outf_surf)))
+      outflow_line_3 <- paste0("-1\t",  paste0(lvl_outflows_simstrat[!outf_surf], collapse = "\t"),
+                               "\t", paste0(lvl_outflows_simstrat[outf_surf], collapse = "\t"))
       if(num_outflows > 1) {
         outflow_line_4 <- seq_len(length(sim_outflow$datetime))
         # first the deep outflows
         for (i in ((1:num_outflows)[!outf_surf])) {
-          outflow_line_4 <- paste(outflow_line_4,
+          outflow_line_4 <- paste0(outflow_line_4, "\t",
                                  sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
         }
         # then the surface oputflows
         for (i in ((1:num_outflows)[outf_surf])) {
-          outflow_line_4 <- paste(outflow_line_4,
+          outflow_line_4 <- paste0(outflow_line_4, "\t",
                                   sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
         }
       } else {
