@@ -180,7 +180,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       # switch on flexible water level
       input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
                           value = 3)
-      input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 2)
+      input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 3)
       # remove additional inflows that are not needed
       if (num_inf_yaml > num_inflows) {
         for (i in 2:(num_inf_yaml)) {
@@ -226,7 +226,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         # switch on flexible water level
         input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
                             value = 3)
-        input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 2)
+        input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 3)
       }
       # remove additional outflows that are not needed
       if (num_outf_yaml > num_outflows) {
