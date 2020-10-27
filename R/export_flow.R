@@ -618,32 +618,57 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       outf_surf <- rep(FALSE, num_outflows)
       outf_surf[lvl_outflows == -1] <- TRUE
       #!! outflow elevations need to be relative to initial water level!!
-      lvl_outflows_simstrat <- lvl_outflows - init_lvl
-      lvl_outflows_simstrat[outf_surf] <- 0
+      lvl_outflows_simstrat <- round(lvl_outflows - init_lvl)
+      lvl_outflows_simstrat[outf_surf] <- -1
 
+      # if there are several outflows with the same depth throw an error
+      if(any(duplicated(lvl_outflows_simstrat))) {
+        stop(paste0("Duplicated outflow levels in simstrat detected, please merge outflows",
+                    " at 1m intervals."))
+      }
+      
+      # add withdrawal depth below and above the given withdrawals for deep withdrawal
+      zerowith <- c(lvl_outflows_simstrat[!outf_surf] - 1,
+                    lvl_outflows_simstrat[!outf_surf] + 1, 0)
+      zerowith <- zerowith[<= 0]
+      zerowith <- unique(zerowith)
+      zerowith <- zerowith[!(zerowith %in% lvl_outflows_simstrat[!outf_surf])]
+      
+      # merge zero flow with outflows for the deep outflows
+      lvl_outflows_simstrat_deep <- sort(c(zerowith, lvl_outflows_simstrat[!outf_surf]))
+      
       outflow_outfile <- "Qout.dat"
 
       outflow_outfpath <- file.path(folder, "Simstrat", outflow_outfile)
       sim_outflow <- format_outflow(outflow, "Simstrat", config_file, folder)
       ## inflow file
       outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
-      outflow_line_2 <- paste0(as.character(sum(!outf_surf)), "\t", as.character(sum(outf_surf)))
-      outflow_line_3 <- paste0("-1\t",  paste0(lvl_outflows_simstrat[!outf_surf], collapse = "\t"),
-                               "\t", paste0(lvl_outflows_simstrat[outf_surf], collapse = "\t"))
-      if(num_outflows > 1) {
+      outflow_line_2 <- paste0(as.character(length(lvl_outflows_simstrat_deep)), "\t",
+                               as.character(sum(outf_surf) + 1))
+      outflow_line_3 <- paste0("-1\t",  paste0(lvl_outflows_simstrat_deep, collapse = "\t"),
+                               "\t", paste0(lvl_outflows_simstrat[outf_surf], collapse = "\t"),
+                               "\t0")
+      if(num_outflows > 1 | all(!outf_surf)) {
         outflow_line_4 <- seq_len(length(sim_outflow$datetime))
         # first the deep outflows
-        for (i in ((1:num_outflows)[!outf_surf])) {
-          outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                 sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+        for (i in seq_len(length(lvl_outflows_simstrat_deep))) {
+          if(lvl_outflows_simstrat_deep[i] %in% lvl_outflows_simstrat[!outf_surf]) {
+            outflow_line_4 <- paste0(outflow_line_4, "\t",
+                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+          } else {
+            outflow_line_4 <- paste0(outflow_line_4, "\t", rep(0, length(sim_outflow$datetime)))
+          }
+          
         }
         # then the surface oputflows
         for (i in ((1:num_outflows)[outf_surf])) {
           outflow_line_4 <- paste0(outflow_line_4, "\t",
                                   sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
         }
+        outflow_line_4 <- paste0(outflow_line_4, "\t",
+                                 sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
       } else {
-        outflow_line_4 <- paste(seq_len(length(sim_outflow$datetime)),
+        outflow_line_4 <- paste0(seq_len(length(sim_outflow$datetime)), "\t",
                                 sim_outflow$Flow_metersCubedPerSecond)
       }
       file_connection <- file(outflow_outfpath)
