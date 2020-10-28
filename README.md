@@ -78,7 +78,9 @@ p1 <- plot_heatmap(ncdf)
 p1
 # Change the theme and increase text size for saving
 p1 <- p1 +
-  theme_classic(base_size = 24)
+  theme_classic(base_size = 24) + 
+  scale_colour_gradientn(limits = c(0, 21),
+                         colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 # Save as a png file
 ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
 
