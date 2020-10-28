@@ -30,6 +30,8 @@ Following this you can install `LakeEnsemblR` from Github with:
 devtools::install_github("aemon-j/LakeEnsemblR")
 ```
 
+Should you run into unexpected installation issues, please have a look at this page: https://github.com/aemon-j/LakeEnsemblR/wiki/Installation-issues
+
 ### Visualize
 
 You can download [PyNcView](http://sourceforge.net/projects/pyncview/), a cross-platform NetCDF viewer, for viewing the NetCDF output.
