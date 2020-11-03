@@ -400,9 +400,6 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
       message("FLake: Created file ", file.path(folder, "FLake", flake_outfile))
 
-      if(use_outflows){
-        message("FLake does not need outflows, as mass fluxes are not considered.")
-      }
 
     }
 
@@ -653,20 +650,23 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         # first the deep outflows
         for (i in seq_len(length(lvl_outflows_simstrat_deep))) {
           if(lvl_outflows_simstrat_deep[i] %in% lvl_outflows_simstrat[!outf_surf]) {
+            j <- which(lvl_outflows_simstrat[!outf_surf] %in% lvl_outflows_simstrat_deep[i])
             outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", j)])
           } else {
             outflow_line_4 <- paste0(outflow_line_4, "\t", rep(0, length(sim_outflow$datetime)))
           }
           
         }
-        # then the surface oputflows
-        for (i in ((1:num_outflows)[outf_surf])) {
-          outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                  sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+        if(any(outf_surf)) {
+          # then the surface oputflows
+          for (i in ((1:num_outflows)[outf_surf])) {
+            outflow_line_4 <- paste0(outflow_line_4, "\t",
+                                    sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+            outflow_line_4 <- paste0(outflow_line_4, "\t",
+                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
+          }
         }
-        outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                 sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
       } else {
         outflow_line_4 <- paste0(seq_len(length(sim_outflow$datetime)), "\t",
                                 sim_outflow$Flow_metersCubedPerSecond)
