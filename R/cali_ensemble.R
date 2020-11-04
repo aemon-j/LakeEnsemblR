@@ -384,7 +384,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                                       out_f = out_f, config_f = cnfg_l[[m]],
                                                       obs_deps = obs_deps, obs_out = obs_out,
                                                       out_hour = out_hour, qualfun = qualfun,
-                                                      nout_fun = 5, outf_n = outf_n
+                                                      nout_fun = nout_fun, outf_n = outf_n
         )),
         model
       )
@@ -463,7 +463,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                             out_f = out_f, config_f = cnfg_l[[m]],
                                             obs_deps = obs_deps, obs_out = obs_out,
                                             out_hour = out_hour, qualfun = qualfun,
-                                            nout_fun = 5, outf_n = outf_n
+                                            nout_fun = nout_fun, outf_n = outf_n
                                                   )),
         model
       )

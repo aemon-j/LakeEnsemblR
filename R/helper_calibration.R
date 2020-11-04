@@ -256,7 +256,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
                     verbose = FALSE)
     import::here("run_gotm", .from = "GOTMr")
   }
-  # did de model runn successfully?
+  # did de model run successfully?
   ran <- FALSE
   # try to run the model
   tryCatch({
