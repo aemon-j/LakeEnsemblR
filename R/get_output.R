@@ -430,7 +430,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         # Set column headers
         str_depths <- abs(as.numeric(colnames(sal)[2:ncol(sal)]))
         colnames(sal) <- c("datetime", paste0("wtr_", str_depths))
-        rem_col = 0
+        remb_col = 0
       }
       
       dens = sal
