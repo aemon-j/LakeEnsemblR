@@ -411,7 +411,12 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                        qualfun = function(O, P){
                          ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2, na.rm = TRUE)},
                        outf_n = outf_n,
-                       niter = num, ...)}),
+                       niter = num,
+                       lower = setNames(pars_l[[m]]$lower,
+                                        pars_l[[m]]$name),
+                       upper = setNames(pars_l[[m]]$upper,
+                                        pars_l[[m]]$name),
+                       ...)}),
         model
       )
       message("\nFinished parallel MCMC\n")
