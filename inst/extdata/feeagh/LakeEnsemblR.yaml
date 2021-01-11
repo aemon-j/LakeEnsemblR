@@ -40,7 +40,7 @@ inflows:
    mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false] only used if now outflows are given
 outflows:
    use: true                                    # use outflows? [true/false]
-   file: LakeEnsemblR_outflow_standard.csv      # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
+   file: LakeEnsemblR_outflow_standard.csv      # file with outflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if outflows -> use is true]
    number_outflows: 2                           # number of outflows in the outflow file
    scale_param:                                 # scaling factor for discharge in outflows. If there are more than one outflow in the outflow file, this must be a list with one value per outflow
       - 1
