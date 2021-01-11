@@ -109,8 +109,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     ice_out <- NULL
   }
 
-  if(!(wlvl_file == "NULL" | ice_file == "")){
-    message("Loading ice observations...")
+  if(!(wlvl_file == "NULL" | wlvl_file == "")){
+    message("Loading water level observations...")
     wlvl <- read.csv(wlvl_file, stringsAsFactors = FALSE)
     message("Finished loading water level observations!")
 
