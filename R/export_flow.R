@@ -104,7 +104,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                                    "strmbd_slope" = rep(2, num_inflows),
                                    "strmbd_drag" = rep(0.016, num_inflows),
                                    "inflow_factor" = rep(1, num_inflows),
-                                   "inflow_fl" = paste0("'inflow_", 1:num_inflows, ".csv'")))
+                                   "inflow_fl" = paste0("inflow_", 1:num_inflows, ".csv")))
     }
 
     # set outflows
@@ -118,7 +118,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       inp_list$num_outlet <- num_outflows
       inp_list <- c(inp_list, list("flt_off_sw" = outf_surf,
                                    "outl_elvs" = lvl_outflows_glm,
-                                   "outflow_fl" = paste0("'outflow_", 1:num_outflows, ".csv'"),
+                                   "outflow_fl" = paste0("outflow_", 1:num_outflows, ".csv"),
                                    "outflow_factor" = rep(1, num_outflows)))
     }
 
