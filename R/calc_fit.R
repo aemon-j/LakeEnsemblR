@@ -124,6 +124,11 @@ qual_meas <- function(O, P){
   #^^^^^^^^^^^^^^
   # qual: A data.frame containing the six quality estimates
 
+  # set of both O and P with no NAs
+  id <- !((is.na(O) | is.na(P)) & (is.na(O) & is.na(P)))
+  O <- O[id]
+  P <- P[id]
+  
   # rmse
   rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
 
