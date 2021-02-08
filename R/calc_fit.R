@@ -124,8 +124,8 @@ qual_meas <- function(O, P){
   #^^^^^^^^^^^^^^
   # qual: A data.frame containing the six quality estimates
 
-  # set of both O and P with no NAs
-  id <- !((is.na(O) | is.na(P)) & (is.na(O) & is.na(P)))
+  # set of both O and P where both have no NAs
+  id <- !((is.na(O) | is.na(P)) | (is.na(O) & is.na(P)))
   O <- O[id]
   P <- P[id]
   
