@@ -1,7 +1,7 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 0.5.6
+Version: 1.1.2
 Date: 2020-09-09
 URL: https://github.com/aemon-j/LakeEnsemblR
 Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),
@@ -47,5 +47,5 @@ Suggests:
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 VignetteBuilder: knitr

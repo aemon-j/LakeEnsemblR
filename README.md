@@ -13,7 +13,8 @@ Prior to installing the package, you will need to install the packages which run
 
 ```{r gh-installation, eval = FALSE}
 #install.packages("devtools")
-devtools::install_github("GLEON/GLM3r")
+devtools::install_github("GLEON/rLakeAnalyzer")
+devtools::install_github("aemon-j/GLM3r", ref = "v3.1.1")
 devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
 devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
@@ -28,6 +29,8 @@ Following this you can install `LakeEnsemblR` from Github with:
 # install.packages("devtools")
 devtools::install_github("aemon-j/LakeEnsemblR")
 ```
+
+Should you run into unexpected installation issues, please have a look at this page: https://github.com/aemon-j/LakeEnsemblR/wiki/Installation-issues
 
 ### Visualize
 
@@ -75,7 +78,9 @@ p1 <- plot_heatmap(ncdf)
 p1
 # Change the theme and increase text size for saving
 p1 <- p1 +
-  theme_classic(base_size = 24)
+  theme_classic(base_size = 24) + 
+  scale_colour_gradientn(limits = c(0, 21),
+                         colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 # Save as a png file
 ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
 

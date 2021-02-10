@@ -42,7 +42,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     qual_i <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
                          obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                          qualfun = qualfun, config_f = config_f)
-    if(is.na(qual_i[1])) {
+    if(any(is.na(qual_i))) {
       qual_i <- rep(NA, nout_fun)
       out_i <- t(c(par_set = pars[p, ncol(pars)], qual_i))
     } else {
@@ -108,7 +108,7 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   qual <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
                      obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                      qualfun = qualfun, config_f = config_f)
-  if(is.na(qual)) {
+  if(any(is.na(qual))) {
     qual <- NA
     out_w <- t(c(pars, qual))
   } else {
@@ -256,7 +256,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
                     verbose = FALSE)
     import::here("run_gotm", .from = "GOTMr")
   }
-  # did de model runn successfully?
+  # did de model run successfully?
   ran <- FALSE
   # try to run the model
   tryCatch({
