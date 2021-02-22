@@ -271,6 +271,7 @@ test_that("check plots", {
   # Change to netcdf output
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   ncdf <- "output/ensemble_output.nc"
   input_yaml(config_file, label = "output", key = "format", value = "netcdf")
 
