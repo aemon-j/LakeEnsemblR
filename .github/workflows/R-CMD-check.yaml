@@ -73,6 +73,7 @@ jobs:
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
+          remotes::install_cran("xtable")
           remotes::install_github("GLEON/rLakeAnalyzer")
           remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
