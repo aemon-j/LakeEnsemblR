@@ -63,6 +63,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install libnetcdf-dev libnetcdff-dev
+          sudo apt-get install libc6
+          ldd --version
           while read -r cmd
           do
             eval sudo $cmd
