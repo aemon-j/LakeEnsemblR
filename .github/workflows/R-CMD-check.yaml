@@ -22,7 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
           - {os: ubuntu-18.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
@@ -66,7 +65,7 @@ jobs:
           while read -r cmd
           do
             eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "18.04"))')
           
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
@@ -80,12 +79,12 @@ jobs:
           remotes::install_cran("xtable")
           remotes::install_github("GLEON/rLakeAnalyzer")
           remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
-          remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
           remotes::install_github("aemon-j/FLakeR", ref = "inflow")
           remotes::install_github("aemon-j/GOTMr")
-          remotes::install_github("aemon-j/gotmtools")
           remotes::install_github("aemon-j/SimstratR")
           remotes::install_github("aemon-j/MyLakeR")
+          remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+          remotes::install_github("aemon-j/gotmtools")
         shell: Rscript {0}
 
       - name: Check
