@@ -30,7 +30,7 @@ test_that("create model meteo & config files", {
 })
 
 
-test_that("can run models", {
+test_that("can run FLake", {
 
   library(LakeEnsemblR)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
@@ -40,7 +40,7 @@ test_that("can run models", {
 
   # Set config file & models
   config_file <- 'LakeEnsemblR.yaml'
-  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  model <- c("FLake")
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
@@ -49,6 +49,94 @@ test_that("can run models", {
   run_ensemble(config_file = config_file,
                model = model)
 
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run GLM", {
+  
+  library(LakeEnsemblR)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("GLM")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run GOTM", {
+  
+  library(LakeEnsemblR)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("GOTM")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run Simstrat", {
+  
+  library(LakeEnsemblR)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("Simstrat")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run MyLake", {
+  
+  library(LakeEnsemblR)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  dir.create("example") # Create example folder
+  file.copy(from = template_folder, to = "example", recursive = TRUE)
+  setwd("example/feeagh") # Change working directory to example folder
+  
+  # Set config file & models
+  config_file <- 'LakeEnsemblR.yaml'
+  model <- c("MyLake")
+  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+  
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
