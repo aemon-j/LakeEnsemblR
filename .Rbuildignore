@@ -1,0 +1,11 @@
+^renv$
+^renv\.lock$
+^.*\.Rproj$
+^\.Rproj\.user$
+^example$
+^Kinneret$
+^test_langtjern\.R$
+^TEST_script\.R$
+^LakeEnsemblR\.Rproj$
+^\.travis\.yml$
+^\.github$
