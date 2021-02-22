@@ -1,10 +1,6 @@
 LakeEnsemblR
 =====
-
-<!-- badges: start -->
-  [![R-CMD-check](https://github.com/tadhg-moore/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/tadhg-moore/LakeEnsemblR/actions)
-  <!-- badges: end -->
-[![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![R-CMD-check](https://github.com/tadhg-moore/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/tadhg-moore/LakeEnsemblR/actions) [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
@@ -15,22 +11,22 @@ You can find example setups here: https://github.com/aemon-j/LER_examples.
 Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up to date as there is parallel devlopment ongoing.
 
 ```{r gh-installation, eval = FALSE}
-#install.packages("devtools")
-devtools::install_github("GLEON/rLakeAnalyzer")
-devtools::install_github("aemon-j/GLM3r", ref = "v3.1.1")
-devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
-devtools::install_github("aemon-j/FLakeR", ref = "inflow")
-devtools::install_github("aemon-j/GOTMr")
-devtools::install_github("aemon-j/gotmtools")
-devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/MyLakeR")
+#install.packages("remotes")
+remotes::install_github("GLEON/rLakeAnalyzer")
+remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
+remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+remotes::install_github("aemon-j/FLakeR", ref = "inflow")
+remotes::install_github("aemon-j/GOTMr")
+remotes::install_github("aemon-j/gotmtools")
+remotes::install_github("aemon-j/SimstratR")
+remotes::install_github("aemon-j/MyLakeR")
 ```
 
 Following this you can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
-# install.packages("devtools")
-devtools::install_github("aemon-j/LakeEnsemblR")
+# install.packages("remotes")
+remotes::install_github("aemon-j/LakeEnsemblR")
 ```
 
 Should you run into unexpected installation issues, please have a look at this page: https://github.com/aemon-j/LakeEnsemblR/wiki/Installation-issues
