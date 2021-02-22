@@ -43,7 +43,7 @@ jobs:
 
       - name: Lint
         run: |
-          LER_linters <- lintr::with_defaults(line_length_linter = line_length_linter(100),
+          LER_linters <- lintr::with_defaults(line_length_linter = lintr::line_length_linter(100),
                                commented_code_linter = NULL,
                                cyclocomp_linter = NULL,
                                paren_brace_linter = NULL,
