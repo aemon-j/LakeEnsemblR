@@ -13,8 +13,8 @@ plot_ensemble(
   depth = NULL,
   date = NULL,
   av_fun = "mean",
-  boxwhisker = FALSE,
-  residuals = FALSE
+  residuals = FALSE,
+  boxwhisker = FALSE
 )
 }
 \arguments{
@@ -27,13 +27,18 @@ plot_ensemble(
 \item{dim}{string; NetCDF dimensions to extract. Must be either "member" or
 "model". Defaults to "model". Only used if plotting from netCDF file.}
 
-\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.}
+\item{dim_index}{numeric; Index of dimension chosen to extract from. Defaults to 1.
+Only used if plotting from netCDF file.}
 
 \item{depth}{If `var` has a depth dimension, for which depth should it be plotted?}
 
 \item{date}{Specific date for which depth profiles should be plotted}
 
 \item{av_fun}{Averaging function to use, defaults to the arithmetic mean (`mean()`)}
+
+\item{residuals}{Create an additional plot with model residuals over time}
+
+\item{boxwhisker}{Create additional box-whisker plots for each model}
 }
 \description{
 Plot the outcome of the ensemble run for a given depth along with the minimum, maximum, and
@@ -56,5 +61,5 @@ p2 <- plot_ensemble(ncdf = "output/ensemble_output.nc",
 
 }
 \author{
-Johannes Feldbauer, Robert Ladwig
+Johannes Feldbauer, Robert Ladwig, Jorrit Mesman
 }

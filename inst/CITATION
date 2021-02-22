@@ -21,7 +21,7 @@ citEntry(
   journal  = "Environmental Modelling & Software",
   year     = "in submission",
   publisher = "Elsevier",
-  textVersion = paste("Tadhg N. Moorea, Jorrit P. Mesman, Robert Ladwig, Johannes Feldbauer,",
+  textVersion = paste("Tadhg N. Moore, Jorrit P. Mesman, Robert Ladwig, Johannes Feldbauer,",
                       " Freya Olsson, Rachel M. Pilla, Tom Shatwell, Jason J. Venkiteswaran,",
                       " Austin D. Delany, Hilary Dugan, Kevin C. Rose, Jordan S. Read ",
                       "(in submission).  LakeEnsemblR: An R package that facilitates ensemble",
