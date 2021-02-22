@@ -37,7 +37,6 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages(c("remotes"))
-          remotes::install_deps(dependencies = TRUE)
           remotes::install_github("GLEON/rLakeAnalyzer")
           remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
@@ -47,6 +46,7 @@ jobs:
           remotes::install_github("aemon-j/SimstratR")
           remotes::install_github("aemon-j/MyLakeR")
           remotes::install_cran("lintr")
+          remotes::install_deps(dependencies = TRUE)
         shell: Rscript {0}
 
       - name: Install package
