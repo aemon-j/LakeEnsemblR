@@ -22,8 +22,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: windows-latest, r: 'release'}
-          - {os: macos-10.15, r: 'release'}
           - {os: ubuntu-20.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
           - {os: ubuntu-18.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
@@ -63,8 +61,8 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get install libnetcdf-dev libnetcdff-dev
+          sudo apt-get install libgfortran3
           sudo apt-get install libc6
-          ldd --version
           while read -r cmd
           do
             eval sudo $cmd
