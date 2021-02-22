@@ -11,16 +11,17 @@ test_that("test data can be created", {
 test_that("create model meteo & config files", {
 
   library(LakeEnsemblR)
+  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
+  setwd(template_folder) # Change working directory to example folder
 
   # Set config file
   masterConfigFile <- "LakeEnsemblR.yaml"
+  config_file <- "LakeEnsemblR_copy.yaml"
+  file.copy(masterConfigFile, config_file, overwrite = TRUE)
 
   # 1. Example - export configuration settings
-  export_config(config_file = masterConfigFile,
+  export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".")
 
@@ -32,14 +33,7 @@ test_that("create model meteo & config files", {
 
 test_that("can run FLake", {
 
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake")
 
   # 1. Example - creates directories with all model setup
@@ -54,14 +48,8 @@ test_that("can run FLake", {
 
 test_that("can run GLM", {
   
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-  
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("GLM")
   
   # 1. Example - creates directories with all model setup
@@ -76,14 +64,8 @@ test_that("can run GLM", {
 
 test_that("can run GOTM", {
   
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-  
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("GOTM")
   
   # 1. Example - creates directories with all model setup
@@ -98,14 +80,8 @@ test_that("can run GOTM", {
 
 test_that("can run Simstrat", {
   
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-  
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("Simstrat")
   
   # 1. Example - creates directories with all model setup
@@ -120,14 +96,8 @@ test_that("can run Simstrat", {
 
 test_that("can run MyLake", {
   
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-  
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("MyLake")
   
   # 1. Example - creates directories with all model setup
@@ -143,16 +113,10 @@ test_that("can run MyLake", {
 
 test_that("can add members to netCDF models", {
 
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-  ncdf <- "output/ensemble_output.nc"
-
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  ncdf <- "output/ensemble_output.nc"
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
@@ -267,15 +231,8 @@ test_that("can add members to netCDF models", {
 
 test_that("can run models & generate csv files", {
 
-  library(LakeEnsemblR)
-  library(gotmtools)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
   # Change to text output
@@ -290,27 +247,20 @@ test_that("can run models & generate csv files", {
 
 
 
-  testthat::expect_true((length(list.files("output", pattern = "csv")) > 1))
+  testthat::expect_true((length(list.files("output", pattern = "csv")) == 11))
 })
 
 test_that("can calibrate models", {
 
-  library(LakeEnsemblR)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-
-  # Set config file
-  masterConfigFile <- "LakeEnsemblR.yaml"
-
   # 1. Example - creates directories with all model setup
-  export_config(config_file = masterConfigFile,
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".")
 
   # 2. Calibrate models
-  cali_ensemble(config_file = masterConfigFile, cmethod = "LHC", num = 5,
+  cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
   testthat::expect_true(length(list.files("cali")) == 10 )
@@ -318,20 +268,10 @@ test_that("can calibrate models", {
 
 test_that("check plots", {
 
-  library(LakeEnsemblR)
-  library(gotmtools)
-  library(ggplot2)
-  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  dir.create("example") # Create example folder
-  file.copy(from = template_folder, to = "example", recursive = TRUE)
-  setwd("example/feeagh") # Change working directory to example folder
-
-  # Set config file & models
-  config_file <- 'LakeEnsemblR.yaml'
-  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-  ncdf <- "output/ensemble_output.nc"
-
   # Change to netcdf output
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  ncdf <- "output/ensemble_output.nc"
   input_yaml(config_file, label = "output", key = "format", value = "netcdf")
 
   # 1. Example - creates directories with all model setup
@@ -350,32 +290,9 @@ test_that("check plots", {
   testthat::expect_true(ggplot2::is.ggplot(pl1))
   testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
   testthat::expect_true(ggplot2::is.ggplot(pl3))
+  
+  unlink("output", recursive = TRUE)
+  file.remove(config_file)
 })
 
-
-# test_that("can load from netCDF", {
-#
-#   library(LakeEnsemblR)
-#   library(gotmtools)
-#   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-#   dir.create("example") # Create example folder
-#   file.copy(from = template_folder, to = "example", recursive = TRUE)
-#   setwd("example/feeagh") # Change working directory to example folder
-#   ncdf <- "output/ensemble_output.nc"
-#
-#   # Set config file & models
-#   config_file <- 'LakeEnsemblR.yaml'
-#   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-#
-#   # 1. Example - creates directories with all model setup
-#   export_config(config_file = config_file, model = model)
-#
-#   # 2. run models
-#   run_ensemble(config_file = config_file,
-#                model = model)
-#
-#
-#
-#
-# })
-
+# end
