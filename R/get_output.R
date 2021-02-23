@@ -444,8 +444,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       if(remb_col == 1){
         colnames(dens) <- c("datetime", paste0("dens_", abs(depths)))
       } else {
-        str_depths <- abs(as.numeric(colnames(sal)[2:ncol(sal)]))
-        colnames(dens) <- c("datetime", paste0("dens__", str_depths))
+        colnames(dens) <- c("datetime", paste0("dens_", str_depths))
       }
       
       sim_out[[length(sim_out) + 1]] <- dens
