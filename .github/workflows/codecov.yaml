@@ -39,7 +39,6 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages(c("remotes"))
-          remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
           remotes::install_cran("xtable")
           remotes::install_github("GLEON/rLakeAnalyzer")
@@ -50,6 +49,7 @@ jobs:
           remotes::install_github("aemon-j/gotmtools")
           remotes::install_github("aemon-j/MyLakeR")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+          remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("covr")
         shell: Rscript {0}
         
