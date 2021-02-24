@@ -37,8 +37,18 @@ jobs:
       - name: Install dependencies
         run: |
           install.packages(c("remotes"))
-          remotes::install_cran("lintr")
           remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+          remotes::install_cran("xtable")
+          remotes::install_github("GLEON/rLakeAnalyzer")
+          remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
+          remotes::install_github("aemon-j/FLakeR", ref = "inflow")
+          remotes::install_github("aemon-j/GOTMr")
+          remotes::install_github("aemon-j/SimstratR")
+          remotes::install_github("aemon-j/gotmtools")
+          remotes::install_github("aemon-j/MyLakeR")
+          remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+          remotes::install_cran("lintr")
         shell: Rscript {0}
 
       - name: Lint
