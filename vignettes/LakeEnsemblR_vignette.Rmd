@@ -27,8 +27,6 @@ rmarkdown::pdf_document:
     toc_depth: 3
 -->
 
-
-
 ```{r include=FALSE}
 library(knitr)
 library(kableExtra)
@@ -434,13 +432,13 @@ calibration:                                   # Calibration section            
 
 The calibration process can then be run using the `cali_ensemble()` function. Methods "LHC" and "MCMC" will write intermediate results to .csv text files in the folder specified by the `out_f` argument. It is possible to parallelize the calibration procedure using the `parallel` argument. This will distribute the calibration of the models to different cores. It is worth noting that in the current state the bottle neck for the computation speed is running MyLake (as it is written in R and significantly slower than the other four models).
 
-You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that are often calibrated in each model:
+You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that have been calibrated in previous studies:
 
- - FLake: e.g. c_relax_C
- - GLM: several meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw (@hipsey_general_2019) (@bruce_mlca_glm_2018)
- - GOTM: shf_factor, wind_factor, swr_factor, k_min, g2 (@ayala_simulations_gotm_2020)
- - Simstrat: a_seiche, f_wind, p_radin, p_albedo (@gaudard_toward_2019)
- - MyLake: based on sensitivity analysis (@saloranta_mylakemulti_year_2007)
+ - FLake: depth_w_lk, extincoef_optic, c_relax_C, fetch_lk, latitude_lk, depth_bs_lk, T_bs_lk, albedo, initial conditions (@salgado_2010) (@bernhardt_2012) (@layden_2016)
+ - GLM: meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw, min_layer_thick, max_layer_thick, coef_mix_conv, coef_wind_stir, coef_mix_shear, coef_mix_turb, coef_mix_KH, coef_mix_hyp (@bueche_2017) (@bruce_mlca_glm_2018) (@hipsey_general_2019) 
+ - GOTM: Scaling factors for heat, wind speed, and shortwave radiation, k_min, g2 (@ayala_simulations_gotm_2020)
+ - Simstrat: a_seiche, f_wind, p_radin, p_albedo, q_nn, c10, cd (peeters_2002) (@gaudard_toward_2019)
+ - MyLake: (Physical parameters only:) C_shelter, swa_b1 (Less sensitive: dz and I_scT, and Kz_ak) (@saloranta_2006)
  
 ### LHC method
 
