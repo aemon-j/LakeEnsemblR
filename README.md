@@ -1,6 +1,6 @@
 LakeEnsemblR
 =====
-[![](http://github-actions.40ants.com/tadhg-moore/LakeEnsemblR/matrix.svg)](https://github.com/tadhg-moore/LakeEnsemblR)
+[![](http://github-actions.40ants.com/aemon-j/LakeEnsemblR/matrix.svg)](https://github.com/aemon-j/LakeEnsemblR)
 
 [![R-CMD-check](https://github.com/tadhg-moore/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/tadhg-moore/LakeEnsemblR/actions) [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
