@@ -24,7 +24,8 @@ jobs:
         config:
           - {os: windows-latest, r: 'release'}
           - {os: macos-10.15, r: 'release'}
-          - {os: ubuntu-18.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
+          - {os: ubuntu-16.04,   r: '4.0.3',     rspm: "https://packagemanager.rstudio.com/cran/__linux__/xenial/latest"}
+          #- {os: ubuntu-18.04, r: 'release', rspm: "https://packagemanager.rstudio.com/cran/__linux__/focal/latest"}
 
     env:
       R_REMOTES_NO_ERRORS_FROM_WARNINGS: true
@@ -61,7 +62,6 @@ jobs:
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt install r-cran-bit64
           sudo apt-get install libnetcdf-dev libnetcdff-dev
           sudo apt-get install libgfortran3
           sudo apt-get install libc6
