@@ -69,7 +69,7 @@ There is an LakeEnsemblR configuration file provided in the example dataset in t
 ## Location
 The first section is "Location". Here you specify the name, latitude and longitude, elevation, maximum depth, and initial depth.
 
-You also need to provide a link to the hypsograph (i.e. surface area per depth) file. As in the rest of the configuration file, all links to files are relative to the `folder` argument in the LakeEnsemblR functions (default is the R working directory). We strongly advise to set the working directory to the location of the LER config file, and link to the files relative to this directory (we explain this further in the chapter "Workflow" of this vignette). For example, if your hypsograph file is called `hypsograph.csv` and in the same folder as the LER config file, the corresponding line in the LER config file would look like
+You also need to provide a link to the hypsograph (i.e. surface area per depth) file. As in the rest of the configuration file, all links to files are relative to the `folder` argument in the LakeEnsemblR (from now on: LER) functions (default is the R working directory). We strongly advise to set the working directory to the location of the LER config file, and link to the files relative to this directory (we explain this further in the chapter "Workflow" of this vignette). For example, if your hypsograph file is called `hypsograph.csv` and in the same folder as the LER config file, the corresponding line in the LER config file would look like
 ```{yaml}
   hypsograph: hypsograph.csv
 ```
@@ -127,7 +127,7 @@ datetime, Ice_Height_meter
 ```
 
 ## Input
-In the "Input" section, you give information about the initial temperature profile, meteorological forcing, the light extinction coefficient, and ice.
+In the "Input" section, you give information about the initial temperature profile, meteorological forcing, the light extinction coefficient, and whether the ice modules should be used.
 
 Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available using `get_template("Initial temperature profile")`). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
 
@@ -156,8 +156,8 @@ Next you can either give a value for Kw (light extinction coefficient) in 1/m, o
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be mad in the
-corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master controll file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be made in the
+corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master configuration file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
 
 Example of data:
 ```{csv}
@@ -189,7 +189,7 @@ scaling_factors:
 
 
 ## Model parameters
-All models in LakeEnsemblR have different parameterizations. In this section, you can set the value of any parameter in one of the model-specific configuration files. 
+All models in LakeEnsemblR have different parameterisations. In this section, you can set the value of any parameter in one of the model-specific configuration files. 
 
 You can give either only the name of the parameter, but if needed you can also provide the name of the section in which the parameter occurs, separated by a `/`. For example for GOTM's k_min parameter:
 ```{yaml}
@@ -223,8 +223,8 @@ The next step would be to call `run_ensemble`, which runs all the models. A new 
 ## Example model run
 See below for an example run, and some post-processing of the data.
 ```{r eval = FALSE}
-# Install packages - Ensure all packages are up to date - parallel development ongoing
-devtools::install_github("GLEON/GLM3r")
+# Install packages - Ensure all packages are up to date
+devtools::install_github("aemon-j/GLM3r", ref = "v3.1.1")
 devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
 devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
@@ -277,7 +277,7 @@ Once LakeEnsemblR did successfully run all lake models, you can either extract t
 Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://sourceforge.net/projects/pyncview/) can be used to look at netcdf output.
 
 ```{r gh-installation, eval = FALSE}
-# Import the LEr output into your workspace
+# Import the LER output into your workspace
 ens_out <- "output/ensemble_output.nc"
 
 # Plot depth and time-specific results
@@ -409,8 +409,8 @@ calibration:                                   # Calibration section            
         log: false                             # log transform scaling factor	
    GOTM:                                    # GOTM specific parameters
       turb_param/k_min:
-         lower: 5E-4                           # lower bound for parameter
-         upper: 5E-6                           # upper bound for parameter
+         lower: 5E-6                           # lower bound for parameter
+         upper: 5E-4                           # upper bound for parameter
          initial: 1E-5                         # initial value for parameter
          log: true
    GLM:                               # GLM specific parameters
