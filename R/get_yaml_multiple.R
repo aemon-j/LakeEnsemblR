@@ -88,9 +88,6 @@ get_yaml_multiple <- function(file = "gotm.yaml", ...){
     # Set previous_key and nr_of_spaces
     previous_key <- ind_key
     nr_of_spaces <- find_spaces(yml_no_comments[ind_key], key_id)
-    if(nr_of_spaces == -1){
-      nr_of_spaces <- 0
-    }
   }
   # This is the line with the value you want to change
   ind_key <- previous_key
@@ -159,6 +156,10 @@ get_yaml_multiple <- function(file = "gotm.yaml", ...){
 # Find the number of spaces before a key in a line.
 #' @keywords internal
 find_spaces <- function(line, key){
-  attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
+  num_space <- attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
+  if(num_space == -1L){
+    num_space <- 0L
+  }
+  num_space
 }
 

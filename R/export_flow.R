@@ -49,15 +49,18 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
+  
   # Use outflows
+  tryCatch({get_yaml_value(config_file, "inflows", "mass-balance")
+    warning(paste0("The 'mass-balance' argument is no longer used after ",
+                   "version 1.1. If you would like to have outflows ",
+                   "matching the inflows, please add the inflow file ",
+                   "manually to the 'outflows' section. You can use the same ",
+                   "or a different file as for inflows."))},
+    error = function(e) { })
+  
   use_outflows <- get_yaml_value(config_file, "outflows", "use")
 
-  tryCatch({get_yaml_value(config_file, "inflows", "mass-balance")
-    warning(paste0("The 'mass-balance' argument is no longer used ",
-                   "if you would like to have outflows matching the ",
-                   "inflows please add them manually to the 'outflows'",
-                   " section. You can use the same file as for inflows."))},
-           error = function(e) { })
   if(use_outflows) {
     # number of outflows
     num_outflows <- get_yaml_value(config_file, "outflows", "number_outflows")

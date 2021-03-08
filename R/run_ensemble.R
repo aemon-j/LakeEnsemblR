@@ -64,6 +64,10 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(format == "netcdf") {
     out_file <- paste0(out_file, ".nc")
     compression <- get_yaml_value(config_file, "output", "compression")
+    
+    # Wrapped in tryCatch as it was not used in v1.0.0
+    max_members <- tryCatch(get_yaml_value(config_file, "output", "max_members"),
+                            error = function(e) {25})
   }
 
 
@@ -221,7 +225,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         # Pass all_lists to the netcdf function to create netcdf output
         create_netcdf_output(output_lists = all_lists, folder = folder, model = model,
                              out_time = out_time, longitude = lon, latitude = lat,
-                             compression = compression, out_file = out_file)
+                             compression = compression, members = max_members,
+                             out_file = out_file)
       } else {
         add_netcdf_output(output_lists = all_lists, folder = folder, model, out_file)
       }

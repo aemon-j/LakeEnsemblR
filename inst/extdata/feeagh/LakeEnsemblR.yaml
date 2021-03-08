@@ -53,6 +53,7 @@ output:
    format: netcdf                               # format [text/netcdf]
    depths: 0.5                                  # depths to extract output [m]
    compression: 4                               # set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file
+   max_members: 25                              # maximum number of members of the same model that can be added to the netcdf
    time_unit: hour                              # time unit [second, hour, day]
    time_step: 24                                # number of time units between output [min=1]
    time_method: mean                            # treatment of time dimension [point=instantaneous, mean, integrated; only used in GOTM]
