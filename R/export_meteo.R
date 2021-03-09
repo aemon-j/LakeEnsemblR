@@ -68,9 +68,11 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # test if names are right
   chck_met <- sapply(list(colnames(met)), function(x) x %in% met_var_dic$standard_name)
   if(any(!chck_met)) {
-    stop(paste0("Colnames of meteo file are not in standard notation! ",
+    stop(paste0("Colnames of meteo file are not in standard notation!\n",
+                "Colnames: ", paste0(colnames(met)[!chck_met], collapse = ", "),
+                ifelse(sum(!chck_met)>1, " are", " is")," wrong.\n",
                 "They should be one of: \n", paste0(met_var_dic$standard_name,
-                                                  collapse = "\n")))
+                                                    collapse = "\n")))
   }
 
 
