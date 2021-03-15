@@ -69,6 +69,22 @@ format_met <- function(met, model, config_file, folder = "."){
     chck_met$p_surf <- TRUE
   }
   
+  # No Pressure available
+  if(!chck_met$p_surf){
+    # No pressure known - use crude calculation using air temperature and assuming sea level pressures is 101325 Pa 
+    # https://www.mide.com/air-pressure-at-altitude-calculator
+    # https://en.wikipedia.org/wiki/Barometric_formula
+    g <- 9.80665 # Gravity
+    Pb <- 101325 # Pressure at sea level
+    Lb <- -0.0065 # Standard temperature lapse rate
+    R <- 8.31432 # Universal gas constant
+    M <- 0.0289644 # Molar mass of Earth's air
+    
+    met[[l_names$p_surf]] <- Pb * (1 + (Lb / met[[l_names$airt]]) * (elev))^((-g * M) / R *Lb)
+    
+    chck_met$p_surf <- TRUE
+  }
+  
   # Cloud cover
   if(!chck_met$cc){
 
