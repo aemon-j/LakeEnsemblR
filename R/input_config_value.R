@@ -22,7 +22,7 @@
 input_config_value <- function(model, file, label, key, value, out_file = NULL){
   if(model == "FLake" | model == "GLM"){
     return(gotmtools::input_nml(file = file, label = label, key = key,
-                                value = value, out_file = out_file))
+                                value = paste0(value, collapse = ", "), out_file = out_file))
   }else if(model == "GOTM"){
     return(gotmtools::input_yaml(file = file, label = label, key = key,
                                  value = value, out_file = out_file))
