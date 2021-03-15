@@ -25,7 +25,7 @@ input_config_value <- function(model, file, label, key, value, out_file = NULL){
                                 value = value, out_file = out_file))
   }else if(model == "GLM"){
     nml <- glmtools::read_nml(nml_file = file)
-    nml <- glmtools::set_nml(glm_nml = nml, arg_name = key, arg_val = value)
+    nml <- glmtools::set_nml(glm_nml = nml, arg_name = key, arg_val = unlist(value))
     return(glmtools::write_nml(glm_nml = nml, file = file))
   }else if(model == "GOTM"){
     return(gotmtools::input_yaml(file = file, label = label, key = key,
