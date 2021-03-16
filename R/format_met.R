@@ -80,7 +80,10 @@ format_met <- function(met, model, config_file, folder = "."){
     R <- 8.31432 # Universal gas constant
     M <- 0.0289644 # Molar mass of Earth's air
     
-    met[[l_names$p_surf]] <- Pb * (1 + (Lb / met[[l_names$airt]]) * (elev))^((-g * M) / R *Lb)
+    at_samp <- met[[l_names$airt]]
+    at_samp[at_samp < 3.3] <- 3.3 # Any air temperature below 3.3 degC results in NaN
+    
+    met[[l_names$p_surf]] <- Pb * (1 + (Lb / at_samp) * (elev))^((-g * M) / R *Lb)
     
     chck_met$p_surf <- TRUE
   }
