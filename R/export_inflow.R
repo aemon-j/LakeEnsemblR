@@ -39,8 +39,12 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Use inflows
   use_inflows <- get_yaml_value(config_file, "inflows", "use")
   # Use counter outflows
-  use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
-
+  if(use_inflows){
+    use_outflows <- get_yaml_value(config_file, "inflows", "mass-balance")
+  }else{
+    use_outflows <- FALSE
+  }
+  
   # Get start & stop dates
   start_date <- get_yaml_value(config_file, "time", "start")
   stop_date <- get_yaml_value(config_file, "time", "stop")
