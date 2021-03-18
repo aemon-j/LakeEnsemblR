@@ -32,6 +32,7 @@ yaml <- set_yaml(yaml, value = 23, key1 = "location", key2 = "latitude")
 yaml <- set_yaml(yaml, value = "2010-06-01 00:00:00", key1 = "time", key2 = "start")
 yaml <- set_yaml(yaml, value = "meteo.csv", key1 = "input", key2 = "meteo", key3 = "file")
 yaml <- set_yaml(yaml, value = TRUE, key1 = "calibration", key2 = "GOTM", key3 = "turb_param/k_min", key4 = "log")
+yaml <- set_yaml(yaml, value = c("temp", "salt"), key1 = "output", key2 = "variables")
 
 write_yaml(yaml, "LakeEnsemblR.yaml")
 }
