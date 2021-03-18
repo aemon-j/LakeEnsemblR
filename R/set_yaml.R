@@ -21,6 +21,7 @@
 #' yaml <- set_yaml(yaml, value = "2010-06-01 00:00:00", key1 = "time", key2 = "start")
 #' yaml <- set_yaml(yaml, value = "meteo.csv", key1 = "input", key2 = "meteo", key3 = "file")
 #' yaml <- set_yaml(yaml, value = TRUE, key1 = "calibration", key2 = "GOTM", key3 = "turb_param/k_min", key4 = "log")
+#' yaml <- set_yaml(yaml, value = c("temp", "salt"), key1 = "output", key2 = "variables")
 #' 
 #' write_yaml(yaml, "LakeEnsemblR.yaml")
 #' }
@@ -37,7 +38,7 @@ set_yaml <- function(yaml, value, ...) {
   
   if(length(all_keys) == 2) {
     
-    if(length(yaml[[all_keys[[1]]]][[all_keys[[2]]]]) > 1) {
+    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]])) > 1) {
       stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]]), collapse = "', '"), "'\n
                   You will need to add a key3 to your argument"))
     }
@@ -56,7 +57,7 @@ set_yaml <- function(yaml, value, ...) {
     yaml[[all_keys[[1]]]][[all_keys[[2]]]] <- value
   } else if(length(all_keys) == 3) {
     
-    if(length(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]]) > 1) {
+    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]])) > 1) {
       stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]]), collapse = "', '"), "'\n
                   You will need to add a key4 to your argument"))
     }
@@ -81,7 +82,7 @@ set_yaml <- function(yaml, value, ...) {
     }
   } else if(length(all_keys) == 4) {
     
-    if(length(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]]) > 1) {
+    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]])) > 1) {
       stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]]), collapse = "', '"), "'\n
                   You will need to add a key5 to your argument"))
     }
