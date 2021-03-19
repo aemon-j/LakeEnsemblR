@@ -3,7 +3,7 @@ location:
    name: Feeagh                         # /LER/ station name used in output [default=GOTM site]
    latitude: 53.9                       # /LER/ latitude [degrees North; min=-90.0; max=90.0; default=0.0]
    longitude: -9.5                      # /LER/ longitude [degrees East; min=-360.0; max=360.0; default=0.0]
-   depth: 46                            # /LER/ water depth [m; min=0.0; default=100.0]
+   depth: 46.8                            # /LER/ water depth [m; min=0.0; default=100.0]
    hypsograph: hypsograph.dat           # /LER/ hypsograph [default=]
 time:
    start: 2010-01-01 00:00:00           # /LER/ start date and time [yyyy-mm-dd HH:MM:SS; default=2017-01-01 00:00:00]
