@@ -11,13 +11,18 @@
 #'@examples
 #'
 #'@importFrom stats approx
-#'@importFrom gotmtools get_yaml_value input_yaml
 #'@importFrom glmtools read_nml set_nml write_nml
 #'
 #'@export
 
 export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                         folder = "."){
+  
+  if(!file.exists(file.path(folder, config_file))) {
+    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
+  } else {
+    yaml <- read_yaml(config_file)
+  }
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -33,31 +38,31 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   ##-------------Read settings---------------
 
   # Latitude
-  lat <- get_yaml_value(config_file, "location", "latitude")
+  lat <- get_yaml_value(yaml, "location", "latitude")
   # Longitude
-  lon <- get_yaml_value(config_file, "location", "longitude")
+  lon <- get_yaml_value(yaml, "location", "longitude")
   # Elevation
-  elev <- get_yaml_value(config_file, "location", "elevation")
+  elev <- get_yaml_value(yaml, "location", "elevation")
   # Maximum Depth
-  max_depth <- get_yaml_value(config_file, "location", "depth")
+  max_depth <- get_yaml_value(yaml, "location", "depth")
   # initial depth
-  init_depth <- get_yaml_value(config_file, "location", "init_depth")
+  init_depth <- get_yaml_value(yaml, "location", "init_depth")
 
   # Read in hypsograph data
-  hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
+  hyp_file <- get_yaml_value(yaml, "location", "hypsograph")
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }
   hyp <- read.csv(hyp_file)
   # Use ice
-  use_ice <- get_yaml_value(config_file, "ice", "use")
+  use_ice <- get_yaml_value(yaml, "input", "ice", "use")
 
   # Output depths
-  output_depths <- get_yaml_value(config_file, "output", "depths")
+  output_depths <- get_yaml_value(yaml, "output", "depths")
 
   ##---------------FLake-------------
   if("FLake" %in% model){
-    fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    fla_fil <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
 
     # Calculate mean depth from hypsograph (mdepth = V / SA)
     # Calculate volume from hypsograph - converted to function?
@@ -96,7 +101,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   ##---------------GLM-------------
 
   if("GLM" %in% model){
-    glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
+    glm_nml <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -117,7 +122,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     max_layers <- round(max_depth / min_layer_thick)
 
 
-    inp_list <- list("lake_name" = get_yaml_value(config_file, "location", "name"),
+    inp_list <- list("lake_name" = get_yaml_value(yaml, "location", "name"),
                      "latitude" = lat,
                      "longitude" = lon,
                      "lake_depth" = max_depth,
@@ -137,22 +142,24 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
   ##---------------GOTM-------------
   if("GOTM" %in% model){
-    got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_yaml <- LakeEnsemblR::read_yaml(got_file)
 
     # Write input parameters to got_yaml
-    input_yaml(got_yaml, "location", "name", get_yaml_value(config_file, "location", "name"))
-    input_yaml(got_yaml, "location", "latitude", lat)
-    input_yaml(got_yaml, "location", "longitude", lon)
-
+    got_yaml <- set_yaml(got_yaml, "location", "name", value = get_yaml_value(yaml, "location", "name"))
+    got_yaml <- set_yaml(got_yaml, "location", "latitude", value = lat)
+    got_yaml <- set_yaml(got_yaml, "location", "longitude", value = lon)
+    
     # Set max depth
-    input_yaml(got_yaml, "location", "depth", max_depth)
-    input_yaml(got_yaml, "grid", "nlev", round(max_depth / 0.5))
+    got_yaml <- set_yaml(got_yaml, "location", "depth", value = max_depth)
+    got_yaml <- set_yaml(got_yaml, "grid", "nlev",
+                                       value = as.integer(round(max_depth / 0.5)))
 
     # Turn on/off ice model ("MyLake" option)
     if(use_ice){
-      input_yaml(got_yaml, "ice", "model", 2)
+      got_yaml <- set_yaml(got_yaml, "surface", "ice", "model", value = 2L)
     }else{
-      input_yaml(got_yaml, "ice", "model", 0)
+      got_yaml <- set_yaml(got_yaml, "surface", "ice", "model", value = 0L)
     }
     
     # Create GOTM hypsograph file
@@ -166,13 +173,14 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     colnames(got_hyp) <- c(as.character(ndeps), "2")
     write.table(got_hyp, "GOTM/hypsograph.dat", quote = FALSE,
                 sep = "\t", row.names = FALSE, col.names = TRUE)
-    input_yaml(got_yaml, "location", "hypsograph", "hypsograph.dat")
+    got_yaml <- set_yaml(got_yaml, "location", "hypsograph", value = "hypsograph.dat")
+    write_yaml(got_yaml, got_file)
 
   }
 
   ##---------------Simstrat-------------
   if("Simstrat" %in% model){
-    sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    sim_par <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
 
     # Create Simstrat bathymetry
     sim_hyp <- hyp
@@ -213,7 +221,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   ##---------------MyLake-------------
   if("MyLake" %in% model){
     # Load config file MyLake
-    load(get_yaml_value(config_file, "config_files", "MyLake"))
+    load(get_yaml_value(yaml, "config_files", "MyLake"))
 
     # wind sheltering coefficient (C_shelter)
     c_shelter <- 1.0 - exp(-0.3 * (hyp$Area_meterSquared[1] * 1e-6))
@@ -242,7 +250,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     mylake_config[["In.Cz"]] <- matrix(rep(0, nrow(myl_hyp)), ncol = 1)
 
     # save lake-specific config file for MyLake
-    temp_fil <- gsub(".*/", "", get_yaml_value(config_file, "config_files", "MyLake"))
+    temp_fil <- gsub(".*/", "", get_yaml_value(yaml, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
   }
 

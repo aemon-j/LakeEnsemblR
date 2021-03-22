@@ -23,7 +23,7 @@
 #' @export
 read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long = FALSE, out_time, out_hour = 0){
 
-  met_file <- suppressWarnings(get_nml_value(arg_name = "meteofile", nml_file = nml_file))
+  met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = "meteofile", nml_file = nml_file))
   met_file <- file.path(folder, met_file)
   met_file <- gsub(",", "", met_file)
 

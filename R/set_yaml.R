@@ -34,82 +34,101 @@ set_yaml <- function(yaml, value, ...) {
   
   # Users can provide multiple keys, named key1, key2, key3, etc.
   all_args <- list(...)
-  all_keys <- all_args[grepl("key", names(all_args))]
+  # all_keys <- all_args[grepl("key", names(all_args))]
   
-  if(length(all_keys) == 2) {
+  nams1 <- names(yaml)
+  if(!(all_args[[1]] %in% nams1)) {
+    stop(paste0(all_args[[1]], " is not found in the first level in the yaml object. Options include: '", paste0(nams1, collapse = "', '"), "'."))
+  }
+  
+  if(length(all_args) == 1) {
     
-    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]])) > 1) {
-      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]]), collapse = "', '"), "'\n
+    if(length(names(yaml[[all_args[[1]]]])) > 1) {
+      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_args[[1]]]]), collapse = "', '"), "'\n
+                  You will need to add a key2 to your argument"))
+    }
+    
+    # Check classes
+    c1 <- class(yaml[[all_args[[1]]]])
+    c2 <- class(value)
+    if(c1 != c2 & c1 != "NULL") {
+      stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_args[[1]]]], " (", c1, ")."))
+    }
+    yaml[[all_args[[1]]]] <- value
+  } else if(length(all_args) == 2) {
+    
+    if(length(names(yaml[[all_args[[1]]]][[all_args[[2]]]])) > 1) {
+      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_args[[1]]]][[all_args[[2]]]]), collapse = "', '"), "'\n
                   You will need to add a key3 to your argument"))
     }
     
     # Check if second key is under the first key
-    nams1 <- names(yaml[[all_keys[[1]]]])
-    if(!(all_keys[[2]] %in% nams1)) {
-      stop(paste0("'", all_keys[[2]], "' is not nested under '", all_keys[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
+    nams1 <- names(yaml[[all_args[[1]]]])
+    if(!(all_args[[2]] %in% nams1)) {
+      stop(paste0("'", all_args[[2]], "' is not nested under '", all_args[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
     }
     # Check classes
-    c1 <- class(yaml[[all_keys[[1]]]][[all_keys[[2]]]])
+    c1 <- class(yaml[[all_args[[1]]]][[all_args[[2]]]])
     c2 <- class(value)
-    if(c1 != c2) {
-      stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_keys[[1]]]][[all_keys[[2]]]], " (", c1, ")."))
+    if(c1 != c2 & c1 != "NULL") {
+      stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_args[[1]]]][[all_args[[2]]]], " (", c1, ")."))
     }
-    yaml[[all_keys[[1]]]][[all_keys[[2]]]] <- value
-  } else if(length(all_keys) == 3) {
+    yaml[[all_args[[1]]]][[all_args[[2]]]] <- value
+  } else if(length(all_args) == 3) {
     
-    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]])) > 1) {
-      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]]), collapse = "', '"), "'\n
+    if(length(names(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]])) > 1) {
+      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]]), collapse = "', '"), "'\n
                   You will need to add a key4 to your argument"))
     }
     
     # Check if second key is under the first key
-    nams1 <- names(yaml[[all_keys[[1]]]])
-    if(!(all_keys[[2]] %in% nams1)) {
-      stop(paste0("'", all_keys[[2]], "' is not nested under '", all_keys[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
+    nams1 <- names(yaml[[all_args[[1]]]])
+    if(!(all_args[[2]] %in% nams1)) {
+      stop(paste0("'", all_args[[2]], "' is not nested under '", all_args[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
     }
     # Check if second key is under the first key
-    nams2 <- names(yaml[[all_keys[[1]]]][[all_keys[[2]]]])
+    nams2 <- names(yaml[[all_args[[1]]]][[all_args[[2]]]])
     
-    if(!(all_keys[[3]] %in% nams2)) {
-      stop(paste0("'", all_keys[[3]], "' is not nested under '", all_keys[[2]], "'. Please select one of '", paste0(nams2, collapse = "', '"), "'."))
+    if(!(all_args[[3]] %in% nams2)) {
+      stop(paste0("'", all_args[[3]], "' is not nested under '", all_args[[2]], "'. Please select one of '", paste0(nams2, collapse = "', '"), "'."))
     } else {
-      c1 <- class(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]])
+      c1 <- class(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]])
       c2 <- class(value)
-      if(c1 != c2) {
-        stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]], " (", c1, ")."))
+      if(c1 != c2 & c1 != "NULL") {
+        stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]], " (", c1, ")."))
       }
-      yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]] <- value
+      yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]] <- value
     }
-  } else if(length(all_keys) == 4) {
+  } else if(length(all_args) == 4) {
     
-    if(length(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]])) > 1) {
-      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]]), collapse = "', '"), "'\n
+    if(length(names(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]][[all_args[[4]]]])) > 1) {
+      stop(paste0("There are multiple keys on this level: '", paste0(names(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]][[all_args[[4]]]]), collapse = "', '"), "'\n
                   You will need to add a key5 to your argument"))
     }
     
     # Check if second key is under the first key
-    nams1 <- names(yaml[[all_keys[[1]]]])
-    if(!(all_keys[[2]] %in% nams1)) {
-      stop(paste0("'", all_keys[[2]], "' is not nested under '", all_keys[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
+    nams1 <- names(yaml[[all_args[[1]]]])
+    if(!(all_args[[2]] %in% nams1)) {
+      stop(paste0("'", all_args[[2]], "' is not nested under '", all_args[[1]], "'. Please select one of '", paste0(nams1, collapse = "', '"), "'."))
     }
     # Check if second key is under the first key
-    nams2 <- names(yaml[[all_keys[[1]]]][[all_keys[[2]]]])
+    nams2 <- names(yaml[[all_args[[1]]]][[all_args[[2]]]])
     
-    if(!(all_keys[[3]] %in% nams2)) {
-      stop(paste0("'", all_keys[[3]], "' is not nested under '", all_keys[[2]], "'. Please select one of '", paste0(nams2, collapse = "', '"), "'."))
+    if(!(all_args[[3]] %in% nams2)) {
+      stop(paste0("'", all_args[[3]], "' is not nested under '", all_args[[2]], "'. Please select one of '", paste0(nams2, collapse = "', '"), "'."))
     }
     # Check if second key is under the first key
-    nams3 <- names(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]])
+    nams3 <- names(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]])
     
-    if(!(all_keys[[4]] %in% nams3)) {
-      stop(paste0("'", all_keys[[4]], "' is not nested under '", all_keys[[3]], "'. Please select one of '", paste0(nams3, collapse = "', '"), "'."))
+    if(!(all_args[[4]] %in% nams3)) {
+      stop(paste0("'", all_args[[4]], "' is not nested under '", all_args[[3]], "'. Please select one of '", paste0(nams3, collapse = "', '"), "'."))
     } else {
-      c1 <- class(yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]])
+      c1 <- class(yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]][[all_args[[4]]]])
       c2 <- class(value)
-      if(c1 != c2) {
-        stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]], " (", c1, ")."))
+      if(c1 != c2 & c1 != "NULL") {
+        stop(paste0(value, " (", c2, ") is not the same class as ", yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]][[all_args[[4]]]], " (", c1, ")."))
       }
-      yaml[[all_keys[[1]]]][[all_keys[[2]]]][[all_keys[[3]]]][[all_keys[[4]]]] <- value
+      yaml[[all_args[[1]]]][[all_args[[2]]]][[all_args[[3]]]][[all_args[[4]]]] <- value
     }
   }
   

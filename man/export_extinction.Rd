@@ -24,5 +24,6 @@ Exports extinction coefficients for each model based on a master LakeEnsemblR co
 \examples{
 
 
+
 }
 \keyword{methods}

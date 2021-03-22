@@ -65,6 +65,7 @@ get.offsets <- function(data){
 #' @param yaml_file filepath; to gotm.yaml
 #' @noRd
 set_met_config_yaml <- function(met_file, yaml_file){
+  
 
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
@@ -78,76 +79,78 @@ set_met_config_yaml <- function(met_file, yaml_file){
 
   # met_var_dic <- load_dic()
 
-  yaml  <-  yaml_file
-
+  yaml <- read_yaml(yaml_file)
+  
   met_inp <- basename(met_file)
 
   ######
   # u10
-  input_yaml(file = yaml, label = "u10", key = "column",
-             value = (which(colnames(df) == l_names$u10) - 1))
-  input_yaml(file = yaml, label = "u10", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "column",
+             value = as.integer(which(colnames(df) == l_names$u10) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "scale_factor", value = 1L)
   # v10
-  input_yaml(file = yaml, label = "v10", key = "column",
-             value = (which(colnames(df) == l_names$v10) - 1))
-  input_yaml(file = yaml, label = "v10", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "column",
+             value = as.integer(which(colnames(df) == l_names$v10) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "scale_factor", value = 1L)
   # airp
-  input_yaml(file = yaml, label = "airp", key = "column",
-             value = (which(colnames(df) == l_names$p_surf) - 1))
-  input_yaml(file = yaml, label = "airp", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "column",
+             value = as.integer(which(colnames(df) == l_names$p_surf) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "scale_factor", value = 1L)
   # airt
-  input_yaml(file = yaml, label = "airt", key = "column",
-            value = (which(colnames(df) == l_names$airt) - 1))
-  input_yaml(file = yaml, label = "airt", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "column",
+            value = as.integer(which(colnames(df) == l_names$airt) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "scale_factor", value = 1L)
   # cloud
-  input_yaml(file = yaml, label = "cloud", key = "column",
-             value = (which(colnames(df) == l_names$cc) - 1))
-  input_yaml(file = yaml, label = "cloud", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "column",
+             value = as.integer(which(colnames(df) == l_names$cc) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "scale_factor", value = 1L)
   # swr
-  input_yaml(file = yaml, label = "swr", key = "column",
-             value = (which(colnames(df) == l_names$swr) - 1))
-  input_yaml(file = yaml, label = "swr", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "column",
+             value = as.integer(which(colnames(df) == l_names$swr) - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "scale_factor", value = 1L)
   # precip
-  input_yaml(file = yaml, label = "precip", key = "column",
-             value = (which(colnames(df) == "Precipitation_meterPerSecond") - 1))
-  input_yaml(file = yaml, label = "precip", key = "scale_factor", value = 1)
+  yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "column",
+             value = as.integer(which(colnames(df) == "Precipitation_meterPerSecond") - 1))
+  yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "scale_factor", value = 1L)
 
   if(l_names$relh %in% colnames(df)){
     # hum
-    input_yaml(file = yaml, label = "hum", key = "column",
-               value = (which(colnames(df) == l_names$relh) - 1))
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "column",
+               value = as.integer(which(colnames(df) == l_names$relh) - 1))
     # 1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature,
     # 4=specific humidity (kg/kg)
-    input_yaml(file = yaml, label = "hum", key = "type", value = 1)
-    input_yaml(file = yaml, label = "hum", key = "scale_factor", value = 1)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "type", value = 1L)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1L)
   } else if(l_names$dewt %in% colnames(df)) {
     # hum
-    input_yaml(file = yaml, label = "hum", key = "file", value = met_outfile)
-    input_yaml(file = yaml, label = "hum", key = "column",
-               value = (which(colnames(df) == l_names$dewt) - 1))
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "file", value = met_outfile)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "column",
+               value = as.integer(which(colnames(df) == l_names$dewt) - 1))
     # 1 = relative humidity (%), 2 = wet-bulb temperature, 3 = dew point temperature,
     # 4 = specific humidity (kg/kg)
-    input_yaml(file = yaml, label = "hum", key = "type", value = 3)
-    input_yaml(file = yaml, label = "hum", key = "scale_factor", value = 1)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "type", value = 3L)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1L)
   }
 
   ######
   # u10
-  input_yaml(file = yaml, label = "u10", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "file", value = met_inp)
   # v10
-  input_yaml(file = yaml, label = "v10", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "file", value = met_inp)
   # airp
-  input_yaml(file = yaml, label = "airp", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "file", value = met_inp)
   # airt
-  input_yaml(file = yaml, label = "airt", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "file", value = met_inp)
   # cloud
-  input_yaml(file = yaml, label = "cloud", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "file", value = met_inp)
   # swr
-  input_yaml(file = yaml, label = "swr", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "file", value = met_inp)
   # precip
-  input_yaml(file = yaml, label = "precip", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "file", value = met_inp)
   # hum
-  input_yaml(file = yaml, label = "hum", key = "file", value = met_inp)
+  yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "file", value = met_inp)
+  
+  write_yaml(yaml, yaml_file)
 
 
 }

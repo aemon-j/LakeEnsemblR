@@ -3,7 +3,7 @@
 #' Get output data for each model
 #'
 #' @name get_output
-#' @param config_file filepath; To LER config yaml file. Only used if model = 'GOTM'
+#' @param config_yaml list; loaded using `read_yaml()`
 #' @param model character; Model for which scaling parameters will be applied. Options include
 #'    c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #' @param vars vector; variables to extract from FLake output. Currently just temp and ice
@@ -18,7 +18,7 @@
 #' @importFrom gotmtools get_vari setmodDepths
 #' @importFrom glmtools get_ice get_var
 #' @export
-get_output <- function(config_file, model, vars, obs_depths = NULL, folder = ".", out_time,
+get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = ".", out_time,
                        out_hour){
 
 ##--------------------------- FLake -----------------------------------------
@@ -26,10 +26,10 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     # Extract output
     fold <- file.path(folder, "FLake")
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    nml_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
-    out_depths <- get_yaml_value(config_file, "output", "depths")
+    out_depths <- get_yaml_value(config_yaml, "output", "depths")
     depths <- seq(0, mean_depth, by = out_depths)
 
     # Add in obs depths which are not in depths and less than mean depth
@@ -54,11 +54,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   get_yaml_value(config_yaml,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -83,11 +83,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   get_yaml_value(config_yaml,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -104,11 +104,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   get_yaml_value(config_yaml,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -137,13 +137,13 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     got_out <- list()
     if("temp" %in% vars){
 
-      temp <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
+      temp <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
                        print = FALSE)
-      z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
+      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
 
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -170,9 +170,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     }
 
     if("ice_height" %in% vars){
-      ice_height <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "Hice",
+      ice_height <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "Hice",
                              print = FALSE)
-      # ice_frazil <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"),
+      # ice_frazil <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"),
       #                        var = "Hfrazil", print = FALSE)
       # ice_height[,2] <- ice_height[,2] + ice_frazil[,2]
       colnames(ice_height) <- c("datetime", "ice_height")
@@ -184,13 +184,13 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     
     if("dens" %in% vars){
       
-      density <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "rho",
+      density <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "rho",
                        print = FALSE)
-      z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
+      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
       
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -218,13 +218,13 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     
     if("salt" %in% vars){
       
-      salinity <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "salt",
+      salinity <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "salt",
                           print = FALSE)
-      z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
+      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
       
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -258,7 +258,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
   if("Simstrat" %in% model){
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "Simstrat"))
     timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
     reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Start year")
 
@@ -521,8 +521,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     if("temp" %in% vars){
 
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- get_yaml_value(config_yaml, "output", "depths")
+      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
 
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -563,8 +563,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     
     if("dens" %in% vars){
       
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- get_yaml_value(config_yaml, "output", "depths")
+      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
       
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -599,8 +599,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     if("salt" %in% vars){
       message('MyLake does not support simulation of salinity dynamics.')
       
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- get_yaml_value(config_yaml, "output", "depths")
+      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
       
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)

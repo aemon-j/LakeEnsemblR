@@ -14,6 +14,12 @@
 
 export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           folder = "."){
+  
+  if(!file.exists(file.path(folder, config_file))) {
+    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
+  } else {
+    yaml <- read_yaml(config_file)
+  }
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -37,7 +43,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
     
     # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
+    temp_fil <- get_yaml_value(yaml, "config_files", "FLake")
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
       file.copy(from = template_file,
@@ -52,8 +58,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       dir.create("GLM/output", recursive = TRUE)
     }
     
-    # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
+    # Read the GLM config file from yaml, and write it to the GLM directory
+    temp_fil <- get_yaml_value(yaml, "config_files", "GLM")
     
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/glm3_template.nml", package = packageName())
@@ -69,8 +75,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       dir.create("GOTM/output", recursive = TRUE)
     }
     
-    # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
+    # Read the GOTM config file from yaml, and write it to the GOTM directory
+    temp_fil <- get_yaml_value(yaml, "config_files", "GOTM")
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
       file.copy(from = template_file,
@@ -89,8 +95,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       dir.create("Simstrat/output", recursive = TRUE)
     }
     
-    # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
+    # Read the Simstrat config file from yaml, and write it to the Simstrat directory
+    temp_fil <- get_yaml_value(yaml, "config_files", "Simstrat")
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
       file.copy(from = template_file,
@@ -116,7 +122,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
     
     # Load config file MyLake
-    temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
+    temp_fil <- get_yaml_value(yaml, "config_files", "MyLake")
     if(!file.exists(temp_fil)){
       # Load template config file from extdata
       mylake_path <- system.file(package = "LakeEnsemblR")

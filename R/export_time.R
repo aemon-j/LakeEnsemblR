@@ -10,7 +10,6 @@
 #'@keywords methods
 #'@examples
 #'
-#'@importFrom gotmtools get_yaml_value input_yaml
 #'@importFrom glmtools get_nml_value read_nml set_nml write_nml
 #'@importFrom lubridate year floor_date ceiling_date
 #'
@@ -18,6 +17,12 @@
 
 export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                         folder = "."){
+  
+  if(!file.exists(file.path(folder, config_file))) {
+    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
+  } else {
+    yaml <- read_yaml(config_file)
+  }
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -38,18 +43,18 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   
 ##-------------Read settings---------------
   # Start date
-  start_date <- get_yaml_value(config_file, "time", "start")
+  start_date <- get_yaml_value(yaml, "time", "start")
   # Stop date
-  stop_date <- get_yaml_value(config_file, "time", "stop")
+  stop_date <- get_yaml_value(yaml, "time", "stop")
   # Time step
-  timestep <- get_yaml_value(config_file, "time", "time_step")
+  timestep <- get_yaml_value(yaml, "time", "time_step")
   # Met time step (uses get_meteo_time_step function, in helpers.R)
   met_timestep <- get_meteo_time_step(file.path(folder,
-                                                get_yaml_value(config_file, "meteo", "file")))
+                                                get_yaml_value(yaml, "input", "meteo", "file")))
   
 ##---------------FLake-------------
   if("FLake" %in% model){
-    fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    fla_fil <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
     
     # check if meteo file is in accordence with start and stop date
     metf_flake <- gsub(",", "", glmtools::get_nml_value(nml_file = fla_fil, arg_name = "meteofile"))
@@ -71,18 +76,19 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                        "). Please re-run export_meteo."))
       }
       # set timesteps
-      input_nml(fla_fil, "SIMULATION_PARAMS", "time_step_number", nrow(met_flake))
+      nml <- glmtools::read_nml(fla_fil)
       
-      # Input parameters
-      input_nml(fla_fil, label = "SIMULATION_PARAMS", key = "del_time_lk", met_timestep)
-      #meteo needs to be in same time step as model
+      nml <- glmtools::set_nml(nml, "SIMULATION_PARAMS::time_step_number", nrow(met_flake))
+      nml <- glmtools::set_nml(nml, "SIMULATION_PARAMS::del_time_lk", met_timestep)
+      
+      glmtools::write_nml(nml, fla_fil)
     }
   }
   
 ##---------------GLM-------------
   
   if("GLM" %in% model){
-    glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
+    glm_nml <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
     
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -99,17 +105,20 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   
 ##---------------GOTM-------------
   if("GOTM" %in% model){
-    got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_yaml <- read_yaml(got_file)
     
     # Set time settings
-    input_yaml(got_yaml, "time", "start", start_date)
-    input_yaml(got_yaml, "time", "stop", stop_date)
-    input_yaml(got_yaml, "time", "dt", timestep)
+    got_yaml <- set_yaml(got_yaml, "time", "start", value = start_date)
+    got_yaml <- set_yaml(got_yaml, "time", "stop", value = stop_date)
+    got_yaml <- set_yaml(got_yaml, "time", "dt", value = as.integer(timestep))
+    
+    write_yaml(got_yaml, got_file)
   }
   
 ##---------------Simstrat-------------
   if("Simstrat" %in% model){
-    sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    sim_par <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
     
     # Set times
     reference_year <- lubridate::year(as.POSIXct(start_date))
@@ -130,14 +139,14 @@ export_time <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 ##---------------MyLake-------------
   if("MyLake" %in% model){
     # Load config file MyLake
-    load(get_yaml_value(config_file, "config_files", "MyLake"))
+    load(get_yaml_value(yaml, "config_files", "MyLake"))
     
     # update MyLakeR config file
     mylake_config[["M_start"]] <- start_date
     mylake_config[["M_stop"]] <- stop_date
     
     # save lake-specific config file for MyLake
-    temp_fil <- gsub(".*/", "", get_yaml_value(config_file, "config_files", "MyLake"))
+    temp_fil <- gsub(".*/", "", get_yaml_value(yaml, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
   }
   

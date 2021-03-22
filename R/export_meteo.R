@@ -12,7 +12,7 @@
 #' export_meteo(model = c('GOTM', 'GLM', 'Simstrat', 'FLake'),
 #'              meteo_file = 'LakeEnsemblR_meteo_standard.csv')
 #' }
-#' @importFrom gotmtools get_yaml_value calc_cc input_yaml calc_in_lwr
+#' @importFrom gotmtools calc_cc calc_in_lwr
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom zoo na.approx
 #' @importFrom lubridate floor_date seconds
@@ -20,6 +20,12 @@
 #' @export
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = "."){
+  
+  if(!file.exists(file.path(folder, config_file))) {
+    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
+  } else {
+    yaml <- read_yaml(config_file)
+  }
 
   # check model input
   model <- check_models(model)
@@ -38,9 +44,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   })
 
 
-  yaml  <-  file.path(folder, config_file)
-
-  meteo_file <- get_yaml_value(file = yaml, label = "meteo", key = "file")
+  meteo_file <- get_yaml_value(yaml, "input", "meteo", "file")
   # Check if file exists
   if(!file.exists(meteo_file)){
     stop(meteo_file, " does not exist. Check filepath in ", config_file)
@@ -94,10 +98,14 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
     # Input values to nml
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    nml_file <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
 
-    input_nml(nml_file, "SIMULATION_PARAMS", "time_step_number", nrow(fla_met))
-    input_nml(nml_file, "METEO", "meteofile", paste0("'", met_outfile, "'"))
+    nml <- glmtools::read_nml(nml_file)
+    
+    nml <- glmtools::set_nml(nml, "SIMULATION_PARAMS::time_step_number", nrow(fla_met))
+    nml <- glmtools::set_nml(nml, "meteofile", met_outfile)
+    
+    glmtools::write_nml(nml, nml_file)  
 
     message("FLake: Created file ", file.path(folder, "FLake", met_outfile))
 
@@ -116,7 +124,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     scale_met(glm_met, pars = scale_param, model = "GLM", out_file = met_outfile)
 
     # Input to nml file
-    nml_path <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
+    nml_path <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
     nml <- glmtools::read_nml(nml_path)
 
     nml_list <- list("subdaily" = subdaily, "lw_type" = "LW_IN", "meteo_fl" = "meteo_file.csv")
@@ -130,16 +138,16 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   ## GOTM
   if("GOTM" %in% model){
 
-    yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
+    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
 
     met_outfile <- "meteo_file.dat"
 
     met_outfpath <- file.path(folder, "GOTM", met_outfile)
 
-    got_met <- format_met(met, model = "GOTM", config_file = config_file)
+    got_met <- format_met(met, model = "GOTM", config_file = config_file, folder = folder)
 
     # Avoid bug where GOTM can crash if last date of met file == last date of simulation
-    if(got_met[nrow(got_met), 1] == get_yaml_value(config_file, "time", "stop")){
+    if(got_met[nrow(got_met), 1] == get_yaml_value(yaml, "time", "stop")){
       last_line <- got_met[nrow(got_met),]
       new_last_date <- format(as.POSIXct(last_line[, 1]) + seconds(met_timestep),
                               "%Y-%m-%d %H:%M:%S")
@@ -157,7 +165,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Format gotm.yaml file
     ## Set gotm.yaml met config - helper function
-    set_met_config_yaml(met = met_outfpath, yaml_file = yaml)
+    set_met_config_yaml(met = met_outfpath, yaml_file = got_file)
 
     message("GOTM: Created file ", file.path(folder, "GOTM", met_outfile))
 
@@ -167,7 +175,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if("Simstrat" %in% model){
 
     met_outfile <- "meteo_file.dat"
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
 
     met_outfpath <- file.path(folder, "Simstrat", met_outfile)
 

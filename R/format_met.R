@@ -12,10 +12,11 @@
 #' @export
 format_met <- function(met, model, config_file, folder = "."){
 
+  yaml <- read_yaml(config_file)
 
-  lat <- get_yaml_value(file = config_file, label = "location", key = "latitude")
-  lon <- get_yaml_value(file = config_file, label = "location", key = "longitude")
-  elev <- get_yaml_value(file = config_file, label = "location", key = "elevation")
+  lat <- get_yaml_value(yaml, label = "location", key = "latitude")
+  lon <- get_yaml_value(yaml, label = "location", key = "longitude")
+  elev <- get_yaml_value(yaml, label = "location", key = "elevation")
 
   ### Check what met data is available, as this determines what model forcing option to use
   # (in the simstrat config file)
@@ -214,12 +215,12 @@ format_met <- function(met, model, config_file, folder = "."){
   if("FLake" %in% model){
 
     ## Extract start, stop, lat & lon for netCDF file from config file
-    start <- get_yaml_value(config_file, "time", "start")
-    stop <- get_yaml_value(config_file, "time", "stop")
+    start <- get_yaml_value(yaml, "time", "start")
+    stop <- get_yaml_value(yaml, "time", "stop")
     met_timestep <- get_meteo_time_step(file.path(folder,
-                                                  get_yaml_value(config_file, "meteo", "file")))
+                                                  get_yaml_value(yaml, "input", "meteo", "file")))
 
-    fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    fla_fil <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
 
     # Subset temporally
     if(!is.null(start) & !is.null(stop)){
@@ -275,10 +276,6 @@ format_met <- function(met, model, config_file, folder = "."){
 
     got_met <- met
 
-    lat <- get_yaml_value(file = config_file, label = "location", key = "latitude")
-    lon <- get_yaml_value(file = config_file, label = "location", key = "longitude")
-    elev <- get_yaml_value(file = config_file, label = "location", key = "elevation")
-
     # Convert units
     got_met$Precipitation_meterPerSecond <- got_met[[l_names$precip]] / 1000 / 86400
 
@@ -301,7 +298,7 @@ format_met <- function(met, model, config_file, folder = "."){
 
     sim_met <- met
 
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
+    par_file <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
 
     # If snow_module is true, there needs to be a precipitation (or snowfall) columnn.
     if("Precipitation_meterPerHour" %in% colnames(sim_met)){

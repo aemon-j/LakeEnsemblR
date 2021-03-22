@@ -23,7 +23,6 @@ Imports:
     import,
     FME,
     glmtools,
-    gotmtools,
     lubridate,
     ncdf4,
     plyr,
@@ -33,6 +32,7 @@ Imports:
     dplyr,
     RColorBrewer
 Suggests:
+    gotmtools,
     FLakeR,
     GLM3r,
     GOTMr,

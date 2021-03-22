@@ -3,15 +3,14 @@ test_that("test data can be created", {
   testthat::skip_on_cran()
   library(LakeEnsemblR)
 
-
   testthat::expect_error(run_ensemble(model = c("GRE")),
                          'Unknown model: "GRE" in input argument "model"')
 })
 
 test_that("create model meteo & config files", {
 
+  # library(gotmtools)
   library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   setwd(template_folder) # Change working directory to example folder
 
@@ -23,11 +22,47 @@ test_that("create model meteo & config files", {
   # 1. Example - export configuration settings
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                folder = ".")
+                folder = ".", dirs = T, time = T, location = T, output_settings = T,
+                meteo = F, init_cond = F, extinction = T, inflow = F, model_parameters = F)
 
   testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
                           file.exists("MyLake/mylake.Rdata")))
+  
+  # 1. met file
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = ".", dirs = F, time = F, location = F, output_settings = F,
+                meteo = T, init_cond = F, extinction = F, inflow = F, model_parameters = F)
+  
+  testthat::expect_true((file.exists("FLake/all_meteo_file.dat") & file.exists("GLM/meteo_file.csv") &
+                           file.exists("GOTM/meteo_file.dat") & file.exists("Simstrat/meteo_file.dat") &
+                           file.exists("MyLake/meteo_file.dat")))
+  
+  # 1. Inflow file
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = ".", dirs = F, time = F, location = F, output_settings = F,
+                meteo = F, init_cond = F, extinction = F, inflow = T, model_parameters = F)
+  
+  testthat::expect_true((file.exists("FLake/Tinflow") & file.exists("GLM/inflow_file.csv") &
+                           file.exists("GOTM/inflow_file.dat") & file.exists("Simstrat/Qin.dat")))
+  
+  # Model parameters
+  export_config(config_file = config_file,
+                  model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                  folder = ".", dirs = F, time = F, location = F, output_settings = F,
+                  meteo = F, init_cond = F, extinction = F, inflow = F, model_parameters = T)
+  
+  # Initial conditions
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = ".", dirs = F, time = F, location = F, output_settings = F,
+                meteo = F, init_cond = T, extinction = F, inflow = F, model_parameters = F)
+  
+  
+  
+  
 })
 
 
@@ -41,7 +76,7 @@ test_that("can run FLake", {
 
   # 2. run models
   run_ensemble(config_file = config_file,
-               model = model)
+               model = model, verbose = T)
 
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
@@ -65,7 +100,7 @@ test_that("can run GLM", {
 test_that("can run GOTM", {
   
   file.remove("output/ensemble_output.nc")
-  config_file <- "LakeEnsemblR_copy.yaml"
+  config_file <- "LakeEnsemblR.yaml"
   model <- c("GOTM")
   
   # 1. Example - creates directories with all model setup
@@ -236,7 +271,10 @@ test_that("can run models & generate csv files", {
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
   # Change to text output
-  input_yaml(config_file, label = "output", key = "format", value = "text")
+  yaml <- read_yaml(config_file)
+  yaml <- set_yaml(yaml, label = "output", key = "format", value = "text")
+  write_yaml(yaml, config_file)
+  # input_yaml(config_file, label = "output", key = "format", value = "text")
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
@@ -254,7 +292,7 @@ test_that("can calibrate models", {
 
   # 1. Example - creates directories with all model setup
   file.remove("output/ensemble_output.nc")
-  config_file <- "LakeEnsemblR_copy.yaml"
+  config_file <- "LakeEnsemblR.yaml"
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".")
@@ -273,7 +311,9 @@ test_that("check plots", {
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   ncdf <- "output/ensemble_output.nc"
-  input_yaml(config_file, label = "output", key = "format", value = "netcdf")
+  yaml <- read_yaml(config_file)
+  yaml <- set_yaml(yaml, label = "output", key = "format", value = "netcdf")
+  write_yaml(yaml, config_file)
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)

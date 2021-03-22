@@ -5,7 +5,7 @@
 \title{Get output data for each model}
 \usage{
 get_output(
-  config_file,
+  config_yaml,
   model,
   vars,
   obs_depths = NULL,
@@ -15,7 +15,7 @@ get_output(
 )
 }
 \arguments{
-\item{config_file}{filepath; To LER config yaml file. Only used if model = 'GOTM'}
+\item{config_yaml}{list; loaded using `read_yaml()`}
 
 \item{model}{character; Model for which scaling parameters will be applied. Options include
 c('GOTM', 'GLM', 'Simstrat', 'FLake')}

@@ -12,10 +12,16 @@
 #' @export
 format_inflow <- function(inflow, model, config_file, folder = "."){
   
+  if(!file.exists(file.path(folder, config_file))) {
+    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
+  } else {
+    yaml <- read_yaml(config_file)
+  }
   
-  lat <- get_yaml_value(file = config_file, label = "location", key = "latitude")
-  lon <- get_yaml_value(file = config_file, label = "location", key = "longitude")
-  elev <- get_yaml_value(file = config_file, label = "location", key = "elevation")
+  
+  lat <- get_yaml_value(yaml, label = "location", key = "latitude")
+  lon <- get_yaml_value(yaml, label = "location", key = "longitude")
+  elev <- get_yaml_value(yaml, label = "location", key = "elevation")
   
   ### Check what inflow data is available, as this determines what model forcing option to use
   chck_inflow <- sapply(lake_var_dic$standard_name, function(x) x %in% colnames(inflow))
@@ -25,7 +31,7 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
   l_names <- as.list(lake_var_dic$standard_name)
   names(l_names) <- lake_var_dic$short_name
   
-  hyp_file <- get_yaml_value(config_file, "location", "hypsograph")
+  hyp_file <- get_yaml_value(yaml, "location", "hypsograph")
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }

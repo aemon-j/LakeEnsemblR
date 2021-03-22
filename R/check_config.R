@@ -6,23 +6,23 @@
 #' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 #' "FLake", "MyLake")
 #' @param exp_cnf boolean; check if the control files for the models are there
-#' @importFrom gotmtools get_yaml_value
 #' @export
 
 check_master_config <- function(config_file,
                                 model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                                 exp_cnf = FALSE) {
-
+  
+  yaml <- read_yaml(config_file)
 
   # test if init depth is <= max depth
-  if(gotmtools::get_yaml_value(config_file, "location", "depth") <
-     gotmtools::get_yaml_value(config_file, "location", "init_depth")) {
+  if(get_yaml_value(yaml, "location", "depth") <
+     get_yaml_value(yaml, "location", "init_depth")) {
     stop("init depth larger than max depth")
   }
 
   # test if strat and stop time are in the right format
-  start <- gotmtools::get_yaml_value(config_file, "time", "start")
-  stop <- gotmtools::get_yaml_value(config_file, "time", "stop")
+  start <- get_yaml_value(yaml, "time", "start")
+  stop <- get_yaml_value(yaml, "time", "stop")
 
   # check if strat is in right format
   if(!grepl("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}", start)){
@@ -41,57 +41,57 @@ check_master_config <- function(config_file,
 
   if(!exp_cnf) {
     # test if the control files are available
-    if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GOTM")) &&
+    if(!file.exists(get_yaml_value(yaml, "config_files", "GOTM")) &&
        "GOTM" %in% model) {
       stop(paste0("GOTM control file ",
-                  gotmtools::get_yaml_value(config_file, "config_files", "GOTM"),
+                  get_yaml_value(yaml, "config_files", "GOTM"),
                   " is not existing"))
     }
-    if(!file.exists(gotmtools::get_yaml_value(config_file, "config_files", "GLM")) &&
+    if(!file.exists(get_yaml_value(yaml, "config_files", "GLM")) &&
        "GLM" %in% model) {
       stop(paste0("GLM control file ",
-                  gotmtools::get_yaml_value(config_file, "config_files", "GLM"),
+                  get_yaml_value(yaml, "config_files", "GLM"),
                   " is not existing"))
     }
-    if(!file.exists(get_yaml_value(config_file, "config_files", "Simstrat")) &&
+    if(!file.exists(get_yaml_value(yaml, "config_files", "Simstrat")) &&
        "Simstrat" %in% model) {
       stop(paste0("Simstrat control file ",
-                  gotmtools::get_yaml_value(config_file, "config_files", "Simstrat"),
+                  get_yaml_value(yaml, "config_files", "Simstrat"),
                   " is not existing"))
     }
-    if(!file.exists(get_yaml_value(config_file, "config_files", "FLake")) &&
+    if(!file.exists(get_yaml_value(yaml, "config_files", "FLake")) &&
        "FLake" %in% model) {
       stop(paste0("FLake control file ",
-                  gotmtools::get_yaml_value(config_file, "config_files", "FLake"),
+                  get_yaml_value(yaml, "config_files", "FLake"),
                   " is not existing"))
     }
-    if(!file.exists(get_yaml_value(config_file, "config_files", "MyLake")) &&
+    if(!file.exists(get_yaml_value(yaml, "config_files", "MyLake")) &&
        "MyLake" %in% model) {
       stop(paste0("MyLake control file ",
-                  gotmtools::get_yaml_value(config_file, "config_files", "MyLake"),
+                  get_yaml_value(yaml, "config_files", "MyLake"),
                   " is not existing"))
     }
     }
 
 
   # check if time_unit in output is OK
-  time_unit <- gotmtools::get_yaml_value(config_file, "output", "time_unit")
+  time_unit <- get_yaml_value(yaml, "output", "time_unit")
   good_units <- c("second", "minute", "hour", "day")
   if(!time_unit %in% good_units) {
       stop(paste0('Unknown output time unit: "', time_unit, '" in input control file ',
-                  config_file, ". Allowed units: ", paste0(good_units, collapse = ", ")))
+                  yaml, ". Allowed units: ", paste0(good_units, collapse = ", ")))
   }
   # check if format in output is OK
-  format <- gotmtools::get_yaml_value(config_file, "output", "format")
+  format <- get_yaml_value(yaml, "output", "format")
   good_format <- c("netcdf", "text")
   if(!format %in% good_format) {
-    stop(paste0('Unknown output format: "', format, '" in control file ', config_file,
+    stop(paste0('Unknown output format: "', format, '" in control file ', yaml,
                 ". Allowed units: ", paste0(good_format, collapse = ", ")))
   }
 
 
   # check if time_method in output is OK
-  time_method <- gotmtools::get_yaml_value(config_file, "output", "time_method")
+  time_method <- get_yaml_value(yaml, "output", "time_method")
   good_method <- c("point", "mean", "integrated")
   if(!time_method %in% good_method) {
     stop(paste0('Unknown output time variable "', time_method, '" in control file ', config_file,
@@ -99,7 +99,7 @@ check_master_config <- function(config_file,
   }
 
   # check if variables in output are OK
-  variables <- gotmtools::get_yaml_value(config_file, "output", "variables")
+  variables <- get_yaml_value(yaml, "output", "variables")
   good_vars <- c("temp", "ice_height", "dens", "salt")
   if(any(!variables %in% good_vars)) {
     stop(paste0('Unknown output variable: "', variables[!variables %in% good_vars],
