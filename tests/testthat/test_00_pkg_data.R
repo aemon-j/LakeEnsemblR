@@ -12,7 +12,9 @@ test_that("create model meteo & config files", {
   # library(gotmtools)
   library(LakeEnsemblR)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
-  setwd(template_folder) # Change working directory to example folder
+  temp_dir <- tempdir()
+  file.copy(from = template_folder, to = temp_dir, recursive = TRUE)
+  setwd(file.path(temp_dir, "feeagh")) # Change working directory to example folder
 
   # Set config file
   masterConfigFile <- "LakeEnsemblR.yaml"
@@ -83,7 +85,7 @@ test_that("can run FLake", {
 
 test_that("can run GLM", {
   
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("GLM")
   
@@ -99,7 +101,7 @@ test_that("can run GLM", {
 
 test_that("can run GOTM", {
   
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc", )
   config_file <- "LakeEnsemblR.yaml"
   model <- c("GOTM")
   
@@ -115,7 +117,7 @@ test_that("can run GOTM", {
 
 test_that("can run Simstrat", {
   
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("Simstrat")
   
@@ -131,7 +133,7 @@ test_that("can run Simstrat", {
 
 test_that("can run MyLake", {
   
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("MyLake")
   
@@ -148,7 +150,7 @@ test_that("can run MyLake", {
 
 test_that("can add members to netCDF models", {
 
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   ncdf <- "output/ensemble_output.nc"
@@ -266,7 +268,7 @@ test_that("can add members to netCDF models", {
 
 test_that("can run models & generate csv files", {
 
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
@@ -291,7 +293,7 @@ test_that("can run models & generate csv files", {
 test_that("can calibrate models", {
 
   # 1. Example - creates directories with all model setup
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR.yaml"
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
@@ -307,7 +309,7 @@ test_that("can calibrate models", {
 test_that("check plots", {
 
   # Change to netcdf output
-  file.remove("output/ensemble_output.nc")
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
   ncdf <- "output/ensemble_output.nc"
@@ -332,8 +334,9 @@ test_that("check plots", {
   testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
   testthat::expect_true(ggplot2::is.ggplot(pl3))
   
-  unlink("output", recursive = TRUE)
-  file.remove(config_file)
+  
+  setwd("../../../")
+  unlink(temp_dir, recursive = TRUE, force = TRUE)
 })
 
 # end
