@@ -334,9 +334,6 @@ test_that("check plots", {
   testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
   testthat::expect_true(ggplot2::is.ggplot(pl3))
   
-  
-  setwd("../../../")
-  unlink(temp_dir, recursive = TRUE, force = TRUE)
 })
 
 # end
