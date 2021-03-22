@@ -30,9 +30,10 @@ Imports:
     zoo,
     ggplot2,
     dplyr,
-    RColorBrewer
-Suggests:
+    RColorBrewer,
     gotmtools,
+    yaml
+Suggests:
     FLakeR,
     GLM3r,
     GOTMr,
