@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - master
+      - flare
   pull_request:
     branches:
       - main
