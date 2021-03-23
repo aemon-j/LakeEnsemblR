@@ -152,17 +152,17 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   
   # path to master config file
-  yaml <- file.path(folder, config_file)
+  yaml <- read_yaml(file.path(folder, config_file))
   # get setup parameter
-  start <- get_yaml_value(file = yaml, label = "time", key = "start")
-  stop <- get_yaml_value(file = yaml, label = "location", key = "stop")
-  obs_file <- get_yaml_value(file = yaml, label = "temperature", key = "file")
-  time_unit <- get_yaml_value(config_file, "output", "time_unit")
-  time_step <- get_yaml_value(config_file, "output", "time_step")
-  cnfg_l <- lapply(model, function(m) get_yaml_value(config_file, "config_files", m))
+  start <- get_yaml_value(yaml, label = "time", key = "start")
+  stop <- get_yaml_value(yaml, label = "time", key = "stop")
+  obs_file <- get_yaml_value(yaml, "observations", label = "temperature", key = "file")
+  time_unit <- get_yaml_value(yaml, "output", "time_unit")
+  time_step <- get_yaml_value(yaml, "output", "time_step")
+  cnfg_l <- lapply(model, function(m) get_yaml_value(yaml, "config_files", m))
   names(cnfg_l) <- model
-  met_timestep <- get_meteo_time_step(file.path(folder,
-                                                get_yaml_value(config_file, "meteo", "file")))
+  met_timestep <- LakeEnsemblR:::get_meteo_time_step(file.path(folder,
+                                                               get_yaml_value(yaml, "input", "meteo", "file")))
   
   ##----------------- read in observed data  ---------------------------------------------------------
   
