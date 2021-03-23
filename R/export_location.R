@@ -54,7 +54,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }
-  hyp <- vroom::vroom(hyp_file, delim = ",", col_types = list("n", "n"))
+  hyp <- read.csv(hyp_file)
   # Use ice
   use_ice <- get_yaml_value(yaml, "input", "ice", "use")
 
@@ -105,7 +105,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     glm_nml <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
-    nml <- read_nml(glm_nml)
+    nml <- glmtools::read_nml(glm_nml)
 
     # Format hypsograph
     glm_hyp <- hyp
@@ -119,7 +119,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     # Can be overwritten by providing values in the model_parameters section of config_file
 
     # Calculate max number of layers
-    min_layer_thick <- get_nml_value(nml, "min_layer_thick")
+    min_layer_thick <- glmtools::get_nml_value(nml, "min_layer_thick")
     max_layers <- round(max_depth / min_layer_thick)
 
 
@@ -138,7 +138,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
                      "lake_depth" = init_depth)
 
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
-    write_nml(nml, glm_nml)
+    glmtools::write_nml(nml, glm_nml)
   }
 
   ##---------------GOTM-------------
