@@ -7,6 +7,7 @@
 #'  Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #'@param folder folder
 #'@keywords methods
+#' @importFrom gotmtools read_yaml
 #'@examples
 #'
 #'
@@ -18,7 +19,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
-    yaml <- read_yaml(config_file)
+    yaml <- gotmtools::read_yaml(config_file)
   }
   # Set working directory
   oldwd <- getwd()

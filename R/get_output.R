@@ -15,7 +15,7 @@
 #'    time step is 86400s.
 #' @return dataframe or list of output variables
 #' @importFrom reshape2 dcast
-#' @importFrom gotmtools get_vari setmodDepths
+#' @importFrom gotmtools get_vari setmodDepths read_yaml set_yaml write_yaml get_yaml_value
 #' @importFrom glmtools get_ice get_var
 #' @export
 get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = ".", out_time,

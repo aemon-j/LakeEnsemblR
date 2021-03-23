@@ -63,6 +63,7 @@ get.offsets <- function(data){
 #' @name set_met_config_yaml
 #' @param met_file filepath; to metfile
 #' @param yaml_file filepath; to gotm.yaml
+#' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #' @noRd
 set_met_config_yaml <- function(met_file, yaml_file){
   

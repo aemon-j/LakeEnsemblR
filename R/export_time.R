@@ -12,6 +12,7 @@
 #'
 #'@importFrom glmtools get_nml_value read_nml set_nml write_nml
 #'@importFrom lubridate year floor_date ceiling_date
+#' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #'
 #'@export
 

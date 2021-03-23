@@ -11,6 +11,7 @@
 #'@examples
 #'
 #'@importFrom stats approx
+#' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #'@importFrom glmtools read_nml set_nml write_nml
 #' @importFrom vroom vroom vroom_write
 #'

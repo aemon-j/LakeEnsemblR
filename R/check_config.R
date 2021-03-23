@@ -6,13 +6,14 @@
 #' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 #' "FLake", "MyLake")
 #' @param exp_cnf boolean; check if the control files for the models are there
+#' @importFrom gotmtools read_yaml
 #' @export
 
 check_master_config <- function(config_file,
                                 model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                                 exp_cnf = FALSE) {
   
-  yaml <- read_yaml(config_file)
+  yaml <- gotmtools::read_yaml(config_file)
 
   # test if init depth is <= max depth
   if(get_yaml_value(yaml, "location", "depth") <

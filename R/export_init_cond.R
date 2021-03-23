@@ -13,7 +13,8 @@
 #'
 #' @importFrom glmtools read_nml set_nml write_nml get_nml_value
 #' @importFrom vroom vroom vroom_write
-#'
+#' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
+#' 
 #' @export
 
 export_init_cond <- function(config_file,

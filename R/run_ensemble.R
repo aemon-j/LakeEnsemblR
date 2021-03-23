@@ -12,7 +12,7 @@
 #' @param create_output boolean; Create ensemble output file otherwise it just runs the models and generates model output in their respective folders. Defaults to TRUE
 #' @param add boolean; Add results to an existing netcdf file with new dimension "member"
 #' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
-#' @importFrom gotmtools get_yaml_value get_vari
+#' @importFrom gotmtools get_yaml_value get_vari read_yaml set_yaml write_yaml get_yaml_value
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value get_var
 #' @importFrom lubridate year round_date seconds_to_period

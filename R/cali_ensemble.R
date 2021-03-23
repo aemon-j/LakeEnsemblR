@@ -59,7 +59,7 @@
 #' @importFrom reshape2 dcast
 #' @importFrom parallel detectCores parLapply clusterExport makeCluster stopCluster clusterEvalQ
 #' @importFrom FME Latinhyper modMCMC
-#' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
+#' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari read_yaml get_yaml_value
 #' @importFrom glmtools get_nml_value
 #' @importFrom reshape2 dcast
 #' @importFrom lubridate round_date seconds_to_period
@@ -152,14 +152,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   
   # path to master config file
-  yaml <- read_yaml(file.path(folder, config_file))
+  yaml <- gotmtools::read_yaml(file.path(folder, config_file))
   # get setup parameter
-  start <- get_yaml_value(yaml, label = "time", key = "start")
-  stop <- get_yaml_value(yaml, label = "time", key = "stop")
-  obs_file <- get_yaml_value(yaml, "observations", label = "temperature", key = "file")
-  time_unit <- get_yaml_value(yaml, "output", "time_unit")
-  time_step <- get_yaml_value(yaml, "output", "time_step")
-  cnfg_l <- lapply(model, function(m) get_yaml_value(yaml, "config_files", m))
+  start <- gotmtools::get_yaml_value(yaml, label = "time", key = "start")
+  stop <- gotmtools::get_yaml_value(yaml, label = "time", key = "stop")
+  obs_file <- gotmtools::get_yaml_value(yaml, "observations", label = "temperature", key = "file")
+  time_unit <- gotmtools::get_yaml_value(yaml, "output", "time_unit")
+  time_step <- gotmtools::get_yaml_value(yaml, "output", "time_step")
+  cnfg_l <- lapply(model, function(m) gotmtools::get_yaml_value(yaml, "config_files", m))
   names(cnfg_l) <- model
   met_timestep <- LakeEnsemblR:::get_meteo_time_step(file.path(folder,
                                                                get_yaml_value(yaml, "input", "meteo", "file")))
