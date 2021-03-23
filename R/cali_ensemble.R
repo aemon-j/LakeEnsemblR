@@ -64,7 +64,6 @@
 #' @importFrom reshape2 dcast
 #' @importFrom lubridate round_date seconds_to_period
 #' @importFrom configr read.config
-#' @importFrom vroom vroom vroom_write
 #'
 #' @export
 
@@ -72,8 +71,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                           qualfun = qual_fun, parallel = FALSE, job_name,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", ...) {
-
-
+  
+  
   # ---- Send to RStudio Jobs -----
   if (!missing(job_name)) {
     if (make.names(job_name) != job_name) {
@@ -81,7 +80,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
            job_name,
            "' is not a syntactically valid variable name.")
     }
-
+    
     # Evaluates all arguments.
     call <- match.call()
     call$config_file <- config_file
@@ -97,16 +96,16 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     
     # get number of output arguments for qualfun
     nout_fun <-  length(qualfun(c(1, 1, 1, 1), c(1.1, 0.9, 1, 1.2)))
-
-
+    
+    
     call_list <- lapply(call, eval)
     call[names(call_list)[-1]] <- call_list[-1]
-
+    
     script <- make_script(call = call, name = job_name)
     if (!requireNamespace("rstudioapi", quietly = TRUE)) {
       stop("Jobs are only supported in RStudio.")
     }
-
+    
     if (!rstudioapi::isAvailable("1.2")) {
       stop(
         "Need at least version 1.2 of RStudio to use jobs. Currently running ",
@@ -114,59 +113,59 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         "."
       )
     }
-
+    
     job <-
       rstudioapi::jobRunScript(path = script,
                                name = job_name,
                                exportEnv = "R_GlobalEnv")
     return(invisible(job))
   }
-#######
-
-##----------------- check inputs and set things up -------------------------------------------------
-
+  #######
+  
+  ##----------------- check inputs and set things up -------------------------------------------------
+  
   # check if method is one of the allowed
   if(!cmethod %in% c("modFit", "LHC", "MCMC")) {
     stop(paste0("Method ", cmethod, " not allowed. Use one of: modFit, LHC, or MCMC"))
   }
-
+  
   # check model input
   model <- check_models(model, check_package_install = TRUE)
   # check the master config file
   check_master_config(config_file, model)
-
+  
   # It"s advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
   tz <- "UTC"
-
+  
   # get number of output arguments for qualfun
   nout_fun <-  length(qualfun(c(1, 1, 1, 1), c(1.1, 0.9, 1, 1.2)))
   # Set working directory
   oldwd <- getwd()
-
+  
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
   })
-
-
+  
+  
   # path to master config file
-  yaml <- read_yaml(file.path(folder, config_file))
+  yaml <- file.path(folder, config_file)
   # get setup parameter
-  start <- get_yaml_value(yaml, label = "time", key = "start")
-  stop <- get_yaml_value(yaml, label = "time", key = "stop")
-  obs_file <- get_yaml_value(yaml, "observations", label = "temperature", key = "file")
-  time_unit <- get_yaml_value(yaml, "output", "time_unit")
-  time_step <- get_yaml_value(yaml, "output", "time_step")
-  cnfg_l <- lapply(model, function(m) get_yaml_value(yaml, "config_files", m))
+  start <- get_yaml_value(file = yaml, label = "time", key = "start")
+  stop <- get_yaml_value(file = yaml, label = "location", key = "stop")
+  obs_file <- get_yaml_value(file = yaml, label = "temperature", key = "file")
+  time_unit <- get_yaml_value(config_file, "output", "time_unit")
+  time_step <- get_yaml_value(config_file, "output", "time_step")
+  cnfg_l <- lapply(model, function(m) get_yaml_value(config_file, "config_files", m))
   names(cnfg_l) <- model
-  met_timestep <- LakeEnsemblR:::get_meteo_time_step(file.path(folder,
-                                                get_yaml_value(yaml, "input", "meteo", "file")))
-
-##----------------- read in observed data  ---------------------------------------------------------
-
+  met_timestep <- get_meteo_time_step(file.path(folder,
+                                                get_yaml_value(config_file, "meteo", "file")))
+  
+  ##----------------- read in observed data  ---------------------------------------------------------
+  
   # Create output time vector
   if(is.null(spin_up)){
     out_time <- seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz), by =
@@ -178,38 +177,35 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                              paste(time_step, time_unit))
   }
   out_time <- data.frame(datetime = out_time)
-
+  
   if(met_timestep == 86400){
-    out_hour <- lubridate::hour(start)
+    out_hour <- hour(start)
   }else{
     out_hour <- 0
   }
-
+  
   # read in Observed data
-  message("Loading observed wtemp data... [", Sys.time(), "]")
-  suppressMessages({
-    obs <- vroom::vroom(file.path(folder, obs_file), delim = ",",
-                        col_types = list("c", "n", "n"))
-  })
+  message("Loading observed wtemp data...")
+  obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
-
+  
   # Susbet to out_time
   obs <- obs[obs$datetime %in% out_time$datetime, ]
-
+  
   obs_deps <- unique(obs$Depth_meter)
-
+  
   # change data format from long to wide
-  obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
+  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
-  message("Finished! [", Sys.time(), "]")
-
-##---------------- read in  parameter initial values or create parameter sets ----------------------
-
+  message("Finished!")
+  
+  ##---------------- read in  parameter initial values or create parameter sets ----------------------
+  
   # if not existing create output file
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
-
+  
   ## use initial values from master config file as starting values
   # load master config file
   configr_master_config <- configr::read.config(file.path(folder, config_file))
@@ -225,8 +221,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   names(cal_section) <- model_p
   # get parameters
   params_mod <- lapply(model_p, function(m) {
-                  sapply(names(cal_section[[m]]),
-                         function(n) as.numeric(cal_section[[m]][[n]]$initial))})
+    sapply(names(cal_section[[m]]),
+           function(n) as.numeric(cal_section[[m]][[n]]$initial))})
   names(params_mod) <- model_p
   # get lower bound
   p_lower_mod <- lapply(model_p, function(m) {
@@ -243,7 +239,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     sapply(names(cal_section[[m]]),
            function(n) as.logical(cal_section[[m]][[n]]$log))})
   names(log_mod) <- model_p
-
+  
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
     df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
@@ -258,15 +254,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     return(df)
   })
   names(pars_l) <- model
-
+  
   # count number of different sets for LHC
   par_sets <- setNames(sapply(model, function(m) length(pars_l[[m]]$pars)), model)
   # output name
   outf_n <- paste0(cmethod, "_", format(Sys.time(), "%Y%m%d%H%M"))
-
+  
   # if cmethod == LHC sample parameter or read from provided file
   if(cmethod == "LHC") {
-
+    
     # name for the output files
     if(is.null(param_file)) {
     } else {
@@ -279,7 +275,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       # set name to name of supplied file
       outf_n <- gsub("_params_", "", basename(param_file))
     }
-
+    
     if(is.null(param_file)) {
       pars_lhc <- list()
       for (m in model) {
@@ -288,7 +284,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         # calculate log if wanted
         prange[pars_l[[m]]$log, ] <- log10(prange[pars_l[[m]]$log, ])
         # sample parameter sets
-        pars_lhc[[m]] <- FME::Latinhyper(parRange = prange, num = num)
+        pars_lhc[[m]] <- Latinhyper(parRange = prange, num = num)
         # retransform log parameter
         pars_lhc[[m]][, pars_l[[m]]$log] <- 10^pars_lhc[[m]][, pars_l[[m]]$log]
         # only use 5 significant digits
@@ -300,16 +296,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         pars_lhc[[m]]$par_id <- paste0("p", formatC(seq_len(num), width = round(log10(num)) + 1,
                                                     format = "d", flag = "0"))
         # write parameter sets to file
-        vroom::vroom_write(pars_lhc[[m]], file.path(folder, out_f,
-                                                           paste0("params_", m, "_", outf_n, ".csv")), delim = ",", quote = "none")
-
+        write.table(pars_lhc[[m]], file = file.path(folder, out_f,
+                                                    paste0("params_", m, "_", outf_n, ".csv")),
+                    quote = FALSE, row.names = FALSE, sep = ",")
+        
       }
-
+      
     } else {
       # if file is supplied read it in
-      pars_lhc <- lapply(model, function(m) {
-        suppressMessages({vroom::vroom(param_file, delim = ",")})
-      })
+      pars_lhc <- lapply(model, function(m) read.csv(param_file, stringsAsFactors = FALSE))
       names(pars_lhc) <- model
       # check if the number of columns in the file fit the number of parameters to be calibrated
       if((ncol(pars_lhc[[1]]) - 1) != unique(par_sets)) {
@@ -323,89 +318,55 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     # we just need an empty variable to export to parallel clusters (not a good fix, but works)
     pars_lhc <- NULL
   }
-
-# Call to export_config removed on 05-08-2020; users need to run export_config before
-# calling function.
-# ##--------- prepare models to be run -----------------------------------------------------------
-#
-#   # prepare config files of the models
-#   export_config(config_file = config_file, model = model, folder = folder)
-
-##----------------- read in model meteo files ----------------------------------------------------
-
+  
+  # Call to export_config removed on 05-08-2020; users need to run export_config before
+  # calling function.
+  # ##--------- prepare models to be run -----------------------------------------------------------
+  #
+  #   # prepare config files of the models
+  #   export_config(config_file = config_file, model = model, folder = folder)
+  
+  ##----------------- read in model meteo files ----------------------------------------------------
+  
   ## read in meteo
   met_l <- lapply(model, function(m){
     met_name <- get_model_met_name(m, cnfg_l[[m]])
     ## list with long standard names
     l_names <- as.list(met_var_dic$standard_name)
     names(l_names) <- met_var_dic$short_name
-
-    if (m == "FLake") {
+    
+    if(m == "MyLake") {
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                          header = FALSE)
+      colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
+                           l_names$p_surf, l_names$wind_speed, l_names$precip)
+    } else if (m == "GLM") {
+      met_m <- read.table(file.path(folder, m, met_name), sep = ",", header = TRUE)
+    } else if (m == "FLake") {
       # read in meteo file
-      suppressMessages({
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_names = FALSE, col_types = list("n", "n", "n", "n", "n", "c"))
-      })
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                          header = FALSE)
       colnames(met_m) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
                            "Air_Temperature_celsius", "Vapour_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
                            "Cloud_Cover_decimalFraction", "datetime")
-    } else if (m == "GLM") {
-      suppressMessages({
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n"))
-      })
     } else if (m == "GOTM") {
       # read in meteo file
-      suppressMessages({
-        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
-                              n_max = 1)
-        ctype <- list() 
-        for(colu in seq_len(ncol(ncols))) {
-          if(colu == 1) {
-            ctype[[colu]] <- "c"
-          } else {
-            ctype[[colu]] <- "n"
-          }
-        }
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
-      })
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t", header = TRUE)
       colnames(met_m)[1] <- "!datetime"
     } else if(m == "Simstrat") {
       # read in meteo file
-      # Read meteo file
-      suppressMessages({
-        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
-                              n_max = 1)
-        ctype <- list() 
-        for(colu in seq_len(ncol(ncols))) {
-          if(colu == 1) {
-            ctype[[colu]] <- "c"
-          } else {
-            ctype[[colu]] <- "n"
-          }
-        }
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
-      })
-
-    } else if(m == "MyLake") {
-      suppressMessages({
-        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
-                              n_max = 1)
-        ctype <- list() 
-        for(colu in seq_len(ncol(ncols))) {
-          ctype[[colu]] <- "n"
-        }
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
-      })
-      colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
-                           l_names$p_surf, l_names$wind_speed, l_names$precip)
+      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
+                          header = TRUE)
+      
     }
     return(met_m)
   })
-
+  
   names(met_l) <- model
-
-##--------------- parallel LHC calibration -------------------------------
-
+  
+  ##------------------------- parallel LCH calibration -----------------------------------------------
+  
   if(parallel){
     ncores <- detectCores() - 1
     clust <- makeCluster(ncores)
@@ -432,8 +393,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       )
       message("\nFinished parallel LHC\n")
     }
-##------------------------- parallel MCMC calibration ----------------------------------------------
-
+    ##------------------------- parallel MCMC calibration ----------------------------------------------
+    
     if(cmethod == "MCMC") {
       message("\nStarted parallel MCMC\n")
       model_out <- setNames(
@@ -463,8 +424,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       )
       message("\nFinished parallel MCMC\n")
     }
-
-##------------------------- parallel modFit calibration ------------------------------------------
+    
+    ##------------------------- parallel modFit calibration ------------------------------------------
     if(cmethod == "modFit") {
       message("\nStarted parallel modFit\n")
       model_out <- setNames(
@@ -497,9 +458,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     # stop cluster
     stopCluster(clust)
   } else {
-
-##------------------------- LCH calibration --------------------------------------------------------
-
+    
+    ##------------------------- LCH calibration --------------------------------------------------------
+    
     if(cmethod == "LHC") {
       model_out <- setNames(
         lapply(model, function(m) LHC_model(pars = pars_lhc[[m]],
@@ -511,53 +472,53 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                             obs_deps = obs_deps, obs_out = obs_out,
                                             out_hour = out_hour, qualfun = qualfun,
                                             nout_fun = nout_fun, outf_n = outf_n
-                                                  )),
+        )),
         model
       )
     }
-
-##------------------------- MCMC calibration -------------------------------------------------------
-
+    
+    ##------------------------- MCMC calibration -------------------------------------------------------
+    
     if(cmethod == "MCMC") {
       model_out <- setNames(
-                  lapply(model, function(m){
-                    message(paste0("\nStarted MCMC for model ", m, "\n"))
-                      res <- FME::modMCMC(f = wrap_model,
-                                          p = setNames(pars_l[[m]]$pars,
-                                                       pars_l[[m]]$name),
-                                          type = pars_l[[m]]$type,
-                                          model = m,
-                                          var = "temp",
-                                          config_file = config_file,
-                                          met = met_l[[m]],
-                                          folder = folder,
-                                          config_f = cnfg_l[[m]],
-                                          out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
-                                          out_hour = out_hour,
-                                          qualfun = function(O, P){
-                                           ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2,
-                                                     na.rm = TRUE)},
-                                          outf_n = outf_n,
-                                          niter = num,
-                                          lower = setNames(pars_l[[m]]$lower,
-                                                           pars_l[[m]]$name),
-                                          upper = setNames(pars_l[[m]]$upper,
-                                                           pars_l[[m]]$name), ...)
-                      message(paste0("\nFinished MCMC for model ", m, "\n"))
-                      return(res)}),
-                  model
+        lapply(model, function(m){
+          message(paste0("\nStarted MCMC for model ", m, "\n"))
+          res <- FME::modMCMC(f = wrap_model,
+                              p = setNames(pars_l[[m]]$pars,
+                                           pars_l[[m]]$name),
+                              type = pars_l[[m]]$type,
+                              model = m,
+                              var = "temp",
+                              config_file = config_file,
+                              met = met_l[[m]],
+                              folder = folder,
+                              config_f = cnfg_l[[m]],
+                              out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
+                              out_hour = out_hour,
+                              qualfun = function(O, P){
+                                ssr = sum((as.matrix(O[, -1]) - as.matrix(P[, -1]))^2,
+                                          na.rm = TRUE)},
+                              outf_n = outf_n,
+                              niter = num,
+                              lower = setNames(pars_l[[m]]$lower,
+                                               pars_l[[m]]$name),
+                              upper = setNames(pars_l[[m]]$upper,
+                                               pars_l[[m]]$name), ...)
+          message(paste0("\nFinished MCMC for model ", m, "\n"))
+          return(res)}),
+        model
       )
     }
-
-##------------------------- modFit calibration ---------------------------------------------------
-
+    
+    ##------------------------- modFit calibration ---------------------------------------------------
+    
     if(cmethod == "modFit") {
       model_out <- setNames(
         lapply(model, function(m){
           message(paste0("\nStarted fitting of model ", m, "\n"))
           res <- FME::modFit(f = wrap_model,
                              p = setNames(pars_l[[m]]$pars,
-                                   pars_l[[m]]$name),
+                                          pars_l[[m]]$name),
                              type = pars_l[[m]]$type,
                              model = m,
                              var = "temp",
@@ -568,7 +529,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                              out_f = out_f,  obs_deps = obs_deps, obs_out = obs_out,
                              out_hour = out_hour,
                              qualfun = function(O, P){
-                             res = na.exclude(as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1])))},
+                               res = na.exclude(as.vector(as.matrix(O[, -1]) - as.matrix(P[, -1])))},
                              outf_n = "",
                              write = FALSE,
                              lower = setNames(pars_l[[m]]$lower,
