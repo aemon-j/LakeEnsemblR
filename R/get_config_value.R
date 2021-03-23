@@ -22,7 +22,8 @@ get_config_value <- function(model, file, label, key){
     nml_file <- glmtools::read_nml(nml_file = file)
     return(glmtools::get_nml_value(glm_nml = nml_file, arg_name = key))
   }else if(model == "GOTM"){
-    return(gotmtools::get_yaml_value(file = file, label = label, key = key))
+    yaml <- gotmtools::read_yaml(file)
+    return(gotmtools::get_yaml_value(yaml = yaml, "surface", label = label, "u10", key = key))
   }else if(model == "Simstrat"){
     return(get_json_value(file = file, label = label, key = key))
   }else if(model == "MyLake"){

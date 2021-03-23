@@ -23,7 +23,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
-    yaml <- read_yaml(config_file)
+    yaml <- gotmtools::read_yaml(config_file)
   }
   # Set working directory
   oldwd <- getwd()
@@ -145,7 +145,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   ##---------------GOTM-------------
   if("GOTM" %in% model){
     got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
-    got_yaml <- LakeEnsemblR::read_yaml(got_file)
+    got_yaml <- gotmtools::read_yaml(got_file)
 
     # Write input parameters to got_yaml
     got_yaml <- set_yaml(got_yaml, "location", "name", value = get_yaml_value(yaml, "location", "name"))
