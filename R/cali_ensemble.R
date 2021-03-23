@@ -356,7 +356,17 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     } else if (m == "GOTM") {
       # read in meteo file
       suppressMessages({
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n", "n"))
+        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
+                              n_max = 1)
+        ctype <- list() 
+        for(colu in seq_len(ncol(ncols))) {
+          if(colu == 1) {
+            ctype[[colu]] <- "c"
+          } else {
+            ctype[[colu]] <- "n"
+          }
+        }
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
       })
       colnames(met_m)[1] <- "!datetime"
     } else if(m == "Simstrat") {
@@ -378,7 +388,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
     } else if(m == "MyLake") {
       suppressMessages({
-        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n"))
+        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
+                              n_max = 1)
+        ctype <- list() 
+        for(colu in seq_len(ncol(ncols))) {
+          ctype[[colu]] <- "n"
+        }
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
       })
       colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
                            l_names$p_surf, l_names$wind_speed, l_names$precip)
