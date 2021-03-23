@@ -13,9 +13,12 @@ test_that("create model meteo & config files", {
   library(LakeEnsemblR)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   temp_dir <- tempdir()
+  # dir.create("example")
   file.copy(from = template_folder, to = temp_dir, recursive = TRUE)
+  # file.copy(from = template_folder, to = "example", recursive = TRUE)
   setwd(file.path(temp_dir, "feeagh")) # Change working directory to example folder
-
+  # setwd(file.path("example", "feeagh")) # Change working directory to example folder
+  
   # Set config file
   masterConfigFile <- "LakeEnsemblR.yaml"
   config_file <- "LakeEnsemblR_copy.yaml"
