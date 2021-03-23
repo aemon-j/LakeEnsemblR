@@ -88,7 +88,7 @@ jobs:
           remotes::install_github("aemon-j/FLakeR", ref = "inflow")
           remotes::install_github("aemon-j/GOTMr")
           remotes::install_github("aemon-j/SimstratR")
-          remotes::install_github("aemon-j/gotmtools")
+          remotes::install_github("aemon-j/gotmtools", ref = "yaml")
           remotes::install_github("aemon-j/MyLakeR")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
         shell: Rscript {0}
