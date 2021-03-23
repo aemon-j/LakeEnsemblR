@@ -180,13 +180,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   out_time <- data.frame(datetime = out_time)
 
   if(met_timestep == 86400){
-    out_hour <- hour(start)
+    out_hour <- lubridate::hour(start)
   }else{
     out_hour <- 0
   }
 
   # read in Observed data
-  message("Loading observed wtemp data...")
+  message("Loading observed wtemp data... [", Sys.time(), "]")
   suppressMessages({
     obs <- vroom::vroom(file.path(folder, obs_file), delim = ",",
                         col_types = list("c", "n", "n"))
@@ -199,11 +199,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   obs_deps <- unique(obs$Depth_meter)
 
   # change data format from long to wide
-  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
+  obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
-  message("Finished!")
+  message("Finished! [", Sys.time(), "]")
 
 ##---------------- read in  parameter initial values or create parameter sets ----------------------
 
@@ -288,7 +288,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         # calculate log if wanted
         prange[pars_l[[m]]$log, ] <- log10(prange[pars_l[[m]]$log, ])
         # sample parameter sets
-        pars_lhc[[m]] <- Latinhyper(parRange = prange, num = num)
+        pars_lhc[[m]] <- FME::Latinhyper(parRange = prange, num = num)
         # retransform log parameter
         pars_lhc[[m]][, pars_l[[m]]$log] <- 10^pars_lhc[[m]][, pars_l[[m]]$log]
         # only use 5 significant digits
@@ -340,37 +340,55 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     l_names <- as.list(met_var_dic$standard_name)
     names(l_names) <- met_var_dic$short_name
 
-    if(m == "MyLake") {
-      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
-                        header = FALSE)
-      colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
-                           l_names$p_surf, l_names$wind_speed, l_names$precip)
-    } else if (m == "GLM") {
-      met_m <- read.table(file.path(folder, m, met_name), sep = ",", header = TRUE)
-    } else if (m == "FLake") {
+    if (m == "FLake") {
       # read in meteo file
-      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
-                              header = FALSE)
+      suppressMessages({
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_names = FALSE, col_types = list("n", "n", "n", "n", "n", "c"))
+      })
       colnames(met_m) <- c("!Shortwave_Radiation_Downwelling_wattPerMeterSquared",
                            "Air_Temperature_celsius", "Vapour_Pressure_milliBar",
                            "Ten_Meter_Elevation_Wind_Speed_meterPerSecond",
                            "Cloud_Cover_decimalFraction", "datetime")
+    } else if (m == "GLM") {
+      suppressMessages({
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n"))
+      })
     } else if (m == "GOTM") {
       # read in meteo file
-      met_m <- read.table(file.path(folder, m, met_name), sep = "\t", header = TRUE)
+      suppressMessages({
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n", "n"))
+      })
       colnames(met_m)[1] <- "!datetime"
     } else if(m == "Simstrat") {
       # read in meteo file
-      met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
-                                 header = TRUE)
+      # Read meteo file
+      suppressMessages({
+        ncols <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", 
+                              n_max = 1)
+        ctype <- list() 
+        for(colu in seq_len(ncol(ncols))) {
+          if(colu == 1) {
+            ctype[[colu]] <- "c"
+          } else {
+            ctype[[colu]] <- "n"
+          }
+        }
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = "\t", col_types = ctype)
+      })
 
+    } else if(m == "MyLake") {
+      suppressMessages({
+        met_m <- vroom::vroom(file.path(folder, m, met_name), delim = ",", col_names = TRUE, col_types = list("c", "n", "n", "n", "n", "n", "n", "n"))
+      })
+      colnames(met_m) <- c(l_names$time, l_names$swr, l_names$cc, l_names$airt, l_names$relh,
+                           l_names$p_surf, l_names$wind_speed, l_names$precip)
     }
     return(met_m)
   })
 
   names(met_l) <- model
 
-##------------------------- parallel LCH calibration -----------------------------------------------
+##--------------- parallel LHC calibration -------------------------------
 
   if(parallel){
     ncores <- detectCores() - 1

@@ -60,23 +60,28 @@ export_init_cond <- function(config_file,
       stop("Neither an initial temperature profile, nor an observations file is provided!")
     }
     
-    message("Loading wtemp_file...")
+    message(paste0("Loading wtemp_file... [", Sys.time(), "]"))
     suppressMessages({
       obs <- vroom::vroom(wtemp_file, delim = ",", col_types = list("c", "n", "n"))
     })
+    message(paste0("Finished loading wtemp_file! [", Sys.time(), "]"))
+    
     
     # Check if date is in observations
-    if(!date %in% obs[, 1]){
+    if(!date %in% obs[["datetime"]]){
       stop(paste(date, "is not found in observations file. Cannot initialise water temperature!"))
     }
     
     dat <- which(obs[, 1] == date)
     ndeps <- length(dat)
-    deps <- obs[dat, 2]
-    tmp <- obs[dat, 3]
+    deps <- unlist(as.vector(obs[dat, 2]))
+    tmp <- unlist(as.vector(obs[dat, 3]))
   } else {
     # Read in the provided initial temperature profile
-    init_prof <- vroom::vroom(get_yaml_value(yaml, "input", "init_temp_profile", "file"), delim = ",", col_types = list("n", "n"))
+    suppressMessages({
+      init_prof <- vroom::vroom(get_yaml_value(yaml, "input", "init_temp_profile", "file"), delim = ",", col_types = list("n", "n"))
+    })
+    init_prof <- as.data.frame(init_prof)
     ndeps <- nrow(init_prof)
     deps <- init_prof[, 1]
     tmp <- init_prof[, 2]
@@ -84,7 +89,7 @@ export_init_cond <- function(config_file,
   
   deps <- signif(deps, 4)
   tmp <- signif(tmp, 4)
-  df_print <- data.frame(depths = deps, wtemp = tmp)
+  df_print <- data.frame(depths = deps, wtemp = tmp, row.names = NULL)
   
   # Do a test to see if the maximum depth in the initial profile
   # exceeds the maximum depth of the lake. If so, throw an error
@@ -113,7 +118,8 @@ export_init_cond <- function(config_file,
     }
     
     message("FLake: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "FLake")))
+            file.path(folder, get_yaml_value(yaml, "config_files", "FLake")), 
+            " [", Sys.time(), "]")
 
   }
 
@@ -130,7 +136,8 @@ export_init_cond <- function(config_file,
     # check for max(the_depths) > lake_depth ??
     write_nml(nml, get_yaml_value(yaml, "config_files", "GLM"))
     message("GLM: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "GLM")))
+            file.path(folder, get_yaml_value(yaml, "config_files", "GLM")), 
+            " [", Sys.time(), "]")
 
   }
 
@@ -144,6 +151,7 @@ export_init_cond <- function(config_file,
     df[1, 2] <- paste(ndeps, " ", 2)
     df[(2):(1 + ndeps), 1] <- as.numeric(-deps)
     df[(2):(1 + ndeps), 2] <- as.numeric(tmp)
+    df <- as.data.frame(df)
     vroom::vroom_write(df, file.path("GOTM", "init_cond.dat"), delim = "\t",
                        col_names = FALSE, quote = "none")
 
@@ -151,7 +159,8 @@ export_init_cond <- function(config_file,
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "method", value = 2L)
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "column", value = 1L)
 
-    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"))
+    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"), 
+            " [", Sys.time(), "]")
 
   }
 
@@ -169,7 +178,8 @@ export_init_cond <- function(config_file,
     input_json(par_file, "Input", "Initial conditions", '"init_cond.dat"')
 
     message("Simstrat: Created initial conditions file ",
-            file.path(folder, "Simstrat", "init_cond.dat"))
+            file.path(folder, "Simstrat", "init_cond.dat"), 
+            " [", Sys.time(), "]")
 
   }
   
@@ -218,7 +228,8 @@ export_init_cond <- function(config_file,
     save(mylake_config, file = file.path("MyLake", cnf_name))
     
     message("MyLake: Created initial conditions file ",
-            file.path(folder, "MyLake", cnf_name))
+            file.path(folder, "MyLake", cnf_name), 
+            " [", Sys.time(), "]")
     
   }
   

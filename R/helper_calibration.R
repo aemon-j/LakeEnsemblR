@@ -29,7 +29,7 @@
 LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, outf_n,
                       obs_deps, obs_out, out_hour, qualfun, config_f, nout_fun) {
 
-  message(paste0("\nStarted LHC for model: ", model, "\n"))
+  message(paste0("\nStarted LHC for model: ", model," [", Sys.time(), "]\n"))
   # name of the output file to be written
   out_name <- paste0(model, "_", outf_n, ".csv")
   # create the output folder, if not existing
@@ -58,7 +58,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
 
   }
 
-  message(paste0("\nFinished LHC for model: ", model, "\n"))
+  message(paste0("\nFinished LHC for model: ", model," [", Sys.time(), "]\n"))
   return(data.frame(results = file.path(folder, out_f, out_name),
                     parameters = file.path(folder, out_f,
                                            paste0("params_", model, "_", outf_n, ".csv")),

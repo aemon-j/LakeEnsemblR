@@ -36,7 +36,9 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }
-  hyp <- vroom::vroom(hyp_file, delim = ",")
+  suppressMessages({
+    hyp <- vroom::vroom(hyp_file, delim = ",")
+  })
   
   if("FLake" %in% model){
     
@@ -65,6 +67,7 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
                            "Salinity_practicalSalinityUnits")]
     
     colnames(glm_inflow) <- c("Time", "FLOW", "TEMP", "SALT")
+    glm_inflow <- as.data.frame(glm_inflow)
     glm_inflow[, 1] <- format(glm_inflow[, 1], format = "%Y-%m-%d %H:%M:%S")
     
     #Reduce number of digits
@@ -82,6 +85,7 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
                                  "Salinity_practicalSalinityUnits")]
     
     colnames(gotm_inflow)[1] <- paste0("!", colnames(gotm_inflow)[1])
+    gotm_inflow <- as.data.frame(gotm_inflow)
     gotm_inflow[, 1] <- format(gotm_inflow[, 1], "%Y-%m-%d %H:%M:%S")
     
     #Reduce number of digits
@@ -97,6 +101,7 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     simstrat_inflow <- simstrat_inflow[, c("datetime", "Flow_metersCubedPerSecond",
                                    "Water_Temperature_celsius",
                                    "Salinity_practicalSalinityUnits")]
+    simstrat_inflow <- as.data.frame(simstrat_inflow)
     
     simstrat_inflow[, 1] <- format(simstrat_inflow[, 1], "%Y-%m-%d %H:%M:%S")
     
@@ -115,6 +120,7 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
                                            "Salinity_practicalSalinityUnits")]
     
     mylake_inflow$Flow_metersCubedPerDay <- mylake_inflow$Flow_metersCubedPerSecond * (86400.)
+    mylake_inflow <- as.data.frame(mylake_inflow)
     
     mylake_inflow[, 1] <- format(mylake_inflow[, 1], "%Y-%m-%d %H:%M:%S")
     

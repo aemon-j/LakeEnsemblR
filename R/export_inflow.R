@@ -217,9 +217,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       inflow <- vroom::vroom(file.path(folder, inflow_file), delim = ",",
                              col_types = list("c", "n", "n", "n"))
     })
-    inflow[, 1] <- as.POSIXct(inflow[, 1])
+    inflow[["datetime"]] <- as.POSIXct(inflow[["datetime"]])
     # Check time step
-    tstep <- diff(as.numeric(inflow[, 1]))
+    tstep <- diff(as.numeric(inflow[["datetime"]]))
 
     start_date <- get_yaml_value(yaml, "time", "start")
     # Stop date

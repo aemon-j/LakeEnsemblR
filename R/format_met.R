@@ -224,7 +224,7 @@ format_met <- function(met, model, config_file, folder = "."){
 
     # Subset temporally
     if(!is.null(start) & !is.null(stop)){
-      fla_met <- met[(met[, 1] >= start & met[, 1] < stop), ]
+      fla_met <- met[(met[["datetime"]] >= start & met[["datetime"]] < stop), ]
     }else{
       fla_met <- met
     }
@@ -262,7 +262,8 @@ format_met <- function(met, model, config_file, folder = "."){
 
     colnames(glm_met) <- c("Date", "ShortWave", "LongWave", "AirTemp", "RelHum", "WindSpeed",
                            "Rain", "Snow")
-    glm_met[, 1] <- format(glm_met[, 1], format = "%Y-%m-%d %H:%M:%S")
+    glm_met <- as.data.frame(glm_met)
+    glm_met[["Date"]] <- format(glm_met[["Date"]], format = "%Y-%m-%d %H:%M:%S")
 
     #Reduce number of digits
     glm_met[, -1] <- signif(glm_met[, -1], digits = 8)
@@ -284,6 +285,7 @@ format_met <- function(met, model, config_file, folder = "."){
                            l_names$cc, l_names$swr, "Precipitation_meterPerSecond")]
 
     colnames(got_met)[1] <- paste0("!", colnames(got_met)[1])
+    got_met <- as.data.frame(got_met)
     got_met[, 1] <- format(got_met[, 1], "%Y-%m-%d %H:%M:%S")
 
     #Reduce number of digits
@@ -377,6 +379,7 @@ format_met <- function(met, model, config_file, folder = "."){
     input_json(par_file, "ModelConfig", "Forcing", forcing_mode)
 
     #Reduce number of digits
+    sim_met <- as.data.frame(sim_met)
     sim_met[, -1] <- signif(sim_met[, -1], 8)
 
     return(sim_met)

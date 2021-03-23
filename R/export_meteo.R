@@ -55,13 +55,24 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   ### Import data
   message("Loading met data...", paste0("[", Sys.time(), "]"))
-
-  met <- vroom::vroom(file.path(folder, meteo_file), delim = ",")
+  # Read meteo file
+  suppressMessages({
+    ncols <- vroom::vroom(meteo_file, delim = ",", n_max = 1)
+    ctype <- list() 
+    for(colu in seq_len(ncol(ncols))) {
+      if(colu == 1) {
+        ctype[[colu]] <- "c"
+      } else {
+        ctype[[colu]] <- "n"
+      }
+    }
+    met <- vroom::vroom(meteo_file, delim = ",", col_types = ctype)
+  })
   message("Finished loading met data!", paste0("[", Sys.time(), "]"))
 
-  met[, 1] <- as.POSIXct(met[, 1])
+  met[, 1] <- as.POSIXct(met[["datetime"]])
   # Check time step
-  tstep <- diff(as.numeric(met[, 1]))
+  tstep <- diff(as.numeric(met[["datetime"]]))
 
   if((mean(tstep) - 86400) / 86400 < -0.05) {
     subdaily <- TRUE
