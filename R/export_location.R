@@ -12,6 +12,7 @@
 #'
 #'@importFrom stats approx
 #'@importFrom glmtools read_nml set_nml write_nml
+#' @importFrom vroom vroom vroom_write
 #'
 #'@export
 
@@ -53,7 +54,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   if(!file.exists(hyp_file)){
     stop(hyp_file, " does not exist. Check filepath in ", config_file)
   }
-  hyp <- read.csv(hyp_file)
+  hyp <- vroom::vroom(hyp_file, delim = ",", col_types = list("n", "n"))
   # Use ice
   use_ice <- get_yaml_value(yaml, "input", "ice", "use")
 
@@ -171,8 +172,8 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
       got_hyp$Depth_meter <- got_hyp$Depth_meter + (max_depth - init_depth)
     }
     colnames(got_hyp) <- c(as.character(ndeps), "2")
-    write.table(got_hyp, "GOTM/hypsograph.dat", quote = FALSE,
-                sep = "\t", row.names = FALSE, col.names = TRUE)
+    vroom::vroom_write(got_hyp, "GOTM/hypsograph.dat", delim = "\t",
+                       col_names = TRUE, quote = "none")
     got_yaml <- set_yaml(got_yaml, "location", "hypsograph", value = "hypsograph.dat")
     write_yaml(got_yaml, got_file)
 
@@ -192,9 +193,8 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     }
     colnames(sim_hyp) <- c("Depth [m]",	"Area [m^2]")
 
-    write.table(sim_hyp, "Simstrat/hypsograph.dat", quote = FALSE,
-                sep = "\t", row.names = FALSE, col.names = TRUE)
-
+    vroom::vroom_write(sim_hyp, "Simstrat/hypsograph.dat", delim = "\t",
+                       col_names = TRUE, quote = "none")
 
     # Input parameters
     input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))

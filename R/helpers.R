@@ -202,6 +202,7 @@ calc_wind_dir <- function(u, v) {
 #'
 #' @name get_meteo_time_step
 #' @param met_file filepath; to meteo file in LakeEnsemblR standard format
+#' @importFrom vroom vroom
 #' @noRd
 get_meteo_time_step <- function(met_file){
 
@@ -216,7 +217,20 @@ get_meteo_time_step <- function(met_file){
   Sys.setenv(TZ = "GMT")
 
   # Read meteo file
-  met <- read.csv(met_file)
+  suppressMessages({
+    ncols <- vroom::vroom(met_file, delim = ",", n_max = 1)
+    ctype <- list() 
+    for(colu in seq_len(ncol(ncols))) {
+      if(colu == 1) {
+        ctype[[colu]] <- "c"
+      } else {
+        ctype[[colu]] <- "n"
+      }
+    }
+    met <- vroom::vroom(met_file, delim = ",", col_types = ctype)
+  })
+  
+  
 
   # Check if met file has a datetime column
   if(!("datetime" %in% colnames(met))){

@@ -14,6 +14,7 @@
 #' @param best character can euther be "low" or "high", specifying if low or high values of the
 #'    performance metric imply good model performance
 #' @importFrom configr read.config
+#' @importFrom vroom vroom
 #' @export
 
 plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quant = 0.1,
@@ -46,7 +47,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   names(model_pars) <- model_p
  
   # read in results and parameter
-  res <- lapply(res_files, function(f) na.exclude(read.csv(f)))
+  res <- lapply(res_files, function(f) na.exclude(vroom::vroom(f, delim = ",")))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))
@@ -146,7 +147,7 @@ load_LHC_results <- function(config_file, model, res_files) {
   }
   
   # read in results and parameter
-  res <- lapply(res_files, function(f) read.csv(f))
+  res <- lapply(res_files, function(f) vroom::vroom(f, delim = ","))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))

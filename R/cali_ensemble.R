@@ -64,6 +64,7 @@
 #' @importFrom reshape2 dcast
 #' @importFrom lubridate round_date seconds_to_period
 #' @importFrom configr read.config
+#' @importFrom vroom vroom vroom_write
 #'
 #' @export
 
@@ -186,7 +187,10 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   # read in Observed data
   message("Loading observed wtemp data...")
-  obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
+  suppressMessages({
+    obs <- vroom::vroom(file.path(folder, obs_file), delim = ",",
+                        col_types = list("c", "n", "n"))
+  })
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
 
   # Susbet to out_time
@@ -296,15 +300,16 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         pars_lhc[[m]]$par_id <- paste0("p", formatC(seq_len(num), width = round(log10(num)) + 1,
                                                     format = "d", flag = "0"))
         # write parameter sets to file
-        write.table(pars_lhc[[m]], file = file.path(folder, out_f,
-                                                    paste0("params_", m, "_", outf_n, ".csv")),
-                    quote = FALSE, row.names = FALSE, sep = ",")
+        vroom::vroom_write(pars_lhc[[m]], file.path(folder, out_f,
+                                                           paste0("params_", m, "_", outf_n, ".csv")), delim = ",", quote = "none")
 
       }
 
     } else {
       # if file is supplied read it in
-      pars_lhc <- lapply(model, function(m) read.csv(param_file, stringsAsFactors = FALSE))
+      pars_lhc <- lapply(model, function(m) {
+        suppressMessages({vroom::vroom(param_file, delim = ",")})
+      })
       names(pars_lhc) <- model
       # check if the number of columns in the file fit the number of parameters to be calibrated
       if((ncol(pars_lhc[[1]]) - 1) != unique(par_sets)) {

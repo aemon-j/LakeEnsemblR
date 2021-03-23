@@ -16,6 +16,7 @@
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value get_var
 #' @importFrom lubridate year round_date seconds_to_period
+#' @importFrom vroom vroom vroom_write
 #'
 #' @export
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -81,7 +82,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(!is.null(obs_file)){
     message("Loading water temperature observations...", paste0("[", Sys.time(), "]"))
-    obs <- read.csv(obs_file, stringsAsFactors = FALSE)
+    suppressMessages({
+      obs <- vroom::vroom(obs_file, delim = ",", col_types = list("c", "n", "n"))
+    })
     message("Finished loading water temperature observations!",
             paste0("[", Sys.time(), "]"))
     obs_deps <- unique(obs$Depth_meter)
@@ -102,7 +105,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(!is.null(ice_file)){
     message("Loading ice observations...")
-    ice <- read.csv(ice_file, stringsAsFactors = FALSE)
+    suppressMessages({
+      ice <- vroom::vroom(ice_file, delim = ",", col_types = list("c", "n"))
+    })
     message("Finished loading ice observations!")
 
     ice$datetime <- as.POSIXct(ice$datetime)
@@ -241,7 +246,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
           var[, -1] <- round(var[, -1], 2) # round to 2 digits to reduce filesize
           var[, 1] <- format(var[, 1], format = "%Y-%m-%d %H:%M:%S")
 
-          write.csv(var , out_fname, row.names = FALSE, quote = FALSE)
+          vroom::vroom_write(var , out_fname, delim = ",", quote = "none")
         })
       })
       message("Finished writing '.csv' files! [", Sys.time(), "]")

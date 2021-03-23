@@ -21,6 +21,8 @@
 #' @param qualfun function that takes data.frames of observations and simulations and returns
 #'    model performance metrics
 #' @param nout_fun number of values returned by `qualfun`.
+#' 
+#' @importFrom vroom vroom_write
 #'
 #' @keywords internal
 
@@ -51,9 +53,8 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     }
     # switch if file is existing
     flsw <- file.exists(file.path(folder, out_f, out_name))
-    write.table(x = out_i, file = file.path(folder, out_f, out_name),
-                append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
-                col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
+    vroom::vroom_write(out_i, file.path(folder, out_f, out_name), delim = ",",
+                       col_names = ifelse(flsw, FALSE, TRUE), append = ifelse(flsw, FALSE, TRUE), quote = FALSE)
 
   }
 
@@ -118,9 +119,9 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   if(write) {
     # switch if file is existing
     flsw <- file.exists(file.path(folder, out_f, out_name))
-    write.table(x = out_w, file = file.path(folder, out_f, out_name),
-                append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
-                col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
+    vroom::vroom_write(out_w, file.path(folder, out_f, out_name), delim = ",",
+                       col_names = ifelse(flsw, FALSE, TRUE), 
+                       append = ifelse(flsw, FALSE, TRUE), quote = FALSE)
   }
   # return
   return(qual)

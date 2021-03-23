@@ -9,6 +9,7 @@
 #' @param model character; Model for which scaling parameters will be applied. Options include
 #'    c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #' @param out_file filepath; For scaled meteorlogical data
+#' @importFrom vroom vroom_write
 #' @export
 scale_met <- function(met, pars, model, out_file = NULL) {
   
@@ -31,7 +32,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     met[, -ncol(met)] <- signif(met[, -ncol(met)], digits = 8)
 
     # Write to file
-    write.table(met, out_file, sep = "\t", quote = FALSE, col.names = FALSE, row.names = FALSE)
+    vroom::vroom_write(met, out_file, delim = "\t", quote = "none", 
+                       col_names = FALSE)
   }
 
   if("GLM" %in% model) {
@@ -54,7 +56,7 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
-    write.csv(met, out_file, quote = FALSE, row.names = FALSE)
+    vroom::vroom_write(met, out_file, delim = ",", quote = "none")
   }
 
   if("GOTM" %in% model) {
@@ -74,7 +76,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
-    write.table(met, out_file, quote = FALSE, row.names = FALSE, sep = "\t", col.names = TRUE)
+    vroom::vroom_write(met, out_file, delim = "\t", quote = "none", 
+                       col_names = TRUE)
 
   }
 
@@ -99,7 +102,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
-    write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE)
+    vroom::vroom_write(met, out_file, delim = "\t", quote = "none", 
+                       col_names = TRUE)
 
   }
 
@@ -120,8 +124,8 @@ scale_met <- function(met, pars, model, out_file = NULL) {
     met[, -1] <- signif(met[, -1], digits = 8)
 
     # Write to file
-    write.table(met, file = out_file, sep = "\t", quote = FALSE, row.names = FALSE,
-                col.names = FALSE)
+    vroom::vroom_write(met, out_file, delim = "\t", quote = "none", 
+                       col_names = FALSE)
 
   }
 
