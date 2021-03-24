@@ -185,7 +185,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   }
   
   # read in Observed data
-  message("Loading observed wtemp data...")
+  message("Loading observed wtemp data... [", Sys.time(), "]")
   obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
   
@@ -195,11 +195,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   obs_deps <- unique(obs$Depth_meter)
   
   # change data format from long to wide
-  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
+  obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
-  message("Finished!")
+  message("Finished loading observed wtemp data! [", Sys.time(), "]")
   
   ##---------------- read in  parameter initial values or create parameter sets ----------------------
   
@@ -242,12 +242,22 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
+    nams <- c()
+    for(i in seq_len(length(params_mod[[m]]))) {
+      if(length(params_mod[[m]][[i]]) > 1) {
+        nams <- c(nams, rep(names(params_mod[[m]])[i], length(params_mod[[m]][[i]])))
+      } else {
+        nams <- c(nams, names(params_mod[[m]])[i])
+      }
+    }
+    
+    # nams <- names(c(params_met, params_mod[[m]], recursive = TRUE))
     df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
-                     name = c(names(params_met), names(params_mod[[m]]), recursive = TRUE),
+                     name = c(names(params_met), nams, recursive = TRUE),
                      upper = c(p_upper_met, p_upper_mod[[m]], recursive = TRUE),
                      lower = c(p_lower_met, p_lower_mod[[m]], recursive = TRUE),
                      type = c(rep("met", length(params_met)),
-                              rep("model", length(params_mod[[m]])), recursive = TRUE),
+                              rep("model", (length(nams))), recursive = TRUE),
                      log = c(rep(FALSE, length(params_met)), log_mod[[m]], recursive = TRUE),
                      stringsAsFactors = FALSE)
     colnames(df) <- c("pars", "name", "upper", "lower", "type", "log")
@@ -284,7 +294,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         # calculate log if wanted
         prange[pars_l[[m]]$log, ] <- log10(prange[pars_l[[m]]$log, ])
         # sample parameter sets
-        pars_lhc[[m]] <- Latinhyper(parRange = prange, num = num)
+        pars_lhc[[m]] <- FME::Latinhyper(parRange = prange, num = num)
         # retransform log parameter
         pars_lhc[[m]][, pars_l[[m]]$log] <- 10^pars_lhc[[m]][, pars_l[[m]]$log]
         # only use 5 significant digits

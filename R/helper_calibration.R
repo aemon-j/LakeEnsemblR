@@ -156,6 +156,15 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
   met_pars <- pars[type == "met"]
   # model specific pars
   model_pars <- pars[type == "model"]
+  model_pars_names <- names(model_pars)
+  # Reset column names for duplicates
+  dup_name <- c()
+  for(i in names(model_pars)) {
+    if(length(grep(i, model_pars_names)) > 1) {
+      names(model_pars)[grep(i, model_pars_names)] <- i
+      dup_name <- c(dup_name, i)
+    }
+  }
   
   if (length(met_pars) > 0){
     met_name <- get_model_met_name(model, config_f)
@@ -165,9 +174,17 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
               out_file = file.path(folder, model, met_name))
   }
   
+  no_dup_idx <- which(!duplicated(model_pars_names))
+  
   if (length(model_pars) > 0){
     
-    for (i in seq_len(length(model_pars))) {
+    for (i in seq_len(length(model_pars[1, no_dup_idx]))) {
+      
+      if(length(grep(names(model_pars)[i], model_pars_names)) > 1) {
+        value <- model_pars[, grep(names(model_pars)[i], model_pars_names)]
+      } else {
+        value <- model_pars[i]
+      }
       # get right names for parameter
       spl <- strsplit(names(model_pars)[i], "/")
       if(length(spl[[1]]) == 1){
@@ -180,7 +197,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
       # change model specific parameters
       suppressMessages(input_config_value(model = model, file = config_f, label = label,
                                           key = key,
-                                          value = model_pars[i]))
+                                          value = value))
     }
   }
   

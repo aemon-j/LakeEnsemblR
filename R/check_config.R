@@ -127,32 +127,20 @@ check_master_config <- function(config_file,
     # get names of models for which parameter are given
     model_p <- model[model %in% names(configr_master_config[["calibration"]])]
     # model specific parameters
-    cal_section <- lapply(model_p, function(m)configr_master_config[["calibration"]][[m]])
-    names(cal_section) <- model_p
-    # get parameters
-    params_mod <- lapply(model_p, function(m) {
-      sapply(names(cal_section[[m]]),
-             function(n) as.numeric(cal_section[[m]][[n]]$initial))})
-    names(params_mod) <- model_p
-    # get lower bound
-    p_lower_mod <- lapply(model_p, function(m) {
-      sapply(names(cal_section[[m]]),
-             function(n) as.numeric(cal_section[[m]][[n]]$lower))})
-    names(p_lower_mod) <- model_p
-    # get upper bound
-    p_upper_mod <- lapply(model_p, function(m) {
-      sapply(names(cal_section[[m]]),
-             function(n) as.numeric(cal_section[[m]][[n]]$upper))})
-    names(p_upper_mod) <- model_p
-    for (m in model) {
-
-      if(any(p_lower_mod[[m]] > p_upper_mod[[m]])) {
-        stop(paste0("Lower bound for calibration of parameter ",
-                    names(p_lower_mod[[m]])[p_lower_mod[[m]] > p_upper_mod[[m]]],
-                    " for model ", m, " is larger than upper bound!"))
-      }
-
-    }
+    cal_section <- lapply(model_p, function(m) {
+      cal_section <- configr_master_config[["calibration"]][[m]]
+      params <- lapply(names(cal_section),function(n) {
+        p <- cal_section[[n]]
+        for( i in seq_len(length(p$lower))) {
+          if(as.numeric(p$lower[i]) > as.numeric(p$upper[i])) {
+            stop(paste0("Lower bound for calibration of ", n, " (", p$lower[i], ")",
+                        " for model ", m, " is larger than upper bound (", p$upper[i], ")"))
+          }
+        }
+        
+      })
+    })
+    
 }
   # Check if there are tabs in the config file, which will cause
   # internal errors in some cases when relying on configr:read.config
