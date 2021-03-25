@@ -187,20 +187,29 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
       }
       # get right names for parameter
       spl <- strsplit(names(model_pars)[i], "/")
-      if(length(spl[[1]]) == 1){
-        label <- NULL
-        key <- spl[[1]]
-      }else{
-        label <- spl[[1]][1]
-        key <- spl[[1]][2]
+      if(model == "GOTM") {
+        arg_list <- list(model = model, file = config_f, label = NULL, key = NULL, value = as.numeric(value))
+        for( i in seq_len(length(spl[[1]]))) {
+          arg_list[[length(arg_list) + 1]] <- spl[[1]][i]
+        }
+        suppressMessages({
+          do.call(input_config_value, args = arg_list)
+        })
+      } else {
+        if(length(spl[[1]]) == 1){
+          label <- NULL
+          key <- spl[[1]]
+        }else{
+          label <- spl[[1]][1]
+          key <- spl[[1]][2]
+          # change model specific parameters
+          suppressMessages(input_config_value(model = model, file = config_f, label = label,
+                                              key = key,
+                                              value = value))
+        }
       }
-      # change model specific parameters
-      suppressMessages(input_config_value(model = model, file = config_f, label = label,
-                                          key = key,
-                                          value = value))
     }
   }
-  
 }
 
 #' get the name of model meteo file

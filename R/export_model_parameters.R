@@ -43,27 +43,46 @@ export_model_parameters <- function(config_file,
     # Loop through the specified parameters and write them to the config file
     for(j in names(master_config[["model_parameters"]][[i]])){
       spl <- strsplit(j, "/")
-      if(length(spl[[1]]) == 1){
-        label <- NULL
-        key <- spl[[1]]
-      }else{
-        label <- spl[[1]][1]
-        key <- spl[[1]][2]
+      if(i == "GOTM") {
+        arg_list <- list(model = i, file = model_config, label = NULL, key = NULL, value = master_config[["model_parameters"]][[i]][[j]])
+        for( k in seq_len(length(spl[[1]]))) {
+          arg_list[[length(arg_list) + 1]] <- spl[[1]][k]
+        }
+        tryCatch({
+          do.call(input_config_value, args = arg_list)
+        },
+        error = function(e){
+          return_val <- "Error"
+          warning(paste("Could not replace the value of", j,
+                        "in the", i, "configuration file. "))
+        })
+      } else {
+        if(length(spl[[1]]) == 1){
+          label <- NULL
+          key <- spl[[1]]
+        }else{
+          if(length(spl[[1]]) == 1){
+            label <- NULL
+            key <- spl[[1]]
+          }else{
+            label <- spl[[1]][1]
+            key <- spl[[1]][2]
+          }
+          
+          tryCatch({input_config_value(model = i,
+                                       file = model_config,
+                                       label = label,
+                                       key = key,
+                                       value = master_config[["model_parameters"]][[i]][[j]])
+          },
+          error = function(e){
+            return_val <- "Error"
+            warning(paste("Could not replace the value of", j,
+                          "in the", i, "configuration file. "))
+            })
+          }
+        }
       }
-      
-      tryCatch({input_config_value(model = i,
-                                   file = model_config,
-                                   label = label,
-                                   key = key,
-                                   value = master_config[["model_parameters"]][[i]][[j]])
-      },
-      error = function(e){
-        return_val <- "Error"
-        warning(paste("Could not replace the value of", j,
-                      "in the", i, "configuration file. "))
-      })
     }
-  }
-  
   message("export_model_parameters complete!")
 }

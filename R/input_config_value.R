@@ -6,10 +6,10 @@
 #' @param label string; which corresponds to section where the key is located
 #' @param key string; name of key in which to extract the value
 #' @param value string; name of value to input into config file
-#' @param out_file filepath; to write the output json file (optional);
+#' @param ... string; all required yaml labels
 #'   defaults to overwriting file if not specified
 #' 
-#' @importFrom gotmtools input_yaml input_nml
+#' @importFrom gotmtools read_yaml input_nml set_yaml write_yaml
 #' 
 #' @examples
 #' \dontrun{
@@ -19,7 +19,10 @@
 #' 
 #' @export
 
-input_config_value <- function(model, file, label, key, value, out_file = NULL){
+input_config_value <- function(model, file, label = NULL, key = NULL, value, ...){
+  # Collect all arguments
+  all_args <- list(...)
+  
   if(model == "FLake"){
     return(gotmtools::input_nml(file = file, label = label, key = key,
                                 value = value, out_file = out_file))
@@ -28,8 +31,13 @@ input_config_value <- function(model, file, label, key, value, out_file = NULL){
     nml <- glmtools::set_nml(glm_nml = nml, arg_name = key, arg_val = unlist(value))
     return(glmtools::write_nml(glm_nml = nml, file = file))
   }else if(model == "GOTM"){
-    return(gotmtools::input_yaml(file = file, label = label, key = key,
-                                 value = value, out_file = out_file))
+    got_yaml <- gotmtools::read_yaml(file)
+    arg_list <- list(yaml = got_yaml, value = value)
+    for( i in seq_len(length(all_args))) {
+      arg_list[[length(arg_list) + 1]] <- all_args[[i]]
+    }
+    got_yaml <- do.call(set_yaml, args = arg_list)
+    return(gotmtools::write_yaml(got_yaml, file))
   }else if(model == "Simstrat"){
     return(input_json(file = file, label = label, key = key,
                       value = value, out_file = out_file))

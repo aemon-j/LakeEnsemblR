@@ -4,7 +4,7 @@
 \alias{input_config_value}
 \title{Inputs value into any LER model config file}
 \usage{
-input_config_value(model, file, label, key, value, out_file = NULL)
+input_config_value(model, file, label = NULL, key = NULL, value, ...)
 }
 \arguments{
 \item{model}{string; name of a model in the LER package}
@@ -17,7 +17,7 @@ input_config_value(model, file, label, key, value, out_file = NULL)
 
 \item{value}{string; name of value to input into config file}
 
-\item{out_file}{filepath; to write the output json file (optional);
+\item{...}{string; all required yaml labels
 defaults to overwriting file if not specified}
 }
 \description{
