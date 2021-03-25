@@ -54,13 +54,14 @@ scaling_factors:                                # scaling factors to apply to me
       wind_speed: 1.0
 model_parameters:
    FLake:                                       # FLake specific parameters
-      fetch_lk: 2000.0                          # typical wind fetch [m]
+      LAKE_PARAMS/fetch_lk: 2000.0                          # typical wind fetch [m]
    GLM:                                         # GLM specific parameters
-      bsn_len: 3678                             # length of the lake basin, at crest height [m]
-      bsn_wid: 944                              # width of the lake basin, at crest height [m]
+      morphometry/bsn_len: 3678                             # length of the lake basin, at crest height [m]
+      morphometry/bsn_wid: 944                              # width of the lake basin, at crest height [m]
    GOTM:                                        # GOTM specific parameters
-      k_min: 3.6E-6                             # minimum turbulent kinetic energy [m^2/s^2; min=0.0]
+      turbulence/turb_param/k_min: 3.6E-6                             # minimum turbulent kinetic energy [m^2/s^2; min=0.0]
    Simstrat:                                    # Simstrat specific parameters
+     ModelParameters/a_seiche: 0.003
    MyLake:                                      # MyLake specific parameters
       Phys.par/C_shelter: 0.15                  # wind sheltering coefficient [min=0; max=1; if not specified, C_shelter=1.0-exp(-0.3*surface_area)]
 calibration:                                    # calibration section
@@ -76,7 +77,7 @@ calibration:                                    # calibration section
          initial: 1                             # initial value for shortwave radiation scaling
          log: false                             # log transform scaling factor
    FLake:                                       # FLake specific parameters
-      c_relax_C:
+      LAKE_PARAMS/c_relax_C:
          lower: 0.0001                          # lower bound for parameter
          upper: 0.01                            # upper bound for parameter
          initial: 0.0030                        # initial value for parameter
@@ -88,13 +89,13 @@ calibration:                                    # calibration section
          initial: 1                             # initial value for parameter
          log: false                             # log transform scaling factor
    GOTM:                                        # GOTM specific parameters
-      turb_param/k_min:
+      turbulence/turb_param/k_min:
          lower: 5E-6                            # lower bound for parameter
          upper: 5E-4                            # upper bound for parameter
          initial: 1E-5                          # initial value for parameter
          log: true
    Simstrat:                                    # Simstrat specific parameters                                 
-      a_seiche:
+      ModelParameters/a_seiche:
          lower: 0.0008                          # lower bound for parameter
          upper: 0.003                           # upper bound for parameter
          initial: 0.001                         # initial value for parameter
