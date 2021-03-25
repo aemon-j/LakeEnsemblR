@@ -24,8 +24,9 @@ input_config_value <- function(model, file, label = NULL, key = NULL, value, ...
   all_args <- list(...)
   
   if(model == "FLake"){
-    return(gotmtools::input_nml(file = file, label = label, key = key,
-                                value = value, out_file = out_file))
+    nml <- glmtools::read_nml(nml_file = file)
+    nml <- glmtools::set_nml(glm_nml = nml, arg_name = key, arg_val = unlist(value))
+    return(glmtools::write_nml(glm_nml = nml, file = file))
   }else if(model == "GLM"){
     nml <- glmtools::read_nml(nml_file = file)
     nml <- glmtools::set_nml(glm_nml = nml, arg_name = key, arg_val = unlist(value))
@@ -40,10 +41,10 @@ input_config_value <- function(model, file, label = NULL, key = NULL, value, ...
     return(gotmtools::write_yaml(got_yaml, file))
   }else if(model == "Simstrat"){
     return(input_json(file = file, label = label, key = key,
-                      value = value, out_file = out_file))
+                      value = value))
   }else if(model == "MyLake"){
     return(input_mylakeconfig(file = file, label = label, key = key,
-                              value = value, out_file = out_file))
+                              value = value))
   }else{
     stop("\"", model, "\" is not recognised as a valid model argument by input_config_value")
   }
