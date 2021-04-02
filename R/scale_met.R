@@ -13,7 +13,7 @@
 scale_met <- function(met, pars, model, out_file = NULL) {
   
   # Load Rdata
-  data(met_var_dic, envir = environment())
+  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)

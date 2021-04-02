@@ -20,7 +20,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                           folder = "."){
   
   # Load Rdata
-  data(lake_var_dic, envir = environment())
+  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))

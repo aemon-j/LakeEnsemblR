@@ -24,7 +24,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                                  members = 25, out_file = "ensemble_output.nc"){
   
   # Load Rdata
-  data(lake_var_dic, envir = environment())
+  data("lake_var_dic", package = "LakeEnsemblR", envir = environment())
   
   # Creat output directory
   if(!dir.exists(file.path(folder, "output"))) {

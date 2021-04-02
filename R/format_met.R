@@ -14,7 +14,7 @@
 format_met <- function(met, model, config_file, folder = "."){
   
   # Load Rdata
-  data(met_var_dic, envir = environment())
+  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
 
   yaml <- read_yaml(config_file)
 

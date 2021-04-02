@@ -21,7 +21,7 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
   match.arg(dim, c("model", "member"))
   
   # Load Rdata
-  data(lake_var_dic, envir = environment())
+  data("lake_var_dic", package = "LakeEnsemblR", envir = environment())
 
   if(!file.exists(ncdf)) {
     stop(ncdf, " does not exist. Check the filepath is correct.")

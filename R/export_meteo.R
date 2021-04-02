@@ -29,7 +29,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }
 
   # Load Rdata
-  data(met_var_dic, envir = environment())
+  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   
   # check model input
   model <- check_models(model)
