@@ -28,6 +28,9 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     yaml <- read_yaml(config_file)
   }
 
+  # Load Rdata
+  data(met_var_dic, envir = environment())
+  
   # check model input
   model <- check_models(model)
 

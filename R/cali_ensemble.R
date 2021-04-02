@@ -72,6 +72,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", ...) {
   
+  # Load Rdata
+  data(met_var_dic, envir = environment())
   
   # ---- Send to RStudio Jobs -----
   if (!missing(job_name)) {

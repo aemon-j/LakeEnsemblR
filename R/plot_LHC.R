@@ -36,7 +36,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   }
   
   # load master config file
-  configr_master_config <- read.config(file.path(config_file))
+  configr_master_config <- configr::read.config(file.path(config_file))
   # meteo parameter
   met_pars <- names(configr_master_config[["calibration"]][["met"]])
   # get names of models for which parameter are given
@@ -47,10 +47,14 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   names(model_pars) <- model_p
  
   # read in results and parameter
-  res <- lapply(res_files, function(f) na.exclude(vroom::vroom(f, delim = ",")))
+  res <- lapply(res_files, function(f) na.exclude(suppressMessages(vroom::vroom(f, delim = ","))))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
-  res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))
+  res <- lapply(model, function(m) {
+    df <- merge(res[[m]], res[[paste0("params_", m)]])
+    colnames(df) <- gsub("/", ".", colnames(df))
+    return(df)
+  })
   names(res) <- model
 
   # subset to best sets of parameter
@@ -147,7 +151,7 @@ load_LHC_results <- function(config_file, model, res_files) {
   }
   
   # read in results and parameter
-  res <- lapply(res_files, function(f) vroom::vroom(f, delim = ","))
+  res <- lapply(res_files, function(f) suppressMessages(vroom::vroom(f, delim = ",")))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))

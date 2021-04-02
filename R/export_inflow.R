@@ -19,12 +19,18 @@
 export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           folder = "."){
   
+  # Load Rdata
+  data(lake_var_dic, envir = environment())
+  
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
     yaml <- gotmtools::read_yaml(config_file)
   }
 
+  # Load Rdata
+  data(met_var_dic, envir = environment())
+  
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "UTC")

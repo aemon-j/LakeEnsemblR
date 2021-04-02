@@ -20,6 +20,8 @@ format_inflow <- function(inflow, model, config_file, folder = "."){
     yaml <- read_yaml(config_file)
   }
   
+  # Load Rdata
+  data(lake_var_dic, envir = environment())
   
   lat <- get_yaml_value(yaml, label = "location", key = "latitude")
   lon <- get_yaml_value(yaml, label = "location", key = "longitude")

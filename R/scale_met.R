@@ -12,6 +12,9 @@
 #' @export
 scale_met <- function(met, pars, model, out_file = NULL) {
   
+  # Load Rdata
+  data(met_var_dic, envir = environment())
+  
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
   names(l_names) <- met_var_dic$short_name

@@ -12,6 +12,9 @@
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #' @export
 format_met <- function(met, model, config_file, folder = "."){
+  
+  # Load Rdata
+  data(met_var_dic, envir = environment())
 
   yaml <- read_yaml(config_file)
 

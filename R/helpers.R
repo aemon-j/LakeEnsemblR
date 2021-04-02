@@ -67,6 +67,8 @@ get.offsets <- function(data){
 #' @noRd
 set_met_config_yaml <- function(met_file, yaml_file){
   
+  # Load Rdata
+  data(met_var_dic, envir = environment())
 
   ## list with long standard names
   l_names <- as.list(met_var_dic$standard_name)
