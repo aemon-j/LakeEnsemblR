@@ -135,6 +135,7 @@ Secondly, you give the link to the file with your meteorological data. The data 
 
 ```{r echo=FALSE, results='asis'}
 # for html
+data("met_input")
 x_html <- kable(met_input, caption = paste0("Table 1. Description of meteorological variables used ",
                                           "within LakeEnsemblR with units and required ",
                                           "column names."), row.names = FALSE, format = "html")
