@@ -20,6 +20,10 @@
 #' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 #' }
 input_json <- function(file, label, key, value, out_file = NULL){
+  
+  if(class(value) == "logical") {
+    value <- tolower(value)
+  }
   par <- readLines(file)
   if (is.null(out_file)) {
     out_file <- file
