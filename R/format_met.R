@@ -86,7 +86,7 @@ format_met <- function(met, model, config_file, folder = "."){
     M <- 0.0289644 # Molar mass of Earth's air
     
     at_samp <- met[[l_names$airt]]
-    at_samp[at_samp < 3.3] <- 3.3 # Any air temperature below 3.3 degC results in NaN
+    at_samp[at_samp < 3.4] <- 3.4 # Any air temperature below 3.3 degC results in NaN
     
     met[[l_names$p_surf]] <- Pb * (1 + (Lb / at_samp) * (elev))^((-g * M) / R *Lb)
     
