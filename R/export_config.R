@@ -22,6 +22,7 @@
 #'  Calls export_inflow. Defaults to TRUE.
 #'@param model_parameters boolean; export model parameters specificed in the yaml
 #'  configuration file. Calls export_model_parameters. Defaults to TRUE.
+#'  @param print Boolean; print initial conditions to console. Deafaults to TRUE
 #'@param folder folder
 #'@keywords methods
 #'@author
@@ -34,7 +35,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                           dirs = TRUE, time = TRUE, location = TRUE,
                           output_settings = TRUE, meteo = TRUE, init_cond = TRUE,
                           extinction = TRUE, inflow = TRUE, model_parameters = TRUE,
-                          folder = "."){
+                          print = TRUE, folder = "."){
 
   # Set working directory
   oldwd <- getwd()
@@ -89,7 +90,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   
   # Export initial conditions
   if(init_cond){
-    export_init_cond(config_file = config_file, model = model, print = TRUE, folder = folder)
+    export_init_cond(config_file = config_file, model = model, print = print, folder = folder)
   } 
   
   # Export light extinction (Kw)

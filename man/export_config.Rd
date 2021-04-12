@@ -16,6 +16,7 @@ export_config(
   extinction = TRUE,
   inflow = TRUE,
   model_parameters = TRUE,
+  print = TRUE,
   folder = "."
 )
 }
@@ -49,7 +50,8 @@ Calls export_extinction. Defaults to TRUE.}
 Calls export_inflow. Defaults to TRUE.}
 
 \item{model_parameters}{boolean; export model parameters specificed in the yaml
-configuration file. Calls export_model_parameters. Defaults to TRUE.}
+configuration file. Calls export_model_parameters. Defaults to TRUE.
+@param print Boolean; print initial conditions to console. Deafaults to TRUE}
 
 \item{folder}{folder}
 }
