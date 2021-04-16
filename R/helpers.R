@@ -90,31 +90,31 @@ set_met_config_yaml <- function(met_file, yaml_file){
   # u10
   yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "column",
              value = as.integer(which(colnames(df) == l_names$u10) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "u10", key = "scale_factor", value = 1.0)
   # v10
   yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "column",
              value = as.integer(which(colnames(df) == l_names$v10) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "v10", key = "scale_factor", value = 1.0)
   # airp
   yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "column",
              value = as.integer(which(colnames(df) == l_names$p_surf) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airp", key = "scale_factor", value = 1.0)
   # airt
   yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "column",
             value = as.integer(which(colnames(df) == l_names$airt) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "airt", key = "scale_factor", value = 1.0)
   # cloud
   yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "column",
              value = as.integer(which(colnames(df) == l_names$cc) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "cloud", key = "scale_factor", value = 1.0)
   # swr
   yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "column",
              value = as.integer(which(colnames(df) == l_names$swr) - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "swr", key = "scale_factor", value = 1.0)
   # precip
   yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "column",
              value = as.integer(which(colnames(df) == "Precipitation_meterPerSecond") - 1))
-  yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "scale_factor", value = 1L)
+  yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "scale_factor", value = 1.0)
 
   if(l_names$relh %in% colnames(df)){
     # hum
@@ -123,7 +123,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
     # 1=relative humidity (%), 2=wet-bulb temperature, 3=dew point temperature,
     # 4=specific humidity (kg/kg)
     yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "type", value = 1L)
-    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1L)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1.0)
   } else if(l_names$dewt %in% colnames(df)) {
     # hum
     yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "file", value = met_outfile)
@@ -132,7 +132,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
     # 1 = relative humidity (%), 2 = wet-bulb temperature, 3 = dew point temperature,
     # 4 = specific humidity (kg/kg)
     yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "type", value = 3L)
-    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1L)
+    yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "scale_factor", value = 1.0)
   }
 
   ######
