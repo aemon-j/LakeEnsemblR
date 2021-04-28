@@ -50,7 +50,7 @@ export_output_settings <- function(config_file,
   # Output depths
   output_depths <- get_yaml_value(yaml, "output", "depths")
   # Output time step
-  out_tstep <- get_yaml_value(yaml, "output", "time_step")
+  out_tstep <- as.integer(get_yaml_value(yaml, "output", "time_step"))
   # Output time unit
   out_unit <- get_yaml_value(yaml, "output", "time_unit")
   # Output time step in seconds
