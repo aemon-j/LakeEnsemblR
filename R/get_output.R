@@ -135,12 +135,37 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
   if("GOTM" %in% model){
 
     got_out <- list()
+    nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+    tim = ncdf4::ncvar_get(nc, "time")
+    tunits = ncdf4::ncatt_get(nc, "time")
+    lnam = tunits$long_name
+    tustr <- strsplit(tunits$units, " ")
+    step = tustr[[1]][1]
+    tdstr <- strsplit(unlist(tustr)[3], "-")
+    tmonth <- as.integer(unlist(tdstr)[2])
+    tday <- as.integer(unlist(tdstr)[3])
+    tyear <- as.integer(unlist(tdstr)[1])
+    tdstr <- strsplit(unlist(tustr)[4], ":")
+    thour <- as.integer(unlist(tdstr)[1])
+    tmin <- as.integer(unlist(tdstr)[2])
+    origin <- as.POSIXct(paste0(tyear, "-", tmonth, 
+                                "-", tday, " ", thour, ":", tmin), 
+                         format = "%Y-%m-%d %H:%M", tz = "UTC")
+    if (step == "hours") {
+      tim <- tim * 60 * 60
+    }
+    if (step == "minutes") {
+      tim <- tim * 60
+    }
+    time = as.POSIXct(tim, origin = origin, tz = "UTC")
+    
+    ncdf4::nc_close(nc)
     if("temp" %in% vars){
 
-      temp <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
-                       print = FALSE)
-      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
-                    print = FALSE)
+      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+      temp <- ncdf4::ncvar_get(nc, "temp")
+      z <- ncdf4::ncvar_get(nc, "z")
+      ncdf4::nc_close(nc)
 
       # Add in obs depths which are not in depths and less than mean depth
       depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
@@ -155,13 +180,15 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
-      got <- setmodDepths(temp, z, depths = depths, print = T)
+      got <- sapply(1:ncol(temp), function(x) approx(z[, x], temp[, x],
+                                                      xout = depths, rule = 2)$y)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
 
-      got <- dcast(got, date ~ depths)
+      got <- as.data.frame(t(got))
+      got$datetime <- time
       got <- got[, c(1, (ncol(got):2))]
-      str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
+      str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
 
       got_out[[length(got_out) + 1]] <- got
@@ -170,12 +197,11 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     }
 
     if("ice_height" %in% vars){
-      ice_height <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "Hice",
-                             print = FALSE)
-      # ice_frazil <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"),
-      #                        var = "Hfrazil", print = FALSE)
-      # ice_height[,2] <- ice_height[,2] + ice_frazil[,2]
-      colnames(ice_height) <- c("datetime", "ice_height")
+      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+      Hice <- ncdf4::ncvar_get(nc, "Hice")
+      ncdf4::nc_close(nc)
+      
+      ice_height <- data.frame(datetime = time, ice_height = Hice)
 
       got_out[[length(got_out) + 1]] <- ice_height
       names(got_out)[length(got_out)] <- "ice_height"
@@ -184,10 +210,10 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     
     if("dens" %in% vars){
       
-      density <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "rho",
-                       print = FALSE)
-      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
-                    print = FALSE)
+      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+      density <- ncdf4::ncvar_get(nc, "rho")
+      z <- ncdf4::ncvar_get(nc, "z")
+      ncdf4::nc_close(nc)
       
       # Add in obs depths which are not in depths and less than mean depth
       depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
@@ -200,28 +226,29 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
       
-      message("Interpolating GOTM temp to include obs depths... ",
+      message("Interpolating GOTM density to include obs depths... ",
               paste0("[", Sys.time(), "]"))
-      got <- setmodDepths(density, z, depths = depths, print = T)
+      got <- sapply(1:ncol(temp), function(x) approx(z[, x], density[, x],
+                                                     xout = depths, rule = 2)$y)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
       
-      got <- dcast(got, date ~ depths)
+      got <- as.data.frame(t(got))
+      got$datetime <- time
       got <- got[, c(1, (ncol(got):2))]
-      str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
+      str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
       
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "dens"
-      
     }
     
     if("salt" %in% vars){
       
-      salinity <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "salt",
-                          print = FALSE)
-      z <- gotmtools::get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
-                    print = FALSE)
+      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+      salt <- ncdf4::ncvar_get(nc, "salt")
+      z <- ncdf4::ncvar_get(nc, "z")
+      ncdf4::nc_close(nc)
       
       # Add in obs depths which are not in depths and less than mean depth
       depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
@@ -234,20 +261,21 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
       
-      message("Interpolating GOTM temp to include obs depths... ",
+      message("Interpolating GOTM density to include obs depths... ",
               paste0("[", Sys.time(), "]"))
-      got <- setmodDepths(salinity, z, depths = depths, print = T)
+      got <- sapply(1:ncol(temp), function(x) approx(z[, x], salt[, x],
+                                                     xout = depths, rule = 2)$y)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
       
-      got <- dcast(got, date ~ depths)
+      got <- as.data.frame(t(got))
+      got$datetime <- time
       got <- got[, c(1, (ncol(got):2))]
-      str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
+      str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
       
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "salt"
-      
     }
 
     return(got_out)
