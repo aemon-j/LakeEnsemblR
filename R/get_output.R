@@ -228,7 +228,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       
       message("Interpolating GOTM density to include obs depths... ",
               paste0("[", Sys.time(), "]"))
-      got <- sapply(1:ncol(temp), function(x) approx(z[, x], density[, x],
+      got <- sapply(1:ncol(density), function(x) approx(z[, x], density[, x],
                                                      xout = depths, rule = 2)$y)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
@@ -261,9 +261,9 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
       
-      message("Interpolating GOTM density to include obs depths... ",
+      message("Interpolating GOTM salinity to include obs depths... ",
               paste0("[", Sys.time(), "]"))
-      got <- sapply(1:ncol(temp), function(x) approx(z[, x], salt[, x],
+      got <- sapply(1:ncol(salt), function(x) approx(z[, x], salt[, x],
                                                      xout = depths, rule = 2)$y)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
