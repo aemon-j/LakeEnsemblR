@@ -69,7 +69,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     df <- na.exclude(df)
     if(nrow(df) == 0){
       message("Not enough data to calculate statification and/or ice statistics")
-      return()
+      return(NULL)
     }
     dates <- df$dates
     Ts <- df$Ts
