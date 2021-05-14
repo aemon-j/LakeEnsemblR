@@ -104,7 +104,7 @@ test_that("can run GLM", {
 
 test_that("can run GOTM", {
   
-  unlink("output/ensemble_output.nc", )
+  unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR.yaml"
   model <- c("GOTM")
   
