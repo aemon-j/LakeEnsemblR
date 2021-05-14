@@ -117,12 +117,13 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
 
   # Remove temp spin-up period ----
   obs_temp <- temp[["Obs"]]
-  z <- get.offsets(obs_temp)
-  obs_temp <- gotmtools::wide2long(obs_temp, z)
-  # obs_temp <- na.exclude(obs_temp)
+  obs_tmp <- reshape2::melt(obs_temp, id.vars = "datetime")
+  obs_tmp[, 2] <- as.numeric(gsub("wtr_", "", obs_tmp[, 2]))
+  
+  # obs_tmp <- na.exclude(obs_tmp)
   if(!is.null(spin_up)){
-    spin_date <- obs_temp[1, 1] + spin_up * (24 * 60 * 60)
-    obs_temp <- obs_temp[obs_temp[, 1] >= spin_date, ]
+    spin_date <- obs_tmp[1, 1] + spin_up * (24 * 60 * 60)
+    obs_tmp <- obs_tmp[obs_tmp[, 1] >= spin_date, ]
   }
   
   if(ice_present){
@@ -139,15 +140,11 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   # Remove obs_temp
   temp[["Obs"]] <- NULL
   
-  
-  # colnames(obs_temp)[3] <- "obs"
-  # colnames(obs_ice)[2] <- "obs"
-  
   if(ice_present){
-    obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = obs_ice[, 2], drho = drho)
+    obs_strat <- analyse_strat(data = obs_tmp, NH = NH, H_ice = obs_ice[, 2], drho = drho)
     obs_strat$model <- "obs"
   }else{
-    obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = NULL, drho = drho)
+    obs_strat <- analyse_strat(data = obs_tmp, NH = NH, H_ice = NULL, drho = drho)
     obs_strat$model <- "obs"
   }
   
@@ -155,9 +152,8 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   # Loop through each model output
   out_list <- lapply(seq_len(length(temp)), function(x){
     
-    z <- get.offsets(temp[[x]])
-    tmp <- gotmtools::wide2long(temp[[x]], z)
-    # obs_temp <- na.exclude(obs_temp)
+    tmp <- reshape2::melt(temp[[x]], id.vars = "datetime")
+    tmp[, 2] <- as.numeric(gsub("wtr_", "", tmp[, 2]))
     if(!is.null(spin_up)){
       spin_date <- tmp[1, 1] + spin_up * (24 * 60 * 60)
       tmp <- tmp[tmp[, 1] >= spin_date, ]
@@ -176,8 +172,18 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
     }else{
       str <- analyse_strat(data = tmp, NH = NH, H_ice = NULL, drho = drho)
     }
+    if(is.null(str)) {
+      str <- as.data.frame(matrix(NA, 1, (ncol(obs_strat) - 1), dimnames = list(rnams = c(),
+                                                                                cnams = colnames(obs_strat)[-ncol(obs_strat)])))
+    }
     
-    stats <- gotmtools::sum_stat(tmp, obs_temp, depth = T)
+    if(sum(is.na(tmp[, 3])) == nrow(tmp)) {
+      stats <- as.data.frame(matrix(NA, 1, 11, dimnames = list(rnams = c(),
+                                                               cnams = c("Pearson_r", "Variance_obs", "Variance_mod", "SD_obs", "SD_mod", "Covariance", "Bias", "MAE", "RMSE", "NSE", "lnlikelihood"))))
+    } else {
+      stats <- gotmtools::sum_stat(tmp, obs_tmp, depth = T)
+    }
+    
     
     tmp$model <- names(temp)[x]
     str$model <- names(temp)[x]
@@ -201,9 +207,15 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   }else{
     for(i in seq_len(length(out_list))){
       
-      out_df <- rbind(out_df, out_list[[i]][[1]])
-      out_strat <- rbind(out_strat, out_list[[i]][[2]])
-      out_stat <- rbind(out_stat, out_list[[i]][[3]])
+      if(!is.null(out_list[[i]][[1]])) {
+        out_df <- rbind(out_df, out_list[[i]][[1]])
+      }
+      if(!is.null(out_list[[i]][[2]])) {
+        out_strat <- rbind(out_strat, out_list[[i]][[2]])
+      }
+      if(!is.null(out_list[[i]][[3]])) {
+        out_stat <- rbind(out_stat, out_list[[i]][[3]])
+      }
       
     }
   }
