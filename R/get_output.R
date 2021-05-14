@@ -168,7 +168,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       ncdf4::nc_close(nc)
 
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
+      depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -187,7 +187,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
       got <- as.data.frame(t(got))
       got$datetime <- time
-      got <- got[, c(1, (ncol(got):2))]
+      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
       str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
 
@@ -235,7 +235,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       
       got <- as.data.frame(t(got))
       got$datetime <- time
-      got <- got[, c(1, (ncol(got):2))]
+      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
       str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
       
@@ -270,7 +270,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       
       got <- as.data.frame(t(got))
       got$datetime <- time
-      got <- got[, c(1, (ncol(got):2))]
+      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
       str_depths <- abs(depths)
       colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
       
