@@ -70,14 +70,14 @@ load_var <- function(ncdf, var, return = "list", dim = "model", dim_index = 1, p
 
     # Extract depths if dimensions are greater than 2
     if(length(dim(var1)) > 2){
-      z <- ncvar_get(fid, "z")
+      z <- ncdf4::ncvar_get(fid, "z")
     }
 
   }, warning = function(w) {
     return_val <- "Warning"
   }, error = function(e) {
     return_val <- "Error"
-    warning("Error creating netCDF file!")
+    warning("Error extracting variable from netCDF file!")
   }, finally = {
     ncdf4::nc_close(fid) # Close netCDF file
   })
