@@ -12,7 +12,7 @@
 #' Defaults to "temp".
 #' @param qualfun Function to calculate the performance measures. Per default calculates root
 #'    mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
-#'    bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae).
+#'    bias (bias), mean absolute error (mae), normalized mean absolute error (nmae), and bias.
 #'    Can be any function that takes observed data as first, and simulated data at the same time
 #'    and depth as the second argument.
 #' @param avfun Name of the function to calculate the ensemble average, defaults to "mean"
@@ -30,7 +30,7 @@
 #'                   var = "temp", qualfun = function(O, S) mean(O - S, na.rm = TRUE))
 #' }
 calc_fit <- function(ncdf, list = NULL, model, var = "temp", dim = "model", dim_index = 1,
-                     qualfun = qual_meas, avfun = "mean") {
+                     qualfun = qual_fun, avfun = "mean") {
 
   # check if model input is correct
   model <- check_models(model)
@@ -105,51 +105,4 @@ calc_fit <- function(ncdf, list = NULL, model, var = "temp", dim = "model", dim_
  return(qual)
 
 
-}
-
-#' @noMd
-
-qual_meas <- function(O, P){
-
-  # function that calculates different estimations for model accuracy, namely: root mean squared
-  # error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
-  # bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae)
-  #
-  # Arguments:
-  #^^^^^^^^^^
-  # O: observed values
-  # P: predicted values
-  #
-  # Return Value:
-  #^^^^^^^^^^^^^^
-  # qual: A data.frame containing the six quality estimates
-
-  # set of both O and P where both have no NAs
-  id <- !((is.na(O) | is.na(P)) | (is.na(O) & is.na(P)))
-  O <- O[id]
-  P <- P[id]
-  
-  # rmse
-  rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
-
-  # nash sutcliff
-  nse <- 1 - sum((O - P)^2, na.rm = TRUE)/sum((O - mean(O, na.rm=TRUE))^2, na.rm = TRUE)
-
-  # pearson corelation coef
-  r <- sum((O - mean(O, na.rm = TRUE))*(P - mean(P, na.rm = TRUE)),
-           na.rm = TRUE)/sqrt(sum((O - mean(O, na.rm = TRUE))^2, na.rm = TRUE)*
-                              sum((P - mean(P, na.rm = TRUE))^2, na.rm = TRUE))
-
-  # bias
-  bias <- mean((P - O), na.rm = TRUE)
-
-  # mean absolute error
-  mae <- mean(abs(O - P), na.rm = TRUE)
-
-  # normalised mean absolute error
-  nmae <- mean(abs((O - P)/O), na.rm = TRUE)
-
-  qual <- data.frame(rmse = rmse, nse = nse, r = r, bias = bias, mae = mae, nmae = nmae)
-
-  return(qual)
 }

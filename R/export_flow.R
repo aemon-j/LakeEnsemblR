@@ -13,6 +13,7 @@
 #' }
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
+#' @importFrom configr read.config
 #'
 #' @export
 export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -59,7 +60,15 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                    "or a different file as for inflows."))},
     error = function(e) { })
   
-  use_outflows <- get_yaml_value(config_file, "outflows", "use")
+  # read in yaml file
+  yml_fl <- read.config(config_file)
+  
+  if("outflows" %in% names(yml_fl)) {
+    use_outflows <- get_yaml_value(config_file, "outflows", "use")
+  } else {
+    use_outflows <- FALSE
+  }
+  
 
   if(use_outflows) {
     # number of outflows

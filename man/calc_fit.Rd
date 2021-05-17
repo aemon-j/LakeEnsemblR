@@ -11,7 +11,7 @@ calc_fit(
   var = "temp",
   dim = "model",
   dim_index = 1,
-  qualfun = qual_meas,
+  qualfun = qual_fun,
   avfun = "mean"
 )
 }
@@ -32,7 +32,7 @@ Defaults to "temp".}
 
 \item{qualfun}{Function to calculate the performance measures. Per default calculates root
 mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
-bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae).
+bias (bias), mean absolute error (mae), normalized mean absolute error (nmae), and bias.
 Can be any function that takes observed data as first, and simulated data at the same time
 and depth as the second argument.}
 

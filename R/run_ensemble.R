@@ -17,6 +17,7 @@
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value get_var
 #' @importFrom lubridate year round_date seconds_to_period
+#' @importFrom configr read.config
 #'
 #' @export
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -40,6 +41,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     Sys.setenv(TZ = original_tz)
   })
 
+  ## read in config file
+  cnf_fl <- read.config(config_file)
   ## Extract start, stop, lat & lon for netCDF file from config file
   start <- get_yaml_value(config_file, "time", "start")
   stop <- get_yaml_value(config_file, "time", "stop")
@@ -48,8 +51,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   lakename <- get_yaml_value(config_file, "location", "name")
   obs_file <- get_yaml_value(config_file, "temperature", "file")
   ice_file <- get_yaml_value(config_file, "ice_height", "file")
-  wlvl_file <- get_yaml_value(config_file, "water_level", "file")
-
+  if("water_level" %in% names(cnf_fl)) {
+    wlvl_file <- get_yaml_value(config_file, "water_level", "file")
+  } else {
+    wlvl_file <- ""
+  }
   # Get output configurations
   out_file <- get_yaml_value(config_file, "output", "file")
   format <- get_yaml_value(config_file, "output", "format")
