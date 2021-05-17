@@ -90,6 +90,19 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
             paste0("[", Sys.time(), "]"))
     obs_deps <- unique(obs$Depth_meter)
 
+    # check if all entries are unique
+    if(any(duplicated(paste0(obs$datetime, obs$Depth_meter)))) {
+      warning(paste0("There are non-unique observations in the observed",
+                     "water temperature file ", obs_file, "!"))
+    }
+    
+    # check for NAs in the observation
+    if(any(is.na(obs$Water_Temperature_celsius))) {
+      warning(paste0("There are NA values in the observed",
+                     "water temperature file ", obs_file,
+                     " this could cause trouble."))
+    }
+    
     # change data format from long to wide
     obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
     str_depths <- colnames(obs_out)[2:ncol(obs_out)]
