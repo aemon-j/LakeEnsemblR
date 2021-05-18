@@ -76,6 +76,9 @@ jobs:
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
+          rm -rf /usr/local/bin/2to3
+          rm '/usr/local/bin/gfortran'
+          brew install gcc
           brew install netcdf
           
       - name: Install dependencies
@@ -86,7 +89,7 @@ jobs:
           remotes::install_github("GLEON/rLakeAnalyzer")
           remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
           remotes::install_github("aemon-j/FLakeR", ref = "inflow")
-          remotes::install_github("aemon-j/GOTMr")
+          remotes::install_github("aemon-j/GOTMr", ref = "lake")
           remotes::install_github("aemon-j/SimstratR")
           remotes::install_github("aemon-j/gotmtools", ref = "yaml")
           remotes::install_github("aemon-j/MyLakeR")
