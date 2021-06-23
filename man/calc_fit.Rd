@@ -8,10 +8,11 @@ calc_fit(
   ncdf,
   list = NULL,
   model,
+  spin_up = 0,
   var = "temp",
   dim = "model",
   dim_index = 1,
-  qualfun = qual_fun,
+  qualfun = qual_meas,
   avfun = "mean"
 )
 }
@@ -23,6 +24,8 @@ calc_fit(
 
 \item{model}{Vector of models for which to calculate the performance measures}
 
+\item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
+
 \item{var}{Variable for which to calculate the performance measures.
 Defaults to "temp".}
 
@@ -32,7 +35,7 @@ Defaults to "temp".}
 
 \item{qualfun}{Function to calculate the performance measures. Per default calculates root
 mean suqared error (rmse), Nash-Shutcliff efficiency (nse), Pearson correlation (r),
-bias (bias), mean absolute error (mae), normalized mean absolute error (nmae), and bias.
+bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae).
 Can be any function that takes observed data as first, and simulated data at the same time
 and depth as the second argument.}
 
