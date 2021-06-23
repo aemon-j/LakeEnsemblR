@@ -24,7 +24,7 @@
 #' @export
 analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
                          drho = 0.1){
-  
+
   # check if model input is correct
   model <- check_models(model)
   # check if netCDF exists
@@ -40,10 +40,10 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   if(("ice_height" %in% vars)){
     ice_present <- TRUE
   }
-  
+
   temp <- load_var(ncdf, "temp", return = "list", dim = dim,
                    dim_index = dim_index, print = FALSE)
-  
+
   if(dim == "model") {
     temp_name <- names(temp)
     temp_name <- temp_name[which(temp_name != "Obs")]
@@ -51,28 +51,28 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
       stop("Model(s): ", paste(model[!(model %in% temp_name)], collapse = ", "),
            " is/are not present in '", ncdf, "'\nPlease select a model from: ", paste(temp_name, collapse = ", "))
     }
-    
+
     temp <- temp[(which(names(temp) %in% c(model, "Obs")))]
   } else if(dim == "member") {
-    
-    # Load obs data 
+
+    # Load obs data
     obs_list <- load_var(ncdf, var = "temp", return = "list", dim = "model",
                          dim_index = 1, print = FALSE)
     obs_list <- obs_list[["Obs"]]
-    
+
     n_val <- length(obs_list)
-    
+
     nas <- sum(is.na(obs_list))
     if(nas == n_val) {
       warning("No temperature observations in ", ncdf)
     }
-    
+
     # Add to var list
     temp[["Obs"]] <- obs_list
-    
+
   }
-  
-  
+
+
   if(ice_present){
     ice <- load_var(ncdf, var = "ice_height", return = "list", dim = dim,
                     dim_index = dim_index, print = FALSE)
@@ -84,13 +84,13 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
       ice <- ice[(which(names(ice) %in% c(model, "Obs")))]
     }
   }
-  
-  
+
+
   # Extract latitude for determining hemisphere
   fid <- ncdf4::nc_open(ncdf)
   lat <- ncdf4::ncvar_get(fid, "lat")
   ncdf4::nc_close(fid)
-  
+
   if(lat > 0){
     NH <- TRUE
   }else{
@@ -103,7 +103,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   if(tst2 == ncol(temp[["Obs"]])){
     stop("There are no temperature observations in ", ncdf)
   }
-  
+
   # Check ice observations and stop if none present
   if(ice_present){
     tst <- apply(ice[["Obs"]], 2, function(x)sum(is.na(x)))
@@ -112,20 +112,19 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
       stop("There are no ice_height observations in ", ncdf)
     }
   }
-  
+
 
 
   # Remove temp spin-up period ----
   obs_temp <- temp[["Obs"]]
-  obs_tmp <- reshape2::melt(obs_temp, id.vars = "datetime")
-  obs_tmp[, 2] <- as.numeric(gsub("wtr_", "", obs_tmp[, 2]))
-  
-  # obs_tmp <- na.exclude(obs_tmp)
-  if(!is.null(spin_up)){
-    spin_date <- obs_tmp[1, 1] + spin_up * (24 * 60 * 60)
-    obs_tmp <- obs_tmp[obs_tmp[, 1] >= spin_date, ]
+  z <- get.offsets(obs_temp)
+  obs_temp <- gotmtools::wide2long(obs_temp, z)
+  # obs_temp <- na.exclude(obs_temp)
+  if(spin_up != 0){
+    spin_date <- obs_temp[1, 1] + spin_up * (24 * 60 * 60)
+    obs_temp <- obs_temp[obs_temp[, 1] >= spin_date, ]
   }
-  
+
   if(ice_present){
     # Remove ice spin-up period ----
   obs_ice <- ice[["Obs"]]
@@ -135,30 +134,35 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   }
   ice[["Obs"]] <- NULL
   }
-  
+
 
   # Remove obs_temp
   temp[["Obs"]] <- NULL
-  
+
+
+  # colnames(obs_temp)[3] <- "obs"
+  # colnames(obs_ice)[2] <- "obs"
+
   if(ice_present){
-    obs_strat <- analyse_strat(data = obs_tmp, NH = NH, H_ice = obs_ice[, 2], drho = drho)
+    obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = obs_ice[, 2], drho = drho)
     obs_strat$model <- "obs"
   }else{
-    obs_strat <- analyse_strat(data = obs_tmp, NH = NH, H_ice = NULL, drho = drho)
+    obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = NULL, drho = drho)
     obs_strat$model <- "obs"
   }
-  
-  
+
+
   # Loop through each model output
   out_list <- lapply(seq_len(length(temp)), function(x){
-    
-    tmp <- reshape2::melt(temp[[x]], id.vars = "datetime")
-    tmp[, 2] <- as.numeric(gsub("wtr_", "", tmp[, 2]))
+
+    z <- get.offsets(temp[[x]])
+    tmp <- gotmtools::wide2long(temp[[x]], z)
+    # obs_temp <- na.exclude(obs_temp)
     if(!is.null(spin_up)){
       spin_date <- tmp[1, 1] + spin_up * (24 * 60 * 60)
       tmp <- tmp[tmp[, 1] >= spin_date, ]
     }
-    
+
     if(ice_present){
       ic <- ice[[x]]
     if(!is.null(spin_up)){
@@ -166,70 +170,54 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
       ic <- ic[ic[, 1] >= spin_date, ]
       }
     }
-    
+
     if(ice_present){
       str <- analyse_strat(data = tmp, NH = NH, H_ice = ic[, 2], drho = drho)
     }else{
       str <- analyse_strat(data = tmp, NH = NH, H_ice = NULL, drho = drho)
     }
-    if(is.null(str)) {
-      str <- as.data.frame(matrix(NA, 1, (ncol(obs_strat) - 1), dimnames = list(rnams = c(),
-                                                                                cnams = colnames(obs_strat)[-ncol(obs_strat)])))
-    }
-    
-    if(sum(is.na(tmp[, 3])) == nrow(tmp)) {
-      stats <- as.data.frame(matrix(NA, 1, 11, dimnames = list(rnams = c(),
-                                                               cnams = c("Pearson_r", "Variance_obs", "Variance_mod", "SD_obs", "SD_mod", "Covariance", "Bias", "MAE", "RMSE", "NSE", "lnlikelihood"))))
-    } else {
-      stats <- gotmtools::sum_stat(tmp, obs_tmp, depth = T)
-    }
-    
-    
+
+    stats <- gotmtools::sum_stat(tmp, obs_temp, depth = T)
+
     tmp$model <- names(temp)[x]
     str$model <- names(temp)[x]
     stats$model <- names(temp)[x]
-    
-    
+
+
     return(list(temp = tmp, strat = str, fit = stats))
-    
+
   })
   names(out_list) <- names(temp)
-  
-  
+
+
   out_df <- NULL
   out_strat <- NULL
   out_stat <- NULL
-  
+
   if(length(out_list) == 1){
     out_df <- out_list[[1]][[1]]
     out_strat <- out_list[[1]][[2]]
     out_stat <- out_list[[1]][[3]]
   }else{
     for(i in seq_len(length(out_list))){
-      
-      if(!is.null(out_list[[i]][[1]])) {
-        out_df <- rbind(out_df, out_list[[i]][[1]])
-      }
-      if(!is.null(out_list[[i]][[2]])) {
-        out_strat <- rbind(out_strat, out_list[[i]][[2]])
-      }
-      if(!is.null(out_list[[i]][[3]])) {
-        out_stat <- rbind(out_stat, out_list[[i]][[3]])
-      }
-      
+
+      out_df <- rbind(out_df, out_list[[i]][[1]])
+      out_strat <- rbind(out_strat, out_list[[i]][[2]])
+      out_stat <- rbind(out_stat, out_list[[i]][[3]])
+
     }
   }
-  
+
   out_df <- na.exclude(out_df)
   out_strat <- rbind.data.frame(obs_strat, out_strat)
   obs_temp <- na.exclude(obs_temp)
   out_df$model <- factor(out_df$model)
-  
+
   # Put the model in the first column
   out_stat <- out_stat[, c(ncol(out_stat), 1:(ncol(out_stat) - 1))]
   out_strat <- out_strat[, c(ncol(out_strat), 1:(ncol(out_strat) - 1))]
-  
-  
+
+
   out <- list(out_df = out_df,
               stats = out_stat,
               strat = out_strat,
