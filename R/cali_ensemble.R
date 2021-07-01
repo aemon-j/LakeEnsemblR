@@ -353,10 +353,10 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   ## read in meteo
   warning("Setting scaling factors in ", config_file, " for ", model, " for wind_speed & swr to 1.")
-  lapply(model, function(m) {
+  for(m in model) {
     yaml$scaling_factors[[m]]$wind_speed <- 1
     yaml$scaling_factors[[m]]$swr <- 1
-  })
+  }
   gotmtools::write_yaml(yaml, config_file)
   export_meteo(config_file = config_file, model = model, folder = folder)
   met_l <- lapply(model, function(m){
