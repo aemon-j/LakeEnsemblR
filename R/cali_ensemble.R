@@ -245,13 +245,19 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
     nams <- c()
-    for(i in seq_len(length(params_mod[[m]]))) {
-      if(length(params_mod[[m]]) > 1) {
-        nams <- c(nams, rep(names(params_mod[[m]])[i], length(params_mod[[m]][[i]])))
-      } else {
-        nams <- c(nams, names(params_mod[[m]])[i])
+    if(is.array(params_mod[[m]])) {
+      nams <- rep(colnames(params_mod[[m]]), length(params_mod[[m]]))
+    } else {
+      for(i in seq_len(length(params_mod[[m]]))) {
+        if(length(params_mod[[m]])[i] > 1) {
+          nams <- c(nams, rep(names(params_mod[[m]])[i], length(params_mod[[m]][[i]])))
+        } else {
+          nams <- c(nams, names(params_mod[[m]])[i])
+        }
       }
     }
+
+
 
     # nams <- names(c(params_met, params_mod[[m]], recursive = TRUE))
     df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
