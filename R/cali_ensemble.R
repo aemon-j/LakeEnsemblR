@@ -246,7 +246,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   pars_l <- lapply(model, function(m){
     nams <- c()
     for(i in seq_len(length(params_mod[[m]]))) {
-      if(length(params_mod[[m]][[i]]) > 1) {
+      if(length(params_mod[[m]]) > 1) {
         nams <- c(nams, rep(names(params_mod[[m]])[i], length(params_mod[[m]][[i]])))
       } else {
         nams <- c(nams, names(params_mod[[m]])[i])
