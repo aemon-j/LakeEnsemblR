@@ -71,10 +71,10 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                           qualfun = qual_fun, parallel = FALSE, job_name,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali", ...) {
-  
+
   # Load Rdata
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
-  
+
   # ---- Send to RStudio Jobs -----
   if (!missing(job_name)) {
     if (make.names(job_name) != job_name) {
@@ -82,7 +82,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
            job_name,
            "' is not a syntactically valid variable name.")
     }
-    
+
     # Evaluates all arguments.
     call <- match.call()
     call$config_file <- config_file
@@ -95,19 +95,19 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     call$folder <- folder
     call$spin_up <- spin_up
     call$out_f <- out_f
-    
+
     # get number of output arguments for qualfun
     nout_fun <-  length(qualfun(c(1, 1, 1, 1), c(1.1, 0.9, 1, 1.2)))
-    
-    
+
+
     call_list <- lapply(call, eval)
     call[names(call_list)[-1]] <- call_list[-1]
-    
+
     script <- make_script(call = call, name = job_name)
     if (!requireNamespace("rstudioapi", quietly = TRUE)) {
       stop("Jobs are only supported in RStudio.")
     }
-    
+
     if (!rstudioapi::isAvailable("1.2")) {
       stop(
         "Need at least version 1.2 of RStudio to use jobs. Currently running ",
@@ -115,7 +115,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         "."
       )
     }
-    
+
     job <-
       rstudioapi::jobRunScript(path = script,
                                name = job_name,
@@ -123,36 +123,36 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     return(invisible(job))
   }
   #######
-  
+
   ##----------------- check inputs and set things up -------------------------------------------------
-  
+
   # check if method is one of the allowed
   if(!cmethod %in% c("modFit", "LHC", "MCMC")) {
     stop(paste0("Method ", cmethod, " not allowed. Use one of: modFit, LHC, or MCMC"))
   }
-  
+
   # check model input
   model <- check_models(model, check_package_install = TRUE)
   # check the master config file
   check_master_config(config_file, model)
-  
+
   # It"s advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
   Sys.setenv(TZ = "GMT")
   tz <- "UTC"
-  
+
   # get number of output arguments for qualfun
   nout_fun <-  length(qualfun(c(1, 1, 1, 1), c(1.1, 0.9, 1, 1.2)))
   # Set working directory
   oldwd <- getwd()
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
   })
-  
-  
+
+
   # path to master config file
   yaml <- gotmtools::read_yaml(file.path(folder, config_file))
   # get setup parameter
@@ -165,9 +165,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   names(cnfg_l) <- model
   met_timestep <- LakeEnsemblR:::get_meteo_time_step(file.path(folder,
                                                                get_yaml_value(yaml, "input", "meteo", "file")))
-  
+
   ##----------------- read in observed data  ---------------------------------------------------------
-  
+
   # Create output time vector
   if(is.null(spin_up)){
     out_time <- seq.POSIXt(as.POSIXct(start, tz = tz), as.POSIXct(stop, tz = tz), by =
@@ -179,35 +179,35 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                              paste(time_step, time_unit))
   }
   out_time <- data.frame(datetime = out_time)
-  
+
   if(met_timestep == 86400){
-    out_hour <- hour(start)
+    out_hour <- lubridate::hour(start)
   }else{
     out_hour <- 0
   }
-  
+
   # read in Observed data
   message("Loading observed wtemp data... [", Sys.time(), "]")
-  obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
+  obs <- vroom::vroom(file.path(folder, obs_file), delim = ",", col_types = list("c", "n", "n"))
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
-  
+
   # Susbet to out_time
   obs <- obs[obs$datetime %in% out_time$datetime, ]
-  
+
   obs_deps <- unique(obs$Depth_meter)
-  
+
   # change data format from long to wide
   obs_out <- reshape2::dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
   message("Finished loading observed wtemp data! [", Sys.time(), "]")
-  
+
   ##---------------- read in  parameter initial values or create parameter sets ----------------------
-  
+
   # if not existing create output file
   dir.create(file.path(folder, out_f), showWarnings = FALSE)
-  
+
   ## use initial values from master config file as starting values
   # load master config file
   configr_master_config <- configr::read.config(file.path(folder, config_file))
@@ -241,7 +241,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     sapply(names(cal_section[[m]]),
            function(n) as.logical(cal_section[[m]][[n]]$log))})
   names(log_mod) <- model_p
-  
+
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
     nams <- c()
@@ -252,7 +252,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         nams <- c(nams, names(params_mod[[m]])[i])
       }
     }
-    
+
     # nams <- names(c(params_met, params_mod[[m]], recursive = TRUE))
     df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
                      name = c(names(params_met), nams, recursive = TRUE),
@@ -266,15 +266,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     return(df)
   })
   names(pars_l) <- model
-  
+
   # count number of different sets for LHC
   par_sets <- setNames(sapply(model, function(m) length(pars_l[[m]]$pars)), model)
   # output name
   outf_n <- paste0(cmethod, "_", format(Sys.time(), "%Y%m%d%H%M"))
-  
+
   # if cmethod == LHC sample parameter or read from provided file
   if(cmethod == "LHC") {
-    
+
     # name for the output files
     if(is.null(param_file)) {
     } else {
@@ -287,7 +287,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       # set name to name of supplied file
       outf_n <- gsub("_params_", "", basename(param_file))
     }
-    
+
     if(is.null(param_file)) {
       pars_lhc <- list()
       for (m in model) {
@@ -311,12 +311,17 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         write.table(pars_lhc[[m]], file = file.path(folder, out_f,
                                                     paste0("params_", m, "_", outf_n, ".csv")),
                     quote = FALSE, row.names = FALSE, sep = ",")
-        
+
       }
-      
+
     } else {
       # if file is supplied read it in
-      pars_lhc <- lapply(model, function(m) read.csv(param_file, stringsAsFactors = FALSE))
+      pars_lhc <- lapply(model, function(m) {
+        fil <- param_file[grepl(m, param_file)]
+        dat <- read.csv(fil, stringsAsFactors = FALSE)
+        colnames(dat) <- gsub(".", "/", colnames(dat), fixed = TRUE)
+        return(dat)
+      } )
       names(pars_lhc) <- model
       # check if the number of columns in the file fit the number of parameters to be calibrated
       if((ncol(pars_lhc[[1]]) - 1) != unique(par_sets)) {
@@ -330,23 +335,30 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     # we just need an empty variable to export to parallel clusters (not a good fix, but works)
     pars_lhc <- NULL
   }
-  
+
   # Call to export_config removed on 05-08-2020; users need to run export_config before
   # calling function.
   # ##--------- prepare models to be run -----------------------------------------------------------
   #
   #   # prepare config files of the models
   #   export_config(config_file = config_file, model = model, folder = folder)
-  
+
   ##----------------- read in model meteo files ----------------------------------------------------
-  
+
   ## read in meteo
+  warning("Setting scaling factors in ", config_file, " for ", model, " for wind_speed & swr to 1.")
+  lapply(model, function(m) {
+    yaml$scaling_factors[[m]]$wind_speed <- 1
+    yaml$scaling_factors[[m]]$swr <- 1
+  })
+  gotmtools::write_yaml(yaml, config_file)
+  export_meteo(config_file = config_file, model = model, folder = folder)
   met_l <- lapply(model, function(m){
-    met_name <- get_model_met_name(m, cnfg_l[[m]])
+    met_name <- LakeEnsemblR:::get_model_met_name(m, cnfg_l[[m]])
     ## list with long standard names
     l_names <- as.list(met_var_dic$standard_name)
     names(l_names) <- met_var_dic$short_name
-    
+
     if(m == "MyLake") {
       met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
                           header = FALSE)
@@ -370,15 +382,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       # read in meteo file
       met_m <- read.table(file.path(folder, m, met_name), sep = "\t",
                           header = TRUE)
-      
+
     }
     return(met_m)
   })
-  
+
   names(met_l) <- model
-  
-  ##------------------------- parallel LCH calibration -----------------------------------------------
-  
+
+  ##------------------------- parallel LHC calibration -----------------------------------------------
+
   if(parallel){
     ncores <- detectCores() - 1
     clust <- makeCluster(ncores)
@@ -406,7 +418,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       message("\nFinished parallel LHC\n")
     }
     ##------------------------- parallel MCMC calibration ----------------------------------------------
-    
+
     if(cmethod == "MCMC") {
       message("\nStarted parallel MCMC\n")
       model_out <- setNames(
@@ -436,7 +448,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       )
       message("\nFinished parallel MCMC\n")
     }
-    
+
     ##------------------------- parallel modFit calibration ------------------------------------------
     if(cmethod == "modFit") {
       message("\nStarted parallel modFit\n")
@@ -470,9 +482,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     # stop cluster
     stopCluster(clust)
   } else {
-    
+
     ##------------------------- LCH calibration --------------------------------------------------------
-    
+
     if(cmethod == "LHC") {
       model_out <- setNames(
         lapply(model, function(m) LHC_model(pars = pars_lhc[[m]],
@@ -488,9 +500,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         model
       )
     }
-    
+
     ##------------------------- MCMC calibration -------------------------------------------------------
-    
+
     if(cmethod == "MCMC") {
       model_out <- setNames(
         lapply(model, function(m){
@@ -521,9 +533,9 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
         model
       )
     }
-    
+
     ##------------------------- modFit calibration ---------------------------------------------------
-    
+
     if(cmethod == "modFit") {
       model_out <- setNames(
         lapply(model, function(m){
