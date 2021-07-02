@@ -61,9 +61,8 @@
 #' @importFrom FME Latinhyper modMCMC
 #' @importFrom gotmtools get_yaml_value calc_cc input_nml sum_stat input_yaml get_vari
 #' @importFrom glmtools get_nml_value
-#' @importFrom reshape2 dcast
 #' @importFrom lubridate round_date seconds_to_period
-#' @importFrom configr read.config
+#' @importFrom configr read.config write.config
 #'
 #' @export
 
@@ -136,7 +135,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   # It"s advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
-  Sys.setenv(TZ = "GMT")
+  Sys.setenv(TZ = "UTC")
   tz <- "UTC"
 
   # get number of output arguments for qualfun
@@ -148,6 +147,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
+    
+    # Remove temporary files
+    if(file.exists(file.path(folder, "LER_CNFG_TMP.yaml"))){
+      file.remove(file.path(folder, "LER_CNFG_TMP.yaml"))
+    }
   })
 
 
@@ -189,7 +193,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   obs <- read.csv(file.path(folder, obs_file), stringsAsFactors = FALSE)
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
 
-  # Susbet to out_time
+  # Subset to out_time
   obs <- obs[obs$datetime %in% out_time$datetime, ]
 
   obs_deps <- unique(obs$Depth_meter)
@@ -211,13 +215,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   configr_master_config <- configr::read.config(file.path(folder, config_file))
   # meteo parameter
   cal_section <- configr_master_config[["calibration"]][["met"]]
-  params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
-  p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
-  p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
+  params_met <- sapply(names(cal_section), function(n) cal_section[[n]]$initial)
+  p_lower_met <- sapply(names(cal_section), function(n) cal_section[[n]]$lower)
+  p_upper_met <- sapply(names(cal_section), function(n) cal_section[[n]]$upper)
   # get names of models for which parameter are given
   model_p <- model[model %in% names(configr_master_config[["calibration"]])]
   # model specific parameters
-  cal_section <- lapply(model_p, function(m)configr_master_config[["calibration"]][[m]])
+  cal_section <- lapply(model_p, function(m) configr_master_config[["calibration"]][[m]])
   names(cal_section) <- model_p
   # get parameters
   params_mod <- lapply(model_p, function(m) {
@@ -264,8 +268,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   if(cmethod == "LHC") {
 
     # name for the output files
-    if(is.null(param_file)) {
-    } else {
+    if(!is.null(param_file)){
       # if the models have different number of pars to calibrate a file can not be supplied
       if(length(unique(par_sets)) > 1) {
         stop(paste0("The calibration configuration in the master config file ",
@@ -319,13 +322,48 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     pars_lhc <- NULL
   }
 
-# Call to export_config removed on 05-08-2020; users need to run export_config before
-# calling function.
-# ##--------- prepare models to be run -----------------------------------------------------------
-#
-#   # prepare config files of the models
-#   export_config(config_file = config_file, model = model, folder = folder)
+  # 2020-08-05: Call to export_config removed on, users need to run export_config before
+  #             calling function.
+  # 2021-07-02: Call to export_meteo was re-added, to make sure that calibrated variables are
+  #             always calibrated between the specified boundaries, and not affected by pre-set
+  #             scaling factors. 
 
+# ##--------- Reset scaling factors that are to be calibrated to 1.0 --------------------------
+  
+  # Do not work in original file
+  if(file.exists(file.path(folder, "LER_CNFG_TMP.yaml"))){
+    stop("The file 'LER_CNFG_TMP.yaml' exists in your folder and this is a reserved file name!")
+  }else{
+    file.copy(file.path(folder, config_file),
+              file.path(folder, "LER_CNFG_TMP.yaml"))
+  }
+  
+  # If scaling factors are in the calibration section, set them to 1.0 in the TMP file
+  lst_config_tmp <- configr::read.config(file.path(folder, "LER_CNFG_TMP.yaml"))
+  scfctrs_to_calibrate <- names(lst_config_tmp[["calibration"]][["met"]])
+  
+  # Set these factors to 1 in the "all" section, and also in model-specific sub-sections
+  names_scale_section <- names(lst_config_tmp[["scaling_factors"]])
+  
+  for(i in names_scale_section){
+    if(i == "all"){
+      for(j in scfctrs_to_calibrate){
+        lst_config_tmp[["scaling_factors"]][["all"]][[j]] <- 1.0
+      }
+    }else{
+      for(j in scfctrs_to_calibrate){
+        if(!is.null(lst_config_tmp[["scaling_factors"]][[i]][[j]])){
+          lst_config_tmp[["scaling_factors"]][[i]][[j]] <- 1.0
+        }
+      }
+    }
+  }
+  
+  configr::write.config(lst_config_tmp, file.path = file.path(folder, "LER_CNFG_TMP.yaml"),
+                        write.type = "yaml", indent = 3)
+  
+  export_meteo(config_file = "LER_CNFG_TMP.yaml", model = model, folder = folder)
+  
 ##----------------- read in model meteo files ----------------------------------------------------
 
   ## read in meteo
