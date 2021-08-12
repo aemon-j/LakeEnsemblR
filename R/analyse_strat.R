@@ -31,12 +31,12 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
   if(!is.null(data)){
     data[, 2] <- abs(data[, 2])
     depths <- unique(data[, 2])
-    depths <- depths[order(depths)]
+    depths <- sort(depths)
 
     # Find closest depth near the surface without NA
     for(i in seq_len(length(depths))){
       Ts <- data[data[, 2] == depths[i], 3]
-      if(sum(is.na(Ts)) / length(Ts) < 0.25){
+      if(sum(is.na(Ts)) / length(Ts) < 0.75){
         if(i != 1){
           message("Warning: Using ", depths[i], " as the surface.")
         }
@@ -46,7 +46,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     # Find closest depth near the bottom without NA
     for(i in rev(seq_len(length(depths)))){
       Tb <- data[data[, 2] == depths[i], 3]
-      if(sum(is.na(Tb)) / length(Tb) < 0.25){
+      if(sum(is.na(Tb)) / length(Tb) < 0.75){
         if(i != 1){
           message("Warning: Using ", depths[i], " as the bottom.")
         }
