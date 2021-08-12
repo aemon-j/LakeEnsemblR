@@ -28,7 +28,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     fold <- file.path(folder, "FLake")
     nml_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "FLake"))
 
-    mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
+    mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
     out_depths <- get_yaml_value(config_yaml, "output", "depths")
     depths <- seq(0, mean_depth, by = out_depths)
 
