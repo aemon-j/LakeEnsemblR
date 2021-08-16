@@ -196,7 +196,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # Subset to out_time
   obs <- obs[obs$datetime %in% out_time$datetime, ]
 
-  obs_deps <- unique(obs$Depth_meter)
+  obs_deps <- sort(unique(obs$Depth_meter))
 
   # change data format from long to wide
   obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
