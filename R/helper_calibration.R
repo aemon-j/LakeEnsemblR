@@ -26,7 +26,7 @@
 
 LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, outf_n,
                       obs_deps, obs_out, out_hour, qualfun, config_f, nout_fun) {
-  
+
   message(paste0("\nStarted LHC for model: ", model, " [", Sys.time(), "]\n"))
   # name of the output file to be written
   out_name <- paste0(model, "_", outf_n, ".csv")
@@ -54,9 +54,9 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     write.table(x = out_i, file = file.path(folder, out_f, out_name),
                 append = ifelse(flsw, TRUE, FALSE), sep = ",", row.names = FALSE,
                 col.names = ifelse(flsw, FALSE, TRUE), quote = FALSE)
-    
+
   }
-  
+
   message(paste0("\nFinished LHC for model: ", model, " [", Sys.time(), "]\n"))
   return(data.frame(results = file.path(folder, out_f, out_name),
                     parameters = file.path(folder, out_f,
@@ -100,7 +100,7 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   # name of the parameter
   pars <- data.frame(matrix(pars, nrow = 1))
   colnames(pars) <- par_name
-  
+
   # change the paremeter/meteo scaling
   change_pars(config_file = config_file, model = model, pars = pars,
               type = type, met = met, folder = folder)
@@ -142,12 +142,12 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
 #' @keywords internal
 
 change_pars <- function(config_file, model, pars, type, met, folder) {
-  
+
   if(length(pars) != length(type)) {
     stop(paste0("pars and type vectors need to have the same length"))
   }
   yaml <- gotmtools::read_yaml(config_file)
-  
+
   # get name of model config file
   config_f <- gotmtools::get_yaml_value(yaml, "config_files", model)
   # names of the parameters
@@ -165,7 +165,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
       dup_name <- c(dup_name, i)
     }
   }
-  
+
   if (length(met_pars) > 0){
     met_name <- get_model_met_name(model, config_f)
     met_pars <- setNames(data.frame(met_pars), names(met_pars))
@@ -173,13 +173,13 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     scale_met(met = met, pars = met_pars, model = model,
               out_file = file.path(folder, model, met_name))
   }
-  
+
   no_dup_idx <- which(!duplicated(model_pars_names))
-  
+
   if (length(model_pars) > 0){
-    
+
     for (i in seq_len(length(model_pars[1, no_dup_idx]))) {
-      
+
       if(length(grep(names(model_pars)[i], model_pars_names)) > 1) {
         value <- model_pars[, grep(names(model_pars)[i], model_pars_names)]
       } else {
@@ -314,12 +314,12 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
       # calculate quality function
       quali <- qualfun(O = obs_out[obs_out$datetime %in% out$datetime, id_obs],
                        P = out[, -1])
-      
+
     }, error = function(e){})
   }
-  
+
   return(quali)
-  
+
 }
 
 
@@ -335,7 +335,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
 #' @keywords internal
 
 qual_fun <- function(O, P){
-  
+
   # function that calculates different estimations for model accuracy, namely: root mean squared
   # error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
   # bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae)
@@ -354,26 +354,26 @@ qual_fun <- function(O, P){
   P <- P[id]
   # rmse
   rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
-  
+
   # nash sutcliff
   nse <- 1 - sum((O - P)^2, na.rm = TRUE)/sum((O - mean(O, na.rm=TRUE))^2, na.rm = TRUE)
-  
+
   # pearson corelation coef
   r <- sum((O - mean(O, na.rm = TRUE))*(P - mean(P, na.rm = TRUE)),
            na.rm = TRUE)/sqrt(sum((O - mean(O, na.rm = TRUE))^2, na.rm = TRUE)*
                                 sum((P - mean(P, na.rm = TRUE))^2, na.rm = TRUE))
-  
+
   # bias
   bias <- mean((P - O), na.rm = TRUE)
-  
+
   # mean absolute error
   mae <- mean(abs(O - P), na.rm = TRUE)
-  
+
   # normalised mean absolute error
   nmae <- mean(abs((O - P)/O), na.rm = TRUE)
-  
+
   qual <- data.frame(rmse = rmse, nse = nse, r = r, bias = bias, mae = mae, nmae = nmae)
-  
+
   return(qual)
 }
 
@@ -384,10 +384,10 @@ qual_fun <- function(O, P){
 #' @keywords internal
 make_script <- function(call, name) {
   script <- tempfile()
-  
+
   call$job_name <- NULL
   wd <- getwd()
-  
+
   lines <-
     writeLines(paste0(
       "library(LakeEnsemblR)\nsetwd('",wd,"')\n",
