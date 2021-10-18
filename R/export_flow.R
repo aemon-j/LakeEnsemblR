@@ -375,23 +375,6 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # ### Apply scaling
     # inflow <- scale_flow(inflow, num_inflows, scale_param_inf)
 
-    # if multiple inflows are present put them in a list
-    if(num_inflows > 1) {
-      inflow_ls <- list()
-      for (i in 1:num_inflows) {
-        inflow_ls[[paste0("inflow_", i)]] <-
-          data.frame(datetime = inflow$datetime,
-                     Flow_metersCubedPerSecond = inflow[[paste0("Flow_metersCubedPerSecond_", i)]],
-                     Water_Temperature_celsius = inflow[[paste0("Water_Temperature_celsius_", i)]],
-                     Salinity_practicalSalinityUnits =
-                       inflow[[paste0("Salinity_practicalSalinityUnits_", i)]]
-                     )
-      }
-      inflow <- inflow_ls
-      rm(inflow_ls)
-    } else {
-      inflow <- list(inflow_1 = inflow)
-    }
 
     ##### FLake
     if("FLake" %in% model){
@@ -403,6 +386,24 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       }
       inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
 
+      # if multiple inflows are present put them in a list
+      if(num_inflows > 1) {
+        inflow_ls <- list()
+        for (i in 1:num_inflows) {
+          inflow_ls[[paste0("inflow_", i)]] <-
+            data.frame(datetime = inflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = inflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]],
+                       Water_Temperature_celsius = inflow_tmp[[paste0("Water_Temperature_celsius_", i)]],
+                       Salinity_practicalSalinityUnits =
+                         inflow_tmp[[paste0("Salinity_practicalSalinityUnits_", i)]]
+            )
+        }
+        inflow_tmp <- inflow_ls
+        rm(inflow_ls)
+      } else {
+        inflow_tmp <- list(inflow_1 = inflow_tmp)
+      }
+      
       flake_inflow <- format_inflow(inflow = inflow_tmp, model = "FLake",
                                     config_file = config_file)
 
@@ -432,6 +433,24 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       }
       inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
       
+      # if multiple inflows are present put them in a list
+      if(num_inflows > 1) {
+        inflow_ls <- list()
+        for (i in 1:num_inflows) {
+          inflow_ls[[paste0("inflow_", i)]] <-
+            data.frame(datetime = inflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = inflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]],
+                       Water_Temperature_celsius = inflow_tmp[[paste0("Water_Temperature_celsius_", i)]],
+                       Salinity_practicalSalinityUnits =
+                         inflow_tmp[[paste0("Salinity_practicalSalinityUnits_", i)]]
+            )
+        }
+        inflow_tmp <- inflow_ls
+        rm(inflow_ls)
+      } else {
+        inflow_tmp <- list(inflow_1 = inflow_tmp)
+      }
+      
       for (i in 1:num_inflows) {
         glm_inflow <- format_inflow(inflow = inflow_tmp[[i]], model = "GLM",
                                     config_file = config_file)
@@ -452,6 +471,24 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         scale_param_tmp <- scale_param_inf
       }
       inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
+      
+      # if multiple inflows are present put them in a list
+      if(num_inflows > 1) {
+        inflow_ls <- list()
+        for (i in 1:num_inflows) {
+          inflow_ls[[paste0("inflow_", i)]] <-
+            data.frame(datetime = inflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = inflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]],
+                       Water_Temperature_celsius = inflow_tmp[[paste0("Water_Temperature_celsius_", i)]],
+                       Salinity_practicalSalinityUnits =
+                         inflow_tmp[[paste0("Salinity_practicalSalinityUnits_", i)]]
+            )
+        }
+        inflow_tmp <- inflow_ls
+        rm(inflow_ls)
+      } else {
+        inflow_tmp <- list(inflow_1 = inflow_tmp)
+      }
       
       for (i in 1:num_inflows) {
         gotm_outfile <- paste0("inflow_file_", i, ".dat")
@@ -478,6 +515,23 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       }
       inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
       
+      # if multiple inflows are present put them in a list
+      if(num_inflows > 1) {
+        inflow_ls <- list()
+        for (i in 1:num_inflows) {
+          inflow_ls[[paste0("inflow_", i)]] <-
+            data.frame(datetime = inflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = inflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]],
+                       Water_Temperature_celsius = inflow_tmp[[paste0("Water_Temperature_celsius_", i)]],
+                       Salinity_practicalSalinityUnits =
+                         inflow_tmp[[paste0("Salinity_practicalSalinityUnits_", i)]]
+            )
+        }
+        inflow_tmp <- inflow_ls
+        rm(inflow_ls)
+      } else {
+        inflow_tmp <- list(inflow_1 = inflow_tmp)
+      }
       
       # output file names
       inflow_outfile <- "Qin.dat"
@@ -553,6 +607,24 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       }
       inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
       
+      # if multiple inflows are present put them in a list
+      if(num_inflows > 1) {
+        inflow_ls <- list()
+        for (i in 1:num_inflows) {
+          inflow_ls[[paste0("inflow_", i)]] <-
+            data.frame(datetime = inflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = inflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]],
+                       Water_Temperature_celsius = inflow_tmp[[paste0("Water_Temperature_celsius_", i)]],
+                       Salinity_practicalSalinityUnits =
+                         inflow_tmp[[paste0("Salinity_practicalSalinityUnits_", i)]]
+            )
+        }
+        inflow_tmp <- inflow_ls
+        rm(inflow_ls)
+      } else {
+        inflow_tmp <- list(inflow_1 = inflow_tmp)
+      }
+      
       temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
       load(temp_fil)
 
@@ -610,22 +682,6 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ### Naming conventions standard input
     chk_names_flow(outflow, num_outflows, outflow_file)
 
-    # ### Apply scaling
-    # outflow <- scale_flow(outflow, num_outflows, scale_param_out)
-
-    # if multiple outflows are present put them in a list
-    if(num_outflows > 1) {
-      outflow_ls <- list()
-      for (i in 1:num_outflows) {
-        outflow_ls[[paste0("outflow_", i)]] <-
-          data.frame(datetime = outflow$datetime,
-                     Flow_metersCubedPerSecond = outflow[[paste0("Flow_metersCubedPerSecond_", i)]])
-      }
-      outflow <- outflow_ls
-      rm(outflow_ls)
-    } else {
-      outflow <- list(outflow_1 = outflow)
-    }
 
     # FLake
     #####
@@ -639,9 +695,24 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       if(!is.null(yml_fl$scaling_factors$GLM$outflow)) {
         scale_param_tmp <- yml_fl$scaling_factors$GLM$outflow
       } else {
-        scale_param_tmp <- scale_param_inf
+        scale_param_tmp <- scale_param_out
       }
       outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
+      # if multiple outflows are present put them in a list
+      if(num_outflows > 1) {
+        outflow_ls <- list()
+        for (i in 1:num_outflows) {
+          outflow_ls[[paste0("outflow_", i)]] <-
+            data.frame(datetime = outflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = outflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]])
+        }
+        outflow_tmp <- outflow_ls
+        rm(outflow_ls)
+      } else {
+        outflow_tmp <- list(outflow_1 = outflow_tmp)
+      }
+      
       
       for (i in 1:num_outflows) {
         glm_outflow <- format_outflow(outflow = outflow_tmp[[i]], model = "GLM",
@@ -660,9 +731,23 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       if(!is.null(yml_fl$scaling_factors$GOTM$outflow)) {
         scale_param_tmp <-yml_fl$scaling_factors$GOTM$outflow
       } else {
-        scale_param_tmp <- scale_param_inf
+        scale_param_tmp <- scale_param_out
       }
       outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
+      # if multiple outflows are present put them in a list
+      if(num_outflows > 1) {
+        outflow_ls <- list()
+        for (i in 1:num_outflows) {
+          outflow_ls[[paste0("outflow_", i)]] <-
+            data.frame(datetime = outflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = outflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]])
+        }
+        outflow_tmp <- outflow_ls
+        rm(outflow_ls)
+      } else {
+        outflow_tmp <- list(outflow_1 = outflow_tmp)
+      }
       
       for (i in 1:num_outflows) {
 
@@ -686,9 +771,22 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       if(!is.null(yml_fl$scaling_factors$Simstrat$outflow)) {
         scale_param_tmp <- yml_fl$scaling_factors$Simstrat$outflow
       } else {
-        scale_param_tmp <- scale_param_inf
+        scale_param_tmp <- scale_param_out
       }
       outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
+      if(num_outflows > 1) {
+        outflow_ls <- list()
+        for (i in 1:num_outflows) {
+          outflow_ls[[paste0("outflow_", i)]] <-
+            data.frame(datetime = outflow_tmp$datetime,
+                       Flow_metersCubedPerSecond = outflow_tmp[[paste0("Flow_metersCubedPerSecond_", i)]])
+        }
+        outflow_tmp <- outflow_ls
+        rm(outflow_ls)
+      } else {
+        outflow_tmp <- list(outflow_1 = outflow_tmp)
+      }
       
       outf_surf <- rep(FALSE, num_outflows)
       outf_surf[lvl_outflows == -1] <- TRUE
