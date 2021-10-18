@@ -76,12 +76,12 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # outflow depths
     lvl_outflows <- get_yaml_value(config_file, "outflows", "outflow_lvl")
     # Get scaling parameter
-    scale_param_out <- get_yaml_value(config_file, "outflows", "scale_param")
+    scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")
   }
 
   if(use_inflows) {
     # Get scaling parameter
-    scale_param_inf <- get_yaml_value(config_file, "inflows", "scale_param")
+    scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")
     # number of inflows
     num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
   }
@@ -372,8 +372,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ### Naming conventions standard input
     chk_names_flow(inflow, num_inflows, inflow_file)
 
-    ### Apply scaling
-    inflow <- scale_flow(inflow, num_inflows, scale_param_inf)
+    # ### Apply scaling
+    # inflow <- scale_flow(inflow, num_inflows, scale_param_inf)
 
     # if multiple inflows are present put them in a list
     if(num_inflows > 1) {
@@ -395,15 +395,23 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ##### FLake
     if("FLake" %in% model){
+      # check if model specific scaling factors are present
+      if(!is.null(yml_fl$scaling_factors$FLake$inflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$FLake$inflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
 
-
-      flake_inflow <- format_inflow(inflow = inflow, model = "FLake", config_file = config_file)
+      flake_inflow <- format_inflow(inflow = inflow_tmp, model = "FLake",
+                                    config_file = config_file)
 
       flake_outfile <- "Tinflow"
 
       flake_outfpath <- file.path(folder, "FLake", flake_outfile)
 
-      write.table(flake_inflow, flake_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+      write.table(flake_inflow, flake_outfpath, quote = FALSE, row.names = FALSE,
+                  sep = "\t",
                   col.names = FALSE)
 
 
@@ -417,25 +425,42 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ###### GLM
     if("GLM" %in% model){
+      if(!is.null(yml_fl$scaling_factors$GLM$inflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$GLM$inflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
+      
       for (i in 1:num_inflows) {
-        glm_inflow <- format_inflow(inflow = inflow[[i]], model = "GLM",
+        glm_inflow <- format_inflow(inflow = inflow_tmp[[i]], model = "GLM",
                                     config_file = config_file)
 
         inflow_outfile <- file.path("GLM", paste0("inflow_", i, ".csv"))
         write.csv(glm_inflow, inflow_outfile, row.names = FALSE, quote = FALSE)
-        message("GLM: Created file ", file.path(folder, "GLM", paste0("inflow_", i, ".csv")))
+        message("GLM: Created file ", file.path(folder, "GLM",
+                                                paste0("inflow_", i, ".csv")))
       }
     }
 
     ##### GOTM
     if("GOTM" %in% model){
 
+      if(!is.null(yml_fl$scaling_factors$GOTM$inflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$GOTM$inflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
+      
       for (i in 1:num_inflows) {
         gotm_outfile <- paste0("inflow_file_", i, ".dat")
         gotm_outfpath <- file.path(folder, "GOTM", gotm_outfile)
-        gotm_inflow <- format_inflow(inflow[[i]], model = "GOTM", config_file = config_file)
+        gotm_inflow <- format_inflow(inflow_tmp[[i]], model = "GOTM",
+                                     config_file = config_file)
 
-        write.table(gotm_inflow, gotm_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+        write.table(gotm_inflow, gotm_outfpath, quote = FALSE, row.names = FALSE,
+                    sep = "\t",
                     col.names = TRUE)
 
         message("GOTM: Created file ", file.path(folder, "GOTM", gotm_outfile))
@@ -445,6 +470,15 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ## Simstrat
     if("Simstrat" %in% model){
+      
+      if(!is.null(yml_fl$scaling_factors$Simstrat$inflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$Simstrat$inflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
+      
+      
       # output file names
       inflow_outfile <- "Qin.dat"
       temp_outfile <- "Tin.dat"
@@ -454,7 +488,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       temp_outfpath <- file.path(folder, "Simstrat", temp_outfile)
       salt_outfpath <- file.path(folder, "Simstrat", salt_outfile)
 
-      sim_inflow <- format_inflow(inflow = inflow, model = "Simstrat", config_file = config_file)
+      sim_inflow <- format_inflow(inflow = inflow_tmp, model = "Simstrat",
+                                  config_file = config_file)
 
       ## inflow file
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
@@ -511,10 +546,17 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ## MyLake
     if("MyLake" %in% model){
 
+      if(!is.null(yml_fl$scaling_factors$MyLake$inflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$MyLake$inflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      inflow_tmp <-  scale_flow(inflow, num_inflows, scale_param_tmp)
+      
       temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
       load(temp_fil)
 
-      mylake_inflow <- format_inflow(inflow = inflow, model = "MyLake",
+      mylake_inflow <- format_inflow(inflow = inflow_tmp, model = "MyLake",
                                      config_file = config_file)
 
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
@@ -568,8 +610,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ### Naming conventions standard input
     chk_names_flow(outflow, num_outflows, outflow_file)
 
-    ### Apply scaling
-    outflow <- scale_flow(outflow, num_outflows, scale_param_out)
+    # ### Apply scaling
+    # outflow <- scale_flow(outflow, num_outflows, scale_param_out)
 
     # if multiple outflows are present put them in a list
     if(num_outflows > 1) {
@@ -594,27 +636,44 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # GLM
     #####
     if("GLM" %in% model) {
+      if(!is.null(yml_fl$scaling_factors$GLM$outflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$GLM$outflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
       for (i in 1:num_outflows) {
-        glm_outflow <- format_outflow(outflow = outflow[[i]], model = "GLM",
+        glm_outflow <- format_outflow(outflow = outflow_tmp[[i]], model = "GLM",
                                     config_file = config_file)
 
         outflow_outfile <- file.path("GLM", paste0("outflow_", i, ".csv"))
         write.csv(glm_outflow, outflow_outfile, row.names = FALSE, quote = FALSE)
-        message("GLM: Created file ", file.path(folder, "GLM", paste0("outflow_", i, ".csv")))
+        message("GLM: Created file ", file.path(folder, "GLM",
+                                                paste0("outflow_", i, ".csv")))
       }
     }
 
     ## GOTM
     if("GOTM" %in% model) {
 
+      if(!is.null(yml_fl$scaling_factors$GOTM$outflow)) {
+        scale_param_tmp <-yml_fl$scaling_factors$GOTM$outflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
       for (i in 1:num_outflows) {
 
         gotm_outfile <- paste0("outflow_file_", i, ".dat")
 
         gotm_outfpath <- file.path(folder, "GOTM", gotm_outfile)
 
-        gotm_outflow <- format_outflow(outflow[[i]], model = "GOTM", config_file = config_file)
-        write.table(gotm_outflow, gotm_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+        gotm_outflow <- format_outflow(outflow_tmp[[i]], model = "GOTM",
+                                       config_file = config_file)
+        write.table(gotm_outflow, gotm_outfpath, quote = FALSE, row.names = FALSE,
+                    sep = "\t",
                     col.names = TRUE)
 
         message("GOTM: Created file ", file.path(folder, "GOTM", gotm_outfile))
@@ -624,6 +683,13 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ## Simstrat
     if("Simstrat" %in% model) {
 
+      if(!is.null(yml_fl$scaling_factors$Simstrat$outflow)) {
+        scale_param_tmp <- yml_fl$scaling_factors$Simstrat$outflow
+      } else {
+        scale_param_tmp <- scale_param_inf
+      }
+      outflow_tmp <-  scale_flow(outflow, num_outflows, scale_param_tmp)
+      
       outf_surf <- rep(FALSE, num_outflows)
       outf_surf[lvl_outflows == -1] <- TRUE
       #!! outflow elevations need to be relative to initial water level!!
@@ -649,7 +715,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       outflow_outfile <- "Qout.dat"
 
       outflow_outfpath <- file.path(folder, "Simstrat", outflow_outfile)
-      sim_outflow <- format_outflow(outflow, "Simstrat", config_file, folder)
+      sim_outflow <- format_outflow(outflow_tmp, "Simstrat", config_file, folder)
       ## inflow file
       outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
       outflow_line_2 <- paste0(as.character(length(lvl_outflows_simstrat_deep)), "\t",
