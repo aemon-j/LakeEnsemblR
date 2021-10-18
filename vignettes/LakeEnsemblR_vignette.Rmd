@@ -170,7 +170,7 @@ Next you can either give a value for Kw (light extinction coefficient) in 1/m, o
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation by setting `use`. If `true`, you need to link to a file with the inflow data (`file`). The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). The `scale_param:` argument allows to scale the inflows by the specified number. If no outflows are specified, they can be set to be equal to the inflows settin the `mass_balance` argument to `true`. There can be more than one inflow set by `number_inflows`. If there are more than one inflow, scale values for all inflows must be provided (see Outflow section) and the inflow file needs one column of each flow, water temperature and salinity per inflow, whereas the column names need to be followd by an underscore and the number of the inflow, e.g. `Flow_metersCubedPerSecond_1`, `Water_Temperature_celsius_1`, and `Salinity_practicalSalinityUnits_1`.
+Specify if you want to add inflows to your simulation by setting `use`. If `true`, you need to link to a file with the inflow data (`file`). The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). There can be more than one inflow set by `number_inflows`. If there are more than one inflow the inflow file needs one column of each flow, water temperature and salinity per inflow, whereas the column names need to be followed by an underscore and the number of the inflow, e.g. `Flow_metersCubedPerSecond_1`, `Water_Temperature_celsius_1`, and `Salinity_practicalSalinityUnits_1`.
 
 Example of inflow data:
 ```{csv}
@@ -184,7 +184,7 @@ datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalS
 
 ## Outflows
 
-For the models that allow changing water level (at this moment GLM, GOTM, Simstrat) outflows can be set in this section by setting `use` to true. The outflow dischagre must be profided in daily resolution in a .csv file specified by `file`. The file must contain a date column in `YYYY-mm-dd HH:MM:SS` format called `datetime` and for every outflow (specified by `number_outflows`) one column titled `Flow_metersCubedPerSecond`, if more than one outflow are defined the outflow columns need to be numbered like this: `Flow_metersCubedPerSecond_1`, `Flow_metersCubedPerSecond_2`. Scale parameters can be given for each outflow using the `scale_param` argument. If there are more than one outflow, one scale parameter per outflow must be given using yamls list format (see example below). For each outflow the depth of the outflow must be specified as height in meters above the lake bottom, or if the outflow is a surface outflow it can be set to "-1".
+For the models that allow changing water level (at this moment GLM, GOTM, Simstrat) outflows can be set in this section by setting `use` to true. The outflow dischagre must be profided in daily resolution in a .csv file specified by `file`. The file must contain a date column in `YYYY-mm-dd HH:MM:SS` format called `datetime` and for every outflow (specified by `number_outflows`) one column titled `Flow_metersCubedPerSecond`, if more than one outflow are defined the outflow columns need to be numbered like this: `Flow_metersCubedPerSecond_1`, `Flow_metersCubedPerSecond_2`. For each outflow the depth of the outflow must be specified as height in meters above the lake bottom, or if the outflow is a surface outflow it can be set to "-1".
 
 
 ```{yaml}
@@ -192,9 +192,6 @@ outflows:
    use: true                                    # use outflows? [true/false]
    file: LakeEnsemblR_outflow_standard.csv      # file with outflow data
    number_outflows: 2                           # number of outflows in the outflow file
-   scale_param:                                 # scaling factor for discharge 
-      - 1
-      - 1
    outflow_lvl:                                 # height of the outflow above the ground.
       - -1
       - 15
@@ -208,7 +205,8 @@ In the "Output" section, you specify how the output should look like. This can b
 <!-- Currently not implemented -->
 
 ## Scaling factors
-In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. 
+
+In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input as well as to inflows and outflows, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. If there are multiple inflows or outflows a list of scaling parameters for each of them must be provided (see example).
 
 ```{yaml}
 scaling_factors:
@@ -216,7 +214,11 @@ scaling_factors:
       wind_speed: 1.0
       swr: 1.0
    Simstrat:
-      wind_speed: 1.0
+      wind_speed: 0.95
+   GLM:
+     outflow:
+      - 1.02
+      - 1.03
 ```
 
 
