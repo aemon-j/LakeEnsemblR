@@ -17,7 +17,10 @@
 #' @param drho numeric; density difference between top and bottom indicating stratification
 #' [kg m^-3]
 #' @param NH boolean; northern hemisphere? TRUE or FALSE. Defaults to true
+#' @param month numeric; months to use for calculating mean surface and bottom temperature. Defaults to whole year (1-12).
 #' @author Tom Shatwell
+#'
+#' @importFrom lubridate month year
 #'
 #' @examples
 #' \dontrun{
@@ -26,7 +29,7 @@
 #'
 #' @export
 
-analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE){
+analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE, month = 1:12){
 
   if(!is.null(data)){
     data[, 2] <- abs(data[, 2])
@@ -85,6 +88,9 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
 
 
   the_years <- as.POSIXlt(dates)$year + 1900
+  the_months <- lubridate::month(df$dates)
+  df$year <- lubridate::year(df$dates)
+  df$month <- lubridate::month(df$dates)
   yrs <- unique(the_years)
   doys <- as.POSIXlt(dates)$yday # day of the year [0..364]
   alt_doys <- doys # alternative counting from [-182 .. 182] for ice in northern hemisphere or
@@ -174,6 +180,17 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     TsMin <- rbind(TsMin, TsMinOut)
   }
 
+  # mean surface temperature
+  # loop thru years to find Tmean and its day of year
+  TsMean <- NULL
+  for(ii in unique(the_years)) {
+    idx <- which(df$year %in% ii & df$month %in% month)
+    sub <- df$Ts[idx]
+    TsMeanOut <- data.frame(year = ii,
+                         TsMean = mean(sub, na.rm = TRUE))
+    TsMean <- rbind(TsMean, TsMeanOut)
+  }
+
   # maximum bottom temperature
   # loop thru years to find Tbmax and its day of year
   TbMax <- NULL
@@ -202,10 +219,21 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     TbMin <- rbind(TbMin, TbMinOut)
   }
 
+  # mean bottom temperature
+  # loop thru years to find Tmean and its day of year
+  TbMean <- NULL
+  for(ii in unique(the_years)) {
+    idx <- which(df$year %in% ii & df$month %in% month)
+    sub <- df$Tb[idx]
+    TbMeanOut <- data.frame(year = ii,
+                            TbMean = mean(sub, na.rm = TRUE))
+    TbMean <- rbind(TbMean, TbMeanOut)
+  }
+
   # create empty data frame to fill with data (not all years may have strat or ice)
-  out <- data.frame(year = yrs, TsMax = NA, TsMaxDay = NA, TsMin = NA, TsMinDay = NA, TbMax = NA,
+  out <- data.frame(year = yrs, TsMax = NA, TsMaxDay = NA, TsMin = NA, TsMinDay = NA, TsMean = NA, TbMax = NA,
                     TbMaxDay = NA,
-                    TbMin = NA, TbMinDay = NA,
+                    TbMin = NA, TbMinDay = NA, TbMean = NA,
                     MaxStratDur = NA, MeanStratDur = NA, TotStratDur = NA,
                     StratStart = NA, StratEnd = NA,
                     StratFirst = NA, StratLast = NA)
@@ -216,13 +244,19 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
   out[match(TsMin$year, yrs), c("TsMin", "TsMinDay")] <-
     TsMin[, c("TsMin", "TsMinDay")]
 
+  out[match(TsMean$year, yrs), c("TsMean")] <-
+    TsMean[, c("TsMean")]
+
   out[match(TbMax$year, yrs), c("TbMax", "TbMaxDay")] <-
     TbMax[, c("TbMax", "TbMaxDay")]
 
   out[match(TbMin$year, yrs), c("TbMin", "TbMinDay")] <-
     TbMin[, c("TbMin", "TbMinDay")]
 
-  out[match(yr, yrs), -1:-9] <-
+  out[match(TbMean$year, yrs), c("TbMean")] <-
+    TbMean[, c("TbMean")]
+
+  out[match(yr, yrs), c("MaxStratDur", "MeanStratDur", "TotStratDur", "StratStart", "StratEnd", "StratFirst", "StratLast")] <-
     data.frame(s_max, s_mean, s_tot, s_on, s_off, s_first, s_last)
 
 
@@ -301,6 +335,10 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
 
     out <- data.frame(out, ice_out1[, -1])
 
+    out$MixPer <- 365 - (out$TotStratDur + out$TotIceDur)
+
+  } else {
+    out$MixPer <- 365 - out$TotStratDur
   }
 
   # adjust some exceptions where stratification or ice extend longer than the cutoff period

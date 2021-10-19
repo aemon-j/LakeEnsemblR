@@ -5,9 +5,27 @@
 \alias{analyze_strat}
 \title{Returns stratification statstics}
 \usage{
-analyse_strat(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE)
+analyse_strat(
+  data = NULL,
+  Ts,
+  Tb,
+  dates,
+  H_ice = NULL,
+  drho = 0.1,
+  NH = TRUE,
+  month = 1:12
+)
 
-analyze_strat(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, NH = TRUE)
+analyze_strat(
+  data = NULL,
+  Ts,
+  Tb,
+  dates,
+  H_ice = NULL,
+  drho = 0.1,
+  NH = TRUE,
+  month = 1:12
+)
 }
 \arguments{
 \item{data}{dataframe; water temperature data in long format with date, depths, value. Defaults
@@ -26,6 +44,8 @@ not required. Defaults to NULL}
 [kg m^-3]}
 
 \item{NH}{boolean; northern hemisphere? TRUE or FALSE. Defaults to true}
+
+\item{month}{numeric; months to use for calculating mean surface and bottom temperature. Defaults to whole year (1-12).}
 }
 \description{
 Returns stratification statstics: annual mean, max and total
