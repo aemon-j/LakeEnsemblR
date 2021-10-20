@@ -18,7 +18,7 @@
 #' [kg m^-3]
 #' @param NH boolean; northern hemisphere? TRUE or FALSE. Defaults to true
 #' @param month numeric; months to use for calculating mean surface and bottom temperature. Defaults to whole year (1-12).
-#' @author Tom Shatwell
+#' @author Tom Shatwell Tadhg Moore
 #'
 #' @importFrom lubridate month year
 #'
@@ -87,10 +87,8 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
 
 
 
-  the_years <- as.POSIXlt(dates)$year + 1900
-  the_months <- lubridate::month(df$dates)
-  df$year <- lubridate::year(df$dates)
-  df$month <- lubridate::month(df$dates)
+  the_years <- lubridate::year(dates)
+  the_months <- lubridate::month(dates)
   yrs <- unique(the_years)
   doys <- as.POSIXlt(dates)$yday # day of the year [0..364]
   alt_doys <- doys # alternative counting from [-182 .. 182] for ice in northern hemisphere or
@@ -115,6 +113,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
   }
 
   s_strat <- (rho_water(t = Tb) - rho_water(t = Ts)) >= drho & Ts > Tb # logical whether stratified
+  if(is.na(s_strat[1])) s_strat[1] <- s_strat[2] # Catch for first value being NA for GLM
   # at each time step
   # s_strat <- Ts - Tb  > dT # logical whether stratified at each time step
 
@@ -143,9 +142,9 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     ind <- which.max(a2$dur)
     if(nrow(a2) == 1) if(is.na(a2$dur)) ind <- NA # fixes issue if stratified at end of data period
     yr <- c(yr, mm)
-    s_max <- c(s_max, max(a2$dur))
-    s_mean <- c(s_mean, mean(a2$dur))
-    s_tot <- c(s_tot, sum(a2$dur))
+    s_max <- c(s_max, max(a2$dur, na.rm = TRUE))
+    s_mean <- c(s_mean, mean(a2$dur, na.rm = TRUE))
+    s_tot <- c(s_tot, sum(a2$dur, na.rm = TRUE))
     s_on <- c(s_on, as.POSIXlt(a2$start[ind])$yday)
     s_off <- c(s_off, as.POSIXlt(a2$end[ind])$yday)
     s_first <- c(s_first, min(a2$startday))
@@ -184,8 +183,8 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
   # loop thru years to find Tmean and its day of year
   TsMean <- NULL
   for(ii in unique(the_years)) {
-    idx <- which(df$year %in% ii & df$month %in% month)
-    sub <- df$Ts[idx]
+    idx <- which(the_years %in% ii & the_months %in% month)
+    sub <- Ts[idx]
     TsMeanOut <- data.frame(year = ii,
                          TsMean = mean(sub, na.rm = TRUE))
     TsMean <- rbind(TsMean, TsMeanOut)
@@ -262,6 +261,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
 
   # ice cover
   if(!is.null(H_ice)) { # only do this if ice data provided
+    H_ice[is.na(H_ice)] <- FALSE # replace NA's with FALSE
     ice <- H_ice > 0
     i_i_st <- diff(c(ice[1], ice)) == 1 # indices of ice cover onset
     i_i_en <- diff(c(ice[1], ice)) == -1 #  # indices of ice cover end
@@ -279,7 +279,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
                               HiceMax     = H_ice[ice_yrs == ii][Hice_maxi],
                               HiceMaxDay  = ice_doys[ice_yrs == ii][Hice_maxi],
                               HiceMaxDate = dates[ice_yrs == ii][Hice_maxi])
-      if(sum(H_ice[ice_yrs == ii]) == 0) IceMaxOut[1, c("HiceMaxDay", "HiceMaxDate")] <- NA
+      if(sum(H_ice[ice_yrs == ii], na.rm = TRUE) == 0) IceMaxOut[1, c("HiceMaxDay", "HiceMaxDate")] <- NA
       IceMax <- rbind(IceMax, IceMaxOut)
     }
 
@@ -288,7 +288,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     ice_event_yrs <- ice_yrs[i_i_en]   # the years assigned to each ice event
 
     # if there is no ice, set values to NA ...
-    if(sum(ice) == 0) {
+    if(sum(ice, na.rm = TRUE) == 0) {
       ice_start_doys <- ice_end_doys <- ice_event_yrs <- ice_st <- ice_en <- NA
     }
     ice_dur <- as.double(difftime(ice_en, ice_st, units = "days")) # duration of ice periods
@@ -334,11 +334,15 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
       IceMax[which(IceMax$year %in% ice_out1$year), c("HiceMax", "HiceMaxDay")]
 
     out <- data.frame(out, ice_out1[, -1])
+  }
 
-    out$MixPer <- 365 - (out$TotStratDur + out$TotIceDur)
-
-  } else {
-    out$MixPer <- 365 - out$TotStratDur
+  out$MixPer <- NA
+  for(i in seq_len(nrow(out))) {
+    if(!is.na(out$TotIceDur[i])) {
+      out$MixPer[i] <- 365 - (out$TotStratDur[i] + out$TotIceDur[i])
+    } else {
+      out$MixPer[i] <- 365 - out$TotStratDur[i]
+    }
   }
 
   # adjust some exceptions where stratification or ice extend longer than the cutoff period
