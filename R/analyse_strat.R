@@ -83,10 +83,6 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
     }
   }
 
-
-
-
-
   the_years <- lubridate::year(dates)
   the_months <- lubridate::month(dates)
   yrs <- unique(the_years)
@@ -222,7 +218,7 @@ analyse_strat <- function(data = NULL, Ts, Tb, dates, H_ice = NULL, drho = 0.1, 
   # loop thru years to find Tmean and its day of year
   TbMean <- NULL
   for(ii in unique(the_years)) {
-    idx <- which(df$year %in% ii & df$month %in% month)
+    idx <- which(the_years %in% ii & the_months %in% month)
     sub <- df$Tb[idx]
     TbMeanOut <- data.frame(year = ii,
                             TbMean = mean(sub, na.rm = TRUE))
