@@ -76,14 +76,32 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # outflow depths
     lvl_outflows <- get_yaml_value(config_file, "outflows", "outflow_lvl")
     # Get scaling parameter
-    scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")
+    if(!is.null(yml_fl$scaling_factors$all$outflow)) {
+      scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")}
+    else {
+      scale_param_out <- rep(1, num_outflows)
+      warning(paste0("No outflow scaling found in section 'scaling_factors/all'",
+                     " of the config file '", config_file,
+                     "'. Inflow scaling was assumed to be 1.",
+                     " If you provide model specific scaling they",
+                     " will overwrite this factor."), call. = FALSE)
+    }
   }
 
   if(use_inflows) {
-    # Get scaling parameter
-    scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")
     # number of inflows
     num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
+    # Get scaling parameter
+    if(!is.null(yml_fl$scaling_factors$all$inflow)) {
+      scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")}
+    else {
+      scale_param_inf <- rep(1, num_inflows)
+      warning(paste0("No inflow scaling found in section 'scaling_factors/all'",
+                     " of the config file '", config_file,
+                     "'. Inflow scaling was assumed to be 1.",
+                     " If you provide model specific scaling they",
+                     " will overwrite this factor."), call. = FALSE)
+    }
   }
 
 
