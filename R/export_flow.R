@@ -86,6 +86,13 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                      " If you provide model specific scaling they",
                      " will overwrite this factor."), call. = FALSE)
     }
+  if(!is.null(yml_fl$outflows$scale_param)) {
+    warning(paste0("Outflow scaling found in section 'outflow/scale_param'",
+                   " of the config file '", config_file,
+                   "'. outflow scaling was moved to the ",
+                   "'scaling_factors' section, please update",
+                   " your yaml file."), call. = FALSE)
+  }
   }
 
   if(use_inflows) {
@@ -101,6 +108,13 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                      "'. Inflow scaling was assumed to be 1.",
                      " If you provide model specific scaling they",
                      " will overwrite this factor."), call. = FALSE)
+    }
+    if(!is.null(yml_fl$inflows$scale_param)) {
+      warning(paste0("Inflow scaling found in section 'inflow/scale_param'",
+                     " of the config file '", config_file,
+                   "'. inflow scaling was moved to the ",
+                     "'scaling_factors' section, please update",
+                     " your yaml file."), call. = FALSE)
     }
   }
 
