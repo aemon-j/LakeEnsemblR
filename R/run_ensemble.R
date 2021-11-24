@@ -51,7 +51,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   lakename <- get_yaml_value(config_file, "location", "name")
   obs_file <- get_yaml_value(config_file, "temperature", "file")
   ice_file <- get_yaml_value(config_file, "ice_height", "file")
-  if("water_level" %in% names(cnf_fl)) {
+  if("water_level" %in% names(cnf_fl$observations)) {
     wlvl_file <- get_yaml_value(config_file, "water_level", "file")
   } else {
     wlvl_file <- ""
