@@ -50,7 +50,7 @@ file.copy(from = template_folder, to = "example", recursive = TRUE)
 setwd("example/feeagh") # Change working directory to example folder
 
 # Set config file & models
-config_file <- 'LakeEnsemblR.yaml'
+config_file <- "LakeEnsemblR.yaml"
 model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
 # Example run
@@ -71,7 +71,7 @@ library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
 # Extract names of all the variables in netCDF
-ncdf <- 'output/ensemble_output.nc'
+ncdf <- "output/ensemble_output.nc"
 vars <- gotmtools::list_vars(ncdf)
 vars # Print variables
 
@@ -83,7 +83,7 @@ p1 <- p1 +
   scale_colour_gradientn(limits = c(0, 21),
                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 # Save as a png file
-ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
+ggsave("output/ensemble_heatmap.png", p1,  dpi = 300,width = 384,height = 280, units = "mm")
 
 ```
 ![](images/ensemble_heatmap.png)<!-- -->
@@ -92,10 +92,10 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
+plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
 
 # Load watertemp from netCDF file as a list
-wtemp <- load_var(ncdf = ncdf, var = 'temp', return = 'list')
+wtemp <- load_var(ncdf = ncdf, var = "temp", return = "list")
 names(wtemp)
 
 # Plot residual diagnostic plots
@@ -108,9 +108,9 @@ plots[[2]]
 # Analyse the netCDF output
 out <- analyse_ncdf(ncdf, model = model, spin_up = 0)
 names(out)
-str <- out[['strat']]
+str <- out[["strat"]]
 str[str$year == 2010, ]
-stats <- out[['stats']]
+stats <- out[["stats"]]
 stats
 ```
 See the [vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf) for further examples.
