@@ -245,9 +245,7 @@ test_that("can run models & generate csv files", {
   run_ensemble(config_file = config_file,
                model = model)
 
-
-
-  testthat::expect_true((length(list.files("output", pattern = "csv")) == 11))
+  testthat::expect_true(length(list.files("output", pattern = "csv")) == 16L)
 })
 
 test_that("can calibrate models", {
