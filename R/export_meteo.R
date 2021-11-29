@@ -72,7 +72,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                 "Colnames: ", paste0(colnames(met)[!chck_met], collapse = ", "),
                 ifelse(sum(!chck_met)>1, " are", " is")," wrong.\n",
                 "They should be one of: \n", paste0(met_var_dic$standard_name,
-                                                  collapse = "\n")))
+                                                    collapse = "\n")))
   }
 
 

@@ -106,3 +106,5 @@ calc_fit <- function(ncdf, list = NULL, model, var = "temp", dim = "model", dim_
 
 
 }
+
+

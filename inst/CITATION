@@ -19,7 +19,7 @@ citEntry(
                       as.person("Kevin C. Rose"),
                       as.person("Jordan S. Read")),
   journal  = "Environmental Modelling & Software",
-  year     = "in submission",
+  year     = "2021",
   publisher = "Elsevier",
   textVersion = paste("Tadhg N. Moore, Jorrit P. Mesman, Robert Ladwig, Johannes Feldbauer,",
                       " Freya Olsson, Rachel M. Pilla, Tom Shatwell, Jason J. Venkiteswaran,",
