@@ -70,6 +70,123 @@ test_that("create model meteo & config files", {
 
 })
 
+test_that("can add members to netCDF models", {
+
+  unlink("output/ensemble_output.nc", recursive = TRUE, force = TRUE)
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  ncdf <- "output/ensemble_output.nc"
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
+  test1 <- tryCatch({
+    load_var(ncdf, "temp", return = "array")
+  }, error = function(e) return(FALSE))
+
+  test2 <- tryCatch({
+    load_var(ncdf, "temp", return = "list")
+  }, error = function(e) return(FALSE))
+  test3 <- tryCatch({
+    load_var(ncdf, "ice_height", return = "array")
+  }, error = function(e) return(FALSE))
+
+  test4 <- tryCatch({
+    load_var(ncdf, "ice_height", return = "list")
+  }, error = function(e) return(FALSE))
+
+  met <- read.csv('LakeEnsemblR_meteo_standard.csv')
+  met$Air_Temperature_celsius <- met$Air_Temperature_celsius + 2
+  met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond*0.75
+  write.csv(met, "LakeEnsemblR_meteo_standard.csv", row.names = F, quote = F)
+  export_config(config_file, model = model)
+
+  test_add <- tryCatch({
+    run_ensemble(config_file = config_file,
+                 model = model, add = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_null(test_add)
+
+
+
+  test5 <- tryCatch({
+    load_var(ncdf, "temp", return = "array", dim = "member")
+  }, error = function(e) return(FALSE))
+
+  test6 <- tryCatch({
+    load_var(ncdf, "temp", return = "list", dim = "member")
+  }, error = function(e) return(FALSE))
+  test7 <- tryCatch({
+    load_var(ncdf, "ice_height", return = "array", dim = "member")
+  }, error = function(e) return(FALSE))
+
+  test8 <- tryCatch({
+    load_var(ncdf, "ice_height", return = "list", dim = "member")
+  }, error = function(e) return(FALSE))
+
+  testthat::expect_true(is.array(test1))
+  testthat::expect_true(is.list(test2))
+  testthat::expect_true(is.array(test3))
+  testthat::expect_true(is.list(test4))
+  testthat::expect_true(is.array(test5))
+  testthat::expect_true(is.list(test6))
+  testthat::expect_true(is.array(test7))
+  testthat::expect_true(is.list(test8))
+
+
+  test9 <- tryCatch({
+    analyse_ncdf(ncdf, model)
+  }, error = function(e) return(FALSE))
+
+  test10 <- tryCatch({
+    analyse_ncdf(ncdf, model, dim = "member")
+  }, error = function(e) return(FALSE))
+
+  testthat::expect_true(is.list(test9))
+  testthat::expect_true(is.list(test10))
+
+  test11 <- tryCatch({
+    plot_resid(ncdf, var = "temp")
+  }, error = function(e) return(FALSE))
+
+  test12 <- tryCatch({
+    plot_resid(ncdf, var = "temp", dim = "member")
+  }, error = function(e) return(FALSE))
+
+
+  testthat::expect_true(is.list(test11))
+  testthat::expect_true(is.list(test12))
+
+  test13 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9)
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot(test13))
+
+  test14 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member")
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot(test14))
+
+  test15 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
+                  residuals = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot((test15[[1]])) &
+                          ggplot2::is.ggplot((test15[[2]])))
+
+  test16 <- tryCatch({
+    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
+                  residuals = TRUE, boxwhisker = TRUE)
+  }, error = function(e) return(FALSE))
+  testthat::expect_true(ggplot2::is.ggplot((test16[[1]])) &
+                          ggplot2::is.ggplot((test16[[2]])) &
+                          ggplot2::is.ggplot((test16[[3]])))
+
+})
 
 test_that("can run FLake", {
 
@@ -211,22 +328,6 @@ test_that("can run Simstrat with errors", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
-test_that("can run MyLake", {
-
-  unlink("output/ensemble_output.nc")
-  config_file <- "LakeEnsemblR_copy.yaml"
-  model <- c("MyLake")
-
-  # 1. Example - creates directories with all model setup
-  export_config(config_file = config_file, model = model)
-
-  # 2. run models
-  run_ensemble(config_file = config_file,
-               model = model)
-
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
-})
-
 test_that("can run MyLake with errors", {
 
   unlink("output/ensemble_output.nc")
@@ -247,13 +348,11 @@ test_that("can run MyLake with errors", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
-
-test_that("can add members to netCDF models", {
+test_that("can run MyLake", {
 
   unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
-  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-  ncdf <- "output/ensemble_output.nc"
+  model <- c("MyLake")
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
@@ -262,109 +361,9 @@ test_that("can add members to netCDF models", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  test1 <- tryCatch({
-    load_var(ncdf, "temp", return = "array")
-  }, error = function(e) return(FALSE))
-
-  test2 <- tryCatch({
-    load_var(ncdf, "temp", return = "list")
-  }, error = function(e) return(FALSE))
-  test3 <- tryCatch({
-    load_var(ncdf, "ice_height", return = "array")
-  }, error = function(e) return(FALSE))
-
-  test4 <- tryCatch({
-    load_var(ncdf, "ice_height", return = "list")
-  }, error = function(e) return(FALSE))
-
-  met <- read.csv('LakeEnsemblR_meteo_standard.csv')
-  met$Air_Temperature_celsius <- met$Air_Temperature_celsius + 2
-  met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond <- met$Ten_Meter_Elevation_Wind_Speed_meterPerSecond*0.75
-  write.csv(met, "LakeEnsemblR_meteo_standard.csv", row.names = F, quote = F)
-  export_config(config_file, model = model)
-
-  test_add <- tryCatch({
-    run_ensemble(config_file = config_file,
-                 model = model, add = TRUE)
-  }, error = function(e) return(FALSE))
-  testthat::expect_null(test_add)
-
-
-
-  test5 <- tryCatch({
-    load_var(ncdf, "temp", return = "array", dim = "member")
-  }, error = function(e) return(FALSE))
-
-  test6 <- tryCatch({
-    load_var(ncdf, "temp", return = "list", dim = "member")
-  }, error = function(e) return(FALSE))
-  test7 <- tryCatch({
-    load_var(ncdf, "ice_height", return = "array", dim = "member")
-  }, error = function(e) return(FALSE))
-
-  test8 <- tryCatch({
-    load_var(ncdf, "ice_height", return = "list", dim = "member")
-  }, error = function(e) return(FALSE))
-
-  testthat::expect_true(is.array(test1))
-  testthat::expect_true(is.list(test2))
-  testthat::expect_true(is.array(test3))
-  testthat::expect_true(is.list(test4))
-  testthat::expect_true(is.array(test5))
-  testthat::expect_true(is.list(test6))
-  testthat::expect_true(is.array(test7))
-  testthat::expect_true(is.list(test8))
-
-
-  test9 <- tryCatch({
-    analyse_ncdf(ncdf, model)
-  }, error = function(e) return(FALSE))
-
-  test10 <- tryCatch({
-    analyse_ncdf(ncdf, model, dim = "member")
-  }, error = function(e) return(FALSE))
-
-  testthat::expect_true(is.list(test9))
-  testthat::expect_true(is.list(test10))
-
-  test11 <- tryCatch({
-    plot_resid(ncdf, var = "temp")
-  }, error = function(e) return(FALSE))
-
-  test12 <- tryCatch({
-    plot_resid(ncdf, var = "temp", dim = "member")
-  }, error = function(e) return(FALSE))
-
-
-  testthat::expect_true(is.list(test11))
-  testthat::expect_true(is.list(test12))
-
-  test13 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "temp", depth = 0.9)
-  }, error = function(e) return(FALSE))
-  testthat::expect_true(ggplot2::is.ggplot(test13))
-
-  test14 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member")
-  }, error = function(e) return(FALSE))
-  testthat::expect_true(ggplot2::is.ggplot(test14))
-
-  test15 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
-                  residuals = TRUE)
-  }, error = function(e) return(FALSE))
-  testthat::expect_true(ggplot2::is.ggplot((test15[[1]])) &
-                          ggplot2::is.ggplot((test15[[2]])))
-
-  test16 <- tryCatch({
-    plot_ensemble(ncdf, model, var = "temp", depth = 0.9, dim = "member",
-                  residuals = TRUE, boxwhisker = TRUE)
-  }, error = function(e) return(FALSE))
-  testthat::expect_true(ggplot2::is.ggplot((test16[[1]])) &
-                          ggplot2::is.ggplot((test16[[2]])) &
-                          ggplot2::is.ggplot((test16[[3]])))
-
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
+
 
 test_that("can run models & generate csv files", {
 
