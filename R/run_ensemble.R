@@ -22,17 +22,17 @@
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = ".", verbose = FALSE, parallel = FALSE,
                          return_list = FALSE, create_output = TRUE, add = FALSE){
-  
+
   # check model input
   model <- check_models(model, check_package_install = TRUE)
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
     config_yaml <- gotmtools::read_yaml(config_file)
   }
 
-  
+
   # check the master config file
   check_master_config(config_file, model)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
@@ -98,9 +98,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # Subset to out_time
     obs_out <- obs_out[obs_out$datetime %in% out_time$datetime, ]
     obs_out <- merge(out_time, obs_out, by = "datetime", all.x = TRUE)
+    obs_na <- obs_out
+    obs_na[, -1] <- NA
 
   }else{
     obs_deps <- NULL
+    obs_na <- data.frame(datetime = out_time, wtr_0.5 = NA, wtr_1 = NA)
   }
 
   if(!is.null(ice_file)){
@@ -129,6 +132,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          stop = stop,
                          verbose = verbose,
                          obs_deps = obs_deps,
+                         obs_na = obs_na,
                          out_time = out_time,
                          out_vars = out_vars)
 
@@ -262,44 +266,10 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }
 }
 
-
-#' @keywords internal
-.run_GLM <- function(config_yaml, folder, return_list, create_output, start, stop,
-                     verbose, obs_deps, out_time, out_hour, out_vars){
-
-  #Delete previous output
-  # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
-  old_output <- list.files(file.path(folder, "GLM", "output"))
-  unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
-
-  GLM3r::run_glm(sim_folder = file.path(folder, "GLM"), verbose = verbose)
-
-  message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
-
-  if(return_list | create_output) {
-
-    # Extract output
-    glm_out <- get_output(config_yaml = config_yaml, model = "GLM", vars = out_vars,
-                          obs_depths = obs_deps, folder = folder)
-
-    # Ensure GLM is on the same time step for output
-    if(!is.list(glm_out)) {
-      glm_out <- merge(glm_out, out_time, by = "datetime", all.y = TRUE)
-    } else {
-      glm_out <- lapply(seq_len(length(glm_out)), function(x){
-        merge(glm_out[[x]], out_time, by = 1, all.y = TRUE)
-      })
-      names(glm_out) <- out_vars # Re-assign names to list
-    }
-
-  }
-  return(glm_out)
-}
-
 #' @keywords internal
 #' @importFrom lubridate hour
 .run_FLake <- function(config_yaml, folder, return_list, create_output, start, stop,
-                       verbose, obs_deps, out_time, out_hour, out_vars){
+                       verbose, obs_deps, obs_na, out_time, out_hour, out_vars){
 
 
 
@@ -311,7 +281,9 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 
   FLakeR::run_flake(sim_folder = file.path(folder, "FLake"), nml_file = nml_file,
-            verbose = verbose)
+                    verbose = verbose)
+
+  run_success <- file.exists(file.path(folder, "FLake", "output", "output.dat"))
 
   if(return_list | create_output){
 
@@ -322,7 +294,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # Extract output
     fla_out <- get_output(config_yaml = config_yaml, model = "FLake", vars = out_vars,
                           obs_depths = obs_deps, folder = folder, out_time = out_time,
-                          out_hour = out_hour)
+                          out_hour = out_hour, run_success = run_success)
 
     # Ensure FLake is on the same time step for output
     if(!is.list(fla_out)) {
@@ -334,14 +306,56 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       names(fla_out) <- out_vars # Re-assign names to list
     }
   }
-  message("FLake run is complete! ", paste0("[", Sys.time(), "]"))
+  if(run_success) {
+    message("FLake run is complete! ", paste0("[", Sys.time(), "]"))
+  } else {
+    message("FLake run FAILED.\nInspect model configuration files for errors.",
+            paste0("[", Sys.time(), "]"))
+  }
   return(fla_out)
+}
 
+#' @keywords internal
+.run_GLM <- function(config_yaml, folder, return_list, create_output, start, stop,
+                     verbose, obs_deps, obs_na, out_time, out_hour, out_vars){
+
+  #Delete previous output
+  # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
+  old_output <- list.files(file.path(folder, "GLM", "output"))
+  unlink(file.path(folder, "GLM", "output", old_output), recursive = TRUE)
+
+  GLM3r::run_glm(sim_folder = file.path(folder, "GLM"), verbose = verbose)
+  run_success <- file.exists(file.path(folder, "GLM", "output", "output.nc"))
+
+  if(return_list | create_output) {
+
+    # Extract output
+    glm_out <- get_output(config_yaml = config_yaml, model = "GLM", vars = out_vars,
+                          out_time = out_time, obs_depths = obs_deps, folder = folder,
+                          run_success = run_success)
+
+    # Ensure GLM is on the same time step for output
+    if(!is.list(glm_out)) {
+      glm_out <- merge(glm_out, out_time, by = "datetime", all.y = TRUE)
+    } else {
+      glm_out <- lapply(seq_len(length(glm_out)), function(x){
+        merge(glm_out[[x]], out_time, by = 1, all.y = TRUE)
+      })
+      names(glm_out) <- out_vars # Re-assign names to list
+    }
+  }
+  if(run_success) {
+    message("GLM run is complete! ", paste0("[", Sys.time(), "]"))
+  } else {
+    message("GLM run FAILED.\nInspect model configuration files for errors.",
+            paste0("[", Sys.time(), "]"))
+  }
+  return(glm_out)
 }
 
 #' @keywords internal
 .run_GOTM <- function(config_yaml, folder, return_list, create_output, start, stop,
-                      verbose, obs_deps,out_time, out_vars){
+                      verbose, obs_deps, obs_na, out_time, out_vars){
 
   yaml_file <- file.path(folder, gotmtools::get_yaml_value(config_yaml, "config_files", "GOTM"))
 
@@ -351,14 +365,14 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   GOTMr::run_gotm(sim_folder = file.path(folder, "GOTM"), yaml_file = basename(yaml_file),
            verbose = verbose)
-
-  message("GOTM run is complete! ", paste0("[", Sys.time(), "]"))
+  run_success <- file.exists(file.path(folder, "GOTM", "output", "output.nc"))
 
   if(return_list | create_output){
 
     # Extract output
     gotm_out <- get_output(config_yaml = config_yaml, model = "GOTM", vars = out_vars,
-                           obs_depths = obs_deps, folder = folder)
+                           obs_depths = obs_deps, folder = folder, out_time = out_time,
+                           run_success = run_success)
 
     # Ensure GOTM is on the same time step for output
     if(!is.list(gotm_out)) {
@@ -371,12 +385,18 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     }
   }
 
+  if(run_success) {
+    message("GOTM run is complete! ", paste0("[", Sys.time(), "]"))
+  } else {
+    message("GOTM run FAILED.\nInspect model configuration files for errors.",
+            paste0("[", Sys.time(), "]"))
+  }
   return(gotm_out)
 }
 
 #' @keywords internal
 .run_Simstrat <- function(config_yaml, folder, return_list, create_output, start, stop,
-                          verbose, obs_deps, out_time, out_vars){
+                          verbose, obs_deps, obs_na, out_time, out_vars){
 
   par_file <- basename(gotmtools::get_yaml_value(config_yaml, "config_files", "Simstrat"))
 
@@ -386,15 +406,15 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
 
 
-  SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = verbose)
-
-  message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
+  sim_res <- SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = TRUE)
+  run_success <- !any(grepl("Error|ERROR", sim_res))
 
   if(return_list | create_output){
 
     ### Extract output
     sim_out <- get_output(config_yaml = config_yaml, model = "Simstrat", vars = out_vars,
-                          obs_depths = obs_deps, folder = folder)
+                          obs_depths = obs_deps, folder = folder, out_time = out_time,
+                          run_success = run_success)
 
     # Ensure Simstrat is on the same time step for output
     if(!is.list(sim_out)) {
@@ -406,23 +426,36 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       names(sim_out) <- out_vars # Re-assign names to list
     }
   }
+  if(run_success) {
+    message("Simstrat run is complete! ", paste0("[", Sys.time(), "]"))
+  } else {
+    message("Simstrat run FAILED.\nInspect model configuration files for errors.",
+            paste0("[", Sys.time(), "]"))
+  }
   return(sim_out)
 }
 
 #' @keywords internal
 .run_MyLake <- function(config_yaml, folder, return_list, create_output, start, stop,
-                        verbose, obs_deps, out_time, out_vars){
+                        verbose, obs_deps, obs_na, out_time, out_vars){
+
+  #Delete previous output
+  old_output <- list.files(file.path(folder, "MyLake", "output"))
+  unlink(file.path(folder, "MyLake", "output", old_output), recursive = TRUE)
 
   cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(config_yaml, "config_files", "MyLake"))
-  MyLakeR::run_mylake(sim_folder = folder, config_dat = cnfg_file)
-
-  message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
+  run_success <- tryCatch({
+    MyLakeR::run_mylake(sim_folder = folder, config_dat = cnfg_file)
+    TRUE
+  },
+           error = function(e) return(FALSE))
 
   if(return_list | create_output){
 
     ### Extract output
     mylake_out <- get_output(config_yaml = config_yaml, model = "MyLake", vars = out_vars,
-                             obs_depths = obs_deps, folder = folder)
+                             obs_depths = obs_deps, folder = folder, out_time = out_time,
+                             run_success = run_success)
 
     if(!is.list(mylake_out)) {
       mylake_out <- merge(mylake_out, out_time, by = "datetime", all.y = T)
@@ -432,6 +465,13 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       })
       names(mylake_out) <- out_vars # Re-assign names to list
     }
+  }
+
+  if(run_success) {
+    message("MyLake run is complete! ", paste0("[", Sys.time(), "]"))
+  } else {
+    message("MyLake run FAILED.\nInspect model configuration files for errors.",
+            paste0("[", Sys.time(), "]"))
   }
   return(mylake_out)
 }

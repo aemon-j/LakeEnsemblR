@@ -12,7 +12,8 @@ read_flake_out(
   nml_file,
   long = FALSE,
   out_time,
-  out_hour = 0
+  out_hour = 0,
+  run_success
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ read_flake_out(
 \item{out_time}{vector; of output time values to subset data by.}
 
 \item{out_hour}{numeric; hour of output time values to subset data. Only used for FLake if model time step is 86400s.}
+
+\item{run_success}{logical; was the model run successful?}
 }
 \value{
 Dataframe if only one variable otherwise a list

@@ -11,6 +11,7 @@
 #' @param long Boolean; return data in long form
 #' @param out_time vector; of output time values to subset data by.
 #' @param out_hour numeric; hour of output time values to subset data. Only used for FLake if model time step is 86400s.
+#' @param run_success logical; was the model run successful?
 #' @return Dataframe if only one variable otherwise a list
 #' @importFrom reshape2 dcast
 #' @importFrom glmtools get_nml_value
@@ -21,215 +22,240 @@
 #' }
 #'
 #' @export
-read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long = FALSE, out_time, out_hour = 0){
+read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long = FALSE, out_time, out_hour = 0, run_success){
 
   met_file <- suppressWarnings(glmtools::get_nml_value(arg_name = "meteofile", nml_file = nml_file))
   met_file <- file.path(folder, met_file)
   met_file <- gsub(",", "", met_file)
 
-  met <- read.delim(met_file, header = FALSE)
-  datetime <- as.POSIXct(met[, ncol(met)], tz = "UTC") + (out_hour * 60 * 60)
+  if(run_success) {
+    met <- read.delim(met_file, header = FALSE)
+    datetime <- as.POSIXct(met[, ncol(met)], tz = "UTC") + (out_hour * 60 * 60)
 
-  # Code from R. I. Woolway FLake Workshop
-  flake_out <- read.table(output, header = TRUE, skip = 1, stringsAsFactors = FALSE)
+    # Code from R. I. Woolway FLake Workshop
+    flake_out <- read.table(output, header = TRUE, skip = 1, stringsAsFactors = FALSE)
+  }
 
   out_list <- list()
   if("temp" %in% vars){
-    # calculate temperature profile
-    Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
-    Tb <- flake_out[["Tb"]] # bottom temperature
-    h <- flake_out[["h_ML"]] # mixed layer depth
-    C <- flake_out[["C_T"]] # shape factor
-    D <- max(depths) # mean depth
 
-    if(long){
-      l_wtr <- list()
-    }else{
-      mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
-    }
+    if(run_success) {
+      # calculate temperature profile
+      Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
+      Tb <- flake_out[["Tb"]] # bottom temperature
+      h <- flake_out[["h_ML"]] # mixed layer depth
+      C <- flake_out[["C_T"]] # shape factor
+      D <- max(depths) # mean depth
 
-    # Make sure dates are ordered
-    depths <- depths[order(depths)]
-
-
-    for(kk in seq_len(length(depths))){
-      z <- depths[kk]
-      zeta <- (z - h) / (D - h)
-      c1 <- 40 / 3
-      c2 <- 20 / 3
-      c3 <- 5 / 3
-      c4 <- 10 / 3
-      is_in_ML <- z <= h
-      Tz <- ifelse(is_in_ML, Ts, {
-        zeta * (c1 * C - c2 + zeta *
-                  (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
-          (Tb - Ts) + Ts
-      })
-      
       if(long){
-        dd <- data.frame(dateTime = seq_len(length(Tz)),
-                         depth = z,
-                         wtr = Tz)
-        l_wtr[[kk]] <- dd
+        l_wtr <- list()
       }else{
-        mat[, kk] <- Tz
+        mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
       }
-    }
 
-    if(long){
-      wtr2 <- do.call("rbind", l_wtr)
+      # Make sure dates are ordered
+      depths <- depths[order(depths)]
 
-      # sort in temporal order
-      wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
-      colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
-      tims <- sum((wtr2[, 1] == wtr2[1, 1]))
-      time_long <- rep(datetime, each = tims)
-      wtr2$datetime <- time_long
-    }else{
-      wtr2 <- as.data.frame(mat)
-      wtr2$datetime <- datetime
-      wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
-      colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
-    }
-    wtr2 <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
-    out_list[[length(out_list) + 1]] <- wtr2
-    names(out_list)[length(out_list)] <- "temp"
-  }
 
-  if("ice_height" %in% vars){
-    ice_height <- flake_out[["H_ice"]]
-    df <- data.frame(datetime, ice_height)
+      for(kk in seq_len(length(depths))){
+        z <- depths[kk]
+        zeta <- (z - h) / (D - h)
+        c1 <- 40 / 3
+        c2 <- 20 / 3
+        c3 <- 5 / 3
+        c4 <- 10 / 3
+        is_in_ML <- z <= h
+        Tz <- ifelse(is_in_ML, Ts, {
+          zeta * (c1 * C - c2 + zeta *
+                    (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
+            (Tb - Ts) + Ts
+        })
 
-    out_list[[length(out_list) + 1]] <- df
-    names(out_list)[length(out_list)] <- "ice_height"
-  }
-  
-  if("dens" %in% vars){
-    # calculate temperature profile
-    Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
-    Tb <- flake_out[["Tb"]] # bottom temperature
-    h <- flake_out[["h_ML"]] # mixed layer depth
-    C <- flake_out[["C_T"]] # shape factor
-    D <- max(depths) # mean depth
-    
-    if(long){
-      l_wtr <- list()
-    }else{
-      mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
-    }
-    
-    # Make sure dates are ordered
-    depths <- depths[order(depths)]
-    
-    
-    for(kk in seq_len(length(depths))){
-      z <- depths[kk]
-      zeta <- (z - h) / (D - h)
-      c1 <- 40 / 3
-      c2 <- 20 / 3
-      c3 <- 5 / 3
-      c4 <- 10 / 3
-      is_in_ML <- z <= h
-      Tz <- ifelse(is_in_ML, Ts, {
-        zeta * (c1 * C - c2 + zeta *
-                  (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
-          (Tb - Ts) + Ts
-      })
-      
+        if(long){
+          dd <- data.frame(dateTime = seq_len(length(Tz)),
+                           depth = z,
+                           wtr = Tz)
+          l_wtr[[kk]] <- dd
+        }else{
+          mat[, kk] <- Tz
+        }
+      }
+
       if(long){
-        dd <- data.frame(dateTime = seq_len(length(Tz)),
-                         depth = z,
-                         wtr = Tz)
-        l_wtr[[kk]] <- dd
+        wtr2 <- do.call("rbind", l_wtr)
+
+        # sort in temporal order
+        wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
+        colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
+        tims <- sum((wtr2[, 1] == wtr2[1, 1]))
+        time_long <- rep(datetime, each = tims)
+        wtr2$datetime <- time_long
       }else{
-        mat[, kk] <- Tz
+        wtr2 <- as.data.frame(mat)
+        wtr2$datetime <- datetime
+        wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
+        colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
       }
-    }
-    
-    if(long){
-      wtr2 <- do.call("rbind", l_wtr)
-      
-      # sort in temporal order
-      wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
-      colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
-      tims <- sum((wtr2[, 1] == wtr2[1, 1]))
-      time_long <- rep(datetime, each = tims)
-      wtr2$datetime <- time_long
-    }else{
-      wtr2 <- as.data.frame(mat)
-      wtr2$datetime <- datetime
-      wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
-      colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
-    }
-    dens <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
-    dens[, -c(1)] <-  999.842594 + (6.793952 * 10^-2 * wtr2[, -c(1)]) - (9.095290 * 10^-3 * wtr2[, -c(1)]^2) +
-      (1.001685 * 10^-4 * wtr2[, -c(1)]^3) - (1.120083 * 10^-6 * wtr2[, -c(1)]^4) + (6.536336 * 10^-9 * wtr2[, -c(1)]^5) 
-    out_list[[length(out_list) + 1]] <- dens
-    names(out_list)[length(out_list)] <- "dens"
+      wtr2 <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
+      out_list[[length(out_list) + 1]] <- wtr2
+      names(out_list)[length(out_list)] <- "temp"
+    } else {
+      out_list[[length(out_list) + 1]] <- data.frame(datetime = out_time, wtr_0.5 = NA, wtr_1 = NA)
+      names(out_list)[length(out_list)] <- "temp"
+      }
   }
-  
+
+  if("ice_height" %in% vars) {
+
+    if(run_success) {
+      ice_height <- flake_out[["H_ice"]]
+      df <- data.frame(datetime, ice_height)
+
+      out_list[[length(out_list) + 1]] <- df
+      names(out_list)[length(out_list)] <- "ice_height"
+    } else {
+      out_list[[length(out_list) + 1]] <- data.frame(datetime = out_time, ice_height = NA)
+      names(out_list)[length(out_list)] <- "ice_height"
+      }
+  }
+
+  if("dens" %in% vars) {
+
+    if(run_success) {
+      # calculate temperature profile
+      Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
+      Tb <- flake_out[["Tb"]] # bottom temperature
+      h <- flake_out[["h_ML"]] # mixed layer depth
+      C <- flake_out[["C_T"]] # shape factor
+      D <- max(depths) # mean depth
+
+      if(long){
+        l_wtr <- list()
+      }else{
+        mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
+      }
+
+      # Make sure dates are ordered
+      depths <- depths[order(depths)]
+
+
+      for(kk in seq_len(length(depths))){
+        z <- depths[kk]
+        zeta <- (z - h) / (D - h)
+        c1 <- 40 / 3
+        c2 <- 20 / 3
+        c3 <- 5 / 3
+        c4 <- 10 / 3
+        is_in_ML <- z <= h
+        Tz <- ifelse(is_in_ML, Ts, {
+          zeta * (c1 * C - c2 + zeta *
+                    (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
+            (Tb - Ts) + Ts
+        })
+
+        if(long){
+          dd <- data.frame(dateTime = seq_len(length(Tz)),
+                           depth = z,
+                           wtr = Tz)
+          l_wtr[[kk]] <- dd
+        }else{
+          mat[, kk] <- Tz
+        }
+      }
+
+      if(long){
+        wtr2 <- do.call("rbind", l_wtr)
+
+        # sort in temporal order
+        wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
+        colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
+        tims <- sum((wtr2[, 1] == wtr2[1, 1]))
+        time_long <- rep(datetime, each = tims)
+        wtr2$datetime <- time_long
+      }else{
+        wtr2 <- as.data.frame(mat)
+        wtr2$datetime <- datetime
+        wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
+        colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
+      }
+      dens <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
+      dens[, -c(1)] <-  999.842594 + (6.793952 * 10^-2 * wtr2[, -c(1)]) - (9.095290 * 10^-3 * wtr2[, -c(1)]^2) +
+        (1.001685 * 10^-4 * wtr2[, -c(1)]^3) - (1.120083 * 10^-6 * wtr2[, -c(1)]^4) + (6.536336 * 10^-9 * wtr2[, -c(1)]^5)
+      out_list[[length(out_list) + 1]] <- dens
+      names(out_list)[length(out_list)] <- "dens"
+    } else {
+      out_list[[length(out_list) + 1]] <- data.frame(datetime = out_time, dens_0.5 = NA, dens_1 = NA)
+      names(out_list)[length(out_list)] <- "dens"
+      }
+  }
+
   if("salt" %in% vars){
-    message('FLake does not support simulation of salinity dynamics.')
-    # calculate temperature profile
-    Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
-    Tb <- flake_out[["Tb"]] # bottom temperature
-    h <- flake_out[["h_ML"]] # mixed layer depth
-    C <- flake_out[["C_T"]] # shape factor
-    D <- max(depths) # mean depth
-    
-    if(long){
-      l_wtr <- list()
-    }else{
-      mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
-    }
-    
-    # Make sure dates are ordered
-    depths <- depths[order(depths)]
-    
-    
-    for(kk in seq_len(length(depths))){
-      z <- depths[kk]
-      zeta <- (z - h) / (D - h)
-      c1 <- 40 / 3
-      c2 <- 20 / 3
-      c3 <- 5 / 3
-      c4 <- 10 / 3
-      is_in_ML <- z <= h
-      Tz <- ifelse(is_in_ML, Ts, {
-        zeta * (c1 * C - c2 + zeta *
-                  (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
-          (Tb - Ts) + Ts
-      })
-      
+    if(run_success) {
+      message('FLake does not support simulation of salinity dynamics.')
+      # calculate temperature profile
+      Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
+      Tb <- flake_out[["Tb"]] # bottom temperature
+      h <- flake_out[["h_ML"]] # mixed layer depth
+      C <- flake_out[["C_T"]] # shape factor
+      D <- max(depths) # mean depth
+
       if(long){
-        dd <- data.frame(dateTime = seq_len(length(Tz)),
-                         depth = z,
-                         wtr = Tz)
-        l_wtr[[kk]] <- dd
+        l_wtr <- list()
       }else{
-        mat[, kk] <- Tz
+        mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
       }
-    }
-    
-    if(long){
-      wtr2 <- do.call("rbind", l_wtr)
-      
-      # sort in temporal order
-      wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
-      colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
-      tims <- sum((wtr2[, 1] == wtr2[1, 1]))
-      time_long <- rep(datetime, each = tims)
-      wtr2$datetime <- time_long
-    }else{
-      wtr2 <- as.data.frame(mat)
-      wtr2$datetime <- datetime
-      wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
-      colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
-    }
-    sal <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
-    sal[, -c(1)] <-  wtr2[, -c(1)] * NaN
-    out_list[[length(out_list) + 1]] <- sal
-    names(out_list)[length(out_list)] <- "salt"
+
+      # Make sure dates are ordered
+      depths <- depths[order(depths)]
+
+
+      for(kk in seq_len(length(depths))){
+        z <- depths[kk]
+        zeta <- (z - h) / (D - h)
+        c1 <- 40 / 3
+        c2 <- 20 / 3
+        c3 <- 5 / 3
+        c4 <- 10 / 3
+        is_in_ML <- z <= h
+        Tz <- ifelse(is_in_ML, Ts, {
+          zeta * (c1 * C - c2 + zeta *
+                    (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
+            (Tb - Ts) + Ts
+        })
+
+        if(long){
+          dd <- data.frame(dateTime = seq_len(length(Tz)),
+                           depth = z,
+                           wtr = Tz)
+          l_wtr[[kk]] <- dd
+        }else{
+          mat[, kk] <- Tz
+        }
+      }
+
+      if(long){
+        wtr2 <- do.call("rbind", l_wtr)
+
+        # sort in temporal order
+        wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
+        colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
+        tims <- sum((wtr2[, 1] == wtr2[1, 1]))
+        time_long <- rep(datetime, each = tims)
+        wtr2$datetime <- time_long
+      }else{
+        wtr2 <- as.data.frame(mat)
+        wtr2$datetime <- datetime
+        wtr2 <- wtr2[, c(ncol(wtr2), 1:(ncol(wtr2) - 1))]
+        colnames(wtr2) <- c("datetime", paste("wtr_", depths, sep = ""))
+      }
+      sal <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
+      sal[, -c(1)] <-  wtr2[, -c(1)] * NaN
+      out_list[[length(out_list) + 1]] <- sal
+      names(out_list)[length(out_list)] <- "salt"
+    } else {
+      out_list[[length(out_list) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
+      names(out_list)[length(out_list)] <- "salt"
+      }
   }
 
   if(length(out_list) == 1){

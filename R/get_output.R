@@ -13,15 +13,16 @@
 #' @param out_time vector; of output time values to subset data by.
 #' @param out_hour numeric; hour of output time values to subset data. Only used for FLake if model
 #'    time step is 86400s.
+#' @param run_success logical; was the model run successful?
 #' @return dataframe or list of output variables
 #' @importFrom reshape2 dcast
 #' @importFrom gotmtools get_vari setmodDepths read_yaml set_yaml write_yaml get_yaml_value
 #' @importFrom glmtools get_ice get_var
 #' @export
 get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = ".", out_time,
-                       out_hour){
+                       out_hour, run_success){
 
-##--------------------------- FLake -----------------------------------------
+# FLake ----
   if("FLake" %in% model) {
 
     # Extract output
@@ -29,7 +30,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     nml_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
-    out_depths <- get_yaml_value(config_yaml, "output", "depths")
+    out_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
     depths <- seq(0, mean_depth, by = out_depths)
 
     # Add in obs depths which are not in depths and less than mean depth
@@ -40,85 +41,107 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
     fla_out <- read_flake_out(output = file.path(folder, "FLake", "output", "output.dat"),
                               vars = vars, depths = depths, folder = fold, nml_file = nml_file,
-                              out_time = out_time, out_hour = out_hour)
+                              out_time = out_time, out_hour = out_hour, run_success = run_success)
 
     return(fla_out)
   }
 
-##--------------------------------- GLM ---------------------------------------
-  
+# GLM ----
+
   if("GLM" %in% model){
     # Extract output
     glm_out <- list()
-    if("temp" %in% vars){
 
-      # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_yaml,
-                                                                                  "config_files",
-                                                                                  "GLM")),
-                                              arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
-      add_deps <- obs_depths[!(obs_depths %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(depths)]
+    if("temp" %in% vars) {
 
-      glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
-                                                                 "output.nc"),
-                                                var_name = "temp", reference = "surface",
-                                                z_out = depths)
-      colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("wtr_", depths, sep = ""))
-      names(glm_out)[length(glm_out)] <- "temp"
+      if(run_success) {
+        # Add in obs depths which are not in depths and less than mean depth
+        depth <- suppressWarnings(glmtools::get_nml_value(nml_file = file.path(folder,
+                                                                               gotmtools::get_yaml_value(config_yaml,
+                                                                                                         "config_files",
+                                                                                                         "GLM")),
+                                                          arg_name = "lake_depth"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        add_deps <- obs_depths[!(obs_depths %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(depths)]
+
+        glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
+                                                                             "output.nc"),
+                                                            var_name = "temp", reference = "surface",
+                                                            z_out = depths)
+        colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("wtr_", depths, sep = ""))
+        names(glm_out)[length(glm_out)] <- "temp"
+      } else {
+        glm_out[[length(glm_out) + 1]] <- data.frame(datetime = out_time, wtr_0.5 = NA, wtr_1 = NA)
+        names(glm_out)[length(glm_out)] <- "temp"
+        }
     }
 
     if("ice_height" %in% vars){
-      glm_out[[length(glm_out) + 1]] <- get_ice(file = file.path(folder, "GLM", "output",
-                                                                 "output.nc"))
-      colnames(glm_out[[length(glm_out)]]) <- c("datetime", "ice_height")
-      names(glm_out)[length(glm_out)] <- "ice_height"
 
+      if(run_success) {
+        glm_out[[length(glm_out) + 1]] <- get_ice(file = file.path(folder, "GLM", "output",
+                                                                   "output.nc"))
+        colnames(glm_out[[length(glm_out)]]) <- c("datetime", "ice_height")
+        names(glm_out)[length(glm_out)] <- "ice_height"
+      } else {
+        glm_out[[length(glm_out) + 1]] <- data.frame(datetime = out_time, ice_height = NA)
+        names(glm_out)[length(glm_out)] <- "ice_height"
+        }
     }
-    
+
     if("dens" %in% vars){
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_yaml,
-                                                                                  "config_files",
-                                                                                  "GLM")),
-                                              arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
-      add_deps <- obs_depths[!(obs_depths %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(depths)]
-      
-      glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
-                                                                           "output.nc"),
-                                                          var_name = "rho", reference = "surface",
-                                                          z_out = depths)
-      colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("dens_", depths, sep = ""))
-      names(glm_out)[length(glm_out)] <- "dens"
+
+      if(run_success) {
+        # Add in obs depths which are not in depths and less than mean depth
+        depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
+                                                                     gotmtools::get_yaml_value(config_yaml,
+                                                                                               "config_files",
+                                                                                               "GLM")),
+                                                arg_name = "lake_depth"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        add_deps <- obs_depths[!(obs_depths %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(depths)]
+
+        glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
+                                                                             "output.nc"),
+                                                            var_name = "rho", reference = "surface",
+                                                            z_out = depths)
+        colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("dens_", depths, sep = ""))
+        names(glm_out)[length(glm_out)] <- "dens"
+      } else {
+        glm_out[[length(glm_out) + 1]] <- data.frame(datetime = out_time, dens_0.5 = NA, dens_1 = NA)
+        names(glm_out)[length(glm_out)] <- "dens"
+        }
     }
-    
+
     if("salt" %in% vars){
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_yaml,
-                                                                                  "config_files",
-                                                                                  "GLM")),
-                                              arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_yaml, "output", "depths"))
-      add_deps <- obs_depths[!(obs_depths %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(depths)]
-      
-      glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
-                                                                           "output.nc"),
-                                                          var_name = "salt", reference = "surface",
-                                                          z_out = depths)
-      colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("sal_", depths, sep = ""))
-      names(glm_out)[length(glm_out)] <- "salt"
+
+      if(run_success) {
+        # Add in obs depths which are not in depths and less than mean depth
+        depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
+                                                                     gotmtools::get_yaml_value(config_yaml,
+                                                                                               "config_files",
+                                                                                               "GLM")),
+                                                arg_name = "lake_depth"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        add_deps <- obs_depths[!(obs_depths %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(depths)]
+
+        glm_out[[length(glm_out) + 1]] <- glmtools::get_var(file = file.path(folder, "GLM", "output",
+                                                                             "output.nc"),
+                                                            var_name = "salt", reference = "surface",
+                                                            z_out = depths)
+        colnames(glm_out[[length(glm_out)]]) <- c("datetime", paste("sal_", depths, sep = ""))
+        names(glm_out)[length(glm_out)] <- "salt"
+
+      } else {
+        glm_out[[length(glm_out) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
+        names(glm_out)[length(glm_out)] <- "salt"
+        }
     }
 
     # If only one variable return a dataframe
@@ -130,163 +153,186 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
   }
 
-##--------------------------- GOTM ------------------------------------------------
-  
-  if("GOTM" %in% model){
+# GOTM ----
+
+  if("GOTM" %in% model) {
+
+    if(run_success) {
+      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+      tim = ncdf4::ncvar_get(nc, "time")
+      tunits = ncdf4::ncatt_get(nc, "time")
+      lnam = tunits$long_name
+      tustr <- strsplit(tunits$units, " ")
+      step = tustr[[1]][1]
+      tdstr <- strsplit(unlist(tustr)[3], "-")
+      tmonth <- as.integer(unlist(tdstr)[2])
+      tday <- as.integer(unlist(tdstr)[3])
+      tyear <- as.integer(unlist(tdstr)[1])
+      tdstr <- strsplit(unlist(tustr)[4], ":")
+      thour <- as.integer(unlist(tdstr)[1])
+      tmin <- as.integer(unlist(tdstr)[2])
+      origin <- as.POSIXct(paste0(tyear, "-", tmonth,
+                                  "-", tday, " ", thour, ":", tmin),
+                           format = "%Y-%m-%d %H:%M", tz = "UTC")
+      if (step == "hours") {
+        tim <- tim * 60 * 60
+      }
+      if (step == "minutes") {
+        tim <- tim * 60
+      }
+      time = as.POSIXct(tim, origin = origin, tz = "UTC")
+
+      ncdf4::nc_close(nc)
+    }
 
     got_out <- list()
-    nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
-    tim = ncdf4::ncvar_get(nc, "time")
-    tunits = ncdf4::ncatt_get(nc, "time")
-    lnam = tunits$long_name
-    tustr <- strsplit(tunits$units, " ")
-    step = tustr[[1]][1]
-    tdstr <- strsplit(unlist(tustr)[3], "-")
-    tmonth <- as.integer(unlist(tdstr)[2])
-    tday <- as.integer(unlist(tdstr)[3])
-    tyear <- as.integer(unlist(tdstr)[1])
-    tdstr <- strsplit(unlist(tustr)[4], ":")
-    thour <- as.integer(unlist(tdstr)[1])
-    tmin <- as.integer(unlist(tdstr)[2])
-    origin <- as.POSIXct(paste0(tyear, "-", tmonth, 
-                                "-", tday, " ", thour, ":", tmin), 
-                         format = "%Y-%m-%d %H:%M", tz = "UTC")
-    if (step == "hours") {
-      tim <- tim * 60 * 60
-    }
-    if (step == "minutes") {
-      tim <- tim * 60
-    }
-    time = as.POSIXct(tim, origin = origin, tz = "UTC")
-    
-    ncdf4::nc_close(nc)
+
     if("temp" %in% vars){
 
-      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
-      temp <- ncdf4::ncvar_get(nc, "temp")
-      z <- ncdf4::ncvar_get(nc, "z")
-      ncdf4::nc_close(nc)
+      if(run_success) {
+        nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+        temp <- ncdf4::ncvar_get(nc, "temp")
+        z <- ncdf4::ncvar_get(nc, "z")
+        ncdf4::nc_close(nc)
 
-      # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
-      if(is.null(obs_depths)) {
-        obs_dep_neg <- NULL
+        # Add in obs depths which are not in depths and less than mean depth
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        if(is.null(obs_depths)) {
+          obs_dep_neg <- NULL
+        } else {
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(-depths)]
+
+        message("Interpolating GOTM temp to include obs depths... ",
+                paste0("[", Sys.time(), "]"))
+        got <- sapply(1:ncol(temp), function(x) approx(z[, x], temp[, x],
+                                                       xout = depths, rule = 2)$y)
+        message("Finished interpolating! ",
+                paste0("[", Sys.time(), "]"))
+
+        got <- as.data.frame(t(got))
+        got$datetime <- time
+        got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
+        str_depths <- abs(depths)
+        colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
+
+        got_out[[length(got_out) + 1]] <- got
+        names(got_out)[length(got_out)] <- "temp"
       } else {
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(-depths)]
-
-      message("Interpolating GOTM temp to include obs depths... ",
-              paste0("[", Sys.time(), "]"))
-      got <- sapply(1:ncol(temp), function(x) approx(z[, x], temp[, x],
-                                                      xout = depths, rule = 2)$y)
-      message("Finished interpolating! ",
-              paste0("[", Sys.time(), "]"))
-
-      got <- as.data.frame(t(got))
-      got$datetime <- time
-      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
-      str_depths <- abs(depths)
-      colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
-
-      got_out[[length(got_out) + 1]] <- got
-      names(got_out)[length(got_out)] <- "temp"
-
+        got_out[[length(got_out) + 1]] <- data.frame(datetime = out_time, wtr_0.5 = NA, wtr_1 = NA)
+        names(got_out)[length(got_out)] <- "temp"
+        }
     }
 
     if("ice_height" %in% vars){
-      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
-      Hice <- ncdf4::ncvar_get(nc, "Hice")
-      ncdf4::nc_close(nc)
-      
-      ice_height <- data.frame(datetime = time, ice_height = Hice)
 
-      got_out[[length(got_out) + 1]] <- ice_height
-      names(got_out)[length(got_out)] <- "ice_height"
+      if(run_success) {
+        nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+        Hice <- ncdf4::ncvar_get(nc, "Hice")
+        ncdf4::nc_close(nc)
 
+        ice_height <- data.frame(datetime = time, ice_height = Hice)
+
+        got_out[[length(got_out) + 1]] <- ice_height
+        names(got_out)[length(got_out)] <- "ice_height"
+      } else {
+        got_out[[length(got_out) + 1]] <- data.frame(datetime = out_time, ice_height = NA)
+        names(got_out)[length(got_out)] <- "ice_height"
+        }
     }
-    
+
     if("dens" %in% vars){
-      
-      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
-      density <- ncdf4::ncvar_get(nc, "rho")
-      z <- ncdf4::ncvar_get(nc, "z")
-      ncdf4::nc_close(nc)
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
-      if(is.null(obs_depths)) {
-        obs_dep_neg <- NULL
+
+      if(run_success) {
+        nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+        density <- ncdf4::ncvar_get(nc, "rho")
+        z <- ncdf4::ncvar_get(nc, "z")
+        ncdf4::nc_close(nc)
+
+        # Add in obs depths which are not in depths and less than mean depth
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        if(is.null(obs_depths)) {
+          obs_dep_neg <- NULL
+        } else {
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(-depths)]
+
+        message("Interpolating GOTM density to include obs depths... ",
+                paste0("[", Sys.time(), "]"))
+        got <- sapply(1:ncol(density), function(x) approx(z[, x], density[, x],
+                                                          xout = depths, rule = 2)$y)
+        message("Finished interpolating! ",
+                paste0("[", Sys.time(), "]"))
+
+        got <- as.data.frame(t(got))
+        got$datetime <- time
+        got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
+        str_depths <- abs(depths)
+        colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
+
+        got_out[[length(got_out) + 1]] <- got
+        names(got_out)[length(got_out)] <- "dens"
       } else {
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(-depths)]
-      
-      message("Interpolating GOTM density to include obs depths... ",
-              paste0("[", Sys.time(), "]"))
-      got <- sapply(1:ncol(density), function(x) approx(z[, x], density[, x],
-                                                     xout = depths, rule = 2)$y)
-      message("Finished interpolating! ",
-              paste0("[", Sys.time(), "]"))
-      
-      got <- as.data.frame(t(got))
-      got$datetime <- time
-      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
-      str_depths <- abs(depths)
-      colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
-      
-      got_out[[length(got_out) + 1]] <- got
-      names(got_out)[length(got_out)] <- "dens"
+        got_out[[length(got_out) + 1]] <- data.frame(datetime = out_time, dens_0.5 = NA, dens_1 = NA)
+        names(got_out)[length(got_out)] <- "dens"
+        }
     }
-    
+
     if("salt" %in% vars){
-      
-      nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
-      salt <- ncdf4::ncvar_get(nc, "salt")
-      z <- ncdf4::ncvar_get(nc, "z")
-      ncdf4::nc_close(nc)
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_yaml, "output", "depths"))
-      if(is.null(obs_depths)) {
-        obs_dep_neg <- NULL
+
+      if(run_success) {
+        nc <- ncdf4::nc_open(file.path(folder, "GOTM", "output", "output.nc"))
+        salt <- ncdf4::ncvar_get(nc, "salt")
+        z <- ncdf4::ncvar_get(nc, "z")
+        ncdf4::nc_close(nc)
+
+        # Add in obs depths which are not in depths and less than mean depth
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        if(is.null(obs_depths)) {
+          obs_dep_neg <- NULL
+        } else {
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
+        depths <- c(add_deps, depths)
+        depths <- depths[order(-depths)]
+
+        message("Interpolating GOTM salinity to include obs depths... ",
+                paste0("[", Sys.time(), "]"))
+        got <- sapply(1:ncol(salt), function(x) approx(z[, x], salt[, x],
+                                                       xout = depths, rule = 2)$y)
+        message("Finished interpolating! ",
+                paste0("[", Sys.time(), "]"))
+
+        got <- as.data.frame(t(got))
+        got$datetime <- time
+        got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
+        str_depths <- abs(depths)
+        colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
+
+        got_out[[length(got_out) + 1]] <- got
+        names(got_out)[length(got_out)] <- "salt"
       } else {
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
-      depths <- c(add_deps, depths)
-      depths <- depths[order(-depths)]
-      
-      message("Interpolating GOTM salinity to include obs depths... ",
-              paste0("[", Sys.time(), "]"))
-      got <- sapply(1:ncol(salt), function(x) approx(z[, x], salt[, x],
-                                                     xout = depths, rule = 2)$y)
-      message("Finished interpolating! ",
-              paste0("[", Sys.time(), "]"))
-      
-      got <- as.data.frame(t(got))
-      got$datetime <- time
-      got <- got[, c(ncol(got), 1:(ncol(got) - 1))]
-      str_depths <- abs(depths)
-      colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
-      
-      got_out[[length(got_out) + 1]] <- got
-      names(got_out)[length(got_out)] <- "salt"
+        got_out[[length(got_out) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
+        names(got_out)[length(got_out)] <- "salt"
+        }
     }
 
     return(got_out)
   }
-  
-##------------------- Simstrat ----------------------------------------------------
+
+# Simstrat ----
 
   if("Simstrat" %in% model){
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    par_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "Simstrat"))
+    par_file <- file.path(folder, gotmtools::get_yaml_value(config_yaml, "config_files", "Simstrat"))
     timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
     reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Start year")
 
@@ -294,370 +340,403 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
     if("temp" %in% vars){
 
-      temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
-                         sep = ",", check.names = FALSE)
-      temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
-      # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+      if(run_success) {
+        temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
+                           sep = ",", check.names = FALSE)
+        temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
+        # In case sub-hourly time steps are used, rounding might be necessary
+        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
 
-      # First column datetime, then depth from shallow to deep
-      temp <- temp[, c(1, ncol(temp):2)]
+        # First column datetime, then depth from shallow to deep
+        temp <- temp[, c(1, ncol(temp):2)]
 
-      # Remove columns without any value
-      temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+        # Remove columns without any value
+        temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
 
-      # Add in obs depths which are not in depths and less than mean depth
-      mod_depths <- as.numeric(colnames(temp)[-1])
-      if(is.null(obs_depths)){
-        obs_dep_neg <- NULL
-      }else{
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
-      depths <- c(add_deps, mod_depths)
-      depths <- depths[order(-depths)]
-
-      if(length(depths) != (ncol(temp) - 1)){
-        message("Interpolating Simstrat temp to include obs depths... ",
-                paste0("[", Sys.time(), "]"))
-
-
-        # Create empty matrix and interpolate to new depths
-        wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-        for(i in seq_len(nrow(temp))) {
-          y <- as.vector(unlist(temp[i, -1]))
-          wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+        # Add in obs depths which are not in depths and less than mean depth
+        mod_depths <- as.numeric(colnames(temp)[-1])
+        if(is.null(obs_depths)){
+          obs_dep_neg <- NULL
+        }else{
+          obs_dep_neg <- -obs_depths
         }
-        message("Finished interpolating! ",
-                paste0("[", Sys.time(), "]"))
-        df <- data.frame(wat_mat)
-        df$datetime <- temp[, 1]
-        df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
-        colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
-        temp <- df
-      }else{
-        # Set column headers
-        str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
-        colnames(temp) <- c("datetime", paste0("wtr_", str_depths))
-      }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
+        depths <- c(add_deps, mod_depths)
+        depths <- depths[order(-depths)]
 
-      sim_out[[length(sim_out) + 1]] <- temp
-      names(sim_out)[length(sim_out)] <- "temp"
+        if(length(depths) != (ncol(temp) - 1)){
+          message("Interpolating Simstrat temp to include obs depths... ",
+                  paste0("[", Sys.time(), "]"))
 
+
+          # Create empty matrix and interpolate to new depths
+          wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
+          for(i in seq_len(nrow(temp))) {
+            y <- as.vector(unlist(temp[i, -1]))
+            wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          }
+          message("Finished interpolating! ",
+                  paste0("[", Sys.time(), "]"))
+          df <- data.frame(wat_mat)
+          df$datetime <- temp[, 1]
+          df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
+          colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
+          temp <- df
+        }else{
+          # Set column headers
+          str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
+          colnames(temp) <- c("datetime", paste0("wtr_", str_depths))
+        }
+
+        sim_out[[length(sim_out) + 1]] <- temp
+        names(sim_out)[length(sim_out)] <- "temp"
+      } else {
+        sim_out[[length(sim_out) + 1]] <- data.frame(datetime = out_time, temp_0.5 = NA, temp_1 = NA)
+        names(sim_out)[length(sim_out)] <- "temp"
+        }
     }
 
     if("ice_height" %in% vars){
-      ice_height <- read.table(file.path(folder, "Simstrat", "output", "TotalIceH_out.dat"),
-                               header = TRUE, sep = ",", check.names = FALSE)
-      ice_height[, 1] <- as.POSIXct(ice_height[, 1] * 3600 * 24,
-                                   origin = paste0(reference_year, "-01-01"))
-      # In case sub-hourly time steps are used, rounding might be necessary
-      ice_height[, 1] <- round_date(ice_height[, 1], unit = seconds_to_period(timestep))
-      colnames(ice_height) <- c("datetime", "ice_height")
 
-      sim_out[[length(sim_out) + 1]] <- ice_height
-      names(sim_out)[length(sim_out)] <- "ice_height"
-    }
-    
-    
-    
-    if("dens" %in% vars){
-      
-      temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
-                         sep = ",", check.names = FALSE)
-      temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
-      # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
-      
-      # First column datetime, then depth from shallow to deep
-      temp <- temp[, c(1, ncol(temp):2)]
-      
-      # Remove columns without any value
-      temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      mod_depths <- as.numeric(colnames(temp)[-1])
-      if(is.null(obs_depths)){
-        obs_dep_neg <- NULL
-      }else{
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
-      depths <- c(add_deps, mod_depths)
-      depths <- depths[order(-depths)]
-      
-      if(length(depths) != (ncol(temp) - 1)){
-        message("Interpolating Simstrat temp to include obs depths... ",
-                paste0("[", Sys.time(), "]"))
-        
-        
-        # Create empty matrix and interpolate to new depths
-        wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-        for(i in seq_len(nrow(temp))) {
-          y <- as.vector(unlist(temp[i, -1]))
-          wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
-        }
-        message("Finished interpolating! ",
-                paste0("[", Sys.time(), "]"))
-        df <- data.frame(wat_mat)
-        df$datetime <- temp[, 1]
-        df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
-        colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
-        temp <- df
-      }else{
-        # Set column headers
-        str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
-        colnames(temp) <- c("datetime", paste0("wtr_", str_depths))
-      }
-      
-      
-      
-      sal <- read.table(file.path(folder, "Simstrat", "output", "S_out.dat"), header = TRUE,
-                        sep = ",", check.names = FALSE)
-      sal[, 1] <- as.POSIXct(sal[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
-      # In case sub-hourly time steps are used, rounding might be necessary
-      sal[, 1] <- round_date(sal[, 1], unit = seconds_to_period(timestep))
-      
-      # First column datetime, then depth from shallow to deep
-      sal <- sal[, c(1, ncol(sal):2)]
-      
-      # Remove columns without any value
-      sal <- sal[, colSums(is.na(sal)) < nrow(sal)]
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      mod_depths <- as.numeric(colnames(sal)[-1])
-      if(is.null(obs_depths)){
-        obs_dep_neg <- NULL
-      }else{
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
-      depths <- c(add_deps, mod_depths)
-      depths <- depths[order(-depths)]
-      
-      if(length(depths) != (ncol(sal) - 1)){
-        message("Interpolating Simstrat sal to include obs depths... ",
-                paste0("[", Sys.time(), "]"))
-        
-        
-        # Create empty matrix and interpolate to new depths
-        wat_mat <- matrix(NA, nrow = nrow(sal), ncol = length(depths))
-        for(i in seq_len(nrow(sal))) {
-          y <- as.vector(unlist(sal[i, -1]))
-          wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
-        }
-        message("Finished interpolating! ",
-                paste0("[", Sys.time(), "]"))
-        df <- data.frame(wat_mat)
-        df$datetime <- sal[, 1]
-        df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
-        colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
-        sal <- df
-        remb_col = 1
-      }else{
-        # Set column headers
-        str_depths <- abs(as.numeric(colnames(sal)[2:ncol(sal)]))
-        colnames(sal) <- c("datetime", paste0("wtr_", str_depths))
-        remb_col = 0
-      }
-      
-      dens = sal
-      # calculations from FRANK J, MILLERO and ALAIN POISSON (1980): International one-atmosphere equation of state of seawater. 
-      dens[, -c(1)] = 999.842594 + (6.793952 * 10^-2 * temp[, -c(1)]) - (9.095290 * 10^-3 * temp[, -c(1)]^2) +
-      (1.001685 * 10^-4 * temp[, -c(1)]^3) - (1.120083 * 10^-6 * temp[, -c(1)]^4) + (6.536336 * 10^-9 * temp[, -c(1)]^5) +
-        (8.24493 * 10^-1 -4.0899 * 10^-3 * temp[, -c(1)]+ 7.6438 * 10^-5 * temp[, -c(1)]^2 - 8.2467 * 10^-7 * temp[, -c(1)]^3 + 5.3875 * 10^-9* temp[, -c(1)]^4) * sal[,-c(1)]+
-        (-5.72466 *  10^-3 + 1.0227 * 10^-4 * temp[, -c(1)] -1.6546 * 10^-6 * temp[, -c(1)]^2) * sal[,-c(1)]^(3/2) +
-        (4.8314*  10^-4 ) * sal[,-c(1)]
-      
-      if(remb_col == 1){
-        colnames(dens) <- c("datetime", paste0("dens_", abs(depths)))
+      if(run_success) {
+        ice_height <- read.table(file.path(folder, "Simstrat", "output", "TotalIceH_out.dat"),
+                                 header = TRUE, sep = ",", check.names = FALSE)
+        ice_height[, 1] <- as.POSIXct(ice_height[, 1] * 3600 * 24,
+                                      origin = paste0(reference_year, "-01-01"))
+        # In case sub-hourly time steps are used, rounding might be necessary
+        ice_height[, 1] <- round_date(ice_height[, 1], unit = seconds_to_period(timestep))
+        colnames(ice_height) <- c("datetime", "ice_height")
+
+        sim_out[[length(sim_out) + 1]] <- ice_height
+        names(sim_out)[length(sim_out)] <- "ice_height"
       } else {
-        colnames(dens) <- c("datetime", paste0("dens_", str_depths))
-      }
-      
-      sim_out[[length(sim_out) + 1]] <- dens
-      names(sim_out)[length(sim_out)] <- "dens"
-      
-    }
-    
-    if("salt" %in% vars){
-      
-      temp <- read.table(file.path(folder, "Simstrat", "output", "S_out.dat"), header = TRUE,
-                         sep = ",", check.names = FALSE)
-      temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
-      # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
-      
-      # First column datetime, then depth from shallow to deep
-      temp <- temp[, c(1, ncol(temp):2)]
-      
-      # Remove columns without any value
-      temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
-      
-      # Add in obs depths which are not in depths and less than mean depth
-      mod_depths <- as.numeric(colnames(temp)[-1])
-      if(is.null(obs_depths)){
-        obs_dep_neg <- NULL
-      }else{
-        obs_dep_neg <- -obs_depths
-      }
-      add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
-      depths <- c(add_deps, mod_depths)
-      depths <- depths[order(-depths)]
-      
-      if(length(depths) != (ncol(temp) - 1)){
-        message("Interpolating Simstrat temp to include obs depths... ",
-                paste0("[", Sys.time(), "]"))
-        
-        
-        # Create empty matrix and interpolate to new depths
-        wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-        for(i in seq_len(nrow(temp))) {
-          y <- as.vector(unlist(temp[i, -1]))
-          wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+        sim_out[[length(sim_out) + 1]] <- data.frame(datetime = out_time, ice_height = NA)
+        names(sim_out)[length(sim_out)] <- "ice_height"
         }
-        message("Finished interpolating! ",
-                paste0("[", Sys.time(), "]"))
-        df <- data.frame(wat_mat)
-        df$datetime <- temp[, 1]
-        df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
-        colnames(df) <- c("datetime", paste0("sal_", abs(depths)))
-        temp <- df
-      }else{
-        # Set column headers
-        str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
-        colnames(temp) <- c("datetime", paste0("sal_", str_depths))
-      }
-      
-      sim_out[[length(sim_out) + 1]] <- temp
-      names(sim_out)[length(sim_out)] <- "salt"
-      
     }
-    
+
+
+
+    if("dens" %in% vars){
+
+      if(run_success) {
+        temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
+                           sep = ",", check.names = FALSE)
+        temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
+        # In case sub-hourly time steps are used, rounding might be necessary
+        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+
+        # First column datetime, then depth from shallow to deep
+        temp <- temp[, c(1, ncol(temp):2)]
+
+        # Remove columns without any value
+        temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+
+        # Add in obs depths which are not in depths and less than mean depth
+        mod_depths <- as.numeric(colnames(temp)[-1])
+        if(is.null(obs_depths)){
+          obs_dep_neg <- NULL
+        }else{
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
+        depths <- c(add_deps, mod_depths)
+        depths <- depths[order(-depths)]
+
+        if(length(depths) != (ncol(temp) - 1)){
+          message("Interpolating Simstrat temp to include obs depths... ",
+                  paste0("[", Sys.time(), "]"))
+
+
+          # Create empty matrix and interpolate to new depths
+          wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
+          for(i in seq_len(nrow(temp))) {
+            y <- as.vector(unlist(temp[i, -1]))
+            wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          }
+          message("Finished interpolating! ",
+                  paste0("[", Sys.time(), "]"))
+          df <- data.frame(wat_mat)
+          df$datetime <- temp[, 1]
+          df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
+          colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
+          temp <- df
+        }else{
+          # Set column headers
+          str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
+          colnames(temp) <- c("datetime", paste0("wtr_", str_depths))
+        }
+
+        sal <- read.table(file.path(folder, "Simstrat", "output", "S_out.dat"), header = TRUE,
+                          sep = ",", check.names = FALSE)
+        sal[, 1] <- as.POSIXct(sal[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
+        # In case sub-hourly time steps are used, rounding might be necessary
+        sal[, 1] <- round_date(sal[, 1], unit = seconds_to_period(timestep))
+
+        # First column datetime, then depth from shallow to deep
+        sal <- sal[, c(1, ncol(sal):2)]
+
+        # Remove columns without any value
+        sal <- sal[, colSums(is.na(sal)) < nrow(sal)]
+
+        # Add in obs depths which are not in depths and less than mean depth
+        mod_depths <- as.numeric(colnames(sal)[-1])
+        if(is.null(obs_depths)){
+          obs_dep_neg <- NULL
+        }else{
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
+        depths <- c(add_deps, mod_depths)
+        depths <- depths[order(-depths)]
+
+        if(length(depths) != (ncol(sal) - 1)){
+          message("Interpolating Simstrat sal to include obs depths... ",
+                  paste0("[", Sys.time(), "]"))
+
+
+          # Create empty matrix and interpolate to new depths
+          wat_mat <- matrix(NA, nrow = nrow(sal), ncol = length(depths))
+          for(i in seq_len(nrow(sal))) {
+            y <- as.vector(unlist(sal[i, -1]))
+            wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          }
+          message("Finished interpolating! ",
+                  paste0("[", Sys.time(), "]"))
+          df <- data.frame(wat_mat)
+          df$datetime <- sal[, 1]
+          df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
+          colnames(df) <- c("datetime", paste0("wtr_", abs(depths)))
+          sal <- df
+          remb_col = 1
+        }else{
+          # Set column headers
+          str_depths <- abs(as.numeric(colnames(sal)[2:ncol(sal)]))
+          colnames(sal) <- c("datetime", paste0("wtr_", str_depths))
+          remb_col = 0
+        }
+
+        dens = sal
+        # calculations from FRANK J, MILLERO and ALAIN POISSON (1980): International one-atmosphere equation of state of seawater.
+        dens[, -c(1)] = 999.842594 + (6.793952 * 10^-2 * temp[, -c(1)]) - (9.095290 * 10^-3 * temp[, -c(1)]^2) +
+          (1.001685 * 10^-4 * temp[, -c(1)]^3) - (1.120083 * 10^-6 * temp[, -c(1)]^4) + (6.536336 * 10^-9 * temp[, -c(1)]^5) +
+          (8.24493 * 10^-1 -4.0899 * 10^-3 * temp[, -c(1)]+ 7.6438 * 10^-5 * temp[, -c(1)]^2 - 8.2467 * 10^-7 * temp[, -c(1)]^3 + 5.3875 * 10^-9* temp[, -c(1)]^4) * sal[,-c(1)]+
+          (-5.72466 *  10^-3 + 1.0227 * 10^-4 * temp[, -c(1)] -1.6546 * 10^-6 * temp[, -c(1)]^2) * sal[,-c(1)]^(3/2) +
+          (4.8314*  10^-4 ) * sal[,-c(1)]
+
+        if(remb_col == 1){
+          colnames(dens) <- c("datetime", paste0("dens_", abs(depths)))
+        } else {
+          colnames(dens) <- c("datetime", paste0("dens_", str_depths))
+        }
+
+        sim_out[[length(sim_out) + 1]] <- dens
+        names(sim_out)[length(sim_out)] <- "dens"
+      } else {
+        sim_out[[length(sim_out) + 1]] <- data.frame(datetime = out_time, dens_0.5 = NA, dens_1 = NA)
+        names(sim_out)[length(sim_out)] <- "dens"
+        }
+      }
+
+    if("salt" %in% vars){
+
+      if(run_success) {
+        temp <- read.table(file.path(folder, "Simstrat", "output", "S_out.dat"), header = TRUE,
+                           sep = ",", check.names = FALSE)
+        temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
+        # In case sub-hourly time steps are used, rounding might be necessary
+        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+
+        # First column datetime, then depth from shallow to deep
+        temp <- temp[, c(1, ncol(temp):2)]
+
+        # Remove columns without any value
+        temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+
+        # Add in obs depths which are not in depths and less than mean depth
+        mod_depths <- as.numeric(colnames(temp)[-1])
+        if(is.null(obs_depths)){
+          obs_dep_neg <- NULL
+        }else{
+          obs_dep_neg <- -obs_depths
+        }
+        add_deps <- obs_dep_neg[!(obs_dep_neg %in% mod_depths)]
+        depths <- c(add_deps, mod_depths)
+        depths <- depths[order(-depths)]
+
+        if(length(depths) != (ncol(temp) - 1)){
+          message("Interpolating Simstrat temp to include obs depths... ",
+                  paste0("[", Sys.time(), "]"))
+
+
+          # Create empty matrix and interpolate to new depths
+          wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
+          for(i in seq_len(nrow(temp))) {
+            y <- as.vector(unlist(temp[i, -1]))
+            wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          }
+          message("Finished interpolating! ",
+                  paste0("[", Sys.time(), "]"))
+          df <- data.frame(wat_mat)
+          df$datetime <- temp[, 1]
+          df <- df[, c(ncol(df), 1:(ncol(df) - 1))]
+          colnames(df) <- c("datetime", paste0("sal_", abs(depths)))
+          temp <- df
+        }else{
+          # Set column headers
+          str_depths <- abs(as.numeric(colnames(temp)[2:ncol(temp)]))
+          colnames(temp) <- c("datetime", paste0("sal_", str_depths))
+        }
+
+        sim_out[[length(sim_out) + 1]] <- temp
+        names(sim_out)[length(sim_out)] <- "salt"
+      } else {
+        sim_out[[length(sim_out) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
+        names(sim_out)[length(sim_out)] <- "salt"
+        }
+      }
 
     return(sim_out)
 
   }
 
-##--------------------- MyLake ------------------------------------------------
-  
+# MyLake ----
+
   if("MyLake" %in% model){
 
     mylake_out <- list()
 
-    load(file.path(folder, "MyLake", "output", "output.RData"))
+    if(run_success) {
+      load(file.path(folder, "MyLake", "output", "output.RData"))
+    }
 
     if("temp" %in% vars){
 
-      output_depths <- get_yaml_value(config_yaml, "output", "depths")
-      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
+      if(run_success) {
+        output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
+        #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
 
-      init_depths <- res$zz
-      seq_depths <- seq(0, max(init_depths), by = output_depths)
-      add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
-      depths <- c(add_deps, seq_depths)
-      depths <- depths[order(depths)]
+        init_depths <- res$zz
+        seq_depths <- seq(0, max(init_depths), by = output_depths)
+        add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
+        depths <- c(add_deps, seq_depths)
+        depths <- depths[order(depths)]
 
-      temps <- res$Tzt
-      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+        temps <- res$Tzt
+        dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
 
-      temp_interp <- matrix(NA, nrow = length(dates),
-                            ncol = length(depths))
+        temp_interp <- matrix(NA, nrow = length(dates),
+                              ncol = length(depths))
 
-      for(i in seq_len(ncol(temps))) {
-        temp_interp[i, ] <- approx(x = init_depths,
-                                  y = temps[, i],
-                                  xout = depths,
-                                  yleft = dplyr::first(na.omit(temps)),
-                                  yright = dplyr::last(na.omit(temps)))$y
-      }
+        for(i in seq_len(ncol(temps))) {
+          temp_interp[i, ] <- approx(x = init_depths,
+                                     y = temps[, i],
+                                     xout = depths,
+                                     yleft = dplyr::first(na.omit(temps)),
+                                     yright = dplyr::last(na.omit(temps)))$y
+        }
 
-      mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, temp_interp)
-      colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
-                                                      paste("wtr_", depths, sep = ""))
+        mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, temp_interp)
+        colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
+                                                        paste("wtr_", depths, sep = ""))
 
-      names(mylake_out)[length(mylake_out)] <- "temp"
-
+        names(mylake_out)[length(mylake_out)] <- "temp"
+      } else {
+        mylake_out[[length(mylake_out) + 1]] <- data.frame(datetime = out_time, temp_0.5 = NA, temp_1 = NA)
+        names(mylake_out)[length(mylake_out)] <- "temp"
+        }
     }
 
     if("ice_height" %in% vars){
 
-      mylake_out[[length(mylake_out) + 1]] <-
-        data.frame("datetime" = as.POSIXct((as.numeric(res$tt) - 719529) * 86400,
-                                           origin = "1970-01-01"), "ice_height" = res$His[1, ])
-      names(mylake_out)[length(mylake_out)] <- "ice_height"
+      if(run_success) {
+        mylake_out[[length(mylake_out) + 1]] <-
+          data.frame("datetime" = as.POSIXct((as.numeric(res$tt) - 719529) * 86400,
+                                             origin = "1970-01-01"), "ice_height" = res$His[1, ])
+        names(mylake_out)[length(mylake_out)] <- "ice_height"
+      } else {
+        mylake_out[[length(mylake_out) + 1]] <- data.frame(datetime = out_time, ice_height = NA)
+        names(mylake_out)[length(mylake_out)] <- "ice_height"
+        }
+    }
 
-    }
-    
     if("dens" %in% vars){
-      
-      output_depths <- get_yaml_value(config_yaml, "output", "depths")
-      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
-      
-      init_depths <- res$zz
-      seq_depths <- seq(0, max(init_depths), by = output_depths)
-      add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
-      depths <- c(add_deps, seq_depths)
-      depths <- depths[order(depths)]
-      
-      temps <- res$Tzt
-      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
-      
-      temp_interp <- matrix(NA, nrow = length(dates),
-                            ncol = length(depths))
-      
-      for(i in seq_len(ncol(temps))) {
-        temp_interp[i, ] <- approx(x = init_depths,
-                                   y = temps[, i],
-                                   xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+
+      if(run_success) {
+        output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
+        #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
+
+        init_depths <- res$zz
+        seq_depths <- seq(0, max(init_depths), by = output_depths)
+        add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
+        depths <- c(add_deps, seq_depths)
+        depths <- depths[order(depths)]
+
+        temps <- res$Tzt
+        dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+
+        temp_interp <- matrix(NA, nrow = length(dates),
+                              ncol = length(depths))
+
+        for(i in seq_len(ncol(temps))) {
+          temp_interp[i, ] <- approx(x = init_depths,
+                                     y = temps[, i],
+                                     xout = depths,
+                                     yleft = dplyr::first(na.omit(temps)),
+                                     yright = dplyr::last(na.omit(temps)))$y
+        }
+        dens_interp <- 999.842594 + (6.793952 * 10^-2 * temp_interp) - (9.095290 * 10^-3 * temp_interp^2) +
+          (1.001685 * 10^-4 * temp_interp^3) - (1.120083 * 10^-6 * temp_interp^4) + (6.536336 * 10^-9 * temp_interp^5)
+
+        mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, dens_interp)
+        colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
+                                                        paste("dens_", depths, sep = ""))
+
+        names(mylake_out)[length(mylake_out)] <- "dens"
+      } else {
+        mylake_out[[length(mylake_out) + 1]] <- data.frame(datetime = out_time, dens_0.5 = NA, dens_1 = NA)
+        names(mylake_out)[length(mylake_out)] <- "dens"
       }
-      dens_interp <- 999.842594 + (6.793952 * 10^-2 * temp_interp) - (9.095290 * 10^-3 * temp_interp^2) +
-        (1.001685 * 10^-4 * temp_interp^3) - (1.120083 * 10^-6 * temp_interp^4) + (6.536336 * 10^-9 * temp_interp^5) 
-      
-      mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, dens_interp)
-      colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
-                                                      paste("dens_", depths, sep = ""))
-      
-      names(mylake_out)[length(mylake_out)] <- "dens"
-      
     }
-    
-    if("salt" %in% vars){
-      message('MyLake does not support simulation of salinity dynamics.')
-      
-      output_depths <- get_yaml_value(config_yaml, "output", "depths")
-      #max_depth <- get_yaml_value(config_yaml, "location", "depth")
-      
-      init_depths <- res$zz
-      seq_depths <- seq(0, max(init_depths), by = output_depths)
-      add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
-      depths <- c(add_deps, seq_depths)
-      depths <- depths[order(depths)]
-      
-      temps <- res$Tzt
-      dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
-      
-      temp_interp <- matrix(NA, nrow = length(dates),
-                            ncol = length(depths))
-      
-      for(i in seq_len(ncol(temps))) {
-        temp_interp[i, ] <- approx(x = init_depths,
-                                   y = temps[, i],
-                                   xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+
+      if("salt" %in% vars) {
+        if(run_success) {
+          message('MyLake does not support simulation of salinity dynamics.')
+
+          output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
+          #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
+
+          init_depths <- res$zz
+          seq_depths <- seq(0, max(init_depths), by = output_depths)
+          add_deps <- obs_depths[!(obs_depths %in% seq_depths)]
+          depths <- c(add_deps, seq_depths)
+          depths <- depths[order(depths)]
+
+          temps <- res$Tzt
+          dates <- as.POSIXct((as.numeric(res$tt) - 719529) * 86400, origin = "1970-01-01")
+
+          temp_interp <- matrix(NA, nrow = length(dates),
+                                ncol = length(depths))
+
+          for(i in seq_len(ncol(temps))) {
+            temp_interp[i, ] <- approx(x = init_depths,
+                                       y = temps[, i],
+                                       xout = depths,
+                                       yleft = dplyr::first(na.omit(temps)),
+                                       yright = dplyr::last(na.omit(temps)))$y
+          }
+          salt_interp <- temp_interp * NaN
+
+          mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, salt_interp)
+          colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
+                                                          paste("salt_", depths, sep = ""))
+
+          names(mylake_out)[length(mylake_out)] <- "salt"
+        } else {
+          mylake_out[[length(mylake_out) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
+          names(mylake_out)[length(mylake_out)] <- "salt"
+        }
       }
-      salt_interp <- temp_interp * NaN
-      
-      mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, salt_interp)
-      colnames(mylake_out[[length(mylake_out)]]) <- c("datetime",
-                                                      paste("salt_", depths, sep = ""))
-      
-      names(mylake_out)[length(mylake_out)] <- "salt"
-      
-    }
 
     # If only one variable return a dataframe
     if(length(mylake_out) == 1){

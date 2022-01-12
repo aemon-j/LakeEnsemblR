@@ -11,7 +11,8 @@ get_output(
   obs_depths = NULL,
   folder = ".",
   out_time,
-  out_hour
+  out_hour,
+  run_success
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ Defaults to '.'}
 
 \item{out_hour}{numeric; hour of output time values to subset data. Only used for FLake if model
 time step is 86400s.}
+
+\item{run_success}{logical; was the model run successful?}
 }
 \value{
 dataframe or list of output variables

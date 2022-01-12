@@ -18,7 +18,7 @@ test_that("create model meteo & config files", {
   # file.copy(from = template_folder, to = "example", recursive = TRUE)
   setwd(file.path(temp_dir, "feeagh")) # Change working directory to example folder
   # setwd(file.path("example", "feeagh")) # Change working directory to example folder
-  
+
   # Set config file
   masterConfigFile <- "LakeEnsemblR.yaml"
   config_file <- "LakeEnsemblR_copy.yaml"
@@ -33,41 +33,41 @@ test_that("create model meteo & config files", {
   testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
                           file.exists("MyLake/mylake.Rdata")))
-  
+
   # 1. met file
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".", dirs = F, time = F, location = F, output_settings = F,
                 meteo = T, init_cond = F, extinction = F, inflow = F, model_parameters = F)
-  
+
   testthat::expect_true((file.exists("FLake/all_meteo_file.dat") & file.exists("GLM/meteo_file.csv") &
                            file.exists("GOTM/meteo_file.dat") & file.exists("Simstrat/meteo_file.dat") &
                            file.exists("MyLake/meteo_file.dat")))
-  
+
   # 1. Inflow file
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".", dirs = F, time = F, location = F, output_settings = F,
                 meteo = F, init_cond = F, extinction = F, inflow = T, model_parameters = F)
-  
+
   testthat::expect_true((file.exists("FLake/Tinflow") & file.exists("GLM/inflow_file.csv") &
                            file.exists("GOTM/inflow_file.dat") & file.exists("Simstrat/Qin.dat")))
-  
+
   # Model parameters
   export_config(config_file = config_file,
                   model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                   folder = ".", dirs = F, time = F, location = F, output_settings = F,
                   meteo = F, init_cond = F, extinction = F, inflow = F, model_parameters = T)
-  
+
   # Initial conditions
   export_config(config_file = config_file,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                 folder = ".", dirs = F, time = F, location = F, output_settings = F,
                 meteo = F, init_cond = T, extinction = F, inflow = F, model_parameters = F)
-  
-  
-  
-  
+
+
+
+
 })
 
 
@@ -86,67 +86,164 @@ test_that("can run FLake", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
+test_that("can run FLake with errors", {
+
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  nml <- glmtools::read_nml(nml_file = file.path("FLake", "flake.nml"))
+  nml <- glmtools::set_nml(nml, "meteofile", "NA.dat")
+  glmtools::write_nml(nml, file.path("FLake", "flake.nml"))
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model, verbose = T)
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
 test_that("can run GLM", {
-  
+
   unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("GLM")
-  
+
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
-  
+
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
-  
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run GLM with errors", {
+
+  unlink("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("GLM")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  nml <- glmtools::read_nml(nml_file = file.path("GLM", "glm3.nml"))
+  nml <- glmtools::set_nml(nml, "meteo_fl", "NA.dat")
+  glmtools::write_nml(nml, file.path("GLM", "glm3.nml"))
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
 test_that("can run GOTM", {
-  
+
   unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR.yaml"
   model <- c("GOTM")
-  
+
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
-  
+
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
-  
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run GOTM with errors", {
+
+  unlink("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR.yaml"
+  model <- c("GOTM")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  yaml <- gotmtools::read_yaml(file.path("GOTM", "gotm.yaml"))
+  yaml <- gotmtools::set_yaml(yaml, value = "NA.dat", "location", "hypsograph")
+  gotmtools::write_yaml(yaml, file.path("GOTM", "gotm.yaml"))
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
 test_that("can run Simstrat", {
-  
+
   unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("Simstrat")
-  
+
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
-  
+
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
-  
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run Simstrat with errors", {
+
+  unlink("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("Simstrat")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  val <- "\"NA.dat\""
+  input_json(file = file.path("Simstrat", "simstrat.par"), label = "Input",
+                           key = "Forcing", value = val)
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
 test_that("can run MyLake", {
-  
+
   unlink("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("MyLake")
-  
+
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
-  
+
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
-  
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
+test_that("can run MyLake with errors", {
+
+  unlink("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("MyLake")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  load(file.path("MyLake", "mylake.Rdata"))
+  mylake_config$Phys.par <- NULL
+  save("mylake_config", file = file.path("MyLake", "mylake.Rdata"))
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
@@ -336,7 +433,7 @@ test_that("check plots", {
   testthat::expect_true(ggplot2::is.ggplot(pl1))
   testthat::expect_true(ggplot2::is.ggplot(pl2[[1]]))
   testthat::expect_true(ggplot2::is.ggplot(pl3))
-  
+
 })
 
 # end
