@@ -98,12 +98,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # Subset to out_time
     obs_out <- obs_out[obs_out$datetime %in% out_time$datetime, ]
     obs_out <- merge(out_time, obs_out, by = "datetime", all.x = TRUE)
-    obs_na <- obs_out
-    obs_na[, -1] <- NA
-
   }else{
     obs_deps <- NULL
-    obs_na <- data.frame(datetime = out_time, wtr_0.5 = NA, wtr_1 = NA)
   }
 
   if(!is.null(ice_file)){
@@ -132,7 +128,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          stop = stop,
                          verbose = verbose,
                          obs_deps = obs_deps,
-                         obs_na = obs_na,
                          out_time = out_time,
                          out_vars = out_vars)
 
@@ -269,7 +264,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 #' @keywords internal
 #' @importFrom lubridate hour
 .run_FLake <- function(config_yaml, folder, return_list, create_output, start, stop,
-                       verbose, obs_deps, obs_na, out_time, out_hour, out_vars){
+                       verbose, obs_deps, out_time, out_hour, out_vars){
 
 
 
@@ -317,7 +312,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 .run_GLM <- function(config_yaml, folder, return_list, create_output, start, stop,
-                     verbose, obs_deps, obs_na, out_time, out_hour, out_vars){
+                     verbose, obs_deps, out_time, out_hour, out_vars){
 
   #Delete previous output
   # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = 'Output', 'Path')
@@ -355,7 +350,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 .run_GOTM <- function(config_yaml, folder, return_list, create_output, start, stop,
-                      verbose, obs_deps, obs_na, out_time, out_vars){
+                      verbose, obs_deps, out_time, out_vars){
 
   yaml_file <- file.path(folder, gotmtools::get_yaml_value(config_yaml, "config_files", "GOTM"))
 
@@ -396,7 +391,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 .run_Simstrat <- function(config_yaml, folder, return_list, create_output, start, stop,
-                          verbose, obs_deps, obs_na, out_time, out_vars){
+                          verbose, obs_deps, out_time, out_vars){
 
   par_file <- basename(gotmtools::get_yaml_value(config_yaml, "config_files", "Simstrat"))
 
@@ -437,7 +432,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
 #' @keywords internal
 .run_MyLake <- function(config_yaml, folder, return_list, create_output, start, stop,
-                        verbose, obs_deps, obs_na, out_time, out_vars){
+                        verbose, obs_deps, out_time, out_vars){
 
   #Delete previous output
   old_output <- list.files(file.path(folder, "MyLake", "output"))
