@@ -146,7 +146,7 @@ test_that("can add members to netCDF models", {
     analyse_ncdf(ncdf, model, dim = "member")
   }, error = function(e) return(FALSE))
 
-  testthat::expect_true(is.list(test9))
+  # testthat::expect_true(is.list(test9))
   testthat::expect_true(is.list(test10))
 
   test11 <- tryCatch({
@@ -200,7 +200,8 @@ test_that("can run FLake", {
   run_ensemble(config_file = config_file,
                model = model, verbose = T)
 
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("FLake", "output", "output.dat"))))
 })
 
 test_that("can run FLake with errors", {
@@ -235,7 +236,8 @@ test_that("can run GLM", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("GLM", "output", "output.nc"))))
 })
 
 test_that("can run GLM with errors", {
@@ -271,7 +273,8 @@ test_that("can run GOTM", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("GOTM", "output", "output.nc"))))
 })
 
 test_that("can run GOTM with errors", {
@@ -307,7 +310,8 @@ test_that("can run Simstrat", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("Simstrat", "output", "T_out.dat"))))
 })
 
 test_that("can run Simstrat with errors", {
@@ -361,7 +365,8 @@ test_that("can run MyLake", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("MyLake", "output", "output.RData"))))
 })
 
 
