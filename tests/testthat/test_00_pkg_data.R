@@ -332,6 +332,23 @@ test_that("can run Simstrat with errors", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
+test_that("can run MyLake", {
+
+  unlink("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("MyLake")
+
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model)
+
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("MyLake", "output", "output.RData"))))
+})
+
 test_that("can run MyLake with errors", {
 
   unlink("output/ensemble_output.nc")
@@ -350,25 +367,8 @@ test_that("can run MyLake with errors", {
                model = model)
 
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
+  unlink(file.path("MyLake", "mylake.Rdata"))
 })
-
-test_that("can run MyLake", {
-
-  unlink("output/ensemble_output.nc")
-  config_file <- "LakeEnsemblR_copy.yaml"
-  model <- c("MyLake")
-
-  # 1. Example - creates directories with all model setup
-  export_config(config_file = config_file, model = model)
-
-  # 2. run models
-  run_ensemble(config_file = config_file,
-               model = model)
-
-  testthat::expect_true((file.exists("output/ensemble_output.nc") &
-                           file.exists(file.path("MyLake", "output", "output.RData"))))
-})
-
 
 test_that("can run models & generate csv files", {
 
