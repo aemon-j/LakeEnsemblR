@@ -429,7 +429,6 @@ test_that("check plots", {
                model = model)
 
   pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
-  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
   pl2 <- plot_resid(ncdf = ncdf, model = model, var = "temp")
   pl3 <- plot_heatmap(ncdf = ncdf, model = model)
 
