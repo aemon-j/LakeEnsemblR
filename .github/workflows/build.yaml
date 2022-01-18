@@ -90,7 +90,7 @@ jobs:
           remotes::install_github("aemon-j/GLM3r", ref = "macOS")
           remotes::install_github("aemon-j/FLakeR", ref = "macOS")
           remotes::install_github("aemon-j/GOTMr", ref = "macOS")
-          remotes::install_github("aemon-j/SimstratR", ref = "macOS")
+          remotes::install_github("tadhg-moore/SimstratR")
           remotes::install_github("aemon-j/gotmtools", ref = "yaml")
           remotes::install_github("aemon-j/MyLakeR")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
