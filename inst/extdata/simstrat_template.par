@@ -30,7 +30,7 @@
     "UseFilteredWind"         : false,                  ! Switch to activate filtered wind (needs one more column in forcing file)
     "SeicheNormalization"     : 2,                      ! 1: max N2, 2: integral
     "WindDragModel"           : 3,                      ! 1: constant, 2: ocean (increasing), 3: lake (Wüest and Lorke, 2003)
-    "InflowPlacement"         : 1,                      ! 0: inflow depths are chosen manually, 1: inflow is density-driven
+    "InflowMode"         : 1,                      ! 0: inflow depths are chosen manually, 1: inflow is density-driven
     "PressureGradients"       : 0,                      ! 0: off, 1: Svensson 1978
     "IceModel"                : 1,                      ! /LER/ Switch to turn on/off the ice model
     "SnowModel"               : 1                       ! /LER/ Switch to turn on/off the snow model (needs ice model and an additional column in forcing)
@@ -38,8 +38,8 @@
   "Simulation" : {
     "Timestep s"                  : 86400,              ! /LER/ Simulation timestep in seconds
     "Start year"                  : 2010,               ! /LER/ Starting year
-    "Start d"                     : 0,                  ! /LER/ Simulation start in days since 01.01. of starting year. 
-    "End d"                       : 365,                ! /LER/ Simulation end: 52959 for full historical simulation from 1861, 
+    "Start d"                     : 0,                  ! /LER/ Simulation start in days since 01.01. of starting year.
+    "End d"                       : 365,                ! /LER/ Simulation end: 52959 for full historical simulation from 1861,
     "DisplaySimulation"           : 0,                  ! 0: No display, 1: Display when output is written, 2: Display every iteration
     "Continue from last snapshot" : false               ! If true simulation continues from last snapshot (if present in output folder). Default: false
   },
@@ -55,12 +55,12 @@
     "cd"            : 0.002,                            ! Bottom drag coefficient [-]
     "hgeo"          : 0.1,                              ! Geothermal heat flux [W/m2]
     "k_min"         : 1e-09,
-    "p_sw"          : 1.0,                              ! Fit parameter for absorption of short wave radiation from sky [-]
+    "p_sw_water"    : 1.0,                              ! Fit parameter for absorption of short wave radiation from sky [-]
     "p_lw"          : 1.0,                              ! Fit parameter for absorption of IR radiation from sky [-]
     "p_windf"       : 1,                                ! Fit parameter for convective and latent heat fluxes [-]
     "beta_sol"      : 0.3,                              ! Fraction of short-wave radiation directly absorbed as heat by water [-]
     "wat_albedo"    : 0.08,                             ! User defined water albedo [-] (only used if UserDefinedWaterAlbedo = true)
-    "p_albedo"      : 1.0,                              ! Fit parameter for albedo of ice, snow-ice and snow [-] (only used if IceModel = 1)
+    "p_sw_ice"      : 1.0,                              ! Fit parameter for albedo of ice, snow-ice and snow [-] (only used if IceModel = 1)
     "freez_temp"    : 0.00,                             ! Freezing temperature of water [°C] (only used if IceModel = 1)
     "snow_temp"     : 1                                 ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
   }
