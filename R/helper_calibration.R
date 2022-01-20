@@ -262,7 +262,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
-    config_yaml <- read_yaml(config_file)
+    yaml <- read_yaml(config_file)
   }
   # list with the function arguments for run_model() and load corresponding function
   if(model == "FLake") {
@@ -300,7 +300,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
   # try to get output and calculate model perfomance
   if(ran) {
     tryCatch({
-      out <- get_output(config_yaml = config_yaml, model = model, var = var,
+      out <- get_output(yaml = yaml, model = model, var = var,
                         folder = folder, obs_depths = obs_deps, out_time = obs_out,
                         out_hour = out_hour)
       out <- as.data.frame(out)
