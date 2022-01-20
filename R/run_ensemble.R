@@ -29,7 +29,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
-    config_yaml <- gotmtools::read_yaml(config_file)
+    yaml <- gotmtools::read_yaml(config_file)
   }
 
 
@@ -49,28 +49,28 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   })
 
   ## Extract start, stop, lat & lon for netCDF file from config file
-  start <- gotmtools::get_yaml_value(config_yaml, "time", "start")
-  stop <- gotmtools::get_yaml_value(config_yaml, "time", "stop")
-  lat <- gotmtools::get_yaml_value(config_yaml, "location", "latitude")
-  lon <- gotmtools::get_yaml_value(config_yaml, "location", "longitude")
-  lakename <- gotmtools::get_yaml_value(config_yaml, "location", "name")
-  obs_file <- gotmtools::get_yaml_value(config_yaml, "observations", "temperature", "file")
-  ice_file <- gotmtools::get_yaml_value(config_yaml, "observations", "ice_height", "file")
+  start <- gotmtools::get_yaml_value(yaml, "time", "start")
+  stop <- gotmtools::get_yaml_value(yaml, "time", "stop")
+  lat <- gotmtools::get_yaml_value(yaml, "location", "latitude")
+  lon <- gotmtools::get_yaml_value(yaml, "location", "longitude")
+  lakename <- gotmtools::get_yaml_value(yaml, "location", "name")
+  obs_file <- gotmtools::get_yaml_value(yaml, "observations", "temperature", "file")
+  ice_file <- gotmtools::get_yaml_value(yaml, "observations", "ice_height", "file")
 
   # Get output configurations
-  out_file <- gotmtools::get_yaml_value(config_yaml, "output", "file")
-  format <- gotmtools::get_yaml_value(config_yaml, "output", "format")
-  time_unit <- gotmtools::get_yaml_value(config_yaml, "output", "time_unit")
+  out_file <- gotmtools::get_yaml_value(yaml, "output", "file")
+  format <- gotmtools::get_yaml_value(yaml, "output", "format")
+  time_unit <- gotmtools::get_yaml_value(yaml, "output", "time_unit")
   if(time_unit == "second"){
     # Needed to create out_time vector
     time_unit <- "sec"
   }
-  time_step <- gotmtools::get_yaml_value(config_yaml, "output", "time_step")
-  out_vars <- gotmtools::get_yaml_value(config_yaml, "output", "variables")
+  time_step <- gotmtools::get_yaml_value(yaml, "output", "time_step")
+  out_vars <- gotmtools::get_yaml_value(yaml, "output", "variables")
 
   if(format == "netcdf") {
     out_file <- paste0(out_file, ".nc")
-    compression <- gotmtools::get_yaml_value(config_yaml, "output", "compression")
+    compression <- gotmtools::get_yaml_value(yaml, "output", "compression")
   }
 
 
@@ -120,7 +120,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   }
 
 
-  run_model_args <- list(config_yaml = config_yaml,
+  run_model_args <- list(yaml = yaml,
                          folder = folder,
                          return_list = return_list,
                          create_output = create_output,
@@ -204,6 +204,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
       # temp_list <- Filter(Negate(is.null), temp_list) # Remove NULL outputs
     }
 
+    run_success_list <- setNames(
+      lapply(model, function(mod_name) model_out[[mod_name]][["run_success"]]),
+      paste0(model, "_run_success")
+    )
+
     # Put all lists with output into a single, named list
     all_lists <- NULL
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
@@ -249,7 +254,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         })
       })
       message("Finished writing '.csv' files! [", Sys.time(), "]")
-
     }
   }
 
@@ -257,18 +261,21 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   Sys.setenv(TZ = original_tz)
 
   if(return_list){
+    all_lists$run_success <- run_success_list
     return(all_lists)
+  } else {
+    return(run_success_list)
   }
 }
 
 #' @keywords internal
 #' @importFrom lubridate hour
-.run_FLake <- function(config_yaml, folder, return_list, create_output, start, stop,
+.run_FLake <- function(yaml, folder, return_list, create_output, start, stop,
                        verbose, obs_deps, out_time, out_hour, out_vars){
 
 
 
-  nml_file <- basename(gotmtools::get_yaml_value(config_yaml, "config_files", "FLake"))
+  nml_file <- basename(gotmtools::get_yaml_value(yaml, "config_files", "FLake"))
 
   #Delete previous output
   old_output <- list.files(file.path(folder, "FLake", "output"))
@@ -283,11 +290,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list | create_output){
 
     met_timestep <- get_meteo_time_step(file.path(folder,
-                                                  gotmtools::get_yaml_value(config_yaml, "input", "meteo", "file")))
+                                                  gotmtools::get_yaml_value(yaml, "input", "meteo", "file")))
     out_hour <- ifelse(met_timestep == 86400, hour(start), 0) #Used for FLake output
 
     # Extract output
-    fla_out <- get_output(config_yaml = config_yaml, model = "FLake", vars = out_vars,
+    fla_out <- get_output(yaml = yaml, model = "FLake", vars = out_vars,
                           obs_depths = obs_deps, folder = folder, out_time = out_time,
                           out_hour = out_hour, run_success = run_success)
 
@@ -307,11 +314,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("FLake run FAILED.\nInspect model configuration files for errors.",
             paste0("[", Sys.time(), "]"))
   }
+  fla_out$run_success <- run_success
   return(fla_out)
 }
 
 #' @keywords internal
-.run_GLM <- function(config_yaml, folder, return_list, create_output, start, stop,
+.run_GLM <- function(yaml, folder, return_list, create_output, start, stop,
                      verbose, obs_deps, out_time, out_hour, out_vars){
 
   #Delete previous output
@@ -325,7 +333,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list | create_output) {
 
     # Extract output
-    glm_out <- get_output(config_yaml = config_yaml, model = "GLM", vars = out_vars,
+    glm_out <- get_output(yaml = yaml, model = "GLM", vars = out_vars,
                           out_time = out_time, obs_depths = obs_deps, folder = folder,
                           run_success = run_success)
 
@@ -345,14 +353,15 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("GLM run FAILED.\nInspect model configuration files for errors.",
             paste0("[", Sys.time(), "]"))
   }
+  glm_out$run_success <- run_success
   return(glm_out)
 }
 
 #' @keywords internal
-.run_GOTM <- function(config_yaml, folder, return_list, create_output, start, stop,
+.run_GOTM <- function(yaml, folder, return_list, create_output, start, stop,
                       verbose, obs_deps, out_time, out_vars){
 
-  yaml_file <- file.path(folder, gotmtools::get_yaml_value(config_yaml, "config_files", "GOTM"))
+  yaml_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
 
   #Delete previous output
   old_output <- list.files(file.path(folder, "GOTM", "output"))
@@ -365,7 +374,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list | create_output){
 
     # Extract output
-    gotm_out <- get_output(config_yaml = config_yaml, model = "GOTM", vars = out_vars,
+    gotm_out <- get_output(yaml = yaml, model = "GOTM", vars = out_vars,
                            obs_depths = obs_deps, folder = folder, out_time = out_time,
                            run_success = run_success)
 
@@ -386,28 +395,49 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("GOTM run FAILED.\nInspect model configuration files for errors.",
             paste0("[", Sys.time(), "]"))
   }
+  gotm_out$run_success <- run_success
   return(gotm_out)
 }
 
 #' @keywords internal
-.run_Simstrat <- function(config_yaml, folder, return_list, create_output, start, stop,
+.run_Simstrat <- function(yaml, folder, return_list, create_output, start, stop,
                           verbose, obs_deps, out_time, out_vars){
 
-  par_file <- basename(gotmtools::get_yaml_value(config_yaml, "config_files", "Simstrat"))
+  par_file <- gotmtools::get_yaml_value(yaml, "config_files", "Simstrat")
 
   #Delete previous output
-  # out_folder <- get_json_value(file = file.path(folder, par_fpath), label = "Output", "Path")
-  old_output <- list.files(file.path(folder, "Simstrat", "output"))
-  unlink(file.path(folder, "Simstrat", "output", old_output), recursive = TRUE)
+  suppressWarnings({
+    out_folder <- get_json_value(file = file.path(folder, par_file), label = "Output", "Path")
+    sim_restart <- get_json_value(file = file.path(folder, par_file), label = "Simulation", "Continue from last snapshot")
+  })
+  old_output <- list.files(file.path(folder, "Simstrat", out_folder))
 
+  if(yaml$restart$use) {
+    old_output <- old_output[!grepl("simulation-snapshot.dat", old_output)]
+  }
+  unlink(file.path(folder, "Simstrat", out_folder, old_output), recursive = TRUE)
 
-  sim_res <- SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = par_file, verbose = TRUE)
-  run_success <- !any(grepl("Error|ERROR", sim_res))
+  sim_res <- SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = basename(par_file), verbose = TRUE)
+
+  if(sim_restart) {
+    if(file.exists(file.path(folder, "Simstrat", out_folder, "simulation-snapshot.dat")) & !any(grepl("Error|ERROR", sim_res))) {
+      run_success <- TRUE
+    } else {
+      run_success <- FALSE
+    }
+  } else {
+    if(!any(grepl("Error|ERROR", sim_res))) {
+      run_success <- TRUE
+    } else {
+      run_success <- FALSE
+    }
+  }
+
 
   if(return_list | create_output){
 
     ### Extract output
-    sim_out <- get_output(config_yaml = config_yaml, model = "Simstrat", vars = out_vars,
+    sim_out <- get_output(yaml = yaml, model = "Simstrat", vars = out_vars,
                           obs_depths = obs_deps, folder = folder, out_time = out_time,
                           run_success = run_success)
 
@@ -427,18 +457,19 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("Simstrat run FAILED.\nInspect model configuration files for errors.",
             paste0("[", Sys.time(), "]"))
   }
+  sim_out$run_success <- run_success
   return(sim_out)
 }
 
 #' @keywords internal
-.run_MyLake <- function(config_yaml, folder, return_list, create_output, start, stop,
+.run_MyLake <- function(yaml, folder, return_list, create_output, start, stop,
                         verbose, obs_deps, out_time, out_vars){
 
   #Delete previous output
   old_output <- list.files(file.path(folder, "MyLake", "output"))
   unlink(file.path(folder, "MyLake", "output", old_output), recursive = TRUE)
 
-  cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(config_yaml, "config_files", "MyLake"))
+  cnfg_file <- gsub(".*/", "", gotmtools::get_yaml_value(yaml, "config_files", "MyLake"))
   run_success <- tryCatch({
     MyLakeR::run_mylake(sim_folder = folder, config_dat = cnfg_file)
     TRUE
@@ -448,7 +479,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(return_list | create_output){
 
     ### Extract output
-    mylake_out <- get_output(config_yaml = config_yaml, model = "MyLake", vars = out_vars,
+    mylake_out <- get_output(yaml = yaml, model = "MyLake", vars = out_vars,
                              obs_depths = obs_deps, folder = folder, out_time = out_time,
                              run_success = run_success)
 
@@ -468,5 +499,6 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     message("MyLake run FAILED.\nInspect model configuration files for errors.",
             paste0("[", Sys.time(), "]"))
   }
+  mylake_out$run_success <- run_success
   return(mylake_out)
 }

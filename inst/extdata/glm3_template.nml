@@ -59,9 +59,15 @@
    the_depths = 0.9, 42
    the_temps = 6.255, 6.128
    the_sals = 0, 0
+   snow_thickness = 0
+   white_ice_thickness = 0
+   blue_ice_thickness = 0
+   avg_surf_temp = 6
+   restart_variables = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+
 !   num_wq_vars = 0
-!   wq_names = 
-!   wq_init_vals = 
+!   wq_names =
+!   wq_init_vals =
 /
 &meteorology
    met_sw = .true.

@@ -3,7 +3,7 @@
 #' Get output data for each model
 #'
 #' @name get_output
-#' @param config_yaml list; loaded using `read_yaml()`
+#' @param yaml list; loaded using `read_yaml()`
 #' @param model character; Model for which scaling parameters will be applied. Options include
 #'    c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #' @param vars vector; variables to extract from FLake output. Currently just temp and ice
@@ -19,7 +19,7 @@
 #' @importFrom gotmtools get_vari setmodDepths read_yaml set_yaml write_yaml get_yaml_value
 #' @importFrom glmtools get_ice get_var
 #' @export
-get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = ".", out_time,
+get_output <- function(yaml, model, vars, obs_depths = NULL, folder = ".", out_time,
                        out_hour, run_success){
 
 # FLake ----
@@ -27,10 +27,10 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
 
     # Extract output
     fold <- file.path(folder, "FLake")
-    nml_file <- file.path(folder, get_yaml_value(config_yaml, "config_files", "FLake"))
+    nml_file <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(glmtools::get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
-    out_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
+    out_depths <- gotmtools::get_yaml_value(yaml, "output", "depths")
     depths <- seq(0, mean_depth, by = out_depths)
 
     # Add in obs depths which are not in depths and less than mean depth
@@ -57,11 +57,11 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       if(run_success) {
         # Add in obs depths which are not in depths and less than mean depth
         depth <- suppressWarnings(glmtools::get_nml_value(nml_file = file.path(folder,
-                                                                               gotmtools::get_yaml_value(config_yaml,
+                                                                               gotmtools::get_yaml_value(yaml,
                                                                                                          "config_files",
                                                                                                          "GLM")),
                                                           arg_name = "lake_depth"))
-        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(yaml, "output", "depths"))
         add_deps <- obs_depths[!(obs_depths %in% depths)]
         depths <- c(add_deps, depths)
         depths <- depths[order(depths)]
@@ -96,11 +96,11 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       if(run_success) {
         # Add in obs depths which are not in depths and less than mean depth
         depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                     gotmtools::get_yaml_value(config_yaml,
+                                                                     gotmtools::get_yaml_value(yaml,
                                                                                                "config_files",
                                                                                                "GLM")),
                                                 arg_name = "lake_depth"))
-        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(yaml, "output", "depths"))
         add_deps <- obs_depths[!(obs_depths %in% depths)]
         depths <- c(add_deps, depths)
         depths <- depths[order(depths)]
@@ -122,11 +122,11 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       if(run_success) {
         # Add in obs depths which are not in depths and less than mean depth
         depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                     gotmtools::get_yaml_value(config_yaml,
+                                                                     gotmtools::get_yaml_value(yaml,
                                                                                                "config_files",
                                                                                                "GLM")),
                                                 arg_name = "lake_depth"))
-        depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, depth, by = gotmtools::get_yaml_value(yaml, "output", "depths"))
         add_deps <- obs_depths[!(obs_depths %in% depths)]
         depths <- c(add_deps, depths)
         depths <- depths[order(depths)]
@@ -196,7 +196,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
         ncdf4::nc_close(nc)
 
         # Add in obs depths which are not in depths and less than mean depth
-        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(yaml, "output", "depths"))
         if(is.null(obs_depths)) {
           obs_dep_neg <- NULL
         } else {
@@ -253,7 +253,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
         ncdf4::nc_close(nc)
 
         # Add in obs depths which are not in depths and less than mean depth
-        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(yaml, "output", "depths"))
         if(is.null(obs_depths)) {
           obs_dep_neg <- NULL
         } else {
@@ -293,7 +293,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
         ncdf4::nc_close(nc)
 
         # Add in obs depths which are not in depths and less than mean depth
-        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_yaml, "output", "depths"))
+        depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(yaml, "output", "depths"))
         if(is.null(obs_depths)) {
           obs_dep_neg <- NULL
         } else {
@@ -332,7 +332,7 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
   if("Simstrat" %in% model){
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    par_file <- file.path(folder, gotmtools::get_yaml_value(config_yaml, "config_files", "Simstrat"))
+    par_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
     timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
     reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Start year")
 
@@ -345,7 +345,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
                            sep = ",", check.names = FALSE)
         temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
         # In case sub-hourly time steps are used, rounding might be necessary
-        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+        temp[, 1] <- lubridate::round_date(temp[, 1],
+                                           unit = lubridate::seconds_to_period(timestep))
 
         # First column datetime, then depth from shallow to deep
         temp <- temp[, c(1, ncol(temp):2)]
@@ -404,7 +405,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
         ice_height[, 1] <- as.POSIXct(ice_height[, 1] * 3600 * 24,
                                       origin = paste0(reference_year, "-01-01"))
         # In case sub-hourly time steps are used, rounding might be necessary
-        ice_height[, 1] <- round_date(ice_height[, 1], unit = seconds_to_period(timestep))
+        ice_height[, 1] <- lubridate::round_date(ice_height[, 1],
+                                                 unit = lubridate::seconds_to_period(timestep))
         colnames(ice_height) <- c("datetime", "ice_height")
 
         sim_out[[length(sim_out) + 1]] <- ice_height
@@ -424,7 +426,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
                            sep = ",", check.names = FALSE)
         temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
         # In case sub-hourly time steps are used, rounding might be necessary
-        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+        temp[, 1] <- lubridate::round_date(temp[, 1],
+                                           unit = lubridate::seconds_to_period(timestep))
 
         # First column datetime, then depth from shallow to deep
         temp <- temp[, c(1, ncol(temp):2)]
@@ -471,7 +474,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
                           sep = ",", check.names = FALSE)
         sal[, 1] <- as.POSIXct(sal[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
         # In case sub-hourly time steps are used, rounding might be necessary
-        sal[, 1] <- round_date(sal[, 1], unit = seconds_to_period(timestep))
+        sal[, 1] <- lubridate::round_date(sal[, 1],
+                                          unit = lubridate::seconds_to_period(timestep))
 
         # First column datetime, then depth from shallow to deep
         sal <- sal[, c(1, ncol(sal):2)]
@@ -545,7 +549,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
                            sep = ",", check.names = FALSE)
         temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
         # In case sub-hourly time steps are used, rounding might be necessary
-        temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+        temp[, 1] <- lubridate::round_date(temp[, 1],
+                                           unit = lubridate::seconds_to_period(timestep))
 
         # First column datetime, then depth from shallow to deep
         temp <- temp[, c(1, ncol(temp):2)]
@@ -593,11 +598,10 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
       } else {
         sim_out[[length(sim_out) + 1]] <- data.frame(datetime = out_time, sal_0.5 = NA, sal_1 = NA)
         names(sim_out)[length(sim_out)] <- "salt"
-        }
       }
+    }
 
     return(sim_out)
-
   }
 
 # MyLake ----
@@ -613,8 +617,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     if("temp" %in% vars){
 
       if(run_success) {
-        output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
-        #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
+        output_depths <- gotmtools::get_yaml_value(yaml, "output", "depths")
+        #max_depth <- gotmtools::get_yaml_value(yaml, "location", "depth")
 
         init_depths <- res$zz
         seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -663,8 +667,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
     if("dens" %in% vars){
 
       if(run_success) {
-        output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
-        #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
+        output_depths <- gotmtools::get_yaml_value(yaml, "output", "depths")
+        #max_depth <- gotmtools::get_yaml_value(yaml, "location", "depth")
 
         init_depths <- res$zz
         seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -703,8 +707,8 @@ get_output <- function(config_yaml, model, vars, obs_depths = NULL, folder = "."
         if(run_success) {
           message('MyLake does not support simulation of salinity dynamics.')
 
-          output_depths <- gotmtools::get_yaml_value(config_yaml, "output", "depths")
-          #max_depth <- gotmtools::get_yaml_value(config_yaml, "location", "depth")
+          output_depths <- gotmtools::get_yaml_value(yaml, "output", "depths")
+          #max_depth <- gotmtools::get_yaml_value(yaml, "location", "depth")
 
           init_depths <- res$zz
           seq_depths <- seq(0, max(init_depths), by = output_depths)

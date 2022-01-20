@@ -46,6 +46,8 @@ output:
    variables:
       - temp
       - ice_height
+restart:
+   use: false                                   # use model restart [true/false] (only applicable to GLM, GOTM & Simstrat)
 scaling_factors:                                # scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
    all:
       wind_speed: 1.0
@@ -67,7 +69,7 @@ model_parameters:
 calibration:                                    # calibration section
    met:                                         # meteo scaling parameter
       wind_speed:                               # wind speed scaling
-         lower: 0.5                             # lower bound for wind speed scaling        
+         lower: 0.5                             # lower bound for wind speed scaling
          upper: 2                               # upper bound for wind speed scaling
          initial: 1                             # initial value for wind speed scaling
          log: false                             # log transform scaling factor
@@ -94,13 +96,13 @@ calibration:                                    # calibration section
          upper: 5E-4                            # upper bound for parameter
          initial: 1E-5                          # initial value for parameter
          log: true
-   Simstrat:                                    # Simstrat specific parameters                                 
+   Simstrat:                                    # Simstrat specific parameters
       ModelParameters/a_seiche:
          lower: 0.0008                          # lower bound for parameter
          upper: 0.003                           # upper bound for parameter
          initial: 0.001                         # initial value for parameter
-         log: false                             # log transform scaling factor                          
-   MyLake:                                      # MyLake specific parameters                                    
+         log: false                             # log transform scaling factor
+   MyLake:                                      # MyLake specific parameters
       Phys.par/C_shelter:
          lower: 0.14                            # lower bound for parameter
          upper: 0.16                            # upper bound for parameter
