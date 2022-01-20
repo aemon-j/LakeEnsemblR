@@ -5,7 +5,7 @@
 \title{Get output data for each model}
 \usage{
 get_output(
-  config_yaml,
+  yaml,
   model,
   vars,
   obs_depths = NULL,
@@ -16,7 +16,7 @@ get_output(
 )
 }
 \arguments{
-\item{config_yaml}{list; loaded using `read_yaml()`}
+\item{yaml}{list; loaded using `read_yaml()`}
 
 \item{model}{character; Model for which scaling parameters will be applied. Options include
 c('GOTM', 'GLM', 'Simstrat', 'FLake')}
