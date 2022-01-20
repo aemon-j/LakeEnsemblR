@@ -18,11 +18,11 @@
 #' @export
 export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           folder = "."){
-  
+
   # Load Rdata
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   data("lake_var_dic", package = "LakeEnsemblR", envir = environment())
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
@@ -31,7 +31,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   # Load Rdata
   data(met_var_dic, envir = environment())
-  
+
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "UTC")
@@ -39,7 +39,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
@@ -58,7 +58,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   # Get start & stop dates
   start_date <- gotmtools::get_yaml_value(yaml, "time", "start")
   stop_date <- gotmtools::get_yaml_value(yaml, "time", "stop")
-  
+
   # Get scaling parameter
   scale_param <- gotmtools::get_yaml_value(yaml, "inflows", "scale_param")
 
@@ -98,7 +98,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       nml_list <- list("num_outlet" = 1, "outflow_fl" = "outflow.csv")
       nml <- glmtools::set_nml(nml, arg_list = nml_list)
       glmtools::write_nml(nml, glm_nml)
-      
+
       max_elv <- glmtools::get_nml_value(nml, "H")
       nml <- glmtools::set_nml(nml, arg_list = list("outl_elvs" = max(max_elv)))
       glmtools::write_nml(nml, glm_nml)
@@ -111,7 +111,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   if("GOTM" %in% model){
     got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
     got_yaml <- gotmtools::read_yaml(got_file)
-    
+
     ## Switch off streams
     if(!use_inflows){
       # streams_switch(file = got_yaml, method = "off")
@@ -142,7 +142,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       got_yaml <- gotmtools::set_yaml(got_yaml, key1 = "streams", key2 = "outflow", key3 = "salt", key4 =
                             "method", value = 0L)
     }
-    
+
     gotmtools::write_yaml(got_yaml, got_file)
 
   }
@@ -157,7 +157,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       ## Set Qin and Qout to 0 inflow
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       # In case Kw is a single value for the whole simulation:
-      inflow_line_2 <- "1"
+      inflow_line_2 <- "1 0"
       inflow_line_3 <- "-1 0.00"
       start_sim <- get_json_value(sim_par, "Simulation", "Start d")
       end_sim <- get_json_value(sim_par, "Simulation", "End d")
@@ -175,7 +175,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     }else{
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       # In case Kw is a single value for the whole simulation:
-      inflow_line_2 <- "1"
+      inflow_line_2 <- "1 0"
       inflow_line_3 <- "-1 0.00"
       start_sim <- get_json_value(sim_par, "Simulation", "Start d")
       end_sim <- get_json_value(sim_par, "Simulation", "End d")
@@ -233,7 +233,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     stop_date <- gotmtools::get_yaml_value(yaml, "time", "stop")
 
     inflow_start <- which(inflow$datetime == as.POSIXct(start_date))
-    inflow_stop <- which(inflow$datetime == as.POSIXct(stop_date))
+    inflow_stop <- which(inflow$datetime == as.POSIXct(stop_date)) + 1
 
     inflow <- inflow[inflow_start:inflow_stop, ]
 
@@ -250,7 +250,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                     "Water_Temperature_celsius\nSalinity_practicalSalinityUnits")
       }
     }
-    
+
     ### Apply scaling
     inflow[["Flow_metersCubedPerSecond"]] <- inflow[["Flow_metersCubedPerSecond"]] * scale_param
 
@@ -289,7 +289,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       # Write to file
       vroom::vroom_write(glm_inflow, inflow_outfile, delim = ",", quote = "none")
       message("GLM: Created file ", file.path(folder, "GLM", "inflow_file.csv"))
-      
+
       glm_outflow <- glm_inflow[, c("Time", "FLOW")]
       outflow_outfile <- file.path("GLM", "outflow.csv")
       vroom::vroom_write(glm_outflow, outflow_outfile, delim = ",", quote = "none")
@@ -303,7 +303,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       got_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
       got_yaml <- gotmtools::read_yaml(got_file)
-      
+
       gotm_outfile <- "inflow_file.dat"
 
       gotm_outfpath <- file.path(folder, "GOTM", gotm_outfile)
@@ -334,7 +334,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
         vroom::vroom_write(gotm_outflow, gotm_outflowfpath, delim = "\t",
                            quote = "none", col_names = TRUE)
-        
+
         gotmtools::write_yaml(got_yaml, got_file)
 
         message("GOTM: Created outflow file ", file.path(folder, "GOTM", gotm_outflowfile))
@@ -415,7 +415,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
       dummy_inflow <- matrix(rep(1e-10, 8 *
                                    length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                            to = as.POSIXct(stop_date),
+                                                            to = (as.POSIXct(stop_date) + 1*24*60*60),
                                                             by = "day"))),
                              ncol = 8)
       dummy_inflow[, 1] <- mylake_inflow$Flow_metersCubedPerDay
