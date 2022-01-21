@@ -109,7 +109,7 @@ test_that("can add members to netCDF models", {
     run_ensemble(config_file = config_file,
                  model = model, add = TRUE)
   }, error = function(e) return(FALSE))
-  testthat::expect_null(test_add)
+  testthat::expect_true(is.list(test_add))
 
 
 
