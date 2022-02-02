@@ -29,7 +29,8 @@ c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake')}
 
 \item{return_list}{boolean; Return a list of dataframes of model output. Defaults to FALSE}
 
-\item{create_output}{boolean; Create ensemble output file otherwise it just runs the models and generates model output in their respective folders. Defaults to TRUE}
+\item{create_output}{boolean; Create ensemble output file otherwise it just runs the models and
+generates model output in their respective folders. Defaults to TRUE}
 
 \item{add}{boolean; Add results to an existing netcdf file with new dimension "member"}
 }

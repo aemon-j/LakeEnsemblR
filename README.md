@@ -1,8 +1,9 @@
 LakeEnsemblR
 =====
+[![](http://github-actions.40ants.com/aemon-j/LakeEnsemblR/matrix.svg)](https://github.com/aemon-j/LakeEnsemblR)
 
-[![Build Status](https://travis-ci.org/aemon-j/LakeEnsemblR.svg?branch=master)](https://travis-ci.org/aemon-j/LakeEnsemblR)   [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-<a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>
+[![R-CMD-check](https://github.com/aemon-j/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/aemon-j/LakeEnsemblR/actions) [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+<a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
 
@@ -12,22 +13,25 @@ You can find example setups here: https://github.com/aemon-j/LER_examples.
 Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up to date as there is parallel devlopment ongoing.
 
 ```{r gh-installation, eval = FALSE}
-#install.packages("devtools")
-devtools::install_github("GLEON/GLM3r")
-devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
-devtools::install_github("aemon-j/FLakeR", ref = "inflow")
-devtools::install_github("aemon-j/GOTMr")
-devtools::install_github("aemon-j/gotmtools")
-devtools::install_github("aemon-j/SimstratR")
-devtools::install_github("aemon-j/MyLakeR")
+#install.packages("remotes")
+remotes::install_github("GLEON/rLakeAnalyzer")
+remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
+remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
+remotes::install_github("aemon-j/FLakeR", ref = "inflow")
+remotes::install_github("aemon-j/GOTMr")
+remotes::install_github("aemon-j/gotmtools")
+remotes::install_github("aemon-j/SimstratR")
+remotes::install_github("aemon-j/MyLakeR")
 ```
 
 Following this you can install `LakeEnsemblR` from Github with:
 
 ```{r gh-installation, eval = FALSE}
-# install.packages("devtools")
-devtools::install_github("aemon-j/LakeEnsemblR")
+# install.packages("remotes")
+remotes::install_github("aemon-j/LakeEnsemblR")
 ```
+
+Should you run into unexpected installation issues, please have a look at this page: https://github.com/aemon-j/LakeEnsemblR/wiki/Installation-issues
 
 ### Visualize
 
@@ -46,7 +50,7 @@ file.copy(from = template_folder, to = "example", recursive = TRUE)
 setwd("example/feeagh") # Change working directory to example folder
 
 # Set config file & models
-config_file <- 'LakeEnsemblR.yaml'
+config_file <- "LakeEnsemblR.yaml"
 model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
 # Example run
@@ -67,7 +71,7 @@ library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
 # Extract names of all the variables in netCDF
-ncdf <- 'output/ensemble_output.nc'
+ncdf <- "output/ensemble_output.nc"
 vars <- gotmtools::list_vars(ncdf)
 vars # Print variables
 
@@ -75,9 +79,11 @@ p1 <- plot_heatmap(ncdf)
 p1
 # Change the theme and increase text size for saving
 p1 <- p1 +
-  theme_classic(base_size = 24)
+  theme_classic(base_size = 24) + 
+  scale_colour_gradientn(limits = c(0, 21),
+                         colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 # Save as a png file
-ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
+ggsave("output/ensemble_heatmap.png", p1,  dpi = 300,width = 384,height = 280, units = "mm")
 
 ```
 ![](images/ensemble_heatmap.png)<!-- -->
@@ -86,10 +92,10 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
+plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
 
 # Load watertemp from netCDF file as a list
-wtemp <- load_var(ncdf = ncdf, var = 'temp', return = 'list')
+wtemp <- load_var(ncdf = ncdf, var = "temp", return = "list")
 names(wtemp)
 
 # Plot residual diagnostic plots
@@ -102,9 +108,9 @@ plots[[2]]
 # Analyse the netCDF output
 out <- analyse_ncdf(ncdf, model = model, spin_up = 0)
 names(out)
-str <- out[['strat']]
+str <- out[["strat"]]
 str[str$year == 2010, ]
-stats <- out[['stats']]
+stats <- out[["stats"]]
 stats
 ```
 See the [vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf) for further examples.
