@@ -10,17 +10,17 @@
 #' 
 #' @export
 
-get_template <- function(template = NULL, folder=".", overwrite = FALSE){
+get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
   
   template_folder <- system.file("extdata", package = "LakeEnsemblR")
   
   # Names and subfolders of all the templates
   name_config <- "feeagh/LakeEnsemblR.yaml"
-  name_flake <- "flake_template.nml"
-  name_glm <- "glm3_template.nml"
-  name_gotm <- "gotm_template.yaml"
-  name_simstrat <- "simstrat_template.par"
-  name_mylake <- "mylake_config_template.Rdata"
+  name_flake <- "flake.nml" # Name in FLakeR
+  name_glm <- "glm3.nml" # Name in GLM3r
+  name_gotm <- "gotm.yaml" # Name in GOTMr
+  name_simstrat <- "simstrat.par" # Name in SimstratR
+  name_mylake <- "mylake.Rdata" # Name in MyLakeR
   name_init_temp_profile <- "LakeEnsemblR_init_temp_profile_template.csv"
   name_Kw <- "LakeEnsemblR_Kw_template.csv"
   name_inflow <- "feeagh/LakeEnsemblR_inflow_standard.csv"
@@ -57,25 +57,61 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
               file.path(folder, basename(name_config)),
               overwrite = overwrite)
   }else if(template == "FLake_config"){
-    file.copy(file.path(template_folder, name_flake),
-              file.path(folder, basename(name_flake)),
-              overwrite = overwrite)
+    if("FLakeR" %in% rownames(installed.packages())){
+      # Get the file
+      flake_folder <- system.file("extdata", package = "FLakeR")
+      file.copy(file.path(flake_folder, name_flake),
+                file.path(folder, basename(name_flake)),
+                overwrite = overwrite)
+    }else{
+      message("To retrieve the FLake config file, you need to install ",
+              "the R package 'FLakeR'.")
+    }
+    
   }else if(template == "GLM_config"){
-    file.copy(file.path(template_folder, name_glm),
-              file.path(folder, basename(name_glm)),
-              overwrite = overwrite)
+    if("GLM3r" %in% rownames(installed.packages())){
+      # Get the file
+      glm_folder <- system.file("extdata", package = "GLM3r")
+      file.copy(file.path(glm_folder, name_glm),
+                file.path(folder, basename(name_glm)),
+                overwrite = overwrite)
+    }else{
+      message("To retrieve the GLM config file, you need to install ",
+              "the R package 'GLM3r'.")
+    }
   }else if(template == "GOTM_config"){
-    file.copy(file.path(template_folder, name_gotm),
-              file.path(folder, basename(name_gotm)),
-              overwrite = overwrite)
+    if("GOTMr" %in% rownames(installed.packages())){
+      # Get the file
+      gotm_folder <- system.file("extdata", package = "GOTMr")
+      file.copy(file.path(gotm_folder, name_gotm),
+                file.path(folder, basename(name_gotm)),
+                overwrite = overwrite)
+    }else{
+      message("To retrieve the GOTM config file, you need to install ",
+              "the R package 'GOTMr'.")
+    }
   }else if(template == "Simstrat_config"){
-    file.copy(file.path(template_folder, name_simstrat),
-              file.path(folder, basename(name_simstrat)),
-              overwrite = overwrite)
+    if("SimstratR" %in% rownames(installed.packages())){
+      # Get the file
+      simstrat_folder <- system.file("extdata", package = "SimstratR")
+      file.copy(file.path(simstrat_folder, name_simstrat),
+                file.path(folder, basename(name_simstrat)),
+                overwrite = overwrite)
+    }else{
+      message("To retrieve the Simstrat config file, you need to install ",
+              "the R package 'SimstratR'.")
+    }
   }else if(template == "MyLake_config"){
-    file.copy(file.path(template_folder, name_mylake),
-              file.path(folder, basename(name_mylake)),
-              overwrite = overwrite)
+    if("MyLakeR" %in% rownames(installed.packages())){
+      # Get the file
+      mylake_folder <- system.file("extdata", package = "MyLakeR")
+      file.copy(file.path(mylake_folder, name_mylake),
+                file.path(folder, basename(name_mylake)),
+                overwrite = overwrite)
+    }else{
+      message("To retrieve the MyLake config file, you need to install ",
+              "the R package 'MyLakeR'.")
+    }
   }else if(template == "Initial temperature profile"){
     file.copy(file.path(template_folder, name_init_temp_profile),
               file.path(folder, basename(name_init_temp_profile)),
@@ -110,7 +146,21 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
               overwrite = overwrite)
   }else if(template == "all"){
     for(i in all_names){
-      file.copy(file.path(template_folder, i),
+      if(i == "flake.nml" & "FLakeR" %in% rownames(installed.packages())){
+        the_folder <- system.file("extdata", package = "FLakeR")
+      }else if(i == "glm3.nml" & "GLM3r" %in% rownames(installed.packages())){
+        the_folder <- system.file("extdata", package = "GLM3r")
+      }else if(i == "gotm.yaml" & "GOTMr" %in% rownames(installed.packages())){
+        the_folder <- system.file("extdata", package = "GOTMr")
+      }else if(i == "simstrat.par" & "SimstratR" %in% rownames(installed.packages())){
+        the_folder <- system.file("extdata", package = "SimstratR")
+      }else if(i == "mylake.Rdata" & "MyLakeR" %in% rownames(installed.packages())){
+        the_folder <- system.file("extdata", package = "MyLakeR")
+      }else{
+        the_folder <- template_folder
+      }
+      
+      file.copy(file.path(the_folder, i),
                 file.path(folder, basename(i)),
                 overwrite = overwrite)
     }
