@@ -6,11 +6,12 @@
 #' @param template string; name of file that you want to get the template for.
 #'    In case it is NULL, all potential options are given. "All" returns all templates.
 #' @param folder filepath; filepath where to copy the templates to
+#' @param filename string; filename (including .filetype). Default NULL, for the standard name
 #' @param overwrite boolean; overwrite existing files
 #' 
 #' @export
 
-get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
+get_template <- function(template = NULL, folder = ".", filename = NULL, overwrite = FALSE){
   
   template_folder <- system.file("extdata", package = "LakeEnsemblR")
   
@@ -53,15 +54,16 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
             "\nOutflow", "\nHypsograph", "\nIce height", "\nMeteo",
             "\nTemperature observations")
   }else if(template == "LakeEnsemblR_config"){
+    use_name <- ifelse(is.null(filename), basename(name_config), filename)
     file.copy(file.path(template_folder, name_config),
-              file.path(folder, basename(name_config)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "FLake_config"){
     if("FLakeR" %in% rownames(installed.packages())){
-      # Get the file
+      use_name <- ifelse(is.null(filename), basename(name_flake), filename)
       flake_folder <- system.file("extdata", package = "FLakeR")
       file.copy(file.path(flake_folder, name_flake),
-                file.path(folder, basename(name_flake)),
+                file.path(folder, use_name),
                 overwrite = overwrite)
     }else{
       message("To retrieve the FLake config file, you need to install ",
@@ -70,10 +72,10 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
     
   }else if(template == "GLM_config"){
     if("GLM3r" %in% rownames(installed.packages())){
-      # Get the file
+      use_name <- ifelse(is.null(filename), basename(name_glm), filename)
       glm_folder <- system.file("extdata", package = "GLM3r")
       file.copy(file.path(glm_folder, name_glm),
-                file.path(folder, basename(name_glm)),
+                file.path(folder, use_name),
                 overwrite = overwrite)
     }else{
       message("To retrieve the GLM config file, you need to install ",
@@ -81,10 +83,10 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
     }
   }else if(template == "GOTM_config"){
     if("GOTMr" %in% rownames(installed.packages())){
-      # Get the file
+      use_name <- ifelse(is.null(filename), basename(name_gotm), filename)
       gotm_folder <- system.file("extdata", package = "GOTMr")
       file.copy(file.path(gotm_folder, name_gotm),
-                file.path(folder, basename(name_gotm)),
+                file.path(folder, use_name),
                 overwrite = overwrite)
     }else{
       message("To retrieve the GOTM config file, you need to install ",
@@ -92,10 +94,10 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
     }
   }else if(template == "Simstrat_config"){
     if("SimstratR" %in% rownames(installed.packages())){
-      # Get the file
+      use_name <- ifelse(is.null(filename), basename(name_simstrat), filename)
       simstrat_folder <- system.file("extdata", package = "SimstratR")
       file.copy(file.path(simstrat_folder, name_simstrat),
-                file.path(folder, basename(name_simstrat)),
+                file.path(folder, use_name),
                 overwrite = overwrite)
     }else{
       message("To retrieve the Simstrat config file, you need to install ",
@@ -103,46 +105,54 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
     }
   }else if(template == "MyLake_config"){
     if("MyLakeR" %in% rownames(installed.packages())){
-      # Get the file
+      use_name <- ifelse(is.null(filename), basename(name_mylake), filename)
       mylake_folder <- system.file("extdata", package = "MyLakeR")
       file.copy(file.path(mylake_folder, name_mylake),
-                file.path(folder, basename(name_mylake)),
+                file.path(folder, use_name),
                 overwrite = overwrite)
     }else{
       message("To retrieve the MyLake config file, you need to install ",
               "the R package 'MyLakeR'.")
     }
   }else if(template == "Initial temperature profile"){
+    use_name <- ifelse(is.null(filename), basename(name_init_temp_profile), filename)
     file.copy(file.path(template_folder, name_init_temp_profile),
-              file.path(folder, basename(name_init_temp_profile)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Light extinction"){
+    use_name <- ifelse(is.null(filename), basename(name_Kw), filename)
     file.copy(file.path(template_folder, name_Kw),
-              file.path(folder, basename(name_Kw)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Inflow"){
+    use_name <- ifelse(is.null(filename), basename(name_inflow), filename)
     file.copy(file.path(template_folder, name_inflow),
-              file.path(folder, basename(name_inflow)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Outflow"){
+    use_name <- ifelse(is.null(filename), basename(name_outflow), filename)
     file.copy(file.path(template_folder, name_outflow),
-              file.path(folder, basename(name_outflow)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Hypsograph"){
+    use_name <- ifelse(is.null(filename), basename(name_hypsograph), filename)
     file.copy(file.path(template_folder, name_hypsograph),
-              file.path(folder, basename(name_hypsograph)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Ice height"){
+    use_name <- ifelse(is.null(filename), basename(name_ice_height), filename)
     file.copy(file.path(template_folder, name_ice_height),
-              file.path(folder, basename(name_ice_height)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Meteo"){
+    use_name <- ifelse(is.null(filename), basename(name_meteo), filename)
     file.copy(file.path(template_folder, name_meteo),
-              file.path(folder, basename(name_meteo)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "Temperature observations"){
+    use_name <- ifelse(is.null(filename), basename(name_temp_obs), filename)
     file.copy(file.path(template_folder, name_temp_obs),
-              file.path(folder, basename(name_temp_obs)),
+              file.path(folder, use_name),
               overwrite = overwrite)
   }else if(template == "all"){
     for(i in all_names){
@@ -160,6 +170,7 @@ get_template <- function(template = NULL, folder = ".", overwrite = FALSE){
         the_folder <- template_folder
       }
       
+      # Note: filename is not used for the "all" option
       file.copy(file.path(the_folder, i),
                 file.path(folder, basename(i)),
                 overwrite = overwrite)
