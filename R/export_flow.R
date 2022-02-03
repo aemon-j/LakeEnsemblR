@@ -100,8 +100,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
     # Get scaling parameter
     if(!is.null(yml_fl$scaling_factors$all$inflow)) {
-      scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")}
-    else {
+      scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")
+    }else {
       scale_param_inf <- rep(1, num_inflows)
       warning(paste0("No inflow scaling found in section 'scaling_factors/all'",
                      " of the config file '", config_file,
