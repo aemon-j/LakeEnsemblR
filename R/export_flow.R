@@ -70,15 +70,15 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   }
   
 
-  if(use_outflows) {
+  if(use_outflows){
     # number of outflows
     num_outflows <- get_yaml_value(config_file, "outflows", "number_outflows")
     # outflow depths
     lvl_outflows <- get_yaml_value(config_file, "outflows", "outflow_lvl")
     # Get scaling parameter
-    if(!is.null(yml_fl$scaling_factors$all$outflow)) {
-      scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")}
-    else {
+    if(!is.null(yml_fl$scaling_factors$all$outflow)){
+      scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")
+    }else{
       scale_param_out <- rep(1, num_outflows)
       warning(paste0("No outflow scaling found in section 'scaling_factors/all'",
                      " of the config file '", config_file,
@@ -86,16 +86,16 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                      " If you provide model specific scaling they",
                      " will overwrite this factor."), call. = FALSE)
     }
-  if(!is.null(yml_fl$outflows$scale_param)) {
-    warning(paste0("Outflow scaling found in section 'outflow/scale_param'",
-                   " of the config file '", config_file,
-                   "'. outflow scaling was moved to the ",
-                   "'scaling_factors' section, please update",
-                   " your yaml file."), call. = FALSE)
-  }
+    if(!is.null(yml_fl$outflows$scale_param)){
+      warning(paste0("Outflow scaling found in section 'outflow/scale_param'",
+                     " of the config file '", config_file,
+                     "'. outflow scaling was moved to the ",
+                     "'scaling_factors' section, please update",
+                     " your yaml file."), call. = FALSE)
+    }
   }
 
-  if(use_inflows) {
+  if(use_inflows){
     # number of inflows
     num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
     # Get scaling parameter
@@ -138,6 +138,23 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
+    
+    # 2022-02-03: template file in GLM3r, ggplot_overhaul branch does not have
+    # entries flt_off_sw, crest_width, and crest_factor. And with outlet_type,
+    # the model crashes. 
+    if(is.null(nml[["outflow"]][["flt_off_sw"]])){
+      nml[["outflow"]][["flt_off_sw"]] <- FALSE
+    }
+    if(is.null(nml[["outflow"]][["crest_width"]])){
+      nml[["outflow"]][["crest_width"]] <- 100
+    }
+    if(is.null(nml[["outflow"]][["crest_factor"]])){
+      nml[["outflow"]][["crest_factor"]] <- 0.61
+    }
+    if(!is.null(nml[["outflow"]][["outlet_type"]])){
+      nml[["outflow"]][["outlet_type"]] <- NULL
+    }
+    
     # if no inflow or outflow is used  this list is keep otherwise it is changed
     inp_list <- list("num_inflows" = 0, "num_outlet" = 0)
     # set inflow
@@ -240,29 +257,29 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         }
       }
         # set inflow settings for all inflows
-        for (i in 1:num_inflows) {
+      for (i in 1:num_inflows) {
 
-          if(i == 1) {
-            inf_sec <- "inflow"
-          } else {
-            inf_sec <- paste0("inflow_", i)
-          }
-
-          # streams_switch(file = got_yaml, method = "on")
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
-                                "method", value = 2)
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
-                                "method", value = 2)
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
-                                "method", value = 2)
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
-                                "file", value = paste0("inflow_file_", i, ".dat"))
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
-                                "file", value = paste0("inflow_file_", i, ".dat"))
-          input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
-                                "file", value = paste0("inflow_file_", i, ".dat"))
+        if(i == 1) {
+          inf_sec <- "inflow"
+        } else {
+          inf_sec <- paste0("inflow_", i)
         }
+
+        # streams_switch(file = got_yaml, method = "on")
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
+                              "method", value = 2)
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
+                              "method", value = 2)
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
+                              "method", value = 2)
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "flow", key4 =
+                              "file", value = paste0("inflow_file_", i, ".dat"))
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "temp", key4 =
+                              "file", value = paste0("inflow_file_", i, ".dat"))
+        input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
+                              "file", value = paste0("inflow_file_", i, ".dat"))
       }
+    }
 
     # set outflows
     if (use_outflows) {
@@ -344,6 +361,20 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
                  file_connection)
       close(file_connection)
+      
+      ## Also set Tin and Sout to 0
+      inflow_line_1_T <- "Time [d]\tT_in [degC]"
+      inflow_line_1_S <- "Time [d]\tS_in [promille]"
+      file_connection <- file("Simstrat/Tin.dat")
+      writeLines(c(inflow_line_1_T, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
+                 file_connection)
+      close(file_connection)
+      
+      file_connection <- file("Simstrat/Sin.dat")
+      writeLines(c(inflow_line_1_S, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
+                 file_connection)
+      close(file_connection)
+      
     }
     if(!use_outflows){
       outflow_outfile <- "Qout.dat"

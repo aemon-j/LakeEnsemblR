@@ -36,7 +36,6 @@ inflows:
    use: true                                    # use in- and outflows? [true/false]
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
    number_inflows: 1                            # number of inflows in the inflow file
-   mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false] only used if now outflows are given
 outflows:
    use: true                                    # use outflows? [true/false]
    file: LakeEnsemblR_outflow_standard.csv      # file with outflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if outflows -> use is true]

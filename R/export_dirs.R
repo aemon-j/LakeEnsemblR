@@ -29,19 +29,14 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 ##---------------FLake-------------
   if("FLake" %in% model){
     # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("FLake")){
-      dir.create("FLake")
-    }
     if(!dir.exists("FLake/output")){
-      dir.create("FLake/output")
+      dir.create("FLake/output", recursive = TRUE)
     }
     
     # Read the FLake config file from config_file, and write it to the FLake directory
     temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
     if(!file.exists(temp_fil)){
-      template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+      get_template("FLake_config", folder = folder, filename = temp_fil)
     }
   }
   
@@ -56,9 +51,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
     
     if(!file.exists(temp_fil)){
-      template_file <- system.file("extdata/glm3_template.nml", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+      get_template("GLM_config", folder = folder, filename = temp_fil)
     }
   }
   
@@ -72,14 +65,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # Read the GOTM config file from config_file, and write it to the GOTM directory
     temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
     if(!file.exists(temp_fil)){
-      template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+      get_template("GOTM_config", folder = folder, filename = temp_fil)
     }
-    
-    # Get output.yaml from the template in the package and copy to the GOTM folder
-    out_fil <- system.file("extdata/gotm_files/output.yaml", package = packageName())
-    file.copy(from = out_fil, to = "GOTM/output.yaml")
   }
   
 ##---------------Simstrat-------------
@@ -92,20 +79,8 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
     temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
     if(!file.exists(temp_fil)){
-      template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+      get_template("Simstrat_config", folder = folder, filename = temp_fil)
     }
-    
-    # Copy in template files from examples folder in the package
-    qin_fil <- system.file("extdata/simstrat_files/Qin.dat", package = packageName())
-    qout_fil <- system.file("extdata/simstrat_files/Qout.dat", package = packageName())
-    tin_fil <- system.file("extdata/simstrat_files/Tin.dat", package = packageName())
-    sin_fil <- system.file("extdata/simstrat_files/Sin.dat", package = packageName())
-    file.copy(from = qin_fil, to = file.path(folder, "Simstrat", "Qin.dat"))
-    file.copy(from = qout_fil, to = file.path(folder, "Simstrat", "Qout.dat"))
-    file.copy(from = tin_fil, to = file.path(folder, "Simstrat", "Tin.dat"))
-    file.copy(from = sin_fil, to = file.path(folder, "Simstrat", "Sin.dat"))
   }
   
 ##---------------MyLake-------------
@@ -118,13 +93,10 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # Load config file MyLake
     temp_fil <- get_yaml_value(config_file, "config_files", "MyLake")
     if(!file.exists(temp_fil)){
-      # Load template config file from extdata
-      mylake_path <- system.file(package = "LakeEnsemblR")
-      load(file.path(mylake_path, "extdata", "mylake_config_template.Rdata"))
+      get_template("MyLake_config", folder = folder, filename = temp_fil)
       
-      temp_fil <- gsub(".*/", "", temp_fil)
-      # save lake-specific config file for MyLake
-      save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
+      # Load template config file from extdata
+      load(file.path(folder, temp_fil))
     }
   }
   
