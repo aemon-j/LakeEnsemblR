@@ -59,54 +59,22 @@ export_extinction <- function(config_file,
 
   if("FLake" %in% model){
 
-    # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("FLake")){
-      dir.create("FLake")
-    }
-    if(!dir.exists("FLake/output")){
-      dir.create("FLake/output")
-    }
-
     if(!constant_value){
       message("FLake does not accept varying extinction coefficient over time. ",
               "Average is used instead.")
     }
 
-    # Read the FLake config file from config_file, and write it to the FLake directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "FLake")
-    if(file.exists(temp_fil)){
-      fla_fil <- temp_fil
-    }else{
-      # This will work once we build the package
-      template_file <- system.file("extdata/flake_template.nml", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, get_yaml_value(config_file, "config_files", "FLake")))
-      fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
-    }
+    fla_fil <- get_yaml_value(config_file, "config_files", "FLake")
 
-    input_nml(fla_fil, label = "TRANSPARENCY", key = "extincoef_optic", Kw)
+    input_nml(file.path(folder, fla_fil), label = "TRANSPARENCY", key = "extincoef_optic", Kw)
   }
 
   if("GLM" %in% model){
 
-    # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("GLM/output")){
-      dir.create("GLM/output", recursive = TRUE)
-    }
-
     # Read the GLM config file from config_file, and write it to the GLM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "GLM")
-
-    if(file.exists(temp_fil)){
-      glm_nml <- temp_fil
-    }else{
-      # This will work once we build the package
-      template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
-      file.copy(from = template_file,
-                to = file.path(folder, get_yaml_value(config_file, "config_files", "GLM")))
-      glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
-    }
-
+    glm_nml <- get_yaml_value(config_file, "config_files", "GLM")
+    glm_nml <- file.path(folder, glm_nml)
+    
     if(constant_value){
       # Write to nml: if any, replace the line with Kw_file and put Kw
       file_con <- file(file.path(glm_nml))
@@ -140,22 +108,9 @@ export_extinction <- function(config_file,
 
   if("GOTM" %in% model){
 
-    # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("GOTM/output")){
-      dir.create("GOTM/output", recursive = TRUE)
-    }
-
     # Read the GOTM config file from config_file, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "GOTM")
-    if(file.exists(temp_fil)){
-      got_yaml <- temp_fil
-    }else{
-      # This will work once we build the package
-      template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, get_yaml_value(config_file, "config_files", "GOTM")))
-      got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
-    }
+    got_yaml <- get_yaml_value(config_file, "config_files", "GOTM")
+    got_yaml <- file.path(folder, got_yaml)
 
     if(constant_value){
       gotmtools::input_yaml(got_yaml, "g2", "method", 0)
@@ -180,23 +135,10 @@ export_extinction <- function(config_file,
   }
 
   if("Simstrat" %in% model){
-
-    # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("Simstrat/output")){
-      dir.create("Simstrat/output", recursive = TRUE)
-    }
-
+    
     # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-    temp_fil <- get_yaml_value(config_file, "config_files", "Simstrat")
-    if(file.exists(temp_fil)){
-      sim_par <- temp_fil
-    }else{
-      # This will work once we build the package
-      template_file <- system.file("extdata/simstrat_template.par", package = packageName())
-      file.copy(from = template_file,
-                to = file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat")))
-      sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
-    }
+    sim_par <- get_yaml_value(config_file, "config_files", "Simstrat")
+    sim_par <- file.path(folder, sim_par)
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
     file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
@@ -239,21 +181,13 @@ export_extinction <- function(config_file,
   
   if("MyLake" %in% model){
     
-    # Create directory and output directory, if they do not yet exist
-    if(!dir.exists("MyLake")){
-      dir.create("MyLake")
-    }
-    if(!dir.exists("MyLake/output")){
-      dir.create("MyLake/output")
-    }
-    
     if(!constant_value){
       message("MyLake does not accept varying extinction coefficient over time. ",
               "Average is used instead.")
     }
     
     # Load MyLake config file
-    load(get_yaml_value(config_file, "config_files", "MyLake"))
+    load(file.path(folder, get_yaml_value(config_file, "config_files", "MyLake")))
     
     mylake_config[["Bio.par"]][2] <- Kw
     
