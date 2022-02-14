@@ -24,6 +24,7 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
   name_init_temp_profile <- "LakeEnsemblR_init_temp_profile_template.csv"
   name_Kw <- "LakeEnsemblR_Kw_template.csv"
   name_inflow <- "feeagh/LakeEnsemblR_inflow_standard.csv"
+  name_outflow <- "feeagh/LakeEnsemblR_outflow_standard.csv"
   name_hypsograph <- "feeagh/LakeEnsemblR_bathymetry_standard.csv"
   name_ice_height <- "feeagh/LakeEnsemblR_ice-height_standard.csv"
   name_meteo <- "feeagh/LakeEnsemblR_meteo_standard.csv"
@@ -38,6 +39,7 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
                  name_init_temp_profile,
                  name_Kw,
                  name_inflow,
+                 name_outflow,
                  name_hypsograph,
                  name_ice_height,
                  name_meteo,
@@ -48,7 +50,8 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
             "all", "\nLakeEnsemblR_config", "\nFLake_config", "\nGLM_config",
             "\nGOTM_config", "\nSimstrat_config", "\nMyLake_config",
             "\nInitial temperature profile", "\nLight extinction", "\nInflow",
-            "\nHypsograph", "\nIce height", "\nMeteo", "\nTemperature observations")
+            "\nOutflow", "\nHypsograph", "\nIce height", "\nMeteo",
+            "\nTemperature observations")
   }else if(template == "LakeEnsemblR_config"){
     file.copy(file.path(template_folder, name_config),
               file.path(folder, basename(name_config)),
@@ -84,6 +87,10 @@ get_template <- function(template = NULL, folder=".", overwrite = FALSE){
   }else if(template == "Inflow"){
     file.copy(file.path(template_folder, name_inflow),
               file.path(folder, basename(name_inflow)),
+              overwrite = overwrite)
+  }else if(template == "Outflow"){
+    file.copy(file.path(template_folder, name_outflow),
+              file.path(folder, basename(name_outflow)),
               overwrite = overwrite)
   }else if(template == "Hypsograph"){
     file.copy(file.path(template_folder, name_hypsograph),

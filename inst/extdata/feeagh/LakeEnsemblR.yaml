@@ -21,35 +21,50 @@ observations:
       file: LakeEnsemblR_wtemp_profile_standard.csv         # file with observed water temperature profiles, with column headers according to LakeEnsemblR vocabulary [csv file; if none use NULL or leave empty]
    ice_height:
       file: NULL                                            # file with observed ice height, with column headers according to LakeEnsemblR vocabulary [csv file; if none use NULL or leave empty]
+   water_level:
+      file: NULL                                            # file with observed water level in meter above bottom of the lake
 input:
    init_temp_profile:
       file: NULL                                # initial temperature profile [csv file; if none use NULL or leave empty; if empty/NULL, the observations file will be used]
    meteo:
       file: LakeEnsemblR_meteo_standard.csv     # file with meteorological forcing data, with column headers according to LakeEnsemblR vocabulary [csv file]
    light:
-      Kw: 0.98                                  # light extinction coefficient [m-1]
+      Kw: 0.98                                  # light extinction coefficient [m-1, or csv file]
    ice:
       use: true                                 # turn on ice models? [true/false]
 inflows:
    use: true                                    # use in- and outflows? [true/false]
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
-   scale_param: 1.0                             # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow
-   mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false]
+   number_inflows: 1                            # number of inflows in the inflow file
+   mass-balance: true                           # enforce pseudo mass-balance by adding an artifical outflow for every inflow [true/false] only used if now outflows are given
+outflows:
+   use: true                                    # use outflows? [true/false]
+   file: LakeEnsemblR_outflow_standard.csv      # file with outflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if outflows -> use is true]
+   number_outflows: 2                           # number of outflows in the outflow file
+   outflow_lvl:                                 # height of the outflow above the ground. If the outflow is a surface outflow use "-1". If there are more than one outflow in the outflow file, this must be a list with one value per outflow
+      - -1
+      - 15
 output:
    file: ensemble_output                        # name of output file, excluding extension
    format: netcdf                               # format [text/netcdf]
    depths: 0.5                                  # depths to extract output [m]
    compression: 4                               # set to an integer between 1 (least compression) and 9 (most compression), this enables compression for the variable as it is written to the file
+   max_members: 25                              # maximum number of members of the same model that can be added to the netcdf
    time_unit: hour                              # time unit [second, hour, day]
    time_step: 24                                # number of time units between output [min=1]
    time_method: mean                            # treatment of time dimension [point=instantaneous, mean, integrated; only used in GOTM]
    variables:
       - temp
       - ice_height
+      - w_level
 scaling_factors:                                # scaling factors to apply to meteorological input, either for all models or model-specific. If not specified, no scaling is applied. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied.
    all:
       wind_speed: 1.0
       swr: 1.0
+      inflow: 1.0     # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow. If there are more than one inflow in the inflow file, this must be a list with one value per inflow (see outflow scaling)
+      outflow:
+      - 1
+      - 1
    Simstrat:
       wind_speed: 1.0
 model_parameters:
@@ -66,7 +81,7 @@ model_parameters:
 calibration:                                    # calibration section
    met:                                         # meteo scaling parameter
       wind_speed:                               # wind speed scaling
-         lower: 0.5                             # lower bound for wind speed scaling        
+         lower: 0.5                             # lower bound for wind speed scaling
          upper: 2                               # upper bound for wind speed scaling
          initial: 1                             # initial value for wind speed scaling
          log: false                             # log transform scaling factor
@@ -75,33 +90,33 @@ calibration:                                    # calibration section
          upper: 1.5                             # upper bound for shortwave radiation scaling
          initial: 1                             # initial value for shortwave radiation scaling
          log: false                             # log transform scaling factor
-   Simstrat:                                    # Simstrat specific parameters                                 
-      a_seiche:
-         lower: 0.0008                          # lower bound for parameter
-         upper: 0.003                           # upper bound for parameter
-         initial: 0.001                         # initial value for parameter
-         log: false                             # log transform scaling factor                          
-   MyLake:                                      # MyLake specific parameters                                    
-      Phys.par/C_shelter:
-         lower: 0.14                            # lower bound for parameter
-         upper: 0.16                            # upper bound for parameter
-         initial: 0.15                          # initial value for parameter
+   FLake:                                       # FLake specific parameters
+      c_relax_C:
+         lower: 0.0001                          # lower bound for parameter
+         upper: 0.01                            # upper bound for parameter
+         initial: 0.0030                        # initial value for parameter
          log: false                             # log transform scaling factor
-   GOTM:                                        # GOTM specific parameters
-      turb_param/k_min:
-         lower: 5E-4                            # lower bound for parameter
-         upper: 5E-6                            # upper bound for parameter
-         initial: 1E-5                          # initial value for parameter
-         log: true
    GLM:                                         # GLM specific parameters
       mixing/coef_mix_hyp:
          lower: 0.1                             # lower bound for parameter
          upper: 2                               # upper bound for parameter
          initial: 1                             # initial value for parameter
          log: false                             # log transform scaling factor
-   FLake:                                       # FLake specific parameters
-      fetch_lk:
-         lower: 1600.0                          # lower bound for parameter
-         upper: 2200                            # upper bound for parameter
-         initial: 2000                          # initial value for parameter
+   GOTM:                                        # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-6                            # lower bound for parameter
+         upper: 5E-4                            # upper bound for parameter
+         initial: 1E-5                          # initial value for parameter
+         log: true
+   Simstrat:                                    # Simstrat specific parameters
+      a_seiche:
+         lower: 0.0008                          # lower bound for parameter
+         upper: 0.003                           # upper bound for parameter
+         initial: 0.001                         # initial value for parameter
+         log: false                             # log transform scaling factor
+   MyLake:                                      # MyLake specific parameters
+      Phys.par/C_shelter:
+         lower: 0.14                            # lower bound for parameter
+         upper: 0.16                            # upper bound for parameter
+         initial: 0.15                          # initial value for parameter
          log: false                             # log transform scaling factor

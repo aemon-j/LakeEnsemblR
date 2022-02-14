@@ -42,7 +42,7 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
     qual_i <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
                          obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                          qualfun = qualfun, config_f = config_f)
-    if(is.na(qual_i[1])) {
+    if(any(is.na(qual_i))) {
       qual_i <- rep(NA, nout_fun)
       out_i <- t(c(par_set = pars[p, ncol(pars)], qual_i))
     } else {
@@ -108,7 +108,7 @@ wrap_model <- function(pars, type, model, var, config_file, met, folder, out_f,
   qual <- cost_model(config_file = config_file, model = model, var = var, folder = folder,
                      obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                      qualfun = qualfun, config_f = config_f)
-  if(is.na(qual)) {
+  if(any(is.na(qual))) {
     qual <- NA
     out_w <- t(c(pars, qual))
   } else {
@@ -256,7 +256,7 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
                     verbose = FALSE)
     import::here("run_gotm", .from = "GOTMr")
   }
-  # did de model runn successfully?
+  # did de model run successfully?
   ran <- FALSE
   # try to run the model
   tryCatch({
@@ -280,8 +280,8 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
       # match times
       out <- out[out$datetime %in% obs_out$datetime, c(1, id)]
       # calculate quality function
-      quali <- qualfun(O = obs_out[obs_out$datetime %in% out$datetime, c(1, id_obs)],
-                       P = out)
+      quali <- qualfun(O = obs_out[obs_out$datetime %in% out$datetime, id_obs],
+                       P = out[, -1])
 
     }, error = function(e){})
   }
@@ -303,37 +303,47 @@ cost_model <- function(config_file, model, var, folder, obs_deps, obs_out, out_h
 #' @keywords internal
 
 qual_fun <- function(O, P){
-
-  # remove datetime column
-  O <- as.matrix(O[, -1])
-  P <- as.matrix(P[, -1])
-
-  # rmse
-  rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
-
-
-  # nash sutcliff
-  nse <- 1 - sum((O - P)^2, na.rm = TRUE)/sum((O - mean(O, na.rm=TRUE))^2, na.rm = TRUE)
-
-  # pearson corelation coef
-  r <- sum((O - mean(O, na.rm = TRUE))*(P - mean(P, na.rm = TRUE)),
-           na.rm = TRUE)/sqrt(sum((O - mean(O, na.rm = TRUE))^2, na.rm = TRUE)*
-                                sum((P - mean(P, na.rm = TRUE))^2, na.rm = TRUE))
-
-  # relative error
-  re <- mean((P - O)/O, na.rm = TRUE)
-
-  # mean absolute error
-  mae <- mean(abs(O - P), na.rm = TRUE)
-
-  # normalised mean absolute error
-  nmae <- mean(abs((O - P)/O), na.rm = TRUE)
-
-  qual <- data.frame(rmse = rmse, nse = nse, r = r, re = re, mae = mae, nmae = nmae)
-
-  return(qual)
-}
-
+    
+    # function that calculates different estimations for model accuracy, namely: root mean squared
+    # error (rmse), (Nash-Sutcliff) model efficiency (nse), Pearson corelation coefficient (r),
+    # bias (bias), mean absolute error (mae), and normalized mean absolute error (nmae)
+    #
+    # Arguments:
+    #^^^^^^^^^^
+    # O: observed values
+    # P: predicted values
+    #
+    # Return Value:
+    #^^^^^^^^^^^^^^
+    # qual: A data.frame containing the six quality estimates
+    # set of both O and P where both have no NAs
+    id <- !((is.na(O) | is.na(P)) | (is.na(O) & is.na(P)))
+    O <- O[id]
+    P <- P[id]
+    # rmse
+    rmse <- sqrt(mean((O - P)^2, na.rm = TRUE))
+    
+    # nash sutcliff
+    nse <- 1 - sum((O - P)^2, na.rm = TRUE)/sum((O - mean(O, na.rm=TRUE))^2, na.rm = TRUE)
+    
+    # pearson corelation coef
+    r <- sum((O - mean(O, na.rm = TRUE))*(P - mean(P, na.rm = TRUE)),
+             na.rm = TRUE)/sqrt(sum((O - mean(O, na.rm = TRUE))^2, na.rm = TRUE)*
+                                  sum((P - mean(P, na.rm = TRUE))^2, na.rm = TRUE))
+    
+    # bias
+    bias <- mean((P - O), na.rm = TRUE)
+    
+    # mean absolute error
+    mae <- mean(abs(O - P), na.rm = TRUE)
+    
+    # normalised mean absolute error
+    nmae <- mean(abs((O - P)/O), na.rm = TRUE)
+    
+    qual <- data.frame(rmse = rmse, nse = nse, r = r, bias = bias, mae = mae, nmae = nmae)
+    
+    return(qual)
+  }
 
 #' Creates a script to then run as a job
 #'

@@ -27,8 +27,6 @@ rmarkdown::pdf_document:
     toc_depth: 3
 -->
 
-
-
 ```{r include=FALSE}
 library(knitr)
 library(kableExtra)
@@ -53,7 +51,7 @@ LakeEnsemblR is an R package that lets you run multiple one-dimensional physical
 
 The settings for a model run are controlled by one centralised, "master" configuration file in [YAML](https://yaml.org/) format. In this configuration file, you can set all the specifications for your model run, including start and end time, time steps, links to meteorological forcing and bathymetry files, etc. The package then converts these settings to the configuration files required by each model, through the `export_config` function. This sets up all models to run with the settings specified by the user, and the models are then run through the `run_ensemble` function. A netcdf file is created with the outputs of all the models, and the package provides functions to extract and plot this data.
 
-Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the international standard format ([ISO 8601](https://en.wikipedia.org/wiki/ISO_8601)), which is `YYYY-mm-dd HH:MM:SS`, for example `2020-04-03 09:00:00`. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in `package/inst/extdata`, or extracted by the function `get_template`).
+Part of the design philosophy of LakeEnsemblR is that all input is given in a standardized format. This entails standard column names (which includes units), comma-separated ASCII files, and a DateTime format using the format `YYYY-mm-dd HH:MM:SS`, for example `2020-04-03 09:00:00`. In this document, we will explain what the required files are and in what format they need to be. We also advise you to look at the provided example files, and at the templates provided with the R package (to be found in `package/inst/extdata`, or extracted by the function `get_template`).
 
 # Installation
 The code of LakeEnsemblR is hosted on the AEMON-J Github page (https://github.com/aemon-j/LakeEnsemblR), and can be installed using the `devtools` package
@@ -71,7 +69,7 @@ There is an LakeEnsemblR configuration file provided in the example dataset in t
 ## Location
 The first section is "Location". Here you specify the name, latitude and longitude, elevation, maximum depth, and initial depth.
 
-You also need to provide a link to the hypsograph (i.e. surface area per depth) file. As in the rest of the configuration file, all links to files are relative to the `folder` argument in the LakeEnsemblR functions (default is the R working directory). We strongly advise to set the working directory to the location of the LER config file, and link to the files relative to this directory (we explain this further in the chapter "Workflow" of this vignette). For example, if your hypsograph file is called `hypsograph.csv` and in the same folder as the LER config file, the corresponding line in the LER config file would look like
+You also need to provide a link to the hypsograph (i.e. surface area per depth) file. As in the rest of the configuration file, all links to files are relative to the `folder` argument in the LakeEnsemblR (from now on: LER) functions (default is the R working directory). We strongly advise to set the working directory to the location of the LER config file, and link to the files relative to this directory (we explain this further in the chapter "Workflow" of this vignette). For example, if your hypsograph file is called `hypsograph.csv` and in the same folder as the LER config file, the corresponding line in the LER config file would look like
 ```{yaml}
   hypsograph: hypsograph.csv
 ```
@@ -101,7 +99,7 @@ In this section, you link to the model-specific configuration files. Templates o
 
 
 ## Observations
-If you have observations of water temperature or ice cover, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
+If you have observations of water temperature, ice cover or water level, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
 
 For water temperature, the data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Depths are positive and relative to the water surface. Water temperature is in degrees Celsius. The column names *must* be `datetime`, `Depth_meter` and `Water_Temperature_celsius` (templates available).
 
@@ -128,8 +126,20 @@ datetime, Ice_Height_meter
 ...
 ```
 
+For water level, the data must also be a comma seperated values (.csv) file, with datetime column in format `YYYY-mm-dd HH:MM:SS` and has the column name `datetime`. Water level must be provided in meters above ground and the column must be named `Water_Level_meter`.
+
+Example of data:
+
+```{csv}
+datetime, Water_Level_meter
+2004-01-01 00:00:00,45.4
+2004-01-02 00:00:00,45.6
+2004-01-03 00:00:00,45.7
+...
+```
+
 ## Input
-In the "Input" section, you give information about the initial temperature profile, meteorological forcing, the light extinction coefficient, and ice.
+In the "Input" section, you give information about the initial temperature profile, meteorological forcing, the light extinction coefficient, and whether the ice modules should be used.
 
 Firstly, you can give the initial temperature profile with which to start the simulation (link to .csv file, template available using `get_template("Initial temperature profile")`). If you leave it empty, the water temperature observations will be used, provided you have an observation on the starting time of your simulation.
 
@@ -152,16 +162,16 @@ kable_styling(x_html, position = "left", font_size = 11)
 ```
 
 
-Next you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in ISO 8601 format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
+Next you can either give a value for Kw (light extinction coefficient) in 1/m, or give the link to a file, where you can vary Kw over time (template available using `get_template("Light extinction")`). The file must be a comma-separated file (.csv) with the two columns `datetime` and 	`Extinction_Coefficient_perMeter` containing the date in the format (`YYYY-mm-dd HH:MM:SS`) and corresponding Kw value in 1/m.
 
 
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be mad in the
-corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master controll file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be made in the
+corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master configuration file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
 
-Example of data:
+Example of inflow data:
 ```{csv}
 datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalSalinityUnits
 2005-01-01 00:00:00,5.62,6.96,0.00
@@ -171,14 +181,31 @@ datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalS
 ...
 ```
 
+## Outflows
+
+For the models that allow changing water level (at this moment GLM, GOTM, Simstrat) outflows can be set in this section by setting `use` to true. The outflow dischagre must be profided in daily resolution in a .csv file specified by `file`. The file must contain a date column in `YYYY-mm-dd HH:MM:SS` format called `datetime` and for every outflow (specified by `number_outflows`) one column titled `Flow_metersCubedPerSecond`, if more than one outflow are defined the outflow columns need to be numbered like this: `Flow_metersCubedPerSecond_1`, `Flow_metersCubedPerSecond_2`. For each outflow the depth of the outflow must be specified as height in meters above the lake bottom, or if the outflow is a surface outflow it can be set to "-1".
+
+
+```{yaml}
+outflows:
+   use: true                                    # use outflows? [true/false]
+   file: LakeEnsemblR_outflow_standard.csv      # file with outflow data
+   number_outflows: 2                           # number of outflows in the outflow file
+   outflow_lvl:                                 # height of the outflow above the ground.
+      - -1
+      - 15
+```
+
+
 ## Output
-In the "Output" section, you specify how the output should look like. This can be "netcdf" or "text", which will generate a series of csv files in rLakeAnalyzer format. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently only "temp" and "ice_height").
+In the "Output" section, you specify how the output should look like. This can be "netcdf" or "text", which will generate a series of csv files in rLakeAnalyzer format. You can specify the depth interval of the output, and the frequency. Also specify what variables should be in the output (currently "temp", "ice_height", "salt", "dens", and "w_level").
 
 <!-- ## Biogeochemistry -->
 <!-- Currently not implemented -->
 
 ## Scaling factors
-In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. 
+
+In the "Scaling factors" (scaling_factors) section scaling factors to be applied to meteorological input as well as to inflows and outflows, either for all models or model-specific can be defined. If the section is not specified, no scaling is applied. Using "all" scaling factors that should be applied to all models can be defined, otherwise model specific scaling can be supplied by using the model name. If both "all" and model-specific are specified for a certain model, only the model-specific scaling is applied. If there are multiple inflows or outflows a list of scaling parameters for each of them must be provided (see example).
 
 ```{yaml}
 scaling_factors:
@@ -186,12 +213,16 @@ scaling_factors:
       wind_speed: 1.0
       swr: 1.0
    Simstrat:
-      wind_speed: 1.0
+      wind_speed: 0.95
+   GLM:
+     outflow:
+      - 1.02
+      - 1.03
 ```
 
 
 ## Model parameters
-All models in LakeEnsemblR have different parameterizations. In this section, you can set the value of any parameter in one of the model-specific configuration files. 
+All models in LakeEnsemblR have different parameterisations. In this section, you can set the value of any parameter in one of the model-specific configuration files. 
 
 You can give either only the name of the parameter, but if needed you can also provide the name of the section in which the parameter occurs, separated by a `/`. For example for GOTM's k_min parameter:
 ```{yaml}
@@ -205,7 +236,55 @@ or:
 ```
 
 ## Calibration
-This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For information on how to run the calibration and how to structure this section of the config file, see section 5.7 "Model calibration". 
+This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are definded in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be foundand separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
+
+```{yaml}
+calibration:                                   # Calibration section                                   # Calibration section
+   met:                                        # Meteo scaling parameter
+      wind_speed:                              # Wind speed scaling
+         lower: 0.5                            # lower bound for wind speed scaling        
+         upper: 2                              # upper bound for wind speed scaling
+         initial: 1                            # initial value for wind speed scaling
+         log: false                            # log transform scaling factor
+      swr:                                     # shortwave radiation scaling
+         lower: 0.5                            # lower bound for shortwave radiation scaling
+         upper: 1.5                            # upper bound for shortwave radiation scaling
+         initial: 1                            # initial value for shortwave radiation scaling
+         log: false                            # log transform scaling factor
+   Simstrat:                                # Simstrat specific parameters                                 
+      a_seiche:
+         lower: 0.0008                         # lower bound for parameter
+         upper: 0.003                          # upper bound for parameter
+         initial: 0.001                        # initial value for parameter
+         log: false                            # log transform scaling factor                          
+   MyLake:                                  # MyLake specific parameters                                    
+     Phys.par/C_shelter:
+        lower: 0.14                            # lower bound for parameter
+        upper: 0.16                            # upper bound for parameter
+        initial: 0.15                          # initial value for parameter
+        log: false                             # log transform scaling factor	
+   GOTM:                                    # GOTM specific parameters
+      turb_param/k_min:
+         lower: 5E-4                           # lower bound for parameter
+         upper: 5E-6                           # upper bound for parameter
+         initial: 1E-5                         # initial value for parameter
+         log: true
+   GLM:                               # GLM specific parameters
+      mixing/coef_mix_hyp:
+         lower: 0.1                       # lower bound for parameter
+         upper: 2                         # upper bound for parameter
+         initial: 1                       # initial value for parameter
+         log: false                       # log transform scaling factor
+   FLake:                             # FLake specific parameters
+      c_relax_C:
+         lower: 0.00003                  # lower bound for parameter
+         upper: 0.3                      # upper bound for parameter
+         initial: 0.003                  # initial value for parameter
+         log: true                       # log transform scaling factor
+
+
+```
+ An example on how to run the calibration  see section 5.7 "Model calibration". 
 
 # Workflow
 In this chapter, we quickly show you how your workflow with LakeEnsemblR could look like. 
@@ -225,8 +304,8 @@ The next step would be to call `run_ensemble`, which runs all the models. A new 
 ## Example model run
 See below for an example run, and some post-processing of the data.
 ```{r eval = FALSE}
-# Install packages - Ensure all packages are up to date - parallel development ongoing
-devtools::install_github("GLEON/GLM3r")
+# Install packages - Ensure all packages are up to date
+devtools::install_github("aemon-j/GLM3r", ref = "v3.1.1")
 devtools::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
 devtools::install_github("aemon-j/FLakeR", ref = "inflow")
 devtools::install_github("aemon-j/GOTMr")
@@ -279,7 +358,7 @@ Once LakeEnsemblR did successfully run all lake models, you can either extract t
 Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://sourceforge.net/projects/pyncview/) can be used to look at netcdf output.
 
 ```{r gh-installation, eval = FALSE}
-# Import the LEr output into your workspace
+# Import the LER output into your workspace
 ens_out <- "output/ensemble_output.nc"
 
 # Plot depth and time-specific results
@@ -382,7 +461,7 @@ LakeEnsemblR includes some tools for automatic model calibration which are inclu
  - method "MCMC": Markov Chain Monte Carlo simulation using the `modMCMC` function from the `FME` package (@soetaert_inverse_2010)
  - method "modFit": model fitting using one of the algorithms provided in the `modFit` function from the `FME` package (@soetaert_inverse_2010)
 
-For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are definded in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be foundand separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
+For details on the structure of the calibration section in the yaml config file see section 4.11.
 
 ```{yaml}
 calibration:                                   # Calibration section                                   # Calibration section
@@ -411,8 +490,8 @@ calibration:                                   # Calibration section            
         log: false                             # log transform scaling factor	
    GOTM:                                    # GOTM specific parameters
       turb_param/k_min:
-         lower: 5E-4                           # lower bound for parameter
-         upper: 5E-6                           # upper bound for parameter
+         lower: 5E-6                           # lower bound for parameter
+         upper: 5E-4                           # upper bound for parameter
          initial: 1E-5                         # initial value for parameter
          log: true
    GLM:                               # GLM specific parameters
@@ -434,13 +513,13 @@ calibration:                                   # Calibration section            
 
 The calibration process can then be run using the `cali_ensemble()` function. Methods "LHC" and "MCMC" will write intermediate results to .csv text files in the folder specified by the `out_f` argument. It is possible to parallelize the calibration procedure using the `parallel` argument. This will distribute the calibration of the models to different cores. It is worth noting that in the current state the bottle neck for the computation speed is running MyLake (as it is written in R and significantly slower than the other four models).
 
-You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that are often calibrated in each model:
+You can calibrate any parameter you like. However, as a guideline for users that are not familiar with some of these models, here are some model-specific parameters that have been calibrated in previous studies:
 
- - FLake: e.g. c_relax_C
- - GLM: several meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw (@hipsey_general_2019) (@bruce_mlca_glm_2018)
- - GOTM: shf_factor, wind_factor, swr_factor, k_min, g2 (@ayala_simulations_gotm_2020)
- - Simstrat: a_seiche, f_wind, p_radin, p_albedo (@gaudard_toward_2019)
- - MyLake: based on sensitivity analysis (@saloranta_mylakemulti_year_2007)
+ - FLake: depth_w_lk, extincoef_optic, c_relax_C, fetch_lk, latitude_lk, depth_bs_lk, T_bs_lk, albedo, initial conditions (@salgado_2010) (@bernhardt_2012) (@layden_2016)
+ - GLM: meteorological scaling factors (wind_factor, sw_factor, lw_factor), strmbd_slope, Kw, min_layer_thick, max_layer_thick, coef_mix_conv, coef_wind_stir, coef_mix_shear, coef_mix_turb, coef_mix_KH, coef_mix_hyp (@bueche_2017) (@bruce_mlca_glm_2018) (@hipsey_general_2019) 
+ - GOTM: Scaling factors for heat, wind speed, and shortwave radiation, k_min, g2 (@ayala_simulations_gotm_2020)
+ - Simstrat: a_seiche, f_wind, p_radin, p_albedo, q_nn, c10, cd (peeters_2002) (@gaudard_toward_2019)
+ - MyLake: (Physical parameters only:) C_shelter, swa_b1 (Less sensitive: dz and I_scT, and Kz_ak) (@saloranta_2006)
  
 ### LHC method
 
