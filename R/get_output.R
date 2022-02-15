@@ -21,7 +21,7 @@
 #' @importFrom gotmtools get_yaml_value
 #' @export
 get_output <- function(config_file, model, vars, obs_depths = NULL, folder = ".", out_time,
-                       out_hour){
+                       out_hour, reference = 'surface'){
 
 ##--------------------------- FLake -----------------------------------------
   if("FLake" %in% model) {
@@ -150,9 +150,12 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                        print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
+      
+      z[, 2:ncol(z)] <- t(apply(z[, 2:ncol(z)], 1, 
+                                 function(x) as.numeric(x) - max(as.numeric(x))))
 
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -167,8 +170,12 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       got <- setmodDepths(temp, z, depths = depths, print = T)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
-
+      
       got <- dcast(got, date ~ depths)
+      
+      # check water level fluctuations
+      got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
+                                                         (as.numeric(colnames(got)[-1]))))))
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
@@ -286,6 +293,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     sim_out <- list()
 
     if("temp" %in% vars){
+      
+      wlvl <- read.table(file.path(folder, "Simstrat", "output", "WaterH_out.dat"), header = TRUE,
+                         sep = ",", check.names = FALSE)
 
       temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
                          sep = ",", check.names = FALSE)
@@ -297,7 +307,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       temp <- temp[, c(1, ncol(temp):2)]
 
       # Remove columns without any value
-      temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
+      # temp <- temp[, colSums(is.na(temp)) < nrow(temp)]
 
       # Add in obs depths which are not in depths and less than mean depth
       mod_depths <- as.numeric(colnames(temp)[-1])
@@ -320,6 +330,10 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         for(i in seq_len(nrow(temp))) {
           y <- as.vector(unlist(temp[i, -1]))
           wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          # Ensure that the data includes water level fluctuations
+          if (any(is.na(y))){
+            wat_mat[i, (min(which(is.na(y))) : length(wat_mat[i, ]))] <- NA
+          }
         }
         message("Finished interpolating! ",
                 paste0("[", Sys.time(), "]"))
