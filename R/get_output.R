@@ -176,6 +176,10 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       # check water level fluctuations
       got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
                                                          (as.numeric(colnames(got)[-1]))))))
+      got <- as.data.frame(got)
+      idz <- which(got_wlvl == T, arr.ind = T)
+      idz[, 2] <- idz[, 2] + 1
+      got[idz] <-NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
