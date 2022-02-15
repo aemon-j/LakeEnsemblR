@@ -4,7 +4,7 @@
 #'
 #'@param config_file name of the master LakeEnsemblR config file
 #'@param model vector; model to export configuration file.
-#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
+#'  Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #'@param folder folder
 #'@keywords methods
 #'@examples
@@ -15,7 +15,7 @@
 #'@export
 
 export_extinction <- function(config_file,
-                              model = c("GOTM", "GLM", "Simstrat", "FLake"),
+                              model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                               folder = "."){
 
   # Set working directory
