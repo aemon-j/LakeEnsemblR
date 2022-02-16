@@ -35,14 +35,12 @@ input:
 inflows:
    use: true                                    # use in- and outflows? [true/false]
    file: LakeEnsemblR_inflow_standard.csv       # file with inflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if inflows -> use is true]
-   number_inflows: 1                            # number of inflows in the inflow file
+   number_inflows: 2                            # number of inflows in the inflow file
 outflows:
    use: true                                    # use outflows? [true/false]
    file: LakeEnsemblR_outflow_standard.csv      # file with outflow data, with column headers according to LakeEnsemblR vocabulary [csv file; must be provided if outflows -> use is true]
-   number_outflows: 2                           # number of outflows in the outflow file
-   outflow_lvl:                                 # height of the outflow above the ground. If the outflow is a surface outflow use "-1". If there are more than one outflow in the outflow file, this must be a list with one value per outflow
-      - -1
-      - 15
+   number_outflows: 1                           # number of outflows in the outflow file
+   outflow_lvl: -1                              # height of the outflow above the ground. If the outflow is a surface outflow use "-1". If there are more than one outflow in the outflow file, this must be a list with one value per outflow
 output:
    file: ensemble_output                        # name of output file, excluding extension
    format: netcdf                               # format [text/netcdf]
@@ -60,10 +58,10 @@ scaling_factors:                                # scaling factors to apply to me
    all:
       wind_speed: 1.0
       swr: 1.0
-      inflow: 1.0     # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow. If there are more than one inflow in the inflow file, this must be a list with one value per inflow (see outflow scaling)
-      outflow:
-      - 1
-      - 1
+      inflow: # scaling factor for discharge in inflow, for example to correct for the percentage of catchment area drained by the inflow. If there are more than one inflow in the inflow file, this must be a list with one value per inflow (see outflow scaling)
+      - 1.0
+      - 1.0 
+      outflow: 1.0
    Simstrat:
       wind_speed: 1.0
 model_parameters:
