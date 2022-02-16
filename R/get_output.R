@@ -21,7 +21,7 @@
 #' @importFrom gotmtools get_yaml_value
 #' @export
 get_output <- function(config_file, model, vars, obs_depths = NULL, folder = ".", out_time,
-                       out_hour, reference = 'surface'){
+                       out_hour,{
 
 ##--------------------------- FLake -----------------------------------------
   if("FLake" %in% model) {

@@ -22,8 +22,7 @@
 #' @export
 run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = ".", verbose = FALSE, parallel = FALSE,
-                         return_list = FALSE, create_output = TRUE, add = FALSE,
-                         reference = 'surface'){
+                         return_list = FALSE, create_output = TRUE, add = FALSE){
 
   # check model input
   model <- check_models(model, check_package_install = TRUE)
@@ -308,8 +307,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Extract output
     glm_out <- get_output(config_file = config_file, model = "GLM", vars = out_vars,
-                          obs_depths = obs_deps, folder = folder,
-                          reference = reference)
+                          obs_depths = obs_deps, folder = folder)
 
     # Ensure GLM is on the same time step for output
     if(!is.list(glm_out)) {
@@ -351,7 +349,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # Extract output
     fla_out <- get_output(config_file = config_file, model = "FLake", vars = out_vars,
                           obs_depths = obs_deps, folder = folder, out_time = out_time,
-                          out_hour = out_hour, reference = reference)
+                          out_hour = out_hour)
 
     # Ensure FLake is on the same time step for output
     if(!is.list(fla_out)) {
@@ -387,8 +385,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Extract output
     gotm_out <- get_output(config_file = config_file, model = "GOTM", vars = out_vars,
-                           obs_depths = obs_deps, folder = folder,
-                           reference = reference)
+                           obs_depths = obs_deps, folder = folder)
 
     # Ensure GOTM is on the same time step for output
     if(!is.list(gotm_out)) {
@@ -424,8 +421,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     ### Extract output
     sim_out <- get_output(config_file = config_file, model = "Simstrat", vars = out_vars,
-                          obs_depths = obs_deps, folder = folder,
-                          reference = reference)
+                          obs_depths = obs_deps, folder = folder)
 
     # Ensure Simstrat is on the same time step for output
     if(!is.list(sim_out)) {
@@ -453,8 +449,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     ### Extract output
     mylake_out <- get_output(config_file = config_file, model = "MyLake", vars = out_vars,
-                             obs_depths = obs_deps, folder = folder,
-                             reference = reference)
+                             obs_depths = obs_deps, folder = folder)
 
     if(!is.list(mylake_out)) {
       mylake_out <- merge(mylake_out, out_time, by = "datetime", all.y = T)
