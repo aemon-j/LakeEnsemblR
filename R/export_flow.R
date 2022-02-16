@@ -36,7 +36,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   # check model input
   model <- check_models(model)
 
-##-------------Read settings---------------
+  ##-------------Read settings---------------
   # initial water level
   init_lvl <- get_yaml_value(config_file, "location", "init_depth")
   # surface elevation
@@ -119,7 +119,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   }
 
 
-##---------------FLake-------------
+  ##---------------FLake-------------
 
   if("FLake" %in% model){
     fla_fil <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
@@ -131,7 +131,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
   }
 
-##---------------GLM-------------
+  ##---------------GLM-------------
 
   if("GLM" %in% model){
     glm_nml <- file.path(folder, get_yaml_value(config_file, "config_files", "GLM"))
@@ -188,7 +188,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
   }
 
-##---------------GOTM-------------
+  ##---------------GOTM-------------
 
   if("GOTM" %in% model) {
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
@@ -337,7 +337,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
    }
 
-##---------------Simstrat-------------
+  ##---------------Simstrat-------------
 
   if("Simstrat" %in% model){
     sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
@@ -395,7 +395,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
   }
 
-##---------------MyLake-------------
+  ##---------------MyLake-------------
 
   if("MyLake" %in% model){
     # Load config file MyLake
@@ -413,7 +413,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
   }
 
-##-------------If inflow == TRUE---------------
+  ##-------------If inflow == TRUE---------------
 
   if(use_inflows == TRUE){
     inflow_file <- get_yaml_value(file = config_file, label = "inflows", key = "file")
@@ -570,6 +570,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ## Simstrat
     if("Simstrat" %in% model){
+      # Set inflow mode to manually-chosen depths
+      input_json(sim_par, label = "ModelConfig", key = "InflowMode", value = 0)
       
       if(!is.null(yml_fl$scaling_factors$Simstrat$inflow)) {
         scale_param_tmp <- yml_fl$scaling_factors$Simstrat$inflow
@@ -611,7 +613,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       ## inflow file
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       inflow_line_2 <- as.character(num_inflows)
-      inflow_line_3 <- paste0("-1",  rep("\t0.00", num_inflows))
+      inflow_line_3 <- paste0("-1",  paste0(rep("\t0.00", num_inflows),
+                                            collapse = ""))
       if(num_inflows > 1) {
         inflow_line_4 <- seq_len(length(sim_inflow$datetime))
         for (i in 1:num_inflows) {
@@ -744,8 +747,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ### Naming conventions standard input
     chk_names_flow(outflow, num_outflows, outflow_file)
-
-
+    
     # FLake
     #####
     if("FLake" %in% model) {
@@ -898,10 +900,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
           
         }
         if(any(outf_surf)) {
-          # then the surface oputflows
+          # then the surface outflows
           for (i in ((1:num_outflows)[outf_surf])) {
-            outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                    sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
             outflow_line_4 <- paste0(outflow_line_4, "\t",
                                      sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
           }
@@ -919,8 +919,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ## MyLake
     if("MyLake" %in% model) {
-
-        message("MyLake does not need specific outflows, as it employs automatic overflow.")
+      message("MyLake does not need specific outflows, as it employs automatic overflow.")
   }
 
 
