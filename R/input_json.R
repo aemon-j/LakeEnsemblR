@@ -15,14 +15,16 @@
 #' @author
 #'Tadhg Moore, Jorrit Mesman
 #' @examples
-#' 
+#'
 #' \dontrun{
 #' input_json(file = "samp.par", label = "ModelParameters", key = "f_wind", value = 1.2, out_file = NULL)
 #' }
 input_json <- function(file, label, key, value, out_file = NULL){
-  
+
   if(class(value) == "logical") {
     value <- tolower(value)
+  } else if(class(value) == "character") {
+    value <- shQuote(value)
   }
   par <- readLines(file)
   if (is.null(out_file)) {
@@ -33,7 +35,7 @@ input_json <- function(file, label, key, value, out_file = NULL){
   }else{
     label_id <- paste0('"', label, '"')
     ind_label <- grep(label_id, par)
-    
+
     if(length(ind_label) == 0){
       stop(label, " not found in ", file)
     }
@@ -55,7 +57,11 @@ input_json <- function(file, label, key, value, out_file = NULL){
     comment <- spl1[2]
   }
   spl2 <- strsplit(spl1[1], ": ")[[1]][2]
-  sub <- paste0(value, ",")
+  if(gsub(" ", "", par[ind_map + 1]) == "}") {
+    sub <- value
+  } else {
+    sub <- paste0(value, ",")
+  }
   par[ind_map] <- gsub(pattern = paste0("\\Q", spl2, "\\E"),
                        replacement = sub,
                        x = par[ind_map])
