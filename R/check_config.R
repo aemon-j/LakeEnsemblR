@@ -101,8 +101,11 @@ check_master_config <- function(config_file,
   # check if the same number of in-/outflow scaling factors are given
   #   as the number of in-/outflows
   configr_master_config <- configr::read.config(file.path(config_file))
+  use_inflows <- get_yaml_value(config_file, label = "inflows", key = "use")
+  use_outflows <- get_yaml_value(config_file, label = "outflows", key = "use")
+  
   if(!is.null(configr_master_config[["scaling_factors"]][["all"]]
-              [["inflow"]])){
+              [["inflow"]]) & use_inflows){
     infl_scalings <- (configr_master_config[["scaling_factors"]][["all"]]
       [["inflow"]])
     num_inflows <- get_yaml_multiple(config_file, key1 = "inflows",
@@ -115,7 +118,7 @@ check_master_config <- function(config_file,
     }
   }
   if(!is.null(configr_master_config[["scaling_factors"]][["all"]]
-              [["outflow"]])){
+              [["outflow"]]) & use_outflows){
     outfl_scalings <- (configr_master_config[["scaling_factors"]][["all"]]
                        [["outflow"]])
     num_outflows <- get_yaml_multiple(config_file, key1 = "outflows",
