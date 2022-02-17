@@ -4,13 +4,15 @@
 \alias{get_template}
 \title{Copies LakeEnsemblR template from package to specified folder}
 \usage{
-get_template(template = NULL, folder = ".", overwrite = FALSE)
+get_template(template = NULL, folder = ".", filename = NULL, overwrite = FALSE)
 }
 \arguments{
 \item{template}{string; name of file that you want to get the template for.
 In case it is NULL, all potential options are given. "All" returns all templates.}
 
 \item{folder}{filepath; filepath where to copy the templates to}
+
+\item{filename}{string; filename (including .filetype). Default NULL, for the standard name}
 
 \item{overwrite}{boolean; overwrite existing files}
 }
