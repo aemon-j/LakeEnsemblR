@@ -49,7 +49,7 @@
   },
   "Simulation" : {
     "Timestep s"                  : 300,                ! Simulation timestep in seconds
-    "Start year"                  : 1900,               ! Starting year
+    "Reference year"              : 1900,               ! Starting year
     "Start d"                     : 35001,              ! Simulation start in days since 01.01. of starting year
     "End d"                       : 35732,              ! Simulation end
     "DisplaySimulation"           : 0,                  ! 0: No display, 1: Display when output is written, 2: Display every iteration
