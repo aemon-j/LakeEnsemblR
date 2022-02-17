@@ -152,3 +152,21 @@ In order to contribute to this code, we recommend the following workflow:
     $git push
 
 8.  submit a pull request to aemon-j master using your account at github.com
+
+
+Information for macOS users
+=========================================================
+To ensure that all model binaries work, we advise you to install the specific macOS packages (currently in a separated branch):
+```
+remotes::install_github("aemon-j/GLM3r", ref = "macOS")
+remotes::install_github("aemon-j/FLakeR", ref = "macOS")
+remotes::install_github("aemon-J/GOTMr", ref = "macOS")
+remotes::install_github("aemon-j/SimstratR", ref = "macOS")
+```
+Unfortunately, this means your versions of GLM and Simstrat will differ compared to the ones included in the executables for Windows and Linux. GLM on macOS will be version 3.2.0a8 (most recent one on January 13, 2022), Windows/Linux use 3.1.1. The version of Simtrat for macOS is 3.0, for Windows/Linux is it 2.4.2.
+
+Please note that to run Simstrat, you'll need to change the parameter in line 33 of Simstrat/simstrat.par:
+```
+InflowPlacement --> InflowMode
+```
+
