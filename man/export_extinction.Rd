@@ -6,7 +6,7 @@
 \usage{
 export_extinction(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   folder = "."
 )
 }
@@ -14,7 +14,7 @@ export_extinction(
 \item{config_file}{name of the master LakeEnsemblR config file}
 
 \item{model}{vector; model to export configuration file.
-Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')}
+Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 
 \item{folder}{folder}
 }
