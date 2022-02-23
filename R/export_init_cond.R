@@ -154,6 +154,9 @@ export_init_cond <- function(config_file,
     if(deps[1] > 0.001){
       deps_sim <- c(0, deps)
       tmp_sim <- c(tmp[1], tmp)
+    }else{
+      deps_sim <- deps
+      tmp_sim <- tmp
     }
     
     df2 <- data.frame("Depth [m]" = -deps_sim, "U [m/s]" = 0, 	"V [m/s]" = 0,
