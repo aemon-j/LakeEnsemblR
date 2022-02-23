@@ -71,22 +71,22 @@ jobs:
           do
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "18.04"))')
-          
+
       - name: Install macOS dependencies
         if: runner.os == 'macOS'
         run: |
           brew install netcdf
-          
+
       - name: Install dependencies
         run: |
           remotes::install_deps(dependencies = TRUE)
           remotes::install_cran("rcmdcheck")
           remotes::install_cran("xtable")
           remotes::install_github("GLEON/rLakeAnalyzer")
-          remotes::install_github("aemon-j/GLM3r", ref = "v3.1.1")
-          remotes::install_github("aemon-j/FLakeR", ref = "inflow")
-          remotes::install_github("aemon-j/GOTMr")
-          remotes::install_github("aemon-j/SimstratR")
+          remotes::install_github("aemon-j/GLM3r", ref = "macOS")
+          remotes::install_github("aemon-j/FLakeR", ref = "macOS")
+          remotes::install_github("aemon-j/GOTMr", ref = "macOS")
+          remotes::install_github("aemon-j/SimstratR", ref = "macOS")
           remotes::install_github("aemon-j/gotmtools")
           remotes::install_github("aemon-j/MyLakeR")
           remotes::install_github("USGS-R/glmtools", ref = "ggplot_overhaul")
