@@ -91,7 +91,7 @@ calc_stats <- function(obs, model, depths, folder = ".", NH, flake_nml, out_time
                           header = TRUE, sep = ",", check.names = FALSE)
 
     timestep <- get_json_value(par_file, "Simulation", "Timestep s")
-    reference_year <- get_json_value(par_file, "Simulation", "Start year")
+    reference_year <- get_json_value(par_file, "Simulation", "Reference year")
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
     sim_out[, 1] <- as.POSIXct(sim_out[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))

@@ -326,7 +326,7 @@ format_met <- function(met, model, config_file, folder = "."){
     # Time
     if("datetime" %in% colnames(sim_met)){
       # Time in simstrat is in decimal days since a defined start year
-      start_year <- get_json_value(par_file, "Simulation", "Start year")
+      start_year <- get_json_value(par_file, "Simulation", "Reference year")
 
       sim_met$datetime <- as.numeric(difftime(sim_met$datetime,
                                               as.POSIXct(paste0(start_year, "-01-01")),
