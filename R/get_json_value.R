@@ -13,13 +13,18 @@
 #' }
 
 get_json_value <- function(file, label, key){
+
+  if(!file.exists(file)) {
+    stop("File '", file, "' does not exist!")
+  }
+
   par <- readLines(file)
   if(is.null(label)){
     ind_label <- 0
   }else{
     label_id <- paste0('"', label, '"')
     ind_label <- grep(label_id, par)
-    
+
     if(length(ind_label) == 0){
       stop(label, " not found in ", file)
     }
@@ -49,7 +54,7 @@ get_json_value <- function(file, label, key){
   if(val == "true"){
     val2 <- TRUE
   }
-  flg <- !is.na(as.numeric(val))
+  suppressWarnings(flg <- !is.na(as.numeric(val)))
   if(flg){
     val2 <- as.numeric(val)
   }

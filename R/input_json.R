@@ -21,10 +21,15 @@
 #' }
 input_json <- function(file, label, key, value, out_file = NULL){
 
+  if(!file.exists(file)) {
+    stop("File '", file, "' does not exist!")
+  }
+
   if(class(value) == "logical") {
     value <- tolower(value)
   } else if(class(value) == "character") {
     value <- shQuote(value)
+    if(length(value) > 1) value <- paste0("[", paste0(value, collapse = ", "), "]")
   }
   par <- readLines(file)
   if (is.null(out_file)) {
@@ -57,7 +62,7 @@ input_json <- function(file, label, key, value, out_file = NULL){
     comment <- spl1[2]
   }
   spl2 <- strsplit(spl1[1], ": ")[[1]][2]
-  if(gsub(" ", "", par[ind_map + 1]) == "}") {
+  if(gsub(" ", "", par[ind_map + 1]) == "},") {
     sub <- value
   } else {
     sub <- paste0(value, ",")
