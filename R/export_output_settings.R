@@ -56,6 +56,8 @@ export_output_settings <- function(config_file,
   # Output time step in seconds
   conv_l <- list(second = 1, hour = 3600, day = 86400)
   out_tstep_s <- out_tstep * conv_l[[out_unit]]
+  # Output variables
+  out_vars <- get_yaml_value(yaml, "output", "variables")
 
 
   ##---------------FLake-------------
@@ -106,11 +108,18 @@ export_output_settings <- function(config_file,
   if("Simstrat" %in% model){
     sim_par <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
 
-    input_json(sim_par, "Output", "Path", '"output/"')
+    sim_vars <- c("HA","HW","HK","HV","num") # Needed for restart
+    if("temp" %in% out_vars | "dens" %in% out_vars) sim_vars <- c("T", sim_vars)
+    if("ice_height" %in% out_vars) sim_vars <- c("TotalIceH", sim_vars)
+    if("salt" %in% out_vars | "dens" %in% out_vars) sim_vars <- c("S", sim_vars)
+
+
+    input_json(sim_par, "Output", "Path", "output/")
 
     # Set output
     input_json(sim_par, "Output", "Depths", output_depths)
     input_json(sim_par, "Output", "Times", round(out_tstep_s / timestep))
+    input_json(file = sim_par, label =  "Output", key =  "Variables", value = sim_vars)
   }
 
   ##---------------MyLake-------------
