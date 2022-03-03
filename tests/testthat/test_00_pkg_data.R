@@ -476,8 +476,7 @@ test_that("can restart GLM", {
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
 
-  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
-                restart_list = restart_list)
+  write_restart(model = model, restart_list = restart_list)
 
   run_ensemble(config_file = config_file,
                model = model)
@@ -528,8 +527,7 @@ test_that("can restart GOTM", {
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
-  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
-                restart_list = restart_list)
+  write_restart(model = model, restart_list = restart_list)
 
 
   run_ensemble(config_file = config_file,
@@ -581,8 +579,7 @@ test_that("can restart Simstrat", {
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
-  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
-                restart_list = restart_list)
+  write_restart(model = model, restart_list = restart_list)
 
   run_ensemble(config_file = config_file,
                model = model)
