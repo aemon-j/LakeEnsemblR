@@ -458,7 +458,7 @@ test_that("can restart GLM", {
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
-  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
+  restart_list <- read_restart(model = model)
   # plot_heatmap(ncdf)+
   #   scale_colour_gradientn(limits = c(9, 17),
   #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
@@ -515,7 +515,7 @@ test_that("can restart GOTM", {
   #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 
 
-  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
+  restart_list <- read_restart(model = model)
 
   unlink("output/ensemble_output.nc")
 
@@ -570,7 +570,7 @@ test_that("can restart Simstrat", {
   #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 
 
-  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
+  restart_list <- read_restart(model = model)
   unlink("output/ensemble_output.nc")
 
   yaml <- gotmtools::read_yaml(config_file)
