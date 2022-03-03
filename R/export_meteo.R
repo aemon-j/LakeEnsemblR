@@ -21,7 +21,7 @@
 #' @export
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = "."){
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
@@ -30,7 +30,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   # Load Rdata
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
-  
+
   # check model input
   model <- check_models(model)
 
@@ -61,7 +61,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   # Read meteo file
   suppressMessages({
     ncols <- vroom::vroom(meteo_file, delim = ",", n_max = 1)
-    ctype <- list() 
+    ctype <- list()
     for(colu in seq_len(ncol(ncols))) {
       if(colu == 1) {
         ctype[[colu]] <- "c"
@@ -116,11 +116,11 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     nml_file <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
 
     nml <- glmtools::read_nml(nml_file)
-    
+
     nml <- glmtools::set_nml(nml, "SIMULATION_PARAMS::time_step_number", nrow(fla_met))
     nml <- glmtools::set_nml(nml, "meteofile", met_outfile)
-    
-    glmtools::write_nml(nml, nml_file)  
+
+    glmtools::write_nml(nml, nml_file)
 
     message("FLake: Created file ", file.path(folder, "FLake", met_outfile))
 
@@ -202,7 +202,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     scale_met(sim_met, pars = scale_param, model = "Simstrat", out_file = met_outfpath)
 
     ### Write the name of the Simstrat meteo file in the par file
-    input_json(file = par_file, label = "Input", key = "Forcing", "\"meteo_file.dat\"")
+    input_json(file = par_file, label = "Input", key = "Forcing", "meteo_file.dat")
 
     message("Simstrat: Created file ", file.path(folder, "Simstrat", met_outfile))
   }

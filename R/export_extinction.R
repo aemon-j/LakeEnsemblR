@@ -16,7 +16,7 @@
 export_extinction <- function(config_file,
                               model = c("GOTM", "GLM", "Simstrat", "FLake"),
                               folder = "."){
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
@@ -37,10 +37,10 @@ export_extinction <- function(config_file,
   })
 
   Sys.setenv(TZ = "GMT")
-  
+
   # check model input
   model <- check_models(model)
-  
+
   # Check if the value in the config file is a fixed value, or a file (time series)
   Kw <- gotmtools::get_yaml_value(yaml, "input", "light", "Kw")
   if(is.numeric(Kw)){
@@ -163,7 +163,7 @@ export_extinction <- function(config_file,
                 to = file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM")))
       got_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
     }
-    
+
     got_yaml <- gotmtools::read_yaml(got_file)
 
     if(constant_value){
@@ -187,7 +187,7 @@ export_extinction <- function(config_file,
                            value = " LakeEnsemblR_g2_GOTM.dat")
       got_yaml <- gotmtools::set_yaml(got_yaml, "light_extinction", "g2", "column", value =  1L)
     }
-    
+
     gotmtools::write_yaml(got_yaml, got_file)
 
   }
@@ -213,9 +213,9 @@ export_extinction <- function(config_file,
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
     file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
-    
-    input_json(sim_par, "Input", "Absorption", '"light_absorption.dat"')
-    
+
+    input_json(sim_par, "Input", "Absorption", "light_absorption.dat")
+
     # Write absorption file
     absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
     absorption_line_2 <- "1"
@@ -249,9 +249,9 @@ export_extinction <- function(config_file,
     }
 
   }
-  
+
   if("MyLake" %in% model){
-    
+
     # Create directory and output directory, if they do not yet exist
     if(!dir.exists("MyLake")){
       dir.create("MyLake")
@@ -259,20 +259,20 @@ export_extinction <- function(config_file,
     if(!dir.exists("MyLake/output")){
       dir.create("MyLake/output")
     }
-    
+
     if(!constant_value){
       message("MyLake does not accept varying extinction coefficient over time. ",
               "Average is used instead.")
     }
-    
+
     # Load MyLake config file
     load(gotmtools::get_yaml_value(yaml, "config_files", "MyLake"))
-    
+
     mylake_config[["Bio.par"]][2] <- Kw
-    
+
     cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(yaml, "config_files", "MyLake"))
     save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
   }
-  
+
   message("export_extinction complete!")
 }

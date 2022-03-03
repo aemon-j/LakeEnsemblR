@@ -19,7 +19,7 @@
 
 export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                         folder = "."){
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
@@ -151,7 +151,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     got_yaml <- set_yaml(got_yaml, "location", "name", value = get_yaml_value(yaml, "location", "name"))
     got_yaml <- set_yaml(got_yaml, "location", "latitude", value = lat)
     got_yaml <- set_yaml(got_yaml, "location", "longitude", value = lon)
-    
+
     # Set max depth
     got_yaml <- set_yaml(got_yaml, "location", "depth", value = max_depth)
     got_yaml <- set_yaml(got_yaml, "grid", "nlev",
@@ -163,7 +163,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     }else{
       got_yaml <- set_yaml(got_yaml, "surface", "ice", "model", value = 0L)
     }
-    
+
     # Create GOTM hypsograph file
     ndeps <- nrow(hyp)
     got_hyp <- hyp
@@ -199,7 +199,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
     # Input parameters
     input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))
-    input_json(sim_par, "Input", "Morphology", '"hypsograph.dat"')
+    input_json(sim_par, "Input", "Morphology", "hypsograph.dat")
     input_json(sim_par, "ModelParameters", "lat", lat)
 
     # Turn off ice and snow

@@ -14,37 +14,37 @@
 #' @importFrom glmtools read_nml set_nml write_nml get_nml_value
 #' @importFrom vroom vroom vroom_write
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
-#' 
+#'
 #' @export
 
 export_init_cond <- function(config_file,
                              model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                              date = NULL, print = TRUE, folder = "."){
-  
+
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
     yaml <- read_yaml(config_file)
   }
-  
+
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
-  
+
   # Fix time zone
   original_tz <- Sys.getenv("TZ")
-  
+
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     Sys.setenv(TZ = original_tz)
     setwd(oldwd)
   })
-  
+
   Sys.setenv(TZ = "GMT")
-  
+
   # check model input
   model <- check_models(model)
-  
+
   if(is.null(date)) {
     date <- get_yaml_value(yaml, "time", "start")
   }
@@ -54,25 +54,25 @@ export_init_cond <- function(config_file,
   if(is.null(init_temp_file)){
     # If no initial temperature profile is given, read in the observations and
     # extract initial profile from there
-    
+
     wtemp_file <- get_yaml_value(yaml, "observations", "temperature", "file")
-    
+
     if(is.null(wtemp_file)){
       stop("Neither an initial temperature profile, nor an observations file is provided!")
     }
-    
+
     message(paste0("Loading wtemp_file... [", Sys.time(), "]"))
     suppressMessages({
       obs <- vroom::vroom(wtemp_file, delim = ",", col_types = list("c", "n", "n"))
     })
     message(paste0("Finished loading wtemp_file! [", Sys.time(), "]"))
-    
-    
+
+
     # Check if date is in observations
     if(!date %in% obs[["datetime"]]){
       stop(paste(date, "is not found in observations file. Cannot initialise water temperature!"))
     }
-    
+
     dat <- which(obs[, 1] == date)
     ndeps <- length(dat)
     deps <- unlist(as.vector(obs[dat, 2]))
@@ -87,18 +87,18 @@ export_init_cond <- function(config_file,
     deps <- init_prof[, 1]
     tmp <- init_prof[, 2]
   }
-  
+
   deps <- signif(deps, 4)
   tmp <- signif(tmp, 4)
   df_print <- data.frame(depths = deps, wtemp = tmp, row.names = NULL)
-  
+
   # Do a test to see if the maximum depth in the initial profile
   # exceeds the maximum depth of the lake. If so, throw an error
   if(max(deps) > get_yaml_value(yaml, "location", "depth")){
     stop("Maximum depth in initial profile exceeds lake depth: ",
          get_yaml_value(yaml, "location", "depth"), " m")
   }
-  
+
   # FLake
   #####
   if("FLake" %in% model){
@@ -106,10 +106,10 @@ export_init_cond <- function(config_file,
     nml_file <- get_yaml_value(yaml, "config_files", "FLake")
 
     nml <- glmtools::read_nml(nml_file)
-    
+
     nml <- glmtools::set_nml(nml, "T_wML_in", tmp[which.min(deps)])
     nml <- glmtools::set_nml(nml, "T_bot_in", tmp[which.min(deps)])
-    
+
     depth <- glmtools::get_nml_value(nml_file = nml_file, arg_name = "depth_w_lk")
     hmix <- calc_hmix(tmp, deps)
     if(!is.na(hmix) & hmix < depth) {
@@ -117,9 +117,9 @@ export_init_cond <- function(config_file,
     } else {
       nml <- glmtools::set_nml(nml, "SIMULATION_PARAMS::h_ML_in", depth)
     }
-    
+
     message("FLake: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "FLake")), 
+            file.path(folder, get_yaml_value(yaml, "config_files", "FLake")),
             " [", Sys.time(), "]")
 
   }
@@ -137,7 +137,7 @@ export_init_cond <- function(config_file,
     # check for max(the_depths) > lake_depth ??
     write_nml(nml, get_yaml_value(yaml, "config_files", "GLM"))
     message("GLM: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "GLM")), 
+            file.path(folder, get_yaml_value(yaml, "config_files", "GLM")),
             " [", Sys.time(), "]")
 
   }
@@ -146,7 +146,7 @@ export_init_cond <- function(config_file,
   if("GOTM" %in% model){
     got_file <- get_yaml_value(yaml, "config_files", "GOTM")
     got_yaml <- read_yaml(got_file)
-    
+
     df <- matrix(NA, nrow = 1 + ndeps, ncol = 2)
     df[1, 1] <- date
     df[1, 2] <- paste(ndeps, " ", 2)
@@ -160,7 +160,7 @@ export_init_cond <- function(config_file,
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "method", value = 2L)
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "column", value = 1L)
 
-    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"), 
+    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"),
             " [", Sys.time(), "]")
 
   }
@@ -176,67 +176,67 @@ export_init_cond <- function(config_file,
 
     par_file <- get_yaml_value(yaml, "config_files", "Simstrat")
 
-    input_json(par_file, "Input", "Initial conditions", '"init_cond.dat"')
+    input_json(par_file, "Input", "Initial conditions", "init_cond.dat")
 
     message("Simstrat: Created initial conditions file ",
-            file.path(folder, "Simstrat", "init_cond.dat"), 
+            file.path(folder, "Simstrat", "init_cond.dat"),
             " [", Sys.time(), "]")
 
   }
-  
+
   ## MyLake
   if("MyLake" %in% model){
-    
+
     load(get_yaml_value(yaml, "config_files", "MyLake"))
-    
+
     mylake_init <- list()
-    
+
     # configure initial depth profile
     deps_Az <- data.frame("Depth_meter" = mylake_config[["In.Z"]],
                           "Az" = mylake_config[["In.Az"]])
-    
+
     # configure initial temperature profile
     # depth MUST match those from hyposgraph -- interpolate here as needed
     temp_interp1 <- dplyr::full_join(deps_Az,
                                      data.frame("Depth_meter" = deps,
                                                 "Water_Temperature_celsius" = tmp),
                                      by = c("Depth_meter"))
-    
+
     temp_interp2 <- dplyr::arrange(temp_interp1, Depth_meter)
-    
+
     temp_interp3 <- dplyr::mutate(temp_interp2,
                                   TempInterp = approx(x = Depth_meter,
                                                     y = Water_Temperature_celsius,
                                                     xout = Depth_meter,
                                                     yleft = dplyr::first(na.omit(Water_Temperature_celsius)),
                                                     yright = dplyr::last(na.omit(Water_Temperature_celsius)))$y)
-    
+
     temp_interp <- dplyr::filter(temp_interp3, !is.na(Az))
-    
+
     # fill in depths and temperature in iniital profile RData file
     mylake_init[["In.Tz"]] <- as.matrix(temp_interp$TempInterp)
-    
+
     mylake_init[["In.Z"]] <- as.matrix(temp_interp$Depth_meter)
-    
+
     # save initial profile data
     save(mylake_init, file = file.path("MyLake", "mylake_init.Rdata"))
-    
+
     # update config parameter with initial depth differences
     # mylake_config[["Phys.par"]][1]=median(diff(mylake_init$In.Z))
-    
+
     # save revised config file
     cnf_name <- gsub(".*/", "", get_yaml_value(yaml, "config_files", "MyLake"))
     save(mylake_config, file = file.path("MyLake", cnf_name))
-    
+
     message("MyLake: Created initial conditions file ",
-            file.path(folder, "MyLake", cnf_name), 
+            file.path(folder, "MyLake", cnf_name),
             " [", Sys.time(), "]")
-    
+
   }
-  
+
   if(print == TRUE){
     print(df_print)
   }
-  
+
   message("export_init_cond complete!")
 }
