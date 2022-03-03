@@ -16,8 +16,7 @@
     "Times"  : 1,                                      ! Output times can be a number (interpreted as output every N'th timestep), a list with times or a path to a file (containing a number or a list)
     "OutputDepthReference": "surface",                  ! "surface": depth of output variables is referenced to lake level, "bottom": depth of output variables is referenced to lake bottom
     "All"   : false,                                    ! True: All variables are written out, false: only variables in list "variables" are written
-
-    "Variables" : ["T", "TotalIceH", "S"]                  ! Variables written to file (if "all" = false), example: ["T", "S", "WaterH"]
+    "Variables" : ["T", "S","HA","HW","HK","HV","num"]                  ! Variables written to file (if "all" = false), example: ["T", "S", "WaterH"]
   },
   "ModelConfig" : {
     "MaxLengthInputData"      : 1000,                   ! Maximum length of input data (initial conditions, bathymetry, grid etc.)
@@ -34,7 +33,8 @@
     "InflowMode"              : 2,                      ! 0: no inflow, 1: inflow depths are chosen manually, 2: inflow is density-driven
     "PressureGradients"       : 0,                      ! 0: off, 1: Svensson 1978 (not working), 2: bottom friction
     "IceModel"                : 1,                      ! Switch to turn on/off the ice model
-    "SnowModel"               : 1                       ! Switch to turn on/off the snow model (needs ice model and an additional column in forcing)
+    "SnowModel"               : 1,                      ! Switch to turn on/off the snow model (needs ice model and an additional column in forcing)
+    "InitializeSeicheEnergy"  : true                    ! True: Value given in the section "ModelParameters" is taken as start value of Seiche Energy, False: Seiche Energy is set to 0 at simulation start
   },
   "AED2Config" : {
     "AED2ConfigFile"          : "TestCase_LakeZurich/aed2.nml",             ! AED2 config file
@@ -44,7 +44,7 @@
     "BioshadeFeedback"        : 0,                      ! 0: light absorption coefficients are read from Simstrat input file, 1: light absorption is calculated from biochemical variables
     "BackgroundExtinction"    : 0.2,                    ! Background extinction added to biochemical absorption (only used if bioshadeFeedback is 1)
     "BenthicMode"             : 1,                      ! 0: Only bottom most layer interacts with sediment, 1: flancs also interact with sediment (but sediment concentrations are not simulated), 2 and 3: not implemented
-    "OutputDiagnosticVars"    : false,                   ! True: Output includes AED2 state and diagnostic variables, False: Output includes only AED2 state variables
+    "OutputDiagnosticVars"    : false,                  ! True: Output includes AED2 state and diagnostic variables, False: Output includes only AED2 state variables
 
   },
   "Simulation" : {
@@ -53,8 +53,10 @@
     "Start d"                     : 35001,              ! Simulation start in days since 01.01. of starting year
     "End d"                       : 35732,              ! Simulation end
     "DisplaySimulation"           : 0,                  ! 0: No display, 1: Display when output is written, 2: Display every iteration
-    "Continue from last snapshot" : true                ! If true simulation continues from last snapshot (if present in output folder). Default: false
-  },
+    "Continue from last snapshot" : false,              ! If true simulation continues from last snapshot (if present in output folder). Default: false
+    "SaveEnd"                     : true,
+    "Show progress bar"           : false! If true the progress bar is shown, if false it is not shown
+},
   "ModelParameters" : {
     "lat"           : 47.3,                             ! Latitude in [°]
     "p_air"         : 960,                              ! Air pressure in [mbar]
@@ -73,6 +75,7 @@
     "wat_albedo"    : 0.08,                             ! User defined water albedo [-] (only used if UserDefinedWaterAlbedo = true)
     "p_sw_ice"      : 1,                                ! Fit parameter for albedo of ice, snow-ice and snow [-] (only used if IceModel = 1)
     "freez_temp"    : 0.00,                             ! Freezing temperature of water [°C] (only used if IceModel = 1)
-    "snow_temp"     : 1                                 ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
+    "snow_temp"     : 1,                                ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
+    "seiche_ini"    : 0                                 ! Initial seiche energy [J], only used if InitializeSeicheEnergy is True
   }
 }
