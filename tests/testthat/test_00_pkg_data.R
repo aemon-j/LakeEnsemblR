@@ -447,9 +447,9 @@ test_that("can restart GLM", {
 
   yaml <- gotmtools::read_yaml(config_file)
   yaml$restart$use <- FALSE
-  yaml$time$start <- "2010-05-01 00:00:00"
-  yaml$time$stop <- "2010-05-10 00:00:00"
-  yaml$output$time_step <- 12
+  yaml$time$start <- "2010-06-01 00:00:00"
+  yaml$time$stop <- "2010-06-03 00:00:00"
+  yaml$output$time_step <- 1
   gotmtools::write_yaml(yaml, config_file)
 
   # 1. Example - creates directories with all model setup
@@ -458,20 +458,33 @@ test_that("can restart GLM", {
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
+  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
+
   unlink("output/ensemble_output.nc")
 
   yaml <- gotmtools::read_yaml(config_file)
-  yaml$restart$use <- TRUE
-  yaml$time$start <- "2010-05-10 00:00:00"
-  yaml$time$stop <- "2010-05-11 00:00:00"
+  # yaml$restart$use <- TRUE
+  yaml$time$start <- "2010-06-03 00:00:00"
+  yaml$time$stop <- "2010-06-05 00:00:00"
   gotmtools::write_yaml(yaml, config_file)
 
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
 
+  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
+                restart_list = restart_list)
+
   run_ensemble(config_file = config_file,
                model = model)
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
 
   testthat::expect_true((file.exists("output/ensemble_output.nc") &
                            file.exists(file.path("GLM", "output", "output.nc"))))
@@ -485,8 +498,8 @@ test_that("can restart GOTM", {
 
   yaml <- gotmtools::read_yaml(config_file)
   yaml$restart$use <- FALSE
-  yaml$time$start <- "2010-05-01 00:00:00"
-  yaml$time$stop <- "2010-05-10 00:00:00"
+  yaml$time$start <- "2010-06-01 00:00:00"
+  yaml$time$stop <- "2010-06-03 00:00:00"
   yaml$output$time_step <- 1
   gotmtools::write_yaml(yaml, config_file)
 
@@ -496,20 +509,35 @@ test_that("can restart GOTM", {
   # 2. run models
   run_ensemble(config_file = config_file,
                model = model)
+  # ncdf <- "output/ensemble_output.nc"
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
+
+  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
+
   unlink("output/ensemble_output.nc")
 
   yaml <- gotmtools::read_yaml(config_file)
-  yaml$restart$use <- TRUE
-  yaml$time$start <- "2010-05-10 00:00:00"
-  yaml$time$stop <- "2010-05-11 00:00:00"
+  # yaml$restart$use <- TRUE
+  yaml$time$start <- "2010-06-03 00:00:00"
+  yaml$time$stop <- "2010-06-05 00:00:00"
   gotmtools::write_yaml(yaml, config_file)
 
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
+  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
+                restart_list = restart_list)
+
 
   run_ensemble(config_file = config_file,
                model = model)
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
 
   testthat::expect_true((file.exists("output/ensemble_output.nc") &
                            file.exists(file.path("GOTM", "output", "output.nc"))))
@@ -523,42 +551,47 @@ test_that("can restart Simstrat", {
 
   yaml <- gotmtools::read_yaml(config_file)
   yaml$restart$use <- FALSE
-  yaml$time$start <- "2010-05-01 00:00:00"
-  yaml$time$stop <- "2010-05-10 00:00:00"
+  yaml$time$start <- "2010-06-01 00:00:00"
+  yaml$time$stop <- "2010-06-03 00:00:00"
   yaml$output$time_step <- 1
+  yaml$model_parameters$Simstrat$`ModelConfig/InitializeSeicheEnergy` <- FALSE
   gotmtools::write_yaml(yaml, config_file)
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
 
-  # SimstratR::run_simstrat(sim_folder = "Simstrat")
 
   # 2. run models
-  r1 <- run_ensemble(config_file = config_file,
+  run_ensemble(config_file = config_file,
                model = model)
-  try <- 1
-  while(!r1$Simstrat_run_success & try < 10) {
-    r1 <- run_ensemble(config_file = config_file,
-                       model = model)
-    try <- try + 1
-  }
+  # ncdf <- "output/ensemble_output.nc"
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
+
+  restart_list <- read_restart(folder = file.path(temp_dir, "feeagh"), model = model)
   unlink("output/ensemble_output.nc")
 
   yaml <- gotmtools::read_yaml(config_file)
-  yaml$restart$use <- TRUE
-  yaml$time$start <- "2010-05-10 00:00:00"
-  yaml$time$stop <- "2010-05-11 00:00:00"
+  yaml$time$start <- "2010-06-03 00:00:00"
+  yaml$time$stop <- "2010-06-05 00:00:00"
   gotmtools::write_yaml(yaml, config_file)
 
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
                 location = FALSE, output_settings = FALSE, meteo = TRUE, init_cond = FALSE,
                 extinction = FALSE, inflow = TRUE, model_parameters = TRUE)
+  write_restart(folder = file.path(temp_dir, "feeagh"), model = model,
+                restart_list = restart_list)
 
   run_ensemble(config_file = config_file,
                model = model)
-
-  testthat::expect_true((file.exists("output/ensemble_output.nc") &
-                           file.exists(file.path("Simstrat", "output", "T_out.dat"))))
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+  #
+  # testthat::expect_true((file.exists("output/ensemble_output.nc") &
+  #                          file.exists(file.path("Simstrat", "output", "T_out.dat"))))
 })
 
 # end
