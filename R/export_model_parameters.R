@@ -98,7 +98,7 @@ export_model_parameters <- function(config_file,
     yaml$model_parameters$Simstrat$`Simulation/Continue from last snapshot` <- TRUE
   } else {
     yaml$model_parameters$GOTM$`restart/load` <- FALSE
-    yaml$model_parameters$Simstrat$`Simulation/Continue from last snapshot` <- TRUE
+    yaml$model_parameters$Simstrat$`Simulation/Continue from last snapshot` <- FALSE
   }
 
 
