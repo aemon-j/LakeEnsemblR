@@ -408,7 +408,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   #Delete previous output
   suppressWarnings({
     out_folder <- get_json_value(file = file.path(folder, par_file), label = "Output", "Path")
-    sim_restart <- get_json_value(file = file.path(folder, par_file), label = "Simulation", "Continue from last snapshot")
+    # sim_restart <- get_json_value(file = file.path(folder, par_file), label = "Simulation", "Continue from last snapshot")
   })
   old_output <- list.files(file.path(folder, "Simstrat", out_folder))
 
@@ -419,19 +419,19 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   sim_res <- SimstratR::run_simstrat(sim_folder = file.path(folder, "Simstrat"), par_file = basename(par_file), verbose = TRUE)
 
-  if(sim_restart) {
-    if(file.exists(file.path(folder, "Simstrat", out_folder, "simulation-snapshot.dat")) & !any(grepl("Error|ERROR", sim_res))) {
-      run_success <- TRUE
-    } else {
-      run_success <- FALSE
-    }
-  } else {
+  # if(sim_restart) {
+  #   if(file.exists(file.path(folder, "Simstrat", out_folder, "simulation-snapshot.dat")) & !any(grepl("Error|ERROR", sim_res))) {
+  #     run_success <- TRUE
+  #   } else {
+  #     run_success <- FALSE
+  #   }
+  # } else {
     if(!any(grepl("Error|ERROR", sim_res))) {
       run_success <- TRUE
     } else {
       run_success <- FALSE
     }
-  }
+  # }
 
 
   if(return_list | create_output){
