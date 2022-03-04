@@ -133,8 +133,9 @@ read_restart <- function(folder = ".", model) {
     }
     cnams <- read.csv(init_cond_file, header = FALSE, nrows = 1)
     init_cond <- read.csv(init_cond_file, header = FALSE, skip = 1)
-    colnames(init_cond) <- cnams
-    init_cond <- data.matrix(init_cond)
+    # colnames(init_cond) <- cnams
+    # init_cond <- data.matrix(init_cond)
+    # c("depth (m) ", "u (m/s)   ", "v (m/s)   ", "T (Â°C)   ", "S (g/kg)  ", "k (J/kg)  ", "eps (W/kg)", "num (wwww)", "nuh (wwww)")
 
     seiche_file <- file.path(output_folder, "save_end_conditions2.dat")
     if(!file.exists(seiche_file)) {
@@ -142,7 +143,15 @@ read_restart <- function(folder = ".", model) {
     }
     seicheE <- read.table(seiche_file, header = TRUE)[[1]]
 
-    restart_list = list(init_cond = init_cond,
+    restart_list = list(zi = init_cond[[1]],
+                        u = init_cond[[2]],
+                        v = init_cond[[3]],
+                        temp = init_cond[[4]],
+                        S = init_cond[[5]],
+                        k = init_cond[[6]],
+                        eps = init_cond[[7]],
+                        num = init_cond[[8]],
+                        nuh = init_cond[[9]],
                         seicheE = seicheE)
   }
 

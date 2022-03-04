@@ -70,9 +70,11 @@ write_restart <- function(folder = ".", model, restart_list) {
     out_dir <- get_json_value(par_file, "Output", "Path")
     output_folder <- file.path(folder, model, out_dir)
     init_cond_file <- file.path(folder, model, "save_end_conditions.dat")
-    colnames(restart_list$init_cond) <- c("depth (m) ", "u (m/s)   ", "v (m/s)   ", "T (Â°C)   ", "S (g/kg)  ", "k (J/kg)  ", "eps (W/kg)", "num (wwww)", "nuh (wwww)")
+    init_cond <- do.call(cbind, restart_list[1:9])
 
-    write.csv(restart_list$init_cond, init_cond_file, row.names = FALSE, quote = TRUE)
+    colnames(init_cond) <- c("depth (m) ", "u (m/s)   ", "v (m/s)   ", "T (Â°C)   ", "S (g/kg)  ", "k (J/kg)  ", "eps (W/kg)", "num (wwww)", "nuh (wwww)")
+
+    write.csv(init_cond, init_cond_file, row.names = FALSE, quote = TRUE)
 
     init_cond_name <- "save_end_conditions.dat"
 
