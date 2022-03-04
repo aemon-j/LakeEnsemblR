@@ -107,13 +107,14 @@ read_restart <- function(folder = ".", model) {
     zi_att <- setNames(lapply(zi_var_names, function(x) ncdf4::ncatt_get(nc, x)), zi_var_names)
     zi_vars <- setNames(lapply(zi_var_names, function(x) ncdf4::ncvar_get(nc, x)), zi_var_names)
 
-    restart_list <- list(lat = lat,
-                         lon = lon,
-                         time = time,
+    restart_list <- list(# lat = lat,
+                         # lon = lon,
+                         # time = time,
                          z_vars = z_vars,
-                         zi_vars = zi_vars,
-                         nc_atts = list(lat = lat_att, lon = lon_att, time = time_att, z = z_att, zi = zi_att),
-                         dims = list(lat = lat_dim, lon = lon_dim, time = time_dim, z = z_dim, zi = zi_dim))
+                         zi_vars = zi_vars
+                         # nc_atts = list(lat = lat_att, lon = lon_att, time = time_att, z = z_att, zi = zi_att),
+                         # dims = list(lat = lat_dim, lon = lon_dim, time = time_dim, z = z_dim, zi = zi_dim)
+                         )
 
   }
 
@@ -133,12 +134,13 @@ read_restart <- function(folder = ".", model) {
     cnams <- read.csv(init_cond_file, header = FALSE, nrows = 1)
     init_cond <- read.csv(init_cond_file, header = FALSE, skip = 1)
     colnames(init_cond) <- cnams
+    init_cond <- data.matrix(init_cond)
 
     seiche_file <- file.path(output_folder, "save_end_conditions2.dat")
     if(!file.exists(seiche_file)) {
       stop("No 'save_end_conditions2.dat' file in ", output_folder)
     }
-    seicheE <- read.table(seiche_file, header = TRUE)
+    seicheE <- read.table(seiche_file, header = TRUE)[[1]]
 
     restart_list = list(init_cond = init_cond,
                         seicheE = seicheE)
