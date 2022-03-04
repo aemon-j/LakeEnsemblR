@@ -587,8 +587,8 @@ test_that("can restart Simstrat", {
   #   scale_colour_gradientn(limits = c(9, 17),
   #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
   #
-  # testthat::expect_true((file.exists("output/ensemble_output.nc") &
-  #                          file.exists(file.path("Simstrat", "output", "T_out.dat"))))
+  testthat::expect_true((file.exists("output/ensemble_output.nc") &
+                           file.exists(file.path("Simstrat", "output", "T_out.dat"))))
 })
 
 # end
