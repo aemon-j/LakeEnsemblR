@@ -63,19 +63,20 @@
     "a_seiche"      : 0.0011046,                        ! Fraction of wind energy which goes into seiche energy [-]
     "a_seiche_w"    : 0,                                ! Fraction of wind energy which goes into seiche energy in winter [-] (only used if SplitSeicheParameter=true)
     "strat_sumr"    : 0,                                ! If maximum N2 (Brundt-Vaisala frequency) is below this threshold, a_seiche_w is used instead of a_seiche (only used if SplitSeicheParameter=true)
-    "q_nn"          : 0.75,                             ! Fit parameter for distribution of seiche energy [-]
-    "f_wind"        : 1.6423,                           ! Ratio of forcing wind to wind speed at 10 m above lake level [-]
+    "q_nn"          : 1.0,                             ! Fit parameter for distribution of seiche energy [-]
+    "f_wind"        : 1.0,                           ! Ratio of forcing wind to wind speed at 10 m above lake level [-]
     "c10"           : 1,                                ! Wind drag coefficient, a physical constant around 0.001 if WindDragModel = 1 and a calibration parameter around 1 if WindDragModel = 2 or 3
     "cd"            : 0.002,                            ! Bottom drag coefficient [-]
+    "k_min"         : 1e-09,                            !
     "hgeo"          : 0.1,                              ! Geothermal heat flux [W/m2]
-    "p_sw_water"    : 1,                                ! Fit parameter for absorption of short wave radiation from sky [-]
-    "p_lw"          : 1.1978,                           ! Fit parameter for absorption of IR radiation from sky [-]
+    "p_sw_water"    : 1.0,                                ! Fit parameter for absorption of short wave radiation from sky [-]
+    "p_lw"          : 1.0,                           ! Fit parameter for absorption of IR radiation from sky [-]
     "p_windf"       : 1,                                ! Fit parameter for convective and latent heat fluxes [-]
     "beta_sol"      : 0.3,                              ! Fraction of short-wave radiation directly absorbed as heat by water [-]
     "wat_albedo"    : 0.08,                             ! User defined water albedo [-] (only used if UserDefinedWaterAlbedo = true)
     "p_sw_ice"      : 1,                                ! Fit parameter for albedo of ice, snow-ice and snow [-] (only used if IceModel = 1)
     "freez_temp"    : 0.00,                             ! Freezing temperature of water [°C] (only used if IceModel = 1)
-    "snow_temp"     : 1,                                ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
+    "snow_temp"     : 1.0,                                ! Temperature of snow [°C] (only used if IceModel = 1 and SnowModel = 1)
     "seiche_ini"    : 0                                 ! Initial seiche energy [J], only used if InitializeSeicheEnergy is True
   }
 }
