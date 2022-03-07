@@ -31,7 +31,7 @@ temperature:                            # temperature profile used for initializ
       h_s: 0.0                          # height of surface relaxation layer [m; min=0.0; default=0.0]
       tau_s: 1.00000000E+15             # time scale for surface layer [s; min=0.0; default=1.00000000E+15]
       h_b: 0.0                          # height of bottom relaxation layer [m; min=0.0; default=0.0]
-      tau_b: 1.00000000E+15             # time scale for bottom layer [s; min=0.0; default=1.00000000E+15]      
+      tau_b: 1.00000000E+15             # time scale for bottom layer [s; min=0.0; default=1.00000000E+15]
 salinity:                               # salinity profile used for initialization and optionally relaxation
    method: 0                            # method [0=off, 1=analytical, 2=from file; default=0]
    file:                                # path to file with series of profiles [default=]
@@ -277,7 +277,7 @@ velocities:                             # observed/prescribed horizontal velocit
       ramp: 1.00000000E+15              # duration of initial relaxation period [s; min=0.0; default=1.00000000E+15]
 o2:                                     # oxygen
    scale_factor: 1.0                    # scale factor to be applied to values read from file [default=1.0]
-   offset: 0.0                          # offset to be added to values read from file [default=0.0]     
+   offset: 0.0                          # offset to be added to values read from file [default=0.0]
 streams:
    inflow:                              # stream configuration
       method: 1                         # inflow method [default=1]
@@ -341,7 +341,7 @@ eq_state:                               # equation of state
 restart:
    load: false                          # initialize simulation with state stored in restart.nc [default=false]
 output:
-   output:                              # path of output file, excluding extension
+   output/output:                       # path of output file, excluding extension
       format: netcdf                    # format [text, netcdf; default=netcdf]
       time_unit: day                    # time unit [second, hour, day, month, year, dt=model time step; default=day]
       time_step: 1                      # number of time units between output [min=1; default=1]

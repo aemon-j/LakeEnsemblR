@@ -86,19 +86,17 @@ export_output_settings <- function(config_file,
   ##---------------GOTM-------------
   if("GOTM" %in% model){
     got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
-    got_yaml <- read_yaml(got_file)
+    got_yaml <- gotmtools::read_yaml(got_file)
 
     # Set GOTM output
-    out_file <- file.path(folder, "GOTM", "output.yaml")
-    out_yaml <- read_yaml(out_file)
-    out_yaml <- set_yaml(out_yaml, "output/output", "time_step", value = out_tstep)
-    out_yaml <- set_yaml(out_yaml, "output/output", "time_unit", value = out_unit)
-    write_yaml(out_yaml, out_file)
+    got_yaml <- gotmtools::set_yaml(got_yaml, "output", "output/output", "time_step", value = out_tstep)
+    got_yaml <- set_yaml(got_yaml, "output", "output/output", "time_unit", value = out_unit)
 
     # Need to input start and stop into yaml file
     time_method <- get_yaml_value(yaml, "output", "time_method")
-    got_yaml <- set_yaml(got_yaml, label = "output", "output", key = "time_method", value = time_method)
-    got_yaml <- set_yaml(got_yaml, label = "output", "output", key = "format", value = "netcdf")
+    got_yaml <- set_yaml(got_yaml, "output", "output/output", key = "time_method",
+                         value = time_method)
+    got_yaml <- set_yaml(got_yaml, "output", "output/output", key = "format", value = "netcdf")
 
     write_yaml(got_yaml, got_file)
 
