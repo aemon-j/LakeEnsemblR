@@ -322,7 +322,7 @@ test_that("can run Simstrat with errors", {
 
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
-  val <- "\"NA.dat\""
+  val <- "NA.dat"
   input_json(file = file.path("Simstrat", "simstrat.par"), label = "Input",
                            key = "Forcing", value = val)
   # 2. run models
