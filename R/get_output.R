@@ -369,13 +369,10 @@ get_output <- function(yaml, model, vars, obs_depths = NULL, folder = ".", out_t
           message("Interpolating Simstrat temp to include obs depths... ",
                   paste0("[", Sys.time(), "]"))
 
+          wat_mat <- apply(temp[, -1], 1, function(x) approx(mod_depths, x,
+                                                             xout = depths, rule = 2)$y)
+          wat_mat <- t(wat_mat)
 
-          # Create empty matrix and interpolate to new depths
-          wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-          for(i in seq_len(nrow(temp))) {
-            y <- as.vector(unlist(temp[i, -1]))
-            wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
-          }
           message("Finished interpolating! ",
                   paste0("[", Sys.time(), "]"))
           df <- data.frame(wat_mat)
