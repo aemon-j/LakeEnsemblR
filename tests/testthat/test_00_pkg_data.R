@@ -111,8 +111,6 @@ test_that("can add members to netCDF models", {
   }, error = function(e) return(FALSE))
   testthat::expect_true(is.list(test_add))
 
-
-
   test5 <- tryCatch({
     load_var(ncdf, "temp", return = "array", dim = "member")
   }, error = function(e) return(FALSE))
