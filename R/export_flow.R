@@ -60,6 +60,10 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                    "or a different file as for inflows."))},
     error = function(e) { })
   
+  # Fix water level - assumed to be FALSE if not present in config_file
+  fix_wlvl <- tryCatch(get_yaml_value(config_file, "inflows", "fix_wlvl"),
+                       error = function(e) {return(FALSE)})
+  
   # read in yaml file
   yml_fl <- read.config(config_file)
   
@@ -279,11 +283,19 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
                               "file", value = paste0("inflow_file_", i, ".dat"))
       }
+      
+      # Fix wlvls if fix_wlvl is TRUE
+      if(fix_wlvl){
+        input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
+                            value = 0)
+        input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 0)
+      }
+      
     }
 
     # set outflows
     if (use_outflows) {
-      if (!use_inflows) {
+      if (!use_inflows & !fix_wlvl) {
         # switch on flexible water level
         input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
                             value = 3)
@@ -920,9 +932,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ## MyLake
     if("MyLake" %in% model) {
       message("MyLake does not need specific outflows, as it employs automatic overflow.")
+    }
   }
-
-
+  
   message("export_flow complete!")
-  }
 }
