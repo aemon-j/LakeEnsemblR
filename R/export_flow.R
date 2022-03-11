@@ -60,6 +60,10 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
                    "or a different file as for inflows."))},
     error = function(e) { })
   
+  # Fix water level - assumed to be FALSE if not present in config_file
+  fix_wlvl <- tryCatch(get_yaml_value(config_file, "inflows", "fix_wlvl"),
+                       error = function(e) {return(FALSE)})
+  
   # read in yaml file
   yml_fl <- read.config(config_file)
   
@@ -98,6 +102,8 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   if(use_inflows){
     # number of inflows
     num_inflows <- get_yaml_value(config_file, "inflows", "number_inflows")
+    # inflow depths - always assumed to be at the surface
+    lvl_inflows <- rep(-1, num_inflows)
     # Get scaling parameter
     if(!is.null(yml_fl$scaling_factors$all$inflow)) {
       scale_param_inf <- get_yaml_value(file = config_file, "all", "inflow")
@@ -279,11 +285,19 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         input_yaml_multiple(got_yaml, key1 = "streams", key2 = inf_sec, key3 = "salt", key4 =
                               "file", value = paste0("inflow_file_", i, ".dat"))
       }
+      
+      # Fix wlvls if fix_wlvl is TRUE
+      if(fix_wlvl){
+        input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
+                            value = 0)
+        input_yaml_multiple(got_yaml, key1 = "water_balance_method", value = 0)
+      }
+      
     }
 
     # set outflows
     if (use_outflows) {
-      if (!use_inflows) {
+      if (!use_inflows & !fix_wlvl) {
         # switch on flexible water level
         input_yaml_multiple(got_yaml, key1 = "mimic_3d", key2 = "zeta", key3 = "method",
                             value = 3)
@@ -343,55 +357,39 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     sim_par <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
     # Turn off inflow
     if(!use_inflows){
-      ## Set Qin and Qout to 0 inflow
-      inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
-      # In case Kw is a single value for the whole simulation:
-      inflow_line_2 <- "1"
-      inflow_line_3 <- "-1\t0.00"
-      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-      end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      inflow_line_4 <- paste0(start_sim, "\t", 0.000)
-      inflow_line_5 <- paste0(end_sim, "\t", 0.000)
-
-      file_connection <- file("Simstrat/Qin.dat")
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
-      file_connection <- file("Simstrat/Qout.dat")
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
+      ## Set InflowMode to 0
+      input_json(sim_par, "ModelConfig", "InflowMode", 0)
       
-      ## Also set Tin and Sout to 0
-      inflow_line_1_T <- "Time [d]\tT_in [degC]"
-      inflow_line_1_S <- "Time [d]\tS_in [promille]"
-      file_connection <- file("Simstrat/Tin.dat")
-      writeLines(c(inflow_line_1_T, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
+      ## Set Qin, Qout, Tin, and Sin to 0
+      # See format_flow_simstrat function in helpers_flow.R
+      qin_file <- format_flow_simstrat(flow_file = NULL, levels = NULL,
+                                       surf_flow = NULL,
+                                       in_or_out = "inflow", type = "discharge",
+                                       sim_par = sim_par)
+      qout_file <- format_flow_simstrat(flow_file = NULL, levels = NULL,
+                                        surf_flow = NULL,
+                                        in_or_out = "outflow", type = "discharge",
+                                        sim_par = sim_par)
+      tin_file <- format_flow_simstrat(flow_file = NULL, levels = NULL,
+                                       surf_flow = NULL,
+                                       in_or_out = "inflow", type = "temp",
+                                       sim_par = sim_par)
+      sin_file <- format_flow_simstrat(flow_file = NULL, levels = NULL,
+                                       surf_flow = NULL,
+                                       in_or_out = "inflow", type = "salt",
+                                       sim_par = sim_par)
       
-      file_connection <- file("Simstrat/Sin.dat")
-      writeLines(c(inflow_line_1_S, inflow_line_2, inflow_line_3, inflow_line_4, inflow_line_5),
-                 file_connection)
-      close(file_connection)
-      
+      writeLines(qin_file, file.path(folder, "Simstrat/Qin.dat"))
+      writeLines(qout_file, file.path(folder, "Simstrat/Qout.dat"))
+      writeLines(tin_file, file.path(folder, "Simstrat/Tin.dat"))
+      writeLines(sin_file, file.path(folder, "Simstrat/Sin.dat"))
     }
     if(!use_outflows){
-      outflow_outfile <- "Qout.dat"
-
-      outflow_outfpath <- file.path(folder, "Simstrat", outflow_outfile)
-
-      outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
-      outflow_line_2 <- "1"
-      outflow_line_3 <- "-1\t0.00"
-      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
-      end_sim <- get_json_value(sim_par, "Simulation", "End d")
-      outflow_line_4 <- paste0(start_sim, "\t", 0.000)
-      outflow_line_5 <- paste0(end_sim, "\t", 0.000)
-      file_connection <- file(outflow_outfpath)
-      writeLines(c(outflow_line_1, outflow_line_2, outflow_line_3, outflow_line_4,
-                   outflow_line_5), file_connection)
-      close(file_connection)
+      qout_file <- format_flow_simstrat(flow_file = NULL, levels = NULL,
+                                        surf_flow = NULL,
+                                        in_or_out = "outflow", type = "discharge",
+                                        sim_par = sim_par)
+      writeLines(qout_file, file.path(folder, "Simstrat/Qout.dat"))
     }
   }
 
@@ -434,10 +432,6 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ### Naming conventions standard input
     chk_names_flow(inflow, num_inflows, inflow_file)
-
-    # ### Apply scaling
-    # inflow <- scale_flow(inflow, num_inflows, scale_param_inf)
-
 
     ##### FLake
     if("FLake" %in% model){
@@ -571,7 +565,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     ## Simstrat
     if("Simstrat" %in% model){
       # Set inflow mode to manually-chosen depths
-      input_json(sim_par, label = "ModelConfig", key = "InflowMode", value = 0)
+      input_json(sim_par, label = "ModelConfig", key = "InflowMode", value = 1)
       
       if(!is.null(yml_fl$scaling_factors$Simstrat$inflow)) {
         scale_param_tmp <- yml_fl$scaling_factors$Simstrat$inflow
@@ -598,69 +592,38 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
         inflow_tmp <- list(inflow_1 = inflow_tmp)
       }
       
-      # output file names
-      inflow_outfile <- "Qin.dat"
-      temp_outfile <- "Tin.dat"
-      salt_outfile <- "Sin.dat"
       # output file paths
-      inflow_outfpath <- file.path(folder, "Simstrat", inflow_outfile)
-      temp_outfpath <- file.path(folder, "Simstrat", temp_outfile)
-      salt_outfpath <- file.path(folder, "Simstrat", salt_outfile)
+      inflow_outfpath <- file.path(folder, "Simstrat", "Qin.dat")
+      temp_outfpath <- file.path(folder, "Simstrat", "Tin.dat")
+      salt_outfpath <- file.path(folder, "Simstrat", "Sin.dat")
 
       sim_inflow <- format_inflow(inflow = inflow_tmp, model = "Simstrat",
                                   config_file = config_file)
 
-      ## inflow file
-      inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
-      inflow_line_2 <- as.character(num_inflows)
-      inflow_line_3 <- paste0("-1",  paste0(rep("\t0.00", num_inflows),
-                                            collapse = ""))
-      if(num_inflows > 1) {
-        inflow_line_4 <- seq_len(length(sim_inflow$datetime))
-        for (i in 1:num_inflows) {
-          inflow_line_4 <- paste0(inflow_line_4, "\t",
-                                 sim_inflow[, paste0("Flow_metersCubedPerSecond_", i)])
-        }
-      } else {
-        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
-                               sim_inflow$Flow_metersCubedPerSecond)
-      }
-      file_connection <- file(inflow_outfpath)
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4), file_connection)
-      close(file_connection)
-      # temperature file
-      inflow_line_1 <- "Time [d]\tT_in [degC]"
-      if(num_inflows > 1) {
-        inflow_line_4 <- seq_len(length(sim_inflow$datetime))
-        for (i in 1:num_inflows) {
-          inflow_line_4 <- paste0(inflow_line_4, "\t",
-                                 sim_inflow[, paste0("Water_Temperature_celsius_", i)])
-        }
-      } else {
-        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
-                               sim_inflow$Water_Temperature_celsius)
-      }
-      file_connection <- file(temp_outfpath)
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4), file_connection)
-      close(file_connection)
-      # salinity file
-      inflow_line_1 <- "Time [d]\tS_in [perMille]"
-      if(num_inflows > 1) {
-        inflow_line_4 <- seq_len(length(sim_inflow$datetime))
-        for (i in 1:num_inflows) {
-          inflow_line_4 <- paste0(inflow_line_4, "\t",
-                                 sim_inflow[, paste0("Salinity_practicalSalinityUnits_", i)])
-        }
-      } else {
-        inflow_line_4 <- paste0(seq_len(length(sim_inflow$datetime)), "\t",
-                               sim_inflow$Salinity_practicalSalinityUnits)
-      }
-      file_connection <- file(salt_outfpath)
-      writeLines(c(inflow_line_1, inflow_line_2, inflow_line_3, inflow_line_4),
-                 file_connection)
-      close(file_connection)
-
-      message("Simstrat: Created file ", file.path(folder, "Simstrat", inflow_outfile))
+      ## inflow files
+      qin_file <- format_flow_simstrat(flow_file = sim_inflow,
+                                       levels = lvl_inflows,
+                                       surf_flow = (lvl_inflows == -1),
+                                       in_or_out = "inflow",
+                                       type = "discharge",
+                                       sim_par = sim_par)
+      writeLines(qin_file, inflow_outfpath)
+      tin_file <-  format_flow_simstrat(flow_file = sim_inflow,
+                                        levels = lvl_inflows,
+                                        surf_flow = (lvl_inflows == -1),
+                                        in_or_out = "inflow",
+                                        type = "temp",
+                                        sim_par = sim_par)
+      writeLines(tin_file, temp_outfpath)
+      sin_file <-  format_flow_simstrat(flow_file = sim_inflow,
+                                        levels = lvl_inflows,
+                                        surf_flow = (lvl_inflows == -1),
+                                        in_or_out = "inflow",
+                                        type = "salt",
+                                        sim_par = sim_par)
+      writeLines(sin_file, salt_outfpath)
+      
+      message("Simstrat: Created file ", inflow_outfpath)
     }
 
     ## MyLake
@@ -749,7 +712,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     chk_names_flow(outflow, num_outflows, outflow_file)
     
     # FLake
-    #####
+    ###
     if("FLake" %in% model) {
         message("FLake does not need outflows, as mass fluxes are not considered.")
     }
@@ -794,7 +757,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     if("GOTM" %in% model) {
 
       if(!is.null(yml_fl$scaling_factors$GOTM$outflow)) {
-        scale_param_tmp <-yml_fl$scaling_factors$GOTM$outflow
+        scale_param_tmp <- yml_fl$scaling_factors$GOTM$outflow
       } else {
         scale_param_tmp <- scale_param_out
       }
@@ -832,7 +795,10 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     ## Simstrat
     if("Simstrat" %in% model) {
-
+      # Set inflow mode to manually-chosen depths
+      input_json(sim_par, label = "ModelConfig", key = "InflowMode", value = 1)
+      
+      
       if(!is.null(yml_fl$scaling_factors$Simstrat$outflow)) {
         scale_param_tmp <- yml_fl$scaling_factors$Simstrat$outflow
       } else {
@@ -860,69 +826,30 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       lvl_outflows_simstrat[outf_surf] <- -1
 
       # if there are several outflows with the same depth throw an error
-      if(any(duplicated(lvl_outflows_simstrat))) {
+      if(any(duplicated(lvl_outflows_simstrat))){
         stop(paste0("Duplicated outflow levels in simstrat detected, please merge outflows",
                     " at 1m intervals."))
       }
       
-      # add withdrawal depth below and above the given withdrawals for deep withdrawal
-      zerowith <- c(lvl_outflows_simstrat[!outf_surf] - 1,
-                    lvl_outflows_simstrat[!outf_surf] + 1, 0)
-      zerowith <- zerowith[zerowith <= 0]
-      zerowith <- unique(zerowith)
-      zerowith <- zerowith[!(zerowith %in% lvl_outflows_simstrat[!outf_surf])]
-      
-      # merge zero flow with outflows for the deep outflows
-      lvl_outflows_simstrat_deep <- sort(c(zerowith, lvl_outflows_simstrat[!outf_surf]))
-      
-      outflow_outfile <- "Qout.dat"
-
-      outflow_outfpath <- file.path(folder, "Simstrat", outflow_outfile)
+      outflow_outfpath <- file.path(folder, "Simstrat", "Qout.dat")
       sim_outflow <- format_outflow(outflow_tmp, "Simstrat", config_file, folder)
-      ## inflow file
-      outflow_line_1 <- "Time [d]\tQ_out [m3/s]"
-      outflow_line_2 <- paste0(as.character(length(lvl_outflows_simstrat_deep)), "\t",
-                               as.character(sum(outf_surf) + 1))
-      outflow_line_3 <- paste0("-1\t",  paste0(lvl_outflows_simstrat_deep, collapse = "\t"),
-                               "\t", paste0(lvl_outflows_simstrat[outf_surf], collapse = "\t"),
-                               "\t0")
-      if(num_outflows > 1 | all(!outf_surf)) {
-        outflow_line_4 <- seq_len(length(sim_outflow$datetime))
-        # first the deep outflows
-        for (i in seq_len(length(lvl_outflows_simstrat_deep))) {
-          if(lvl_outflows_simstrat_deep[i] %in% lvl_outflows_simstrat[!outf_surf]) {
-            j <- which(lvl_outflows_simstrat[!outf_surf] %in% lvl_outflows_simstrat_deep[i])
-            outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", j)])
-          } else {
-            outflow_line_4 <- paste0(outflow_line_4, "\t", rep(0, length(sim_outflow$datetime)))
-          }
-          
-        }
-        if(any(outf_surf)) {
-          # then the surface outflows
-          for (i in ((1:num_outflows)[outf_surf])) {
-            outflow_line_4 <- paste0(outflow_line_4, "\t",
-                                     sim_outflow[, paste0("Flow_metersCubedPerSecond_", i)])
-          }
-        }
-      } else {
-        outflow_line_4 <- paste0(seq_len(length(sim_outflow$datetime)), "\t",
-                                sim_outflow$Flow_metersCubedPerSecond)
-      }
-      file_connection <- file(outflow_outfpath)
-      writeLines(c(outflow_line_1, outflow_line_2, outflow_line_3, outflow_line_4), file_connection)
-      close(file_connection)
-
-      message("Simstrat: Created outflow file ", file.path(folder, "Simstrat", outflow_outfile))
+      
+      qout_file <- format_flow_simstrat(flow_file = sim_outflow,
+                                        levels = lvl_outflows_simstrat,
+                                        surf_flow = outf_surf,
+                                        in_or_out = "outflow",
+                                        type = "discharge",
+                                        sim_par = sim_par)
+      writeLines(qout_file, outflow_outfpath)
+      
+      message("Simstrat: Created outflow file ", outflow_outfpath)
     }
 
     ## MyLake
     if("MyLake" %in% model) {
       message("MyLake does not need specific outflows, as it employs automatic overflow.")
+    }
   }
-
-
+  
   message("export_flow complete!")
-  }
 }
