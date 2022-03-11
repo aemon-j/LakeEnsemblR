@@ -835,7 +835,7 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       sim_outflow <- format_outflow(outflow_tmp, "Simstrat", config_file, folder)
       
       qout_file <- format_flow_simstrat(flow_file = sim_outflow,
-                                        levels = lvl_outflows,
+                                        levels = lvl_outflows_simstrat,
                                         surf_flow = outf_surf,
                                         in_or_out = "outflow",
                                         type = "discharge",
