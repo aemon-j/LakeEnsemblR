@@ -7,16 +7,23 @@ author:
    - "ladwigjena@gmail.com"
 date: "`r Sys.Date()`"
 output:
-  rmarkdown::html_vignette:
-    number_sections: yes
-    toc: yes
-    toc_depth: 3
+  rmarkdown::html_vignette: 
+     number_sections: yes 
+     toc: yes
+     toc_depth: 3
 bibliography: references.bib
 vignette: >
   %\VignetteIndexEntry{R package LakeEnsemblR: Basic Use and Sample Applications}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
+
+<!-- ALTERNATIVE FOR HTML
+ rmarkdown::html_vignette: 
+     number_sections: yes 
+     toc: yes
+     toc_depth: 3
+-->
 
 <!-- ALTERNATIVE FOR pdf
 rmarkdown::pdf_document:
@@ -62,9 +69,9 @@ devtools::install_github("aemon-j/LakeEnsemblR)
 The package relies on multiple other packages that also need to be installed. Most notably, to run the multiple models, it requires the packages FLakeR, GLM3r, GOTMr, SimstratR, and MyLakeR. These packages run the individual models, and contain ways of running the models for the platforms Windows, MacOS, or Linux, through either executables, or by having the model code in R. 
 
 # The LakeEnsemblR configuration file
-In this section, we go through the LakeEnsemblR configuration file. This file controls the settings with which the models are run. It is written in [YAML](https://yaml.org/) (Yaml Ain't Markup Language) format, and can be opened by text-editors such as Notepad or Notepad++. Although not needed to use LakeEnsemblR, you can read this file into R with the `configr` package (`read.config` function). Within LakeEnsemblR, we provide the `get_yaml_value` and `input_yaml` functions to get and input values into this file type.
+In this section, we go through the LakeEnsemblR configuration file. This file controls the settings with which the models are run. It is written in [YAML](https://yaml.org/) (Yaml Ain't Markup Language) format, and can be opened by text-editors such as Notepad or Notepad++. Although not needed to use LakeEnsemblR, you can read this file into R with the `configr` package (`read.config` function). Within LakeEnsemblR, we provide the `get_yaml_multiple` and `input_yaml_multiple` functions to get and input values into this file type.
 
-There is an LakeEnsemblR configuration file provided in the example dataset in the package (`LakeEnsemblR::get_template("LakeEnsemblR_config")`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata/feeagh/Feeagh_master_config.yaml).
+There is an LakeEnsemblR configuration file provided in the example dataset in the package (`LakeEnsemblR::get_template("LakeEnsemblR_config")`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/main/inst/extdata/feeagh/LakeEnsemblR.yaml).
 
 ## Location
 The first section is "Location". Here you specify the name, latitude and longitude, elevation, maximum depth, and initial depth.
@@ -95,8 +102,7 @@ In the "Time" section, you fill in the start and end date of the simulation, and
 LakeEnsemblR will work with any time zone, provided that the time columns in all input files are in the same time zone and there are no shifts from/to daylight saving time in the files. Of all models, only GLM requires to know the time zone. In LakeEnsemblR this is automatically set to UTC. However, this information is only used in GLM's `albedo_mode` 2 and 3, or when GLM's `rad_mode` is set to 5 (i.e. computing shortwave radiation if this is not provided). In LakeEnsemblR, the default `albedo_mode` is 1, and shortwave radiation must be provided, so providing the timezone is not required. Yet if you are changing `albedo_mode` to 2 or 3, make sure you enter your data in UTC. GOTM also assumes the time to be in UTC, but this is only used when computing shortwave radiation if it is not provided, which does not happen when using LakeEnsemblR.
 
 ## Config files
-In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/master/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "master" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
-
+In this section, you link to the model-specific configuration files. Templates of these can be found in in the package (`get_template("FLake_config")`, `get_template("GLM_config")`, etc. all available templates can be shown using `get_template()`) or you can download a copy from GitHub [here](https://github.com/aemon-j/LakeEnsemblR/blob/main/inst/extdata). The setup of LakeEnsemblR is such that you will usually not have to access these files, as most settings are regulated through the LER "main" config file. However, should you want to change some of the more specialised settings in each model, that is possible.
 
 ## Observations
 If you have observations of water temperature, ice cover or water level, you can fill them in here. These will be used in plotting, and in case of water temperature potentially in initialising the temperature profile at the start of the simulation (see next section). 
@@ -168,8 +174,7 @@ Next you can either give a value for Kw (light extinction coefficient) in 1/m, o
 Lastly, you can specify if you want to use the ice modules that are present in some of the models. 
 
 ## Inflows
-Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). At the moment no outflow differing from the inflow can be specified directly in LakeEnsemblR, as not all models support this. Individual changes (e.g. in GLM or GOTM) can be made in the
-corresponding configuration files and model specific folders. If `mass_balance: true` is set in the LakeEnsemblR master configuration file, outflow files with the exact same discharge as the inflow will be added to the model that allow it (GLM, GOTM, Simstrat). The `scale_param:` argument allows to scale the in- and outflows by the specified number.
+Specify if you want to add inflows to your simulation. If yes, you need to link to a file with the inflow data. The data needs to be a comma separated values (.csv) file where the datetime column is in the format `YYYY-mm-dd HH:MM:SS`. Flow discharge, water temperature, and salinity need to be specified. The column names *must* be `datetime`, `Flow_metersCubedPerSecond`, `Water_Temperature_celsius`, and `Salinity_practicalSalinityUnits` (template available using `get_template("Inflow")` ). If you have multiple inflows, you should add suffixes "_1", "_2", etc. The fix_wlvl argument lets you fix the water level in the GOTM model, to reproduce the behaviour of an earlier version of LakeEnsemblR. 
 
 Example of inflow data:
 ```{csv}
@@ -183,7 +188,7 @@ datetime,Flow_metersCubedPerSecond,Water_Temperature_celsius,Salinity_practicalS
 
 ## Outflows
 
-For the models that allow changing water level (at this moment GLM, GOTM, Simstrat) outflows can be set in this section by setting `use` to true. The outflow dischagre must be profided in daily resolution in a .csv file specified by `file`. The file must contain a date column in `YYYY-mm-dd HH:MM:SS` format called `datetime` and for every outflow (specified by `number_outflows`) one column titled `Flow_metersCubedPerSecond`, if more than one outflow are defined the outflow columns need to be numbered like this: `Flow_metersCubedPerSecond_1`, `Flow_metersCubedPerSecond_2`. For each outflow the depth of the outflow must be specified as height in meters above the lake bottom, or if the outflow is a surface outflow it can be set to "-1".
+For the models that allow changing water level (at this moment GLM, GOTM, Simstrat) outflows can be set in this section by setting `use` to true. The outflow discharge must be provided in daily resolution in a .csv file specified by `file`. The file must contain a date column in `YYYY-mm-dd HH:MM:SS` format called `datetime` and for every outflow (specified by `number_outflows`) one column titled `Flow_metersCubedPerSecond`, if more than one outflow are defined the outflow columns need to be numbered like this: `Flow_metersCubedPerSecond_1`, `Flow_metersCubedPerSecond_2`. For each outflow the depth of the outflow must be specified as height in meters above the lake bottom, or if the outflow is a surface outflow it can be set to "-1".
 
 
 ```{yaml}
@@ -236,7 +241,7 @@ or:
 ```
 
 ## Calibration
-This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are definded in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be foundand separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
+This section is used when calibrating the models. In the package, the `cali_ensemble` function runs the calibration. For all three methods model specific parameters and scaling factors for the input meteorological forcing can be calibrated. In any case the parameters to be calibrated are definded in the master control .yaml file. The meteo scalings are defined in the `met:` section and the model specific parameters in sections with the corresponding model names e.g. `MyLake:`. The meteo scaling names must be the short names for the meteo variables, which are defined in the `met_var_dic` data and can be inspected using `print(met_var_dic)`. The model specific names must be the parameter name as given in the model specific configuration file (e.g. gotm.yaml) combined with the lowest section name in which the parameter can be found and separated by a slash "/" (e.g. turb_param/k_min). An example of how the calibration section could look like is given below:
 
 ```{yaml}
 calibration:                                   # Calibration section                                   # Calibration section
@@ -362,8 +367,8 @@ Now that the model simulations are finished, you can extract the data with `load
 ens_out <- "output/ensemble_output.nc"
 
 # Plot depth and time-specific results
-p <- plot_ensemble(ncdf = ens_out, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'),
-                   depth = 0.9, var = 'temp', date = as.POSIXct("2010-06-13", tz = "UTC"),
+p <- plot_ensemble(ncdf = ens_out, model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
+                   depth = 0.9, var = "temp",
                    boxwhisker = TRUE, residuals = TRUE)
 ```
 
