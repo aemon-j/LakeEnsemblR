@@ -77,11 +77,15 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     }
 
     # Read the GOTM config file from yaml, and write it to the GOTM directory
-    temp_fil <- get_yaml_value(yaml, "config_files", "GOTM")
+    temp_fil <- gotmtools::get_yaml_value(yaml, "config_files", "GOTM")
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
       file.copy(from = template_file,
                 to = file.path(folder, temp_fil))
+
+      template_file <- system.file("extdata/restart.nc", package = packageName())
+      file.copy(from = template_file,
+                to = file.path(folder, "GOTM/restart.nc"))
     }
   }
 
