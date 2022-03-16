@@ -28,7 +28,7 @@ check_master_config <- function(config_file,
   if(!grepl("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}", start)){
     stop("Start time format must be in yyyy-mm-dd hh:mm:ss format")
   }
-  # check if stop is in Iright format
+  # check if stop is in right format
   if(!grepl("\\d{4}-\\d{2}-\\d{2}\\s\\d{2}:\\d{2}:\\d{2}", stop)) {
     stop("Start time format must be in yyyy-mm-dd hh:mm:ss format")
   }
@@ -97,10 +97,43 @@ check_master_config <- function(config_file,
     stop(paste0('Unknown output time variable "', time_method, '" in control file ', config_file,
                 ". Allowed units: ", paste0(good_umethod, collapse = ", ")))
   }
+  
+  # check if the same number of in-/outflow scaling factors are given
+  #   as the number of in-/outflows
+  configr_master_config <- configr::read.config(file.path(config_file))
+  use_inflows <- get_yaml_value(config_file, label = "inflows", key = "use")
+  use_outflows <- get_yaml_value(config_file, label = "outflows", key = "use")
+  
+  if(!is.null(configr_master_config[["scaling_factors"]][["all"]]
+              [["inflow"]]) & use_inflows){
+    infl_scalings <- (configr_master_config[["scaling_factors"]][["all"]]
+      [["inflow"]])
+    num_inflows <- get_yaml_multiple(config_file, key1 = "inflows",
+                                     key2 = "number_inflows")
+    if(length(infl_scalings) != num_inflows){
+      warning(paste0("There is a different number of inflows than there are ",
+                     "inflow scaling factors in the control file ",
+                     config_file, ". Provide the same number of ",
+                     "scaling factors and inflows."))
+    }
+  }
+  if(!is.null(configr_master_config[["scaling_factors"]][["all"]]
+              [["outflow"]]) & use_outflows){
+    outfl_scalings <- (configr_master_config[["scaling_factors"]][["all"]]
+                       [["outflow"]])
+    num_outflows <- get_yaml_multiple(config_file, key1 = "outflows",
+                                     key2 = "number_outflows")
+    if(length(outfl_scalings) != num_outflows){
+      warning(paste0("There is a different number of outflows than there are ",
+                     "outflow scaling factors in the control file ",
+                     config_file, ". Provide the same number of ",
+                     "scaling factors and outflows."))
+    }
+  }
 
   # check if variables in output are OK
   variables <- gotmtools::get_yaml_value(config_file, "output", "variables")
-  good_vars <- c("temp", "ice_height", "dens", "salt")
+  good_vars <- c("temp", "ice_height", "dens", "salt", "w_level")
   if(any(!variables %in% good_vars)) {
     stop(paste0('Unknown output variable: "', variables[!variables %in% good_vars],
                 '" in control file ', config_file,
@@ -109,7 +142,6 @@ check_master_config <- function(config_file,
 
   # Check if lower limits for calibration are smaller than upper limits
   # load master config file
-  configr_master_config <- configr::read.config(file.path(config_file))
   if ("calibration" %in% names(configr_master_config)) {
     # meteo parameter
     cal_section <- configr_master_config[["calibration"]][["met"]]

@@ -173,6 +173,10 @@ input_yaml_multiple <- function(file = "gotm.yaml", value,
 # Find the number of spaces before a key in a line.
 #' @keywords internal
 find_spaces <- function(line, key){
-  attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
+  num_space <- attr(regexpr("\\s+", strsplit(line, key)[[1]][1]), "match.length")
+  if(num_space == -1L){
+    num_space <- 0L
+  }
+  num_space
 }
 

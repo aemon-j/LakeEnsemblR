@@ -33,7 +33,7 @@ export_init_cond <- function(config_file,
     setwd(oldwd)
   })
   
-  Sys.setenv(TZ = "GMT")
+  Sys.setenv(TZ = "UTC")
   
   # check model input
   model <- check_models(model)
@@ -66,7 +66,7 @@ export_init_cond <- function(config_file,
     ndeps <- length(dat)
     deps <- obs[dat, 2]
     tmp <- obs[dat, 3]
-  } else {
+  }else{
     # Read in the provided initial temperature profile
     init_prof <- read.csv(get_yaml_value(config_file, "init_temp_profile", "file"))
     ndeps <- nrow(init_prof)
@@ -149,10 +149,20 @@ export_init_cond <- function(config_file,
 
   ## Simstrat
   if("Simstrat" %in% model){
-    df2 <- data.frame("Depth [m]" = -deps, "U [m/s]" = 0, 	"V [m/s]" = 0,
-                      "T [deg C]" = tmp,	"k [J/kg]" = 3e-6,	"eps [W/kg]" = 5e-10)
+    # Update 2021-11-26: there needs to be a depth 0 in this file, or Simstrat
+    # will start with an incorrect initial depth. 
+    if(deps[1] > 0.001){
+      deps_sim <- c(0, deps)
+      tmp_sim <- c(tmp[1], tmp)
+    }else{
+      deps_sim <- deps
+      tmp_sim <- tmp
+    }
+    
+    df2 <- data.frame("Depth [m]" = -deps_sim, "U [m/s]" = 0, 	"V [m/s]" = 0,
+                      "T [deg C]" = tmp_sim,	"k [J/kg]" = 3e-6,	"eps [W/kg]" = 5e-10)
     colnames(df2) <- c("Depth [m]",	"U [m/s]",	"V [m/s]",	"T [deg C]",	"k [J/kg]",	"eps [W/kg]")
-
+    
     write.table(df2, file.path("Simstrat", "init_cond.dat"),
                 sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
 

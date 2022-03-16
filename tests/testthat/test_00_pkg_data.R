@@ -245,9 +245,7 @@ test_that("can run models & generate csv files", {
   run_ensemble(config_file = config_file,
                model = model)
 
-
-
-  testthat::expect_true((length(list.files("output", pattern = "csv")) == 11))
+  testthat::expect_true(length(list.files("output", pattern = "csv")) == 16L)
 })
 
 test_that("can calibrate models", {
@@ -282,7 +280,6 @@ test_that("check plots", {
   run_ensemble(config_file = config_file,
                model = model)
 
-  pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
   pl1 <- plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
   pl2 <- plot_resid(ncdf = ncdf, model = model, var = "temp")
   pl3 <- plot_heatmap(ncdf = ncdf, model = model)
