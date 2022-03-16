@@ -9,8 +9,10 @@ Tools for running an ensemble of lake models using standardised input data. Lake
 
 You can find example setups here: https://github.com/aemon-j/LER_examples.
 
+In v1.1, some changes occurred in the configuration file. If you want to adapt your existing setup, see: https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1
+
 ## Installation
-Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up to date as there is parallel devlopment ongoing.
+Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up-to-date as parallel development might be ongoing.
 
 ```{r gh-installation, eval = FALSE}
 #install.packages("remotes")
@@ -163,4 +165,5 @@ remotes::install_github("aemon-j/FLakeR", ref = "macOS")
 remotes::install_github("aemon-J/GOTMr", ref = "macOS")
 remotes::install_github("aemon-j/SimstratR", ref = "macOS")
 ```
-Unfortunately, this means your versions of GLM and Simstrat will differ compared to the ones included in the executables for Windows and Linux. GLM on macOS will be version 3.2.0a8 (most recent one on January 13, 2022), Windows/Linux use 3.1.1. The version of Simtrat for macOS is 3.0, for Windows/Linux is it 2.4.2.
+
+Unfortunately, this means your version of GLM will differ compared to the one included in the executables for Windows and Linux. GLM on macOS will be version 3.2.0a8 (most recent one on January 13, 2022), Windows/Linux use 3.1.1. 
