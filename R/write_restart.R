@@ -80,9 +80,15 @@ write_restart <- function(folder = ".", model, restart_list) {
 
     input_json(par_file, label = "Input", key = "Initial conditions",
                value = init_cond_name)
-    input_json(par_file, label = "ModelConfig", key = "InitializeSeicheEnergy",
+    input_json(par_file, label = "Simulation", key = "Use text restart",
                value = TRUE)
     input_json(par_file, label = "ModelParameters", key = "seiche_ini",
                value = restart_list$seicheE)
+    input_json(par_file, label = "ModelParameters", key = "b_ice_ini",
+               value = restart_list$b_ice)
+    input_json(par_file, label = "ModelParameters", key = "w_ice_ini",
+               value = restart_list$w_ice)
+    input_json(par_file, label = "ModelParameters", key = "snow_ini",
+               value = restart_list$snow)
   }
 }

@@ -550,7 +550,8 @@ test_that("can restart Simstrat", {
   yaml$time$start <- "2010-06-01 00:00:00"
   yaml$time$stop <- "2010-06-03 00:00:00"
   yaml$output$time_step <- 1
-  yaml$model_parameters$Simstrat$`ModelConfig/InitializeSeicheEnergy` <- FALSE
+  yaml$model_parameters$Simstrat$`Simulation/Save text restart` <- TRUE
+  yaml$model_parameters$Simstrat$`Simulation/Use text restart` <- FALSE
   gotmtools::write_yaml(yaml, config_file)
 
   # 1. Example - creates directories with all model setup
@@ -572,6 +573,7 @@ test_that("can restart Simstrat", {
   yaml <- gotmtools::read_yaml(config_file)
   yaml$time$start <- "2010-06-03 00:00:00"
   yaml$time$stop <- "2010-06-05 00:00:00"
+  yaml$model_parameters$Simstrat$`Simulation/Use text restart` <- TRUE
   gotmtools::write_yaml(yaml, config_file)
 
   export_config(config_file = config_file, model = model, dirs = FALSE, time = TRUE,
@@ -581,10 +583,10 @@ test_that("can restart Simstrat", {
 
   run_ensemble(config_file = config_file,
                model = model)
-  # plot_heatmap(ncdf)+
-  #   scale_colour_gradientn(limits = c(9, 17),
-  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
-  #
+  plot_heatmap(ncdf)+
+    scale_colour_gradientn(limits = c(9, 17),
+                           colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
   testthat::expect_true((file.exists("output/ensemble_output.nc") &
                            file.exists(file.path("Simstrat", "output", "T_out.dat"))))
 })
