@@ -583,9 +583,9 @@ test_that("can restart Simstrat", {
 
   run_ensemble(config_file = config_file,
                model = model)
-  plot_heatmap(ncdf)+
-    scale_colour_gradientn(limits = c(9, 17),
-                           colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+  # plot_heatmap(ncdf)+
+  #   scale_colour_gradientn(limits = c(9, 17),
+  #                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 
   testthat::expect_true((file.exists("output/ensemble_output.nc") &
                            file.exists(file.path("Simstrat", "output", "T_out.dat"))))
