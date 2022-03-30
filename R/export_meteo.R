@@ -16,7 +16,6 @@
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom zoo na.approx
 #' @importFrom lubridate floor_date seconds
-#' @importFrom vroom vroom
 #'
 #' @export
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -60,16 +59,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   message("Loading met data...", paste0("[", Sys.time(), "]"))
   # Read meteo file
   suppressMessages({
-    ncols <- vroom::vroom(meteo_file, delim = ",", n_max = 1)
-    ctype <- list()
-    for(colu in seq_len(ncol(ncols))) {
-      if(colu == 1) {
-        ctype[[colu]] <- "c"
-      } else {
-        ctype[[colu]] <- "n"
-      }
-    }
-    met <- vroom::vroom(meteo_file, delim = ",", col_types = ctype)
+    met <- read.csv(meteo_file)
   })
   message("Finished loading met data!", paste0("[", Sys.time(), "]"))
 

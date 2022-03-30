@@ -27,9 +27,9 @@
 #' print(depths)
 #' @noRd
 get.offsets <- function(data){
-  
+
   header <- names(data)
-  
+
   #check for existence of datetime header and drop if there
   dt_indx <- grep(pattern = "datetime", x = header, ignore.case= TRUE)
   if(length(dt_indx) > 0){
@@ -47,7 +47,7 @@ get.offsets <- function(data){
   }
 
   if(any(is.na(offsets))){
-    warning("Problem determining variable depths from column names. 
+    warning("Problem determining variable depths from column names.
             Please use the 'var_#.#' format for your data.frame header." )
     }
 
@@ -66,7 +66,7 @@ get.offsets <- function(data){
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #' @noRd
 set_met_config_yaml <- function(met_file, yaml_file){
-  
+
   # Load Rdata
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
 
@@ -83,7 +83,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
   # met_var_dic <- load_dic()
 
   yaml <- read_yaml(yaml_file)
-  
+
   met_inp <- basename(met_file)
 
   ######
@@ -152,7 +152,7 @@ set_met_config_yaml <- function(met_file, yaml_file){
   yaml <- set_yaml(yaml, "surface", "meteo", "precip", key = "file", value = met_inp)
   # hum
   yaml <- set_yaml(yaml, "surface", "meteo", "hum", key = "file", value = met_inp)
-  
+
   write_yaml(yaml, yaml_file)
 
 
@@ -205,7 +205,6 @@ calc_wind_dir <- function(u, v) {
 #'
 #' @name get_meteo_time_step
 #' @param met_file filepath; to meteo file in LakeEnsemblR standard format
-#' @importFrom vroom vroom
 #' @noRd
 get_meteo_time_step <- function(met_file){
 
@@ -220,20 +219,7 @@ get_meteo_time_step <- function(met_file){
   Sys.setenv(TZ = "GMT")
 
   # Read meteo file
-  suppressMessages({
-    ncols <- vroom::vroom(met_file, delim = ",", n_max = 1)
-    ctype <- list() 
-    for(colu in seq_len(ncol(ncols))) {
-      if(colu == 1) {
-        ctype[[colu]] <- "c"
-      } else {
-        ctype[[colu]] <- "n"
-      }
-    }
-    met <- vroom::vroom(met_file, delim = ",", col_types = ctype)
-  })
-  
-  
+  met <- read.csv(met_file)
 
   # Check if met file has a datetime column
   if(!("datetime" %in% colnames(met))){

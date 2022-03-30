@@ -7,7 +7,6 @@
 #'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
 #' @param folder folder
 #' @keywords methods
-#' @importFrom vroom vroom vroom_write
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #'
 #'
@@ -47,7 +46,8 @@ export_extinction <- function(config_file,
     constant_value <- TRUE
   }else{
     constant_value <- FALSE
-    suppressMessages({Kw_file <- vroom::vroom(file.path(folder, Kw), col_types = list("c", "n"))})
+    # suppressMessages({Kw_file <- vroom::vroom(file.path(folder, Kw), col_types = list("c", "n"))})
+    suppressMessages({Kw_file <- read.csv(file.path(folder, Kw))})
     Kw_file$datetime <- as.POSIXct(Kw_file$datetime)
 
     start_time_series <- as.POSIXct(gotmtools::get_yaml_value(yaml, "time", "start"))
@@ -129,7 +129,9 @@ export_extinction <- function(config_file,
       colnames(Kw_GLM) <- c("Date", "Kd") # sic
       Kw_GLM <- as.data.frame(Kw_GLM)
       Kw_GLM[, 1] <- format(Kw_GLM[, 1], format = "%Y-%m-%d %H:%M:%S")
-      vroom::vroom_write(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"), delim = ",", )
+      # vroom::vroom_write(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"), delim = ",", )
+      write.csv(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"),
+                row.names = FALSE)
 
       # Write to nml: if any, replace the line with Kw and put Kw_file
       file_con <- file(file.path(glm_nml))
@@ -181,7 +183,9 @@ export_extinction <- function(config_file,
 
       Kw_GOTM <- as.data.frame(Kw_GOTM)
       Kw_GOTM[, 1] <- format(Kw_GOTM[, 1], format = "%Y-%m-%d %H:%M:%S")
-      vroom::vroom_write(Kw_GOTM, file.path(folder, "GOTM", "LakeEnsemblR_g2_GOTM.dat"), delim = "\t", quote = "none")
+      # vroom::vroom_write(Kw_GOTM, file.path(folder, "GOTM", "LakeEnsemblR_g2_GOTM.dat"), delim = "\t", quote = "none")
+      write.table(Kw_GOTM, file.path(folder, "GOTM", "LakeEnsemblR_g2_GOTM.dat"),
+                  sep =  "\t", quote = FALSE)
 
       got_yaml <- gotmtools::set_yaml(got_yaml, "light_extinction", "g2", "file",
                            value = " LakeEnsemblR_g2_GOTM.dat")

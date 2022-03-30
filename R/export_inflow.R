@@ -13,7 +13,6 @@
 #' }
 #' @importFrom gotmtools calc_cc read_yaml set_yaml write_yaml get_yaml_value
 #' @importFrom glmtools read_nml set_nml write_nml
-#' @importFrom vroom vroom vroom_write
 #'
 #' @export
 export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -221,8 +220,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ### Import data
     message("Loading inflow data...")
     suppressMessages({
-      inflow <- vroom::vroom(file.path(folder, inflow_file), delim = ",",
-                             col_types = list("c", "n", "n", "n"))
+      inflow <- read.csv(file.path(folder, inflow_file))
     })
     inflow[["datetime"]] <- as.POSIXct(inflow[["datetime"]])
     # Check time step
@@ -265,9 +263,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       flake_outfpath <- file.path(folder, "FLake", flake_outfile)
 
       # Write to file
-      vroom::vroom_write(flake_inflow, flake_outfpath, delim = "\t",
-                         quote = "none", col_names = FALSE)
-
+      write.table(flake_inflow, flake_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+                  col.names = FALSE)
       temp_fil <- gotmtools::get_yaml_value(yaml, "config_files", "FLake")
       input_nml(temp_fil, label = "inflow", key = "time_step_number", nrow(flake_inflow))
 
@@ -287,12 +284,12 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       inflow_outfile <- file.path("GLM", "inflow_file.csv")
 
       # Write to file
-      vroom::vroom_write(glm_inflow, inflow_outfile, delim = ",", quote = "none")
+      write.csv(glm_inflow, inflow_outfile, row.names = FALSE, quote = FALSE)
       message("GLM: Created file ", file.path(folder, "GLM", "inflow_file.csv"))
 
       glm_outflow <- glm_inflow[, c("Time", "FLOW")]
       outflow_outfile <- file.path("GLM", "outflow.csv")
-      vroom::vroom_write(glm_outflow, outflow_outfile, delim = ",", quote = "none")
+      write.csv(glm_outflow, outflow_outfile, row.names = FALSE, quote = FALSE)
 
       message("GLM: Created outflow file ", file.path(folder, "GLM", "outflow.csv"))
       }
@@ -311,8 +308,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       gotm_inflow <- format_inflow(inflow, model = "GOTM", config_file = config_file)
 
       # Write to file
-      vroom::vroom_write(gotm_inflow, gotm_outfpath, delim = "\t",
-                         quote = "none", col_names = TRUE)
+      write.table(gotm_inflow, gotm_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+                  col.names = TRUE)
 
       message("GOTM: Created file ", file.path(folder, "GOTM", gotm_outfile))
 
@@ -332,8 +329,8 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         gotm_outflowfile <- "outflow_file.dat"
         gotm_outflowfpath <- file.path(folder, "GOTM", gotm_outflowfile)
 
-        vroom::vroom_write(gotm_outflow, gotm_outflowfpath, delim = "\t",
-                           quote = "none", col_names = TRUE)
+        write.table(gotm_outflow, gotm_outflowfpath, quote = FALSE, row.names = FALSE, sep = "\t",
+                    col.names = TRUE)
 
         gotmtools::write_yaml(got_yaml, got_file)
 

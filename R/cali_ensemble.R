@@ -188,7 +188,8 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   # read in Observed data
   message("Loading observed wtemp data... [", Sys.time(), "]")
-  obs <- vroom::vroom(file.path(folder, obs_file), delim = ",", col_types = list("c", "n", "n"))
+  # obs <- vroom::vroom(file.path(folder, obs_file), delim = ",", col_types = list("c", "n", "n"))
+  obs <- read.csv(file.path(folder, obs_file))
   obs$datetime <- as.POSIXct(obs$datetime, tz = tz)
 
   # Susbet to out_time
