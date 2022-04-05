@@ -22,24 +22,12 @@
 export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                          folder = "."){
 
-  if(!file.exists(file.path(folder, config_file))) {
-    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
-  } else {
-    yaml <- read_yaml(config_file)
-  }
-
-  # Load Rdata
-  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
-
-  # check model input
-  model <- check_models(model)
-
-  # It's advisable to set timezone to GMT in order to avoid errors when reading time
-  original_tz  <-  Sys.getenv("TZ")
-  Sys.setenv(TZ = "GMT")
-
   # Set working directory
   oldwd <- getwd()
+  setwd(folder)
+
+  # Fix time zone
+  original_tz <- Sys.getenv("TZ")
 
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
@@ -47,6 +35,19 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     Sys.setenv(TZ = original_tz)
   })
 
+  if(!file.exists(config_file)) {
+    stop(config_file, " does not exist. Make sure your file path is correct")
+  } else {
+    yaml <- gotmtools::read_yaml(config_file)
+  }
+
+  Sys.setenv(TZ = "GMT")
+
+  # Load Rdata
+  data("met_var_dic", package = "LakeEnsemblR", envir = environment())
+
+  # check model input
+  model <- check_models(model)
 
   meteo_file <- get_yaml_value(yaml, "input", "meteo", "file")
   # Check if file exists

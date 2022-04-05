@@ -18,13 +18,8 @@
 #'@export
 
 export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                        folder = "."){
+                        folder = ".") {
 
-  if(!file.exists(file.path(folder, config_file))) {
-    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
-  } else {
-    yaml <- gotmtools::read_yaml(config_file)
-  }
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -33,6 +28,12 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   on.exit({
     setwd(oldwd)
   })
+
+  if(!file.exists(config_file)) {
+    stop(config_file, " does not exist. Make sure your file path is correct")
+  } else {
+    yaml <- gotmtools::read_yaml(config_file)
+  }
 
   # check model input
   model <- check_models(model)
@@ -198,7 +199,10 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
                        col_names = TRUE, quote = "none")
 
     # Input parameters
-    input_json(sim_par, "Input", "Grid", round(max_depth / output_depths))
+    dat <- data.frame(x = round(max_depth / output_depths))
+    colnames(dat) <- "number of grid points"
+    write.table(dat, "Simstrat/grid.dat", quote = FALSE, row.names = FALSE)
+    input_json(sim_par, "Input", "Grid", "grid.dat")
     input_json(sim_par, "Input", "Morphology", "hypsograph.dat")
     input_json(sim_par, "ModelParameters", "lat", lat)
 

@@ -16,11 +16,6 @@
 export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
                           folder = "."){
 
-  if(!file.exists(file.path(folder, config_file))) {
-    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
-  } else {
-    yaml <- gotmtools::read_yaml(config_file)
-  }
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
@@ -29,6 +24,12 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
   on.exit({
     setwd(oldwd)
   })
+
+  if(!file.exists(config_file)) {
+    stop(config_file, " does not exist. Make sure your file path is correct")
+  } else {
+    yaml <- gotmtools::read_yaml(config_file)
+  }
 
   # check model input
   model <- check_models(model)
