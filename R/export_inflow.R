@@ -23,28 +23,26 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   data("lake_var_dic", package = "LakeEnsemblR", envir = environment())
 
-  if(!file.exists(file.path(folder, config_file))) {
-    stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
-  } else {
-    yaml <- gotmtools::read_yaml(config_file)
-  }
-
-  # Load Rdata
-  data(met_var_dic, envir = environment())
-
-  # It's advisable to set timezone to GMT in order to avoid errors when reading time
-  original_tz  <-  Sys.getenv("TZ")
-  Sys.setenv(TZ = "UTC")
-
   # Set working directory
   oldwd <- getwd()
   setwd(folder)
+
+  # Fix time zone
+  original_tz <- Sys.getenv("TZ")
 
   # this way if the function exits for any reason, success or failure, these are reset:
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
   })
+
+  if(!file.exists(config_file)) {
+    stop(config_file, " does not exist. Make sure your file path is correct")
+  } else {
+    yaml <- gotmtools::read_yaml(config_file)
+  }
+
+  Sys.setenv(TZ = "GMT")
 
   # check model input
   model <- check_models(model)
@@ -151,12 +149,12 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   if("Simstrat" %in% model){
     sim_par <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
-    
+
     input_json(file = sim_par, label = "Input", key = "Inflow", value = "Qin.dat")
     input_json(file = sim_par, label = "Input", key = "Outflow", "Qout.dat")
     input_json(file = sim_par, label = "Input", key = "Inflow temperature", "Tin.dat")
     input_json(file = sim_par, label = "Input", key = "Inflow salinity", "Sin.dat")
-    
+
 
     # Turn off inflow
     if(!use_inflows){
