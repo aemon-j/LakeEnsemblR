@@ -29,8 +29,11 @@ input_json <- function(file, label, key, value, out_file = NULL){
   if(class(value) == "logical") {
     value <- tolower(value)
   } else if(class(value) == "character") {
-    value <- shQuote(value)
-    if(length(value) > 1) value <- paste0("[", paste0(value, collapse = ", "), "]")
+    if(length(value) > 1) {
+      value <- paste0("[\"", paste0(value, collapse = "\", \""), "\"]")
+    } else {
+      value <- paste0("\"", value, "\"")
+    }
   }
   par <- readLines(file)
   if (is.null(out_file)) {

@@ -151,6 +151,12 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
   if("Simstrat" %in% model){
     sim_par <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
+    
+    input_json(file = sim_par, label = "Input", key = "Inflow", value = "Qin.dat")
+    input_json(file = sim_par, label = "Input", key = "Outflow", "Qout.dat")
+    input_json(file = sim_par, label = "Input", key = "Inflow temperature", "Tin.dat")
+    input_json(file = sim_par, label = "Input", key = "Inflow salinity", "Sin.dat")
+    
 
     # Turn off inflow
     if(!use_inflows){
