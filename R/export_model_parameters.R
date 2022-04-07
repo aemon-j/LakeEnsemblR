@@ -98,7 +98,7 @@ export_model_parameters <- function(config_file,
     # yaml$model_parameters$Simstrat$`Simulation/Continue from last snapshot` <- FALSE
   }
 
-  input_config_value(model, yaml)
+  input_config_value(model, yaml, folder)
 
   message("export_model_parameters complete!")
 }

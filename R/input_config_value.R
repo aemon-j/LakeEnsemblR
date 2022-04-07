@@ -1,7 +1,7 @@
 #' Inputs value into any LER model config file
 #'
 #' Wrapper function for functions that input values into model config files
-#' @param model string; name of a model in the LER package
+#' @inheritParams export_config
 #' @inheritParams gotmtools::set_yaml
 #'
 #' @importFrom gotmtools read_yaml write_yaml
@@ -15,7 +15,7 @@
 #'
 #' @export
 
-input_config_value <- function(model, yaml) {
+input_config_value <- function(model, yaml, folder) {
 
   for(m in model){
     # Only continue if model-specific parameters are specified for this model
