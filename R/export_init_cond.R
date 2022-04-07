@@ -10,7 +10,6 @@
 #' @param print logical; Prints the temperature profile to the console
 #'
 #' @importFrom glmtools read_nml set_nml write_nml get_nml_value
-#' @importFrom vroom vroom vroom_write
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #'
 #' @export
@@ -61,7 +60,7 @@ export_init_cond <- function(config_file,
 
     message(paste0("Loading wtemp_file... [", Sys.time(), "]"))
     suppressMessages({
-      obs <- vroom::vroom(wtemp_file, delim = ",", col_types = list("c", "n", "n"))
+      obs <- read.csv(wtemp_file)
     })
     message(paste0("Finished loading wtemp_file! [", Sys.time(), "]"))
 
@@ -78,7 +77,7 @@ export_init_cond <- function(config_file,
   } else {
     # Read in the provided initial temperature profile
     suppressMessages({
-      init_prof <- vroom::vroom(get_yaml_value(yaml, "input", "init_temp_profile", "file"), delim = ",", col_types = list("n", "n"))
+      init_prof <- read.csv(get_yaml_value(yaml, "input", "init_temp_profile", "file"))
     })
     init_prof <- as.data.frame(init_prof)
     ndeps <- nrow(init_prof)
@@ -151,8 +150,8 @@ export_init_cond <- function(config_file,
     df[(2):(1 + ndeps), 1] <- as.numeric(-deps)
     df[(2):(1 + ndeps), 2] <- as.numeric(tmp)
     df <- as.data.frame(df)
-    vroom::vroom_write(df, file.path("GOTM", "init_cond.dat"), delim = "\t",
-                       col_names = FALSE, quote = "none")
+    write.table(df, file.path("GOTM", "init_cond.dat"),
+                quote = FALSE, row.names = FALSE, col.names = FALSE, sep = "\t")
 
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "file", value = "init_cond.dat")
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "method", value = 2L)
@@ -169,8 +168,7 @@ export_init_cond <- function(config_file,
                       "T [deg C]" = tmp,	"k [J/kg]" = 3e-6,	"eps [W/kg]" = 5e-10)
     colnames(df2) <- c("Depth [m]",	"U [m/s]",	"V [m/s]",	"T [deg C]",	"k [J/kg]",	"eps [W/kg]")
 
-    vroom::vroom_write(df2, file.path("Simstrat", "init_cond.dat"), delim = "\t",
-                       col_names = TRUE, quote = "none")
+    write.csv(df2, file.path("Simstrat", "init_cond.dat"), row.names = FALSE)
 
     par_file <- get_yaml_value(yaml, "config_files", "Simstrat")
 

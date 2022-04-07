@@ -10,7 +10,6 @@
 #'@importFrom stats approx
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value
 #'@importFrom glmtools read_nml set_nml write_nml
-#' @importFrom vroom vroom vroom_write
 #'
 #'@export
 
@@ -171,8 +170,8 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
       got_hyp$Depth_meter <- got_hyp$Depth_meter + (max_depth - init_depth)
     }
     colnames(got_hyp) <- c(as.character(ndeps), "2")
-    vroom::vroom_write(got_hyp, "GOTM/hypsograph.dat", delim = "\t",
-                       col_names = TRUE, quote = "none")
+    write.table(got_hyp, "GOTM/hypsograph.dat", sep = "\t", row.names = FALSE,
+                quote = FALSE)
     got_yaml <- set_yaml(got_yaml, "location", "hypsograph", value = "hypsograph.dat")
     write_yaml(got_yaml, got_file)
 
@@ -192,8 +191,8 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     }
     colnames(sim_hyp) <- c("Depth [m]",	"Area [m^2]")
 
-    vroom::vroom_write(sim_hyp, "Simstrat/hypsograph.dat", delim = "\t",
-                       col_names = TRUE, quote = "none")
+    write.table(sim_hyp, "Simstrat/hypsograph.dat", sep = "\t",
+                row.names = FALSE)
 
     # Input parameters
     dat <- data.frame(x = round(max_depth / output_depths))

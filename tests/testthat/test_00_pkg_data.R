@@ -9,7 +9,6 @@ test_that("test data can be created", {
 
 test_that("create model meteo & config files", {
 
-  # library(gotmtools)
   library(LakeEnsemblR)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   temp_dir <- tempdir()

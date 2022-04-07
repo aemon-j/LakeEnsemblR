@@ -1,5 +1,5 @@
 #' Plot results of LHC calibration
-#' 
+#'
 #' Plot the results of a calibration done using the `cali_ensemble()` function with cmethod = "LHC".
 #'
 #' @param config_file filepath; to LakeEnsemblr yaml master config file for which `cali_ensemble()`
@@ -14,27 +14,26 @@
 #' @param best character can euther be "low" or "high", specifying if low or high values of the
 #'    performance metric imply good model performance
 #' @importFrom configr read.config
-#' @importFrom vroom vroom
 #' @export
 
 plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quant = 0.1,
                      best = "low") {
-  
+
   # check model input
   model <- check_models(model)
-  
+
   # check if best is either low or high
   if(!best %in% c("low", "high")) {
     stop("best must be either low or high")
   }
-  
+
   # check if for every model two files (pars and res) are provided
   if(length(res_files) != 2*length(model)) {
     stop(paste0("The number of models (", length(model), ") and the number of res_files (",
                 length(res_files), ") does not fit. There should be 2 files (results ",
                 "and parameter sets) per model."))
   }
-  
+
   # load master config file
   configr_master_config <- configr::read.config(file.path(config_file))
   # meteo parameter
@@ -45,9 +44,9 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   model_pars <- lapply(model_p, function(m){
     gsub("/", ".", names(configr_master_config[["calibration"]][[m]]))})
   names(model_pars) <- model_p
- 
+
   # read in results and parameter
-  res <- lapply(res_files, function(f) na.exclude(suppressMessages(vroom::vroom(f, delim = ","))))
+  res <- lapply(res_files, function(f) na.exclude(suppressMessages(read.csv(f))))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) {
@@ -69,25 +68,25 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   }
   # empty list for return plots
   ret_l <- list()
-  
+
   # loop over all models to plot results
   for (m in model) {
     # check if performance metric is available
     if(!(qual_met %in% colnames(res[[m]]))) {
       # availbale metrics
-      av_met <- colnames(res[[m]])[!(colnames(res[[m]])) %in% 
+      av_met <- colnames(res[[m]])[!(colnames(res[[m]])) %in%
                                      c("par_id", met_pars, model_pars[[m]])]
       stop(paste0("Model performance metric ", qual_met, " not available for model ", m,
                   " available metrics: ", paste0(av_met, collapse = ", ")))
     }
-    
+
     # plot all available parameters
     for (p in c(met_pars, model_pars[[m]])) {
 
       ret_l[[m]][[p]] <-  ggplot(res[[m]]) + geom_point(aes_string(x = p, y = qual_met)) +
         scale_color_gradient(low="green", high="red") +
         ggtitle(paste0("Scatterplot of ", p, " for model ", m))
-      
+
       # best parameter
       if(best == "low") {
         best_par <- res[[m]][[p]][res[[m]][[qual_met]] == min(res[[m]][[qual_met]])]
@@ -96,7 +95,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
         best_par <- res[[m]][[p]][res[[m]][[qual_met]] == max(res[[m]][[qual_met]])]
         best_q <- res[[m]][[qual_met]][res[[m]][[qual_met]] == max(res[[m]][[qual_met]])]
       }
-      
+
       annotations <- data.frame(
         xpos = -Inf,
         ypos =  Inf,
@@ -104,22 +103,22 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
                               " = ", signif(best_q, 4)),
         hjustvar = 0,
         vjustvar = 1)
-      
+
       ret_l[[m]][[paste0("dist_", p)]] <- ggplot(best_l[[m]]) +
-        geom_histogram(aes_string(x = p, y = "..density.."), color="black", fill="white") + 
+        geom_histogram(aes_string(x = p, y = "..density.."), color="black", fill="white") +
         geom_density(aes_string(x = p), alpha=.2, fill="#FF6666") +
         xlim(c(min(res[[m]][[p]]), max(res[[m]][[p]]))) +
         geom_vline(aes_string(xintercept = best_par), color = "blue", linetype="dashed", size=1,
-                   show.legend = TRUE) + 
+                   show.legend = TRUE) +
         geom_label(data=annotations,aes(x = xpos, y = ypos, hjust = hjustvar, vjust = vjustvar,
-                                       label = annotateText), color = "blue") + 
+                                       label = annotateText), color = "blue") +
         ggtitle(paste0("Distribution of best ", round(best_quant*100, 1), "% of ",
                        p, " for model ", m))
-      
+
     }
-    
+
   }
-  
+
   # return the list with all plots
   return(ret_l)
 }
@@ -127,7 +126,7 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
 
 
 #' Plot results of LHC calibration
-#' 
+#'
 #' Plot the results of a calibration done using the `cali_ensemble()` function with cmethod = "LHC".
 #'
 #' @param config_file filepath; to LakeEnsemblr yaml master config file for which `cali_ensemble()`
@@ -139,23 +138,23 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
 #' @export
 
 load_LHC_results <- function(config_file, model, res_files) {
- 
+
   # check model input
   model <- check_models(model)
-  
+
   # check if for every model two files (pars and res) are provided
   if(length(res_files) != 2*length(model)) {
     stop(paste0("The number of models (", length(model), ") and the number of res_files (",
                 length(res_files), ") does not fit. There should be 2 files (results ",
                 "and parameter sets) per model."))
   }
-  
+
   # read in results and parameter
-  res <- lapply(res_files, function(f) suppressMessages(vroom::vroom(f, delim = ",")))
+  res <- lapply(res_files, function(f) suppressMessages(read.csv(f)))
   names(res) <- basename(gsub("_LHC_.*", "", res_files))
   # merge parameter and results for each model
   res <- lapply(model, function(m) merge(res[[m]], res[[paste0("params_", m)]]))
   names(res) <- model
-  
+
   return(res)
 }

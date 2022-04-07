@@ -6,6 +6,7 @@ on:
       - main
       - master
       - flare
+      - flare-no-vroom
   pull_request:
     branches:
       - main
