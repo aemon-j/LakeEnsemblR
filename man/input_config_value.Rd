@@ -4,21 +4,12 @@
 \alias{input_config_value}
 \title{Inputs value into any LER model config file}
 \usage{
-input_config_value(model, file, label = NULL, key = NULL, value, ...)
+input_config_value(model, yaml)
 }
 \arguments{
 \item{model}{string; name of a model in the LER package}
 
-\item{file}{filepath; to model-specific config file}
-
-\item{label}{string; which corresponds to section where the key is located}
-
-\item{key}{string; name of key in which to extract the value}
-
-\item{value}{string; name of value to input into config file}
-
-\item{...}{string; all required yaml labels
-defaults to overwriting file if not specified}
+\item{yaml}{list; loaded using `read_yaml()`}
 }
 \description{
 Wrapper function for functions that input values into model config files

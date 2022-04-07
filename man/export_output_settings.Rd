@@ -13,10 +13,11 @@ export_output_settings(
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export configuration file.
+\item{model}{vector; model to export configuration file for.
 Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 
-\item{folder}{folder}
+\item{folder}{filepath; to folder which contains the model folders generated
+by export_config()}
 }
 \description{
 Exports settings related to output (time step, format),

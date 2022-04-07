@@ -2,10 +2,7 @@
 #'
 #'Exports extinction coefficients for each model based on a master LakeEnsemblR config file
 #'
-#' @param config_file name of the master LakeEnsemblR config file
-#' @param model vector; model to export configuration file.
-#'  Options include c('GOTM', 'GLM', 'Simstrat', 'FLake')
-#' @param folder folder
+#' @inheritParams export_config
 #' @keywords methods
 #' @importFrom vroom vroom vroom_write
 #' @importFrom gotmtools read_yaml set_yaml write_yaml get_yaml_value

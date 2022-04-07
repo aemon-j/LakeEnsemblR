@@ -4,7 +4,7 @@
 \alias{input_json}
 \title{Input values into json file}
 \usage{
-input_json(file, label, key, value, out_file = NULL)
+input_json(file, label, key, value, arg_list = NULL, out_file = NULL)
 }
 \arguments{
 \item{file}{filepath; to json file which you wish to edit}
@@ -15,6 +15,9 @@ input_json(file, label, key, value, out_file = NULL)
 
 \item{value}{string; to be input into the key/value pair.
 Note boolean values must be input as 'true'/'false' as per the json format}
+
+\item{arg_list}{list; of parameter to be updated. List names need to be the same
+as the key (e.g. 'a_seiche'.}
 
 \item{out_file}{filepath; to write the output json file (optional);
 defaults to overwriting file if not specified}

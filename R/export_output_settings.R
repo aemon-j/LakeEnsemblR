@@ -3,10 +3,7 @@
 #'Exports settings related to output (time step, format),
 #'  for each model
 #'
-#'@param config_file name of the master LakeEnsemblR config file
-#'@param model vector; model to export configuration file.
-#'  Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
-#'@param folder folder
+#' @inheritParams export_config
 #'@keywords methods
 #'@examples
 #'

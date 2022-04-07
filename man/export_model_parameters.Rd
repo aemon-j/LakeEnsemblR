@@ -13,14 +13,15 @@ export_model_parameters(
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export configuration file.
-Options include c("FLake", "GLM, "GOTM", "Simstrat", "MyLake")}
+\item{model}{vector; model to export configuration file for.
+Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 
-\item{folder}{folder}
+\item{folder}{filepath; to folder which contains the model folders generated
+by export_config()}
 }
 \description{
 Exports model-specific parameters that are specified in the model_parameters
- section of the master config file.
+  section of the master config file.
 }
 \examples{
 
