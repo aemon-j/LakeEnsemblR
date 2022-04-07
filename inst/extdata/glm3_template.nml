@@ -64,10 +64,9 @@
    blue_ice_thickness = 0
    avg_surf_temp = 6
    restart_variables = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
-!   num_wq_vars = 0
-!   wq_names =
-!   wq_init_vals =
+   num_wq_vars = 0
+   wq_names = ''
+   wq_init_vals = 0
 /
 &meteorology
    met_sw = .true.
