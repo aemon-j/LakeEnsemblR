@@ -78,17 +78,12 @@ write_restart <- function(folder = ".", model, restart_list) {
 
     init_cond_name <- "save_end_conditions.dat"
 
-    input_json(par_file, label = "Input", key = "Initial conditions",
-               value = init_cond_name)
-    input_json(par_file, label = "Simulation", key = "Use text restart",
-               value = TRUE)
-    input_json(par_file, label = "ModelParameters", key = "seiche_ini",
-               value = restart_list$seicheE)
-    input_json(par_file, label = "ModelParameters", key = "b_ice_ini",
-               value = restart_list$b_ice)
-    input_json(par_file, label = "ModelParameters", key = "w_ice_ini",
-               value = restart_list$w_ice)
-    input_json(par_file, label = "ModelParameters", key = "snow_ini",
-               value = restart_list$snow)
+    arg_list <- list("Initial conditions" = init_cond_name,
+                     "Use text restart" = TRUE,
+                     "seiche_ini" = restart_list$seicheE,
+                     "b_ice_ini" = restart_list$b_ice,
+                     "w_ice_ini" = restart_list$w_ice,
+                     "snow_ini" = restart_list$snow)
+    input_json(file = par_file, arg_list = arg_list)
   }
 }
