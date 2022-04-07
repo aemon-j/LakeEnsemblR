@@ -60,7 +60,7 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   }
 
   # check the master config file
-  check_master_config(config_file, exp_cnf = TRUE)
+  check_master_config(config_file, model = model, exp_cnf = TRUE)
   # check model input
   model <- check_models(model)
 
