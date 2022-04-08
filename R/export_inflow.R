@@ -154,6 +154,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
     # Turn off inflow
     if(!use_inflows){
+      input_json(file = sim_par, label = "ModelConfig", key = "InflowMode", value = 0)
       ## Set Qin and Qout to 0 inflow
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       # In case Kw is a single value for the whole simulation:
@@ -173,6 +174,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                  file_connection)
       close(file_connection)
     }else{
+      input_json(file = sim_par, label = "ModelConfig", key = "InflowMode", value = 2)
       inflow_line_1 <- "Time [d]\tQ_in [m3/s]"
       # In case Kw is a single value for the whole simulation:
       inflow_line_2 <- "1 0"
