@@ -1,3 +1,10 @@
+## version 1.1.1
+
+### Changes
+
+Bug fixes:
+- fixed error in formating of Simstrat flow where a flow of 0 would lead to NA in the Simstrat inflow forcing files
+
 ## version 1.1.0
 
 ### Changes
