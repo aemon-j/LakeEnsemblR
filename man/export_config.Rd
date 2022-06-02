@@ -14,7 +14,7 @@ export_config(
   meteo = TRUE,
   init_cond = TRUE,
   extinction = TRUE,
-  inflow = TRUE,
+  flow = TRUE,
   model_parameters = TRUE,
   folder = "."
 )
@@ -30,10 +30,10 @@ Calls export_dirs. Defaults to TRUE}
 
 \item{time}{boolean; exports time settings. Calls export_time. Defaults to TRUE.}
 
-\item{location}{boolean; exports location and hypsograph settings. 
+\item{location}{boolean; exports location and hypsograph settings.
 Calls export_location. Defaults to TRUE.}
 
-\item{output_settings}{boolean; exports output settings. 
+\item{output_settings}{boolean; exports output settings.
 Calls export_output_settings. Defaults to TRUE.}
 
 \item{meteo}{boolean; export meteorology data.
@@ -45,8 +45,8 @@ Calls export_init_cond. Defaults to TRUE.}
 \item{extinction}{boolean; export light extinction data.
 Calls export_extinction. Defaults to TRUE.}
 
-\item{inflow}{boolean; export inflow settings.
-Calls export_inflow. Defaults to TRUE.}
+\item{flow}{boolean; export flow settings.
+Calls export_flow. Defaults to TRUE.}
 
 \item{model_parameters}{boolean; export model parameters specificed in the yaml
 configuration file. Calls export_model_parameters. Defaults to TRUE.}

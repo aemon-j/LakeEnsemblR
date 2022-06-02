@@ -4,3 +4,4 @@ Ice_Thickness_meter,ice_height,m
 Flow_metersCubedPerSecond,flow,meterCubedPerSecond
 Salinity_practicalSalinityUnits,salt,PSU
 Density_kiloGramPerCubedMeter,dens,kiloGramPerCubedMeter
+Water_Level_meter,w_level,m

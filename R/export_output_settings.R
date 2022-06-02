@@ -80,9 +80,11 @@ export_output_settings <- function(config_file,
     got_yaml <- file.path(folder, get_yaml_value(config_file, "config_files", "GOTM"))
     
     # Set GOTM output
-    out_yaml <- file.path(folder, "GOTM", "output.yaml")
-    input_yaml(out_yaml, "output", "time_step", out_tstep)
-    input_yaml(out_yaml, "output", "time_unit", out_unit)
+    input_yaml_multiple(got_yaml, out_tstep,
+                        key1 = "output", key2 = "output", key3 = "time_step")
+    input_yaml_multiple(got_yaml, out_unit,
+                        key1 = "output", key2 = "output", key3 = "time_unit")
+    
     # Need to input start and stop into yaml file
     time_method <- get_yaml_value(config_file, "output", "time_method")
     input_yaml(got_yaml, label = "output", key = "time_method", value = time_method)
