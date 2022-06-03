@@ -230,7 +230,20 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
         wlvl_list <- append(wlvl_list, list("Obs_w_level" = wlvl_out))
       }
     }
+    
+    if("q_sens" %in% out_vars){
+      qsens_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["q_sens"]]),
+        paste0(model, "_q_sens")
+      )
+    }
 
+    if("q_lat" %in% out_vars){
+      qlat_list <- setNames(
+        lapply(model, function(mod_name) model_out[[mod_name]][["q_lat"]]),
+        paste0(model, "_q_lat")
+      )
+    }
     # Put all lists with output into a single, named list
     all_lists <- list()
     if(exists("temp_list")) all_lists[["temp_list"]] <- temp_list
@@ -238,6 +251,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(exists("dens_list")) all_lists[["dens_list"]] <- dens_list
     if(exists("sal_list")) all_lists[["sal_list"]] <- sal_list
     if(exists("wlvl_list")) all_lists[["wlvl_list"]] <- wlvl_list
+    if(exists("qsens_list")) all_lists[["qsens_list"]] <- qsens_list
+    if(exists("qlat_list")) all_lists[["qlat_list"]] <- qlat_list
 
     if(format == "netcdf") {
       if (!add & !file.exists(out_file)) {

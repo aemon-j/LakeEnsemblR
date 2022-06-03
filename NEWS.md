@@ -1,3 +1,9 @@
+## version 1.1.2
+
+### Changes
+
+- it is now possible to add sensible and latent heat fluxes to the output netcdf file by adding q_sens and/or q_lat to the list of wanted output variables in the yaml config file
+
 ## version 1.1.1
 
 ### Changes

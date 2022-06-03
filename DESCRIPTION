@@ -1,7 +1,7 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 1.1.1
+Version: 1.1.2
 Date: 2022-03-16
 URL: https://github.com/aemon-j/LakeEnsemblR
 Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),

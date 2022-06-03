@@ -112,7 +112,25 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     out_list[[length(out_list) + 1]] <- df
     names(out_list)[length(out_list)] <- "w_level"
   }
+  
+  if("q_sens" %in% vars){
 
+    q_sens <- flake_out[["Q_se"]]
+    df <- data.frame(datetime, q_sens)
+    
+    out_list[[length(out_list) + 1]] <- df
+    names(out_list)[length(out_list)] <- "q_sens"
+  }
+
+  if("q_lat" %in% vars){
+    
+    q_lat <- flake_out[["Q_la"]]
+    df <- data.frame(datetime, q_lat)
+    
+    out_list[[length(out_list) + 1]] <- df
+    names(out_list)[length(out_list)] <- "q_lat"
+  }
+  
   if("dens" %in% vars){
     # calculate temperature profile
     Ts <- flake_out[["Ts"]] # mixed layer (top) temperature
