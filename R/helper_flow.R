@@ -220,7 +220,7 @@ format_flow_simstrat <- function(flow_file, levels, surf_flow, in_or_out, type,
   ## Line 1
   if(in_or_out == "inflow"){
     if(type == "discharge"){
-      flow_line_1 <- "Time [d]\tQ_in [m3/s]"
+      flow_line_1 <- "Time [d]\tQ_in [m2/s]"
     }else if(type == "temp"){
       flow_line_1 <- "Time [d]\tT_in [degC]"
     }else if(type == "salt"){
@@ -303,6 +303,8 @@ format_flow_simstrat <- function(flow_file, levels, surf_flow, in_or_out, type,
       
       vals_to_enter <- rowSums(value_times_discharge) / total_discharge
     }
+    # if there were 0s remove NAs
+    vals_to_enter[is.na(vals_to_enter)] <- 0
     # Enter values twice; for -1.00 and 0.00 m below surface, as the unit is
     #   m2/s; degC*m2/s; or perMille*m2/s. 
     flow_line_4 <- paste(flow_line_4,

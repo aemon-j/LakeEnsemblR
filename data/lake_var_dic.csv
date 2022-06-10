@@ -5,3 +5,5 @@ Flow_metersCubedPerSecond,flow,meterCubedPerSecond
 Salinity_practicalSalinityUnits,salt,PSU
 Density_kiloGramPerCubedMeter,dens,kiloGramPerCubedMeter
 Water_Level_meter,w_level,m
+Sensible_Heat_Flux_wattPerSquareMeter,q_sens,wattPerMeterSquared
+Latent_Heat_Flux_wattPerSquareMeter,q_lat,wattPerMeterSquared

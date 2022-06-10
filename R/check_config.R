@@ -133,11 +133,13 @@ check_master_config <- function(config_file,
 
   # check if variables in output are OK
   variables <- gotmtools::get_yaml_value(config_file, "output", "variables")
-  good_vars <- c("temp", "ice_height", "dens", "salt", "w_level")
+  good_vars <- c("temp", "ice_height", "dens", "salt", "w_level", "q_sens",
+                 "q_lat")
   if(any(!variables %in% good_vars)) {
     stop(paste0('Unknown output variable: "', variables[!variables %in% good_vars],
                 '" in control file ', config_file,
-                ". Allowed units: ", paste0(good_vars, collapse = ", ")))
+                ". Allowed units: ", paste0(good_vars, collapse = ", "),
+                "\n"))
   }
 
   # Check if lower limits for calibration are smaller than upper limits

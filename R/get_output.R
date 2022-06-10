@@ -88,6 +88,26 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       names(glm_out)[length(glm_out)] <- "w_level"
     }
 
+    if("q_sens" %in% vars){
+      q_sens <- read.table(file.path(folder, "GLM", "output", "lake.csv"), sep = ",",
+                           header = TRUE)
+      q_sens$time <- as.POSIXct(q_sens$time)
+      q_sens <- q_sens[, c("time", "Daily.Qh")]
+      colnames(q_sens) <- c("datetime", "q_sens")
+      glm_out[[length(glm_out) + 1]] <- q_sens
+      names(glm_out)[length(glm_out)] <- "q_sens"
+    }
+    
+    if("q_lat" %in% vars){
+      q_lat <- read.table(file.path(folder, "GLM", "output", "lake.csv"), sep = ",",
+                           header = TRUE)
+      q_lat$time <- as.POSIXct(q_lat$time)
+      q_lat <- q_lat[, c("time", "Daily.Qe")]
+      colnames(q_lat) <- c("datetime", "q_lat")
+      glm_out[[length(glm_out) + 1]] <- q_lat
+      names(glm_out)[length(glm_out)] <- "q_lat"
+    }
+    
     if("dens" %in% vars){
 
       # Add in obs depths which are not in depths and less than mean depth
@@ -201,18 +221,39 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       names(got_out)[length(got_out)] <- "ice_height"
 
     }
-
+    
     if("w_level" %in% vars){
       w_level <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "h",
-                             print = FALSE)
+                          print = FALSE)
       w_level <- data.frame(w_level$Datetime, apply(w_level[, seq(from = 2, to = ncol(w_level))],
                                                     1, sum, na.rm = TRUE))
       colnames(w_level) <- c("datetime", "w_level")
-
+      
       got_out[[length(got_out) + 1]] <- w_level
       names(got_out)[length(got_out)] <- "w_level"
-
+      
     }
+
+    if("q_sens" %in% vars){
+      q_sens <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "qh",
+                             print = FALSE)
+      colnames(q_sens) <- c("datetime", "q_sens")
+      
+      got_out[[length(got_out) + 1]] <- q_sens
+      names(got_out)[length(got_out)] <- "q_sens"
+      
+    }
+    
+    if("q_lat" %in% vars){
+      q_lat <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "qe",
+                         print = FALSE)
+      colnames(q_lat) <- c("datetime", "q_lat")
+      
+      got_out[[length(got_out) + 1]] <- q_lat
+      names(got_out)[length(got_out)] <- "q_lat"
+      
+    }
+    
 
     if("dens" %in% vars){
 
@@ -383,7 +424,32 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       names(sim_out)[length(sim_out)] <- "w_level"
     }
 
+    if("q_sens" %in% vars){
+      q_sens <- read.table(file.path(folder, "Simstrat", "output", "HK_out.dat"),
+                            header = TRUE, sep = ",", check.names = FALSE)
+      q_sens[, 1] <- as.POSIXct(q_sens[, 1] * 3600 * 24,
+                                 origin = paste0(reference_year, "-01-01"))
+      # In case sub-hourly time steps are used, rounding might be necessary
+      q_sens[, 1] <- round_date(q_sens[, 1], unit = seconds_to_period(timestep))
+      colnames(q_sens) <- c("datetime", "q_sens")
+      
+      sim_out[[length(sim_out) + 1]] <- q_sens
+      names(sim_out)[length(sim_out)] <- "q_sens"
+    }
 
+    if("q_lat" %in% vars){
+      q_lat <- read.table(file.path(folder, "Simstrat", "output", "HV_out.dat"),
+                           header = TRUE, sep = ",", check.names = FALSE)
+      q_lat[, 1] <- as.POSIXct(q_lat[, 1] * 3600 * 24,
+                                origin = paste0(reference_year, "-01-01"))
+      # In case sub-hourly time steps are used, rounding might be necessary
+      q_lat[, 1] <- round_date(q_lat[, 1], unit = seconds_to_period(timestep))
+      colnames(q_lat) <- c("datetime", "q_lat")
+      
+      sim_out[[length(sim_out) + 1]] <- q_lat
+      names(sim_out)[length(sim_out)] <- "q_lat"
+    }
+    
     if("dens" %in% vars){
 
       temp <- read.table(file.path(folder, "Simstrat", "output", "T_out.dat"), header = TRUE,
@@ -620,6 +686,26 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       names(mylake_out)[length(mylake_out)] <- "w_level"
       message('MyLake does not support simulation of changing water level.')
 
+    }
+    
+    if("q_sens" %in% vars){
+      
+      mylake_out[[length(mylake_out) + 1]] <-
+        data.frame("datetime" = as.POSIXct((as.numeric(res$tt) - 719529) * 86400,
+                                           origin = "1970-01-01"), "q_sens" = res$His[1, ] * NaN)
+      names(mylake_out)[length(mylake_out)] <- "q_sens"
+      message('MyLake does not support output of sensible heat flux.')
+      
+    }
+    
+    if("q_lat" %in% vars){
+      
+      mylake_out[[length(mylake_out) + 1]] <-
+        data.frame("datetime" = as.POSIXct((as.numeric(res$tt) - 719529) * 86400,
+                                           origin = "1970-01-01"), "q_lat" = res$His[1, ] * NaN)
+      names(mylake_out)[length(mylake_out)] <- "q_lat"
+      message('MyLake does not support output of latent heat flux.')
+      
     }
 
     if("dens" %in% vars){
