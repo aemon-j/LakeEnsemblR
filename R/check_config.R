@@ -2,17 +2,24 @@
 #'
 #' Check if the master config file is correct
 #'
-#' @param config_file filepath; to LakeEnsemblr yaml master config file
-#' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
-#' "FLake", "MyLake")
+#' @inheritParams export_config
 #' @param exp_cnf boolean; check if the control files for the models are there
 #' @importFrom gotmtools read_yaml
 #' @export
 
 check_master_config <- function(config_file,
                                 model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+                                folder = ".",
                                 exp_cnf = FALSE) {
-  
+
+  # Set working directory
+  oldwd <- getwd()
+  setwd(folder)
+  # this way if the function exits for any reason, success or failure, these are reset:
+  on.exit({
+    setwd(oldwd)
+  })
+
   yaml <- gotmtools::read_yaml(config_file)
 
   # test if init depth is <= max depth
@@ -137,10 +144,10 @@ check_master_config <- function(config_file,
                         " for model ", m, " is larger than upper bound (", p$upper[i], ")"))
           }
         }
-        
+
       })
     })
-    
+
 }
   # Check if there are tabs in the config file, which will cause
   # internal errors in some cases when relying on configr:read.config

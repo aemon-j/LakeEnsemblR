@@ -15,21 +15,7 @@
 #' @importFrom lubridate floor_date seconds
 #'
 #' @export
-export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                         folder = "."){
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
+export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")){
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -51,7 +37,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     stop(meteo_file, " does not exist. Check filepath in ", config_file)
   }
 
-  met_timestep <- get_meteo_time_step(file.path(folder, meteo_file))
+  met_timestep <- get_meteo_time_step(file.path(meteo_file))
 
   ### Import data
   message("Loading met data...", paste0("[", Sys.time(), "]"))
@@ -91,17 +77,17 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Met output file name
     met_outfile <- "all_meteo_file.dat"
-    met_outfpath <- file.path(folder, "FLake", met_outfile)
+    met_outfpath <- file.path("FLake", met_outfile)
 
 
     # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
-    scale_param <- create_scaling_factors(config_file, "FLake", folder)
+    scale_param <- create_scaling_factors(config_file, "FLake")
     scale_met(fla_met, pars = scale_param, model = "FLake", out_file = met_outfpath)
 
 
     # Input values to nml
-    nml_file <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
+    nml_file <- file.path(get_yaml_value(yaml, "config_files", "FLake"))
 
     nml <- glmtools::read_nml(nml_file)
 
@@ -110,7 +96,7 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     glmtools::write_nml(nml, nml_file)
 
-    message("FLake: Created file ", file.path(folder, "FLake", met_outfile))
+    message("FLake: Created file ", file.path("FLake", met_outfile))
 
   }
 
@@ -123,31 +109,31 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
-    scale_param <- create_scaling_factors(config_file, "GLM", folder)
+    scale_param <- create_scaling_factors(config_file, "GLM")
     scale_met(glm_met, pars = scale_param, model = "GLM", out_file = met_outfile)
 
     # Input to nml file
-    nml_path <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
+    nml_path <- file.path(get_yaml_value(yaml, "config_files", "GLM"))
     nml <- glmtools::read_nml(nml_path)
 
     nml_list <- list("subdaily" = subdaily, "lw_type" = "LW_IN", "meteo_fl" = "meteo_file.csv")
     nml <- glmtools::set_nml(nml, arg_list = nml_list)
 
     glmtools::write_nml(nml, nml_path)
-    message("GLM: Created file ", file.path(folder, "GLM", "meteo_file.csv"))
+    message("GLM: Created file ", file.path("GLM", "meteo_file.csv"))
 
   }
 
   ## GOTM
   if("GOTM" %in% model){
 
-    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_file <- file.path(get_yaml_value(yaml, "config_files", "GOTM"))
 
     met_outfile <- "meteo_file.dat"
 
-    met_outfpath <- file.path(folder, "GOTM", met_outfile)
+    met_outfpath <- file.path("GOTM", met_outfile)
 
-    got_met <- format_met(met, model = "GOTM", config_file = config_file, folder = folder)
+    got_met <- format_met(met, model = "GOTM", config_file = config_file)
 
     # Avoid bug where GOTM can crash if last date of met file == last date of simulation
     if(got_met[nrow(got_met), 1] == get_yaml_value(yaml, "time", "stop")){
@@ -163,14 +149,14 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
-    scale_param <- create_scaling_factors(config_file, "GOTM", folder)
+    scale_param <- create_scaling_factors(config_file, "GOTM")
     scale_met(got_met, pars = scale_param, model = "GOTM", out_file = met_outfpath)
 
     # Format gotm.yaml file
     ## Set gotm.yaml met config - helper function
     set_met_config_yaml(met = met_outfpath, yaml_file = got_file)
 
-    message("GOTM: Created file ", file.path(folder, "GOTM", met_outfile))
+    message("GOTM: Created file ", file.path("GOTM", met_outfile))
 
   }
 
@@ -178,28 +164,28 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if("Simstrat" %in% model){
 
     met_outfile <- "meteo_file.dat"
-    par_file <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
+    par_file <- file.path(get_yaml_value(yaml, "config_files", "Simstrat"))
 
-    met_outfpath <- file.path(folder, "Simstrat", met_outfile)
+    met_outfpath <- file.path("Simstrat", met_outfile)
 
     sim_met <- format_met(met = met, model = "Simstrat", config_file = config_file)
 
     # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
-    scale_param <- create_scaling_factors(config_file, "Simstrat", folder)
+    scale_param <- create_scaling_factors(config_file, "Simstrat")
     scale_met(sim_met, pars = scale_param, model = "Simstrat", out_file = met_outfpath)
 
     ### Write the name of the Simstrat meteo file in the par file
     input_json(file = par_file, label = "Input", key = "Forcing", "meteo_file.dat")
 
-    message("Simstrat: Created file ", file.path(folder, "Simstrat", met_outfile))
+    message("Simstrat: Created file ", file.path("Simstrat", met_outfile))
   }
 
   ## MyLake
   if("MyLake" %in% model){
 
     met_outfile <- "meteo_file.dat"
-    met_outfpath <- file.path(folder, "MyLake", met_outfile)
+    met_outfpath <- file.path("MyLake", met_outfile)
 
     # If met_timestep is not 24 hours, MyLake would crash
     # If met_timestep is lower than 24 hours, met is averaged to 24 hours
@@ -220,14 +206,11 @@ export_meteo <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
     # Write meteo file, potentially with the scaling factors in the config_file
     # Using create_scaling_factors in the helpers.R script
-    scale_param <- create_scaling_factors(config_file, "MyLake", folder)
+    scale_param <- create_scaling_factors(config_file, "MyLake")
     scale_met(mylake_met, pars = scale_param, model = "MyLake", out_file = met_outfpath)
 
-    message("MyLake: Created file ", file.path(folder, "MyLake", met_outfile))
+    message("MyLake: Created file ", file.path("MyLake", met_outfile))
   }
-
-  # Set the timezone back to the original
-  Sys.setenv(TZ = original_tz)
 
   message("export_meteo complete!")
 

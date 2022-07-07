@@ -4,20 +4,13 @@
 \alias{export_extinction}
 \title{Export extinction coefficients}
 \usage{
-export_extinction(
-  config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake"),
-  folder = "."
-)
+export_extinction(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake"))
 }
 \arguments{
 \item{config_file}{name of the master LakeEnsemblR config file}
 
 \item{model}{vector; model to export configuration file for.
 Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
-
-\item{folder}{filepath; to folder which contains the model folders generated
-by export_config()}
 }
 \description{
 Exports extinction coefficients for each model based on a master LakeEnsemblR config file

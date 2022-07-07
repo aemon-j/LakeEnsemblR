@@ -69,6 +69,31 @@ test_that("create model meteo & config files", {
 
 })
 
+test_that("folder argument works in export_config", {
+
+  library(LakeEnsemblR)
+  template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+  temp_dir <- tempdir()
+  # dir.create("example")
+  file.copy(from = template_folder, to = temp_dir, recursive = TRUE)
+  folder <- file.path(temp_dir, "feeagh")
+  # file.copy(from = template_folder, to = "example", recursive = TRUE)
+
+  # Set config file
+  masterConfigFile <- file.path(folder, "LakeEnsemblR.yaml")
+  config_file <- file.path(folder, "LakeEnsemblR_copy.yaml")
+  file.copy(masterConfigFile, config_file, overwrite = TRUE)
+  config_file <- "LakeEnsemblR_copy.yaml"
+
+  # 1. Example - export configuration settings
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = folder)
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model, folder = folder)
+})
+
 test_that("can add members to netCDF models", {
 
   unlink("output/ensemble_output.nc", recursive = TRUE, force = TRUE)

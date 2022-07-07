@@ -15,17 +15,7 @@
 #' @export
 
 export_model_parameters <- function(config_file,
-                              model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                              folder = ".") {
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-  })
+                              model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")) {
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -38,13 +28,13 @@ export_model_parameters <- function(config_file,
 
   if(yaml$restart$use & "GLM" %in% model) {
 
-    glm_nml <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
+    glm_nml <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
     nml <- glmtools::read_nml(glm_nml)
     z_out <- glmtools::get_nml_value(nml, "the_depths")
 
-    glm_outfile <- file.path(folder, "GLM", nml$output$out_dir,
+    glm_outfile <- file.path("GLM", nml$output$out_dir,
                              paste0(nml$output$out_fn, ".nc"))
     if(!file.exists(glm_outfile)) {
       stop("File: '", glm_outfile, "' does not exist. You need to run the model in normal mode first before switching on the restart function.")
@@ -82,13 +72,13 @@ export_model_parameters <- function(config_file,
     yaml$model_parameters$GLM$`init_profiles/restart_variables` <- signif(restart_variables, 5)
 
   } else if(yaml$restart$use & "GOTM" %in% model) {
-    restart_file <- file.path(folder, "GOTM", "restart.nc")
+    restart_file <- file.path("GOTM", "restart.nc")
     if(!file.exists(restart_file)) {
       stop("File: '", restart_file, "' does not exist. You need to run the model in normal mode first before switching on the restart function.")
     }
     yaml$model_parameters$GOTM$`restart/load` <- TRUE
   } else if(yaml$restart$use & "Simstrat" %in% model) {
-    restart_file <- file.path(folder, "Simstrat", "output", "simulation-snapshot.dat")
+    restart_file <- file.path("Simstrat", "output", "simulation-snapshot.dat")
     if(!file.exists(restart_file)) {
       stop("File: '", restart_file, "' does not exist. You need to run the model in normal mode first before switching on the restart function.")
     }
@@ -98,7 +88,7 @@ export_model_parameters <- function(config_file,
     # yaml$model_parameters$Simstrat$`Simulation/Continue from last snapshot` <- FALSE
   }
 
-  input_config_value(model, yaml, folder)
+  input_config_value(model, yaml)
 
   message("export_model_parameters complete!")
 }

@@ -6,8 +6,7 @@
 \usage{
 export_meteo(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-  folder = "."
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 )
 }
 \arguments{
@@ -15,9 +14,6 @@ export_meteo(
 
 \item{model}{vector; model to export configuration file for.
 Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
-
-\item{folder}{filepath; to folder which contains the model folders generated
-by export_config()}
 }
 \description{
 Export driver files for each model

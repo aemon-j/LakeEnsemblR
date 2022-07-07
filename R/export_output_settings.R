@@ -13,21 +13,7 @@
 #'@export
 
 export_output_settings <- function(config_file,
-                                   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                                   folder = "."){
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
+                                   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")){
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -60,7 +46,7 @@ export_output_settings <- function(config_file,
 
   ##---------------FLake-------------
   if("FLake" %in% model){
-    fla_fil <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
+    fla_fil <- file.path(get_yaml_value(yaml, "config_files", "FLake"))
 
     input_nml(fla_fil, label = "METEO", key = "outputfile", paste0("'output/output.dat'"))
   }
@@ -68,7 +54,7 @@ export_output_settings <- function(config_file,
   ##---------------GLM-------------
 
   if("GLM" %in% model){
-    glm_nml <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
+    glm_nml <- file.path(get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
     nml <- read_nml(glm_nml)
@@ -83,7 +69,7 @@ export_output_settings <- function(config_file,
 
   ##---------------GOTM-------------
   if("GOTM" %in% model){
-    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_file <- file.path(get_yaml_value(yaml, "config_files", "GOTM"))
     got_yaml <- gotmtools::read_yaml(got_file)
 
     # Set GOTM output
@@ -102,7 +88,7 @@ export_output_settings <- function(config_file,
 
   ##---------------Simstrat-------------
   if("Simstrat" %in% model){
-    sim_par <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
+    sim_par <- file.path(get_yaml_value(yaml, "config_files", "Simstrat"))
 
     sim_vars <- c("HA","HW","HK","HV","num") # Needed for restart
     if("temp" %in% out_vars | "dens" %in% out_vars) sim_vars <- c("T", sim_vars)

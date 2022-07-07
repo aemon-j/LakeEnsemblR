@@ -16,20 +16,7 @@
 
 export_init_cond <- function(config_file,
                              model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                             date = NULL, print = TRUE, folder = "."){
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
+                             date = NULL, print = TRUE){
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -116,7 +103,7 @@ export_init_cond <- function(config_file,
     }
 
     message("FLake: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "FLake")),
+            file.path(get_yaml_value(yaml, "config_files", "FLake")),
             " [", Sys.time(), "]")
 
   }
@@ -134,7 +121,7 @@ export_init_cond <- function(config_file,
     # check for max(the_depths) > lake_depth ??
     write_nml(nml, get_yaml_value(yaml, "config_files", "GLM"))
     message("GLM: Input initial conditions into ",
-            file.path(folder, get_yaml_value(yaml, "config_files", "GLM")),
+            file.path(get_yaml_value(yaml, "config_files", "GLM")),
             " [", Sys.time(), "]")
 
   }
@@ -157,7 +144,7 @@ export_init_cond <- function(config_file,
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "method", value = 2L)
     got_yaml <- set_yaml(got_yaml, label = "temperature", key = "column", value = 1L)
 
-    message("GOTM: Created initial conditions file ", file.path(folder, "GOTM", "init_cond.dat"),
+    message("GOTM: Created initial conditions file ", file.path("GOTM", "init_cond.dat"),
             " [", Sys.time(), "]")
 
   }
@@ -175,7 +162,7 @@ export_init_cond <- function(config_file,
     input_json(par_file, "Input", "Initial conditions", "init_cond.dat")
 
     message("Simstrat: Created initial conditions file ",
-            file.path(folder, "Simstrat", "init_cond.dat"),
+            file.path("Simstrat", "init_cond.dat"),
             " [", Sys.time(), "]")
 
   }
@@ -225,7 +212,7 @@ export_init_cond <- function(config_file,
     save(mylake_config, file = file.path("MyLake", cnf_name))
 
     message("MyLake: Created initial conditions file ",
-            file.path(folder, "MyLake", cnf_name),
+            file.path("MyLake", cnf_name),
             " [", Sys.time(), "]")
 
   }

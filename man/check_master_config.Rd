@@ -7,14 +7,18 @@
 check_master_config(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
+  folder = ".",
   exp_cnf = FALSE
 )
 }
 \arguments{
-\item{config_file}{filepath; to LakeEnsemblr yaml master config file}
+\item{config_file}{name of the master LakeEnsemblR config file}
 
-\item{model}{vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
-"FLake", "MyLake")}
+\item{model}{vector; model to export configuration file for.
+Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
+
+\item{folder}{filepath; to folder which contains the model folders generated
+by export_config()}
 
 \item{exp_cnf}{boolean; check if the control files for the models are there}
 }

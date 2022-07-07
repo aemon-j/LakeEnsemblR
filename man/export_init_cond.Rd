@@ -8,8 +8,7 @@ export_init_cond(
   config_file,
   model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
   date = NULL,
-  print = TRUE,
-  folder = "."
+  print = TRUE
 )
 }
 \arguments{
@@ -23,9 +22,6 @@ If NULL, the observations file specified in config_file is used to extract
 the date.}
 
 \item{print}{logical; Prints the temperature profile to the console}
-
-\item{folder}{filepath; to folder which contains the model folders generated
-by export_config()}
 }
 \description{
 Export initial condition files and input into model configuration files.

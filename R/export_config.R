@@ -60,53 +60,53 @@ export_config <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
   }
 
   # check the master config file
-  check_master_config(config_file, model = model, exp_cnf = TRUE)
+  check_master_config(config_file, model = model, folder = folder, exp_cnf = TRUE)
   # check model input
   model <- check_models(model)
 
 ##--------------------- Export sub-functions ---------------
   # Export directories and copy template files
   if(dirs){
-    export_dirs(config_file = config_file, model = model, folder = folder)
+    export_dirs(config_file = config_file, model = model)
   }
 
   # Export time settings (start, stop, time step)
   if(time){
-    export_time(config_file = config_file, model = model, folder = folder)
+    export_time(config_file = config_file, model = model)
   }
 
   # Export hypsograph, lat/lon, ice
   if(location){
-    export_location(config_file = config_file, model = model, folder = folder)
+    export_location(config_file = config_file, model = model)
   }
 
   # Export output_settings (depth and time intervals)
   if(output_settings){
-    export_output_settings(config_file = config_file, model = model, folder = folder)
+    export_output_settings(config_file = config_file, model = model)
   }
 
   # Export meteo
   if(meteo){
-    export_meteo(config_file = config_file, model = model, folder = folder)
+    export_meteo(config_file = config_file, model = model)
   }
 
   # Export initial conditions
   if(init_cond){
-    export_init_cond(config_file = config_file, model = model, print = print, folder = folder)
+    export_init_cond(config_file = config_file, model = model, print = print)
   }
 
   # Export light extinction (Kw)
   if(extinction){
-    export_extinction(config_file = config_file, model = model, folder = folder)
+    export_extinction(config_file = config_file, model = model)
   }
 
   # Export user-defined inflow boundary condition
   if(inflow){
-    export_inflow(config_file = config_file, model = model, folder = folder)
+    export_inflow(config_file = config_file, model = model)
   }
 
   # Export user-defined model-specific parameters
   if(model_parameters){
-    export_model_parameters(config_file = config_file, model = model, folder = folder)
+    export_model_parameters(config_file = config_file, model = model)
   }
 }

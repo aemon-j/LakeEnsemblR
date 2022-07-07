@@ -10,17 +10,7 @@
 #'
 #'@export
 
-export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          folder = "."){
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-  })
+export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")){
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -46,7 +36,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+                to = file.path(temp_fil))
     }
   }
 
@@ -61,9 +51,9 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     temp_fil <- get_yaml_value(yaml, "config_files", "GLM")
 
     if(!file.exists(temp_fil)){
-      template_file <- system.file("extdata/glm3_template.nml", package = packageName())
+      template_file <- system.file("extdata/glm3_template.nml", package = "LakeEnsemblR")
       file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+                to = file.path(temp_fil))
     }
   }
 
@@ -79,11 +69,11 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+                to = file.path(temp_fil))
 
       template_file <- system.file("extdata/restart.nc", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, "GOTM/restart.nc"))
+                to = file.path("GOTM/restart.nc"))
     }
   }
 
@@ -99,7 +89,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     if(!file.exists(temp_fil)){
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, temp_fil))
+                to = file.path(temp_fil))
     }
 
     # Copy in template files from examples folder in the package
@@ -107,10 +97,10 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     qout_fil <- system.file("extdata/simstrat_files/Qout.dat", package = packageName())
     tin_fil <- system.file("extdata/simstrat_files/Tin.dat", package = packageName())
     sin_fil <- system.file("extdata/simstrat_files/Sin.dat", package = packageName())
-    file.copy(from = qin_fil, to = file.path(folder, "Simstrat", "Qin.dat"))
-    file.copy(from = qout_fil, to = file.path(folder, "Simstrat", "Qout.dat"))
-    file.copy(from = tin_fil, to = file.path(folder, "Simstrat", "Tin.dat"))
-    file.copy(from = sin_fil, to = file.path(folder, "Simstrat", "Sin.dat"))
+    file.copy(from = qin_fil, to = file.path("Simstrat", "Qin.dat"))
+    file.copy(from = qout_fil, to = file.path("Simstrat", "Qout.dat"))
+    file.copy(from = tin_fil, to = file.path("Simstrat", "Tin.dat"))
+    file.copy(from = sin_fil, to = file.path("Simstrat", "Sin.dat"))
   }
 
 ##---------------MyLake-------------
@@ -129,7 +119,7 @@ export_dirs <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
       temp_fil <- gsub(".*/", "", temp_fil)
       # save lake-specific config file for MyLake
-      save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
+      save(mylake_config, file = file.path("MyLake", temp_fil))
     }
   }
 

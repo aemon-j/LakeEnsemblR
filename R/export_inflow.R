@@ -12,25 +12,11 @@
 #' @importFrom glmtools read_nml set_nml write_nml
 #'
 #' @export
-export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                          folder = "."){
+export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")){
 
   # Load Rdata
   data("met_var_dic", package = "LakeEnsemblR", envir = environment())
   data("lake_var_dic", package = "LakeEnsemblR", envir = environment())
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -59,7 +45,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 ##---------------FLake-------------
 
   if("FLake" %in% model){
-    fla_fil <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "FLake"))
+    fla_fil <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "FLake"))
 
     if(!use_inflows){
       input_nml(fla_fil, label = "inflow", key = "Qfromfile",  ".false.")
@@ -71,7 +57,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 ##---------------GLM-------------
 
   if("GLM" %in% model){
-    glm_nml <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
+    glm_nml <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
     nml <- glmtools::read_nml(glm_nml)
@@ -103,7 +89,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 ##---------------GOTM-------------
 
   if("GOTM" %in% model){
-    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_file <- file.path(get_yaml_value(yaml, "config_files", "GOTM"))
     got_yaml <- gotmtools::read_yaml(got_file)
 
     ## Switch off streams
@@ -144,7 +130,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 ##---------------Simstrat-------------
 
   if("Simstrat" %in% model){
-    sim_par <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
+    sim_par <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
 
     input_json(file = sim_par, label = "Input", key = "Inflow", value = "Qin.dat")
     input_json(file = sim_par, label = "Input", key = "Outflow", "Qout.dat")
@@ -206,7 +192,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       # save lake-specific config file for MyLake
       temp_fil <- gsub(".*/", "", gotmtools::get_yaml_value(yaml, "config_files", "MyLake"))
-      save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
+      save(mylake_config, file = file.path("MyLake", temp_fil))
     }
   }
 
@@ -223,7 +209,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
     ### Import data
     message("Loading inflow data...")
     suppressMessages({
-      inflow <- read.csv(file.path(folder, inflow_file))
+      inflow <- read.csv(file.path(inflow_file))
     })
     inflow[["datetime"]] <- as.POSIXct(inflow[["datetime"]])
     # Check time step
@@ -263,7 +249,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       flake_outfile <- "Tinflow"
 
-      flake_outfpath <- file.path(folder, "FLake", flake_outfile)
+      flake_outfpath <- file.path("FLake", flake_outfile)
 
       # Write to file
       write.table(flake_inflow, flake_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
@@ -271,7 +257,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       temp_fil <- gotmtools::get_yaml_value(yaml, "config_files", "FLake")
       input_nml(temp_fil, label = "inflow", key = "time_step_number", nrow(flake_inflow))
 
-      message("FLake: Created file ", file.path(folder, "FLake", flake_outfile))
+      message("FLake: Created file ", file.path("FLake", flake_outfile))
 
       if(use_outflows){
         message("FLake does not need outflows, as mass fluxes are not considered.")
@@ -288,25 +274,25 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       # Write to file
       write.csv(glm_inflow, inflow_outfile, row.names = FALSE, quote = FALSE)
-      message("GLM: Created file ", file.path(folder, "GLM", "inflow_file.csv"))
+      message("GLM: Created file ", file.path("GLM", "inflow_file.csv"))
 
       glm_outflow <- glm_inflow[, c("Time", "FLOW")]
       outflow_outfile <- file.path("GLM", "outflow.csv")
       write.csv(glm_outflow, outflow_outfile, row.names = FALSE, quote = FALSE)
 
-      message("GLM: Created outflow file ", file.path(folder, "GLM", "outflow.csv"))
+      message("GLM: Created outflow file ", file.path("GLM", "outflow.csv"))
       }
 
 
     ## GOTM
     if("GOTM" %in% model){
 
-      got_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
+      got_file <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
       got_yaml <- gotmtools::read_yaml(got_file)
 
       gotm_outfile <- "inflow_file.dat"
 
-      gotm_outfpath <- file.path(folder, "GOTM", gotm_outfile)
+      gotm_outfpath <- file.path("GOTM", gotm_outfile)
 
       gotm_inflow <- format_inflow(inflow, model = "GOTM", config_file = config_file)
 
@@ -314,11 +300,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       write.table(gotm_inflow, gotm_outfpath, quote = FALSE, row.names = FALSE, sep = "\t",
                   col.names = TRUE)
 
-      message("GOTM: Created file ", file.path(folder, "GOTM", gotm_outfile))
+      message("GOTM: Created file ", file.path("GOTM", gotm_outfile))
 
       if(use_outflows){
         temp_fil <- gotmtools::get_yaml_value(yaml, "config_files", "GOTM")
-        got_file <- file.path(folder, temp_fil)
+        got_file <- file.path(temp_fil)
         got_yaml <- gotmtools::read_yaml(got_file)
         got_yaml <- gotmtools::set_yaml(got_yaml, key1 = "streams", key2 = "outflow", key3 = "flow",
                              key4 = "method", value = 2L)
@@ -330,14 +316,14 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
         gotm_outflow <- gotm_inflow[, c(1:2)]
         gotm_outflow[,2] <- gotm_outflow[,2] * -1
         gotm_outflowfile <- "outflow_file.dat"
-        gotm_outflowfpath <- file.path(folder, "GOTM", gotm_outflowfile)
+        gotm_outflowfpath <- file.path("GOTM", gotm_outflowfile)
 
         write.table(gotm_outflow, gotm_outflowfpath, quote = FALSE, row.names = FALSE, sep = "\t",
                     col.names = TRUE)
 
         gotmtools::write_yaml(got_yaml, got_file)
 
-        message("GOTM: Created outflow file ", file.path(folder, "GOTM", gotm_outflowfile))
+        message("GOTM: Created outflow file ", file.path("GOTM", gotm_outflowfile))
       }
 
     }
@@ -348,11 +334,11 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
       inflow_outfile <- "Qin.dat"
       temp_outfile <- "Tin.dat"
       salt_outfile <- "Sin.dat"
-      par_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
+      par_file <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
 
-      inflow_outfpath <- file.path(folder, "Simstrat", inflow_outfile)
-      temp_outfpath <- file.path(folder, "Simstrat", temp_outfile)
-      salt_outfpath <- file.path(folder, "Simstrat", salt_outfile)
+      inflow_outfpath <- file.path("Simstrat", inflow_outfile)
+      temp_outfpath <- file.path("Simstrat", temp_outfile)
+      salt_outfpath <- file.path("Simstrat", salt_outfile)
 
       sim_inflow <- format_inflow(inflow = inflow, model = "Simstrat", config_file = config_file)
 
@@ -380,13 +366,13 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                  file_connection)
       close(file_connection)
 
-      message("Simstrat: Created file ", file.path(folder, "Simstrat", inflow_outfile))
+      message("Simstrat: Created file ", file.path("Simstrat", inflow_outfile))
 
       if(use_outflows){
         outflow_outfile <- "Qout.dat"
-        par_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
+        par_file <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
 
-        outflow_outfpath <- file.path(folder, "Simstrat", outflow_outfile)
+        outflow_outfpath <- file.path("Simstrat", outflow_outfile)
 
         sim_inflow$Flow_metersCubedPerSecond <- sim_inflow$Flow_metersCubedPerSecond * (- 1)
 
@@ -399,7 +385,7 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
                    file_connection)
         close(file_connection)
 
-        message("Simstrat: Created outflow file ", file.path(folder, "Simstrat", outflow_outfile))
+        message("Simstrat: Created outflow file ", file.path("Simstrat", outflow_outfile))
       }
     }
 
@@ -428,9 +414,9 @@ export_inflow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLa
 
       temp_fil <- gsub(".*/", "", temp_fil)
       # save lake-specific config file for MyLake
-      save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
+      save(mylake_config, file = file.path("MyLake", temp_fil))
 
-      message("MyLake: Created file ", file.path(folder, "MyLake", temp_fil))
+      message("MyLake: Created file ", file.path("MyLake", temp_fil))
 
       if(use_outflows){
         message("MyLake does not need specific outflows, as it employs automatic overflow.")

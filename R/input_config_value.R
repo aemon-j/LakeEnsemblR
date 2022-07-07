@@ -15,14 +15,14 @@
 #'
 #' @export
 
-input_config_value <- function(model, yaml, folder) {
+input_config_value <- function(model, yaml) {
 
   for(m in model){
     # Only continue if model-specific parameters are specified for this model
     if(is.null(yaml[["model_parameters"]][[m]])) next
 
     par_list <- yaml[["model_parameters"]][[m]]
-    model_config <- file.path(folder, yaml[["config_files"]][[m]])
+    model_config <- file.path(yaml[["config_files"]][[m]])
 
     if(m %in% c("GLM", "FLake")) {
       pars <- strsplit(names(par_list), "/")

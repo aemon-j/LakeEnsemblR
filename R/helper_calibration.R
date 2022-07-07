@@ -203,9 +203,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
           label <- spl[[1]][1]
           key <- spl[[1]][2]
           # change model specific parameters
-          suppressMessages(input_config_value(model = model, file = config_f, label = label,
-                                              key = key,
-                                              value = value))
+          suppressMessages(input_config_value(model, yaml, folder))
         }
       }
     }

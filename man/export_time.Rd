@@ -6,8 +6,7 @@
 \usage{
 export_time(
   config_file,
-  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-  folder = "."
+  model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 )
 }
 \arguments{

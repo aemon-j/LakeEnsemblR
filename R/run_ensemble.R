@@ -28,12 +28,12 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
   if(!file.exists(file.path(folder, config_file))) {
     stop(paste0(file.path(folder, config_file), " does not exist. Make sure your file path is correct"))
   } else {
-    yaml <- gotmtools::read_yaml(config_file)
+    yaml <- gotmtools::read_yaml(file.path(folder, config_file))
   }
 
 
   # check the master config file
-  check_master_config(config_file, model)
+  check_master_config(config_file, model, folder = folder)
   # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz  <-  Sys.getenv("TZ")
   Sys.setenv(TZ = "UTC")
@@ -81,7 +81,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(!is.null(obs_file)){
     message("Loading water temperature observations...", paste0("[", Sys.time(), "]"))
-    obs <- read.csv(obs_file)
+    obs <- read.csv(file.path(folder, obs_file))
     message("Finished loading water temperature observations!",
             paste0("[", Sys.time(), "]"))
     obs_deps <- unique(obs$Depth_meter)
@@ -101,7 +101,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
 
   if(!is.null(ice_file)){
     message("Loading ice observations...")
-    ice <- read.csv(ice_file)
+    ice <- read.csv(file.path(folder, ice_file))
     message("Finished loading ice observations!")
 
     ice$datetime <- as.POSIXct(ice$datetime)

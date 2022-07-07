@@ -4,16 +4,13 @@
 \alias{input_config_value}
 \title{Inputs value into any LER model config file}
 \usage{
-input_config_value(model, yaml, folder)
+input_config_value(model, yaml)
 }
 \arguments{
 \item{model}{vector; model to export configuration file for.
 Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 
 \item{yaml}{list; loaded using `read_yaml()`}
-
-\item{folder}{filepath; to folder which contains the model folders generated
-by export_config()}
 }
 \description{
 Wrapper function for functions that input values into model config files

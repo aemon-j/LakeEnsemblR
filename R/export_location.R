@@ -13,17 +13,7 @@
 #'
 #'@export
 
-export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
-                        folder = ".") {
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-  })
+export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")) {
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -61,7 +51,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
   ##---------------FLake-------------
   if("FLake" %in% model){
-    fla_fil <- file.path(folder, get_yaml_value(yaml, "config_files", "FLake"))
+    fla_fil <- file.path(get_yaml_value(yaml, "config_files", "FLake"))
 
     # Calculate mean depth from hypsograph (mdepth = V / SA)
     # Calculate volume from hypsograph - converted to function?
@@ -100,7 +90,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
   ##---------------GLM-------------
 
   if("GLM" %in% model){
-    glm_nml <- file.path(folder, get_yaml_value(yaml, "config_files", "GLM"))
+    glm_nml <- file.path(get_yaml_value(yaml, "config_files", "GLM"))
 
     # Read in nml and input parameters
     nml <- glmtools::read_nml(glm_nml)
@@ -141,7 +131,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
   ##---------------GOTM-------------
   if("GOTM" %in% model){
-    got_file <- file.path(folder, get_yaml_value(yaml, "config_files", "GOTM"))
+    got_file <- file.path(get_yaml_value(yaml, "config_files", "GOTM"))
     got_yaml <- gotmtools::read_yaml(got_file)
 
     # Write input parameters to got_yaml
@@ -179,7 +169,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
   ##---------------Simstrat-------------
   if("Simstrat" %in% model){
-    sim_par <- file.path(folder, get_yaml_value(yaml, "config_files", "Simstrat"))
+    sim_par <- file.path(get_yaml_value(yaml, "config_files", "Simstrat"))
 
     # Create Simstrat bathymetry
     sim_hyp <- hyp
@@ -252,7 +242,7 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
 
     # save lake-specific config file for MyLake
     temp_fil <- gsub(".*/", "", get_yaml_value(yaml, "config_files", "MyLake"))
-    save(mylake_config, file = file.path(folder, "MyLake", temp_fil))
+    save(mylake_config, file = file.path("MyLake", temp_fil))
   }
 
   message("export_location complete!")

@@ -250,11 +250,10 @@ get_meteo_time_step <- function(met_file){
 #' @name create_scaling_factors
 #' @param config_file string; name of the master LakeEnsemblR config file
 #' @param model string; model to create scaling_factors dataframe for
-#' @param folder string; file path to the config_file
 #' @noRd
-create_scaling_factors <- function(config_file, model, folder){
+create_scaling_factors <- function(config_file, model){
 
-  master_config <- configr::read.config(file.path(folder, config_file))
+  master_config <- configr::read.config(file.path(config_file))
 
   pars <- data.frame(wind_speed = 1,
                      swr = 1,

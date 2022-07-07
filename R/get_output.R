@@ -333,8 +333,8 @@ get_output <- function(yaml, model, vars, obs_depths = NULL, folder = ".", out_t
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
     par_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
-    timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
-    reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Reference year")
+    timestep <- get_json_value(par_file, "Simulation", "Timestep s")
+    reference_year <- get_json_value(par_file, "Simulation", "Reference year")
 
     sim_out <- list()
 

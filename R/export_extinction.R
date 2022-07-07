@@ -10,21 +10,7 @@
 #'@export
 
 export_extinction <- function(config_file,
-                              model = c("GOTM", "GLM", "Simstrat", "FLake"),
-                              folder = "."){
-
-  # Set working directory
-  oldwd <- getwd()
-  setwd(folder)
-
-  # Fix time zone
-  original_tz <- Sys.getenv("TZ")
-
-  # this way if the function exits for any reason, success or failure, these are reset:
-  on.exit({
-    setwd(oldwd)
-    Sys.setenv(TZ = original_tz)
-  })
+                              model = c("GOTM", "GLM", "Simstrat", "FLake")){
 
   if(!file.exists(config_file)) {
     stop(config_file, " does not exist. Make sure your file path is correct")
@@ -43,8 +29,8 @@ export_extinction <- function(config_file,
     constant_value <- TRUE
   }else{
     constant_value <- FALSE
-    # suppressMessages({Kw_file <- vroom::vroom(file.path(folder, Kw), col_types = list("c", "n"))})
-    suppressMessages({Kw_file <- read.csv(file.path(folder, Kw))})
+    # suppressMessages({Kw_file <- vroom::vroom(file.path(Kw), col_types = list("c", "n"))})
+    suppressMessages({Kw_file <- read.csv(file.path(Kw))})
     Kw_file$datetime <- as.POSIXct(Kw_file$datetime)
 
     start_time_series <- as.POSIXct(gotmtools::get_yaml_value(yaml, "time", "start"))
@@ -82,8 +68,8 @@ export_extinction <- function(config_file,
       # This will work once we build the package
       template_file <- system.file("extdata/flake_template.nml", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "FLake")))
-      fla_fil <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "FLake"))
+                to = file.path(gotmtools::get_yaml_value(yaml, "config_files", "FLake")))
+      fla_fil <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "FLake"))
     }
 
     input_nml(fla_fil, label = "TRANSPARENCY", key = "extincoef_optic", Kw)
@@ -105,8 +91,8 @@ export_extinction <- function(config_file,
       # This will work once we build the package
       template_file <- system.file("extdata/glm3_template.nml", package = packageName()) #
       file.copy(from = template_file,
-                to = file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GLM")))
-      glm_nml <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
+                to = file.path(gotmtools::get_yaml_value(yaml, "config_files", "GLM")))
+      glm_nml <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "GLM"))
     }
 
     if(constant_value){
@@ -126,8 +112,8 @@ export_extinction <- function(config_file,
       colnames(Kw_GLM) <- c("Date", "Kd") # sic
       Kw_GLM <- as.data.frame(Kw_GLM)
       Kw_GLM[, 1] <- format(Kw_GLM[, 1], format = "%Y-%m-%d %H:%M:%S")
-      # vroom::vroom_write(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"), delim = ",", )
-      write.csv(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"),
+      # vroom::vroom_write(Kw_GLM, file.path("GLM", "Kw_GLM.csv"), delim = ",", )
+      write.csv(Kw_GLM, file.path("GLM", "Kw_GLM.csv"),
                 row.names = FALSE)
 
       # Write to nml: if any, replace the line with Kw and put Kw_file
@@ -159,8 +145,8 @@ export_extinction <- function(config_file,
       # This will work once we build the package
       template_file <- system.file("extdata/gotm_template.yaml", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM")))
-      got_file <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
+                to = file.path(gotmtools::get_yaml_value(yaml, "config_files", "GOTM")))
+      got_file <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "GOTM"))
     }
 
     got_yaml <- gotmtools::read_yaml(got_file)
@@ -180,8 +166,8 @@ export_extinction <- function(config_file,
 
       Kw_GOTM <- as.data.frame(Kw_GOTM)
       Kw_GOTM[, 1] <- format(Kw_GOTM[, 1], format = "%Y-%m-%d %H:%M:%S")
-      # vroom::vroom_write(Kw_GOTM, file.path(folder, "GOTM", "LakeEnsemblR_g2_GOTM.dat"), delim = "\t", quote = "none")
-      write.table(Kw_GOTM, file.path(folder, "GOTM", "LakeEnsemblR_g2_GOTM.dat"),
+      # vroom::vroom_write(Kw_GOTM, file.path("GOTM", "LakeEnsemblR_g2_GOTM.dat"), delim = "\t", quote = "none")
+      write.table(Kw_GOTM, file.path("GOTM", "LakeEnsemblR_g2_GOTM.dat"),
                   sep =  "\t", quote = FALSE)
 
       got_yaml <- gotmtools::set_yaml(got_yaml, "light_extinction", "g2", "file",
@@ -208,12 +194,12 @@ export_extinction <- function(config_file,
       # This will work once we build the package
       template_file <- system.file("extdata/simstrat_template.par", package = packageName())
       file.copy(from = template_file,
-                to = file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat")))
-      sim_par <- file.path(folder, gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
+                to = file.path(gotmtools::get_yaml_value(yaml, "config_files", "Simstrat")))
+      sim_par <- file.path(gotmtools::get_yaml_value(yaml, "config_files", "Simstrat"))
     }
 
     light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
-    file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
+    file.copy(from = light_fil, to = file.path("Simstrat", "light_absorption.dat"))
 
     input_json(sim_par, "Input", "Absorption", "light_absorption.dat")
 
@@ -272,7 +258,7 @@ export_extinction <- function(config_file,
     mylake_config[["Bio.par"]][2] <- Kw
 
     cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(yaml, "config_files", "MyLake"))
-    save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
+    save(mylake_config, file = file.path("MyLake", cnf_name))
   }
 
   message("export_extinction complete!")
