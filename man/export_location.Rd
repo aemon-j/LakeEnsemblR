@@ -19,7 +19,4 @@ Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 Exports settings like hypsograph, coordinates and ice settings,
  based on the master LakeEnsemblR config file
 }
-\examples{
-
-}
 \keyword{methods}

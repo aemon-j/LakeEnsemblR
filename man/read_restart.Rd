@@ -14,7 +14,3 @@ read_restart(folder = ".", model)
 \description{
 Read in model restart variables in a list format
 }
-\examples{
-
-
-}

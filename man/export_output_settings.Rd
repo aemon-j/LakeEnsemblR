@@ -19,7 +19,4 @@ Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 Exports settings related to output (time step, format),
  for each model
 }
-\examples{
-
-}
 \keyword{methods}

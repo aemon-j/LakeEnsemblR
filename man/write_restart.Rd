@@ -14,7 +14,3 @@ write_restart(folder = ".", model, restart_list)
 \description{
 Write model restart variables using the list from `read_restart()`
 }
-\examples{
-
-
-}

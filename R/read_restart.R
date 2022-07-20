@@ -49,9 +49,9 @@ read_restart <- function(folder = ".", model) {
 
 
 
-    snow_thickness <-  matrix(ncdf4::ncvar_get(glm_nc, "hsnow"), ncol = final_time_step)[final_time_step]
-    white_ice_thickness <- matrix(ncdf4::ncvar_get(glm_nc, "hwice"), ncol = final_time_step)[final_time_step]
-    blue_ice_thickness <- matrix(ncdf4::ncvar_get(glm_nc, "hice"), ncol = final_time_step)[final_time_step]
+    snow_thickness <-  matrix(ncdf4::ncvar_get(glm_nc, "snow_thickness"), ncol = final_time_step)[final_time_step]
+    white_ice_thickness <- matrix(ncdf4::ncvar_get(glm_nc, "white_ice_thickness"), ncol = final_time_step)[final_time_step]
+    blue_ice_thickness <- matrix(ncdf4::ncvar_get(glm_nc, "blue_ice_thickness"), ncol = final_time_step)[final_time_step]
     avg_surf_temp <- matrix(ncdf4::ncvar_get(glm_nc, "avg_surf_temp"), ncol = final_time_step)[final_time_step]
     restart_variables <- ncdf4::ncvar_get(glm_nc, "restart_variables")
 

@@ -18,8 +18,4 @@ time_average(timeseries, start, end, n = 1000)
 \description{
 Calculates the average of an irregular time series
 }
-\examples{
-
-
-}
 \keyword{methods}
