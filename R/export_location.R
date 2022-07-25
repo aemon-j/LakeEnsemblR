@@ -119,11 +119,12 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
                      "bsn_vals" = length(glm_hyp[, 1]),
                      "H" = rev(glm_hyp[, 1]),
                      "A" = rev(glm_hyp[, 2]),
-                     "bsn_len" = bsn_len,
-                     "bsn_wid" = bsn_wid,
-                     "max_layers" = max_layers,
-                     "max_layer_thick" = 1.0,
-                     "lake_depth" = init_depth)
+                     # "bsn_len" = bsn_len,
+                     # "bsn_wid" = bsn_wid,
+                     # "max_layers" = max_layers,
+                     # "max_layer_thick" = 1.0,
+                     "lake_depth" = init_depth
+                     )
 
     nml <- glmtools::set_nml(nml, arg_list = inp_list)
     glmtools::write_nml(nml, glm_nml)
