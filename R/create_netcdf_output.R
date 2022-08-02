@@ -35,7 +35,7 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   ref_time <- as.POSIXct("1970-01-01 00:00:00", tz = "GMT") # Reference time for netCDF time
   # Calculate seconds since reference time
   nsecs <- as.numeric(difftime(out_time$datetime, ref_time, units = "secs"))
-  xvals <- 180 - longitude # Convert longitude to degrees east
+  xvals <- ifelse(longitude >= 0, longitude, longitude + 360) # Convert longitude to degrees east
   yvals <- latitude # Latitude
   # Define lon and lat dimensions
   lon1 <- ncdf4::ncdim_def("lon", "degrees_east", vals = as.double(xvals))
