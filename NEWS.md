@@ -1,3 +1,10 @@
+## version 1.1.3
+
+### Changes
+
+Bug fixes:
+- Calculation of degrees East longitude in output netcdf file was corrected, with values 180-360 for locations on the Western Hemisphere
+
 ## version 1.1.2
 
 ### Changes
