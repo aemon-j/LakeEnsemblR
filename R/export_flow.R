@@ -428,6 +428,15 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     stop_date <- get_yaml_value(config_file, "time", "stop")
     inflow_start <- which(inflow$datetime == as.POSIXct(start_date))
     inflow_stop <- which(inflow$datetime == as.POSIXct(stop_date))
+    
+    # In case the start and stop dates do not occur in the flow files
+    if(length(inflow_start) == 0L){
+      inflow_start <- max(1L, min(which(inflow$datetime >= as.POSIXct(start_date))) - 1L)
+    }
+    if(length(inflow_stop) == 0L){
+      inflow_stop <- min(nrow(inflow), max(which(inflow$datetime <= as.POSIXct(stop_date))) + 1L)
+    }
+    
     inflow <- inflow[inflow_start:inflow_stop, ]
 
     ### Naming conventions standard input
@@ -705,6 +714,14 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     outflow_start <- which(outflow$datetime == as.POSIXct(start_date))
     outflow_stop <- which(outflow$datetime == as.POSIXct(stop_date))
+    
+    # In case the start and stop dates do not occur in the flow files
+    if(length(outflow_start) == 0L){
+      outflow_start <- max(1L, min(which(inflow$datetime >= as.POSIXct(start_date))) - 1L)
+    }
+    if(length(outflow_stop) == 0L){
+      outflow_stop <- min(nrow(inflow), max(which(inflow$datetime <= as.POSIXct(stop_date))) + 1L)
+    }
 
     outflow <- outflow[outflow_start:outflow_stop, ]
 
