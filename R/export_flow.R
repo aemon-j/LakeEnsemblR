@@ -717,10 +717,10 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     
     # In case the start and stop dates do not occur in the flow files
     if(length(outflow_start) == 0L){
-      outflow_start <- max(1L, min(which(inflow$datetime >= as.POSIXct(start_date))) - 1L)
+      outflow_start <- max(1L, min(which(outflow$datetime >= as.POSIXct(start_date))) - 1L)
     }
     if(length(outflow_stop) == 0L){
-      outflow_stop <- min(nrow(inflow), max(which(inflow$datetime <= as.POSIXct(stop_date))) + 1L)
+      outflow_stop <- min(nrow(outflow), max(which(outflow$datetime <= as.POSIXct(stop_date))) + 1L)
     }
 
     outflow <- outflow[outflow_start:outflow_stop, ]
