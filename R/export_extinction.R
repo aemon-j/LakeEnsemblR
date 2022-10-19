@@ -121,6 +121,7 @@ export_extinction <- function(config_file,
 
       # Write GOTM g2 file to the GOTM folder
       Kw_GOTM <- Kw_file
+      Kw_GOTM$datetime <- format(Kw_GOTM$datetime, "%Y-%m-%d %H:%M:%S")
       Kw_GOTM$Extinction_Coefficient_perMeter <- 1 / Kw_GOTM$Extinction_Coefficient_perMeter
       colnames(Kw_GOTM)[2] <- "g2"
       colnames(Kw_GOTM)[1] <- paste0("!", colnames(Kw_GOTM)[1])
