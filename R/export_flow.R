@@ -14,6 +14,7 @@
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom configr read.config
+#' @importFrom lubridate floor_date ceiling_date
 #'
 #' @export
 export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -400,9 +401,11 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     load(get_yaml_value(config_file, "config_files", "MyLake"))
 
     if(!use_inflows){
-      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                                    to = as.POSIXct(stop_date),
-                                                                    by = "day"))),
+      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.POSIXt(from = floor_date(as.POSIXct(start_date),
+                                                                                        unit = "day"),
+                                                                      to = ceiling_date(as.POSIXct(stop_date),
+                                                                                        unit = "day"),
+                                                                      by = "day"))),
                                          ncol = 8)
 
       # save lake-specific config file for MyLake
@@ -672,9 +675,9 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
       # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
       dummy_inflow <- matrix(rep(1e-10, 8 *
-                                   length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                            to = as.POSIXct(stop_date),
-                                                            by = "day"))),
+                                   length(seq.POSIXt(from = floor_date(as.POSIXct(start_date), unit = "day"),
+                                                     to = ceiling_date(as.POSIXct(stop_date), unit = "day"),
+                                                     by = "day"))),
                              ncol = 8)
       dummy_inflow[, 1] <- mylake_inflow$Flow_metersCubedPerDay
       dummy_inflow[, 2] <- mylake_inflow$Water_Temperature_celsius
