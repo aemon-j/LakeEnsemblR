@@ -1,3 +1,10 @@
+## version 1.1.4
+
+### Changes
+
+Bug fixes:
+- Fixed error in `export_extinction` that caused GOTM to crash because of formating of the datetime column
+
 ## version 1.1.3
 
 ### Changes
