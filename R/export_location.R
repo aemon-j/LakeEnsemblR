@@ -115,7 +115,11 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     # Calculate max number of layers
     min_layer_thick <- get_nml_value(nml, "min_layer_thick")
     max_layers <- round(max_depth / min_layer_thick)
-
+    
+    # 2022-02-03: template file in GLM3r, ggplot-overhaul branch does not have crest_elev
+    if(!("crest_elev" %in% names(nml[["morphometry"]]))){
+      nml[["morphometry"]][["crest_elev"]] <- 0
+    }
 
     inp_list <- list("lake_name" = get_yaml_value(config_file, "location", "name"),
                      "latitude" = lat,

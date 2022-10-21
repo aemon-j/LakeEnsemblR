@@ -9,8 +9,10 @@ Tools for running an ensemble of lake models using standardised input data. Lake
 
 You can find example setups here: https://github.com/aemon-j/LER_examples.
 
+In v1.1, some changes occurred in the configuration file. If you want to adapt your existing setup, see: https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1
+
 ## Installation
-Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up to date as there is parallel devlopment ongoing.
+Prior to installing the package, you will need to install the packages which run the models and the tools for manipulating model data from GitHub. It is recommended to do this each time before testing to ensure all packages are up-to-date as parallel development might be ongoing.
 
 ```{r gh-installation, eval = FALSE}
 #install.packages("remotes")
@@ -50,7 +52,7 @@ file.copy(from = template_folder, to = "example", recursive = TRUE)
 setwd("example/feeagh") # Change working directory to example folder
 
 # Set config file & models
-config_file <- 'LakeEnsemblR.yaml'
+config_file <- "LakeEnsemblR.yaml"
 model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
 
 # Example run
@@ -71,7 +73,7 @@ library(ggplot2)
 
 ## Plot model output using gotmtools/ggplot2
 # Extract names of all the variables in netCDF
-ncdf <- 'output/ensemble_output.nc'
+ncdf <- "output/ensemble_output.nc"
 vars <- gotmtools::list_vars(ncdf)
 vars # Print variables
 
@@ -83,7 +85,7 @@ p1 <- p1 +
   scale_colour_gradientn(limits = c(0, 21),
                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 # Save as a png file
-ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, units = 'mm')
+ggsave("output/ensemble_heatmap.png", p1,  dpi = 300,width = 384,height = 280, units = "mm")
 
 ```
 ![](images/ensemble_heatmap.png)<!-- -->
@@ -92,10 +94,10 @@ ggsave('output/ensemble_heatmap.png', p1,  dpi = 300,width = 384,height = 280, u
 ```{r gh-installation, eval = FALSE}
 # Plot ensemble mean at 0.9m
 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
-plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
+plot_ensemble(ncdf = ncdf, model = model, var = "temp", depth = 0.9)
 
 # Load watertemp from netCDF file as a list
-wtemp <- load_var(ncdf = ncdf, var = 'temp', return = 'list')
+wtemp <- load_var(ncdf = ncdf, var = "temp", return = "list")
 names(wtemp)
 
 # Plot residual diagnostic plots
@@ -108,9 +110,9 @@ plots[[2]]
 # Analyse the netCDF output
 out <- analyse_ncdf(ncdf, model = model, spin_up = 0)
 names(out)
-str <- out[['strat']]
+str <- out[["strat"]]
 str[str$year == 2010, ]
-stats <- out[['stats']]
+stats <- out[["stats"]]
 stats
 ```
 See the [vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf) for further examples.
@@ -163,10 +165,5 @@ remotes::install_github("aemon-j/FLakeR", ref = "macOS")
 remotes::install_github("aemon-J/GOTMr", ref = "macOS")
 remotes::install_github("aemon-j/SimstratR", ref = "macOS")
 ```
-Unfortunately, this means your versions of GLM and Simstrat will differ compared to the ones included in the executables for Windows and Linux. GLM on macOS will be version 3.2.0a8 (most recent one on January 13, 2022), Windows/Linux use 3.1.1. The version of Simtrat for macOS is 3.0, for Windows/Linux is it 2.4.2.
 
-Please note that to run Simstrat, you'll need to change the parameter in line 33 of Simstrat/simstrat.par:
-```
-InflowPlacement --> InflowMode
-```
-
+Unfortunately, this means your version of GLM will differ compared to the one included in the executables for Windows and Linux. GLM on macOS will be version 3.2.0a8 (most recent one on January 13, 2022), Windows/Linux use 3.1.1. 

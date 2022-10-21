@@ -65,7 +65,7 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
                   (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
           (Tb - Ts) + Ts
       })
-      
+
       if(long){
         dd <- data.frame(dateTime = seq_len(length(Tz)),
                          depth = z,
@@ -103,6 +103,33 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     out_list[[length(out_list) + 1]] <- df
     names(out_list)[length(out_list)] <- "ice_height"
   }
+
+  if("w_level" %in% vars){
+    message('FLake does not support simulation of changing water level.')
+    iw_level <- flake_out[["H_ice"]]
+    df <- data.frame(datetime, iw_level*NaN)
+
+    out_list[[length(out_list) + 1]] <- df
+    names(out_list)[length(out_list)] <- "w_level"
+  }
+  
+  if("q_sens" %in% vars){
+
+    q_sens <- flake_out[["Q_se"]]
+    df <- data.frame(datetime, q_sens)
+    
+    out_list[[length(out_list) + 1]] <- df
+    names(out_list)[length(out_list)] <- "q_sens"
+  }
+
+  if("q_lat" %in% vars){
+    
+    q_lat <- flake_out[["Q_la"]]
+    df <- data.frame(datetime, q_lat)
+    
+    out_list[[length(out_list) + 1]] <- df
+    names(out_list)[length(out_list)] <- "q_lat"
+  }
   
   if("dens" %in% vars){
     # calculate temperature profile
@@ -111,17 +138,17 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     h <- flake_out[["h_ML"]] # mixed layer depth
     C <- flake_out[["C_T"]] # shape factor
     D <- max(depths) # mean depth
-    
+
     if(long){
       l_wtr <- list()
     }else{
       mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
     }
-    
+
     # Make sure dates are ordered
     depths <- depths[order(depths)]
-    
-    
+
+
     for(kk in seq_len(length(depths))){
       z <- depths[kk]
       zeta <- (z - h) / (D - h)
@@ -135,7 +162,7 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
                   (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
           (Tb - Ts) + Ts
       })
-      
+
       if(long){
         dd <- data.frame(dateTime = seq_len(length(Tz)),
                          depth = z,
@@ -145,10 +172,10 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
         mat[, kk] <- Tz
       }
     }
-    
+
     if(long){
       wtr2 <- do.call("rbind", l_wtr)
-      
+
       # sort in temporal order
       wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
       colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
@@ -163,11 +190,11 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     }
     dens <- wtr2[which(wtr2$datetime %in% out_time$datetime), ]
     dens[, -c(1)] <-  999.842594 + (6.793952 * 10^-2 * wtr2[, -c(1)]) - (9.095290 * 10^-3 * wtr2[, -c(1)]^2) +
-      (1.001685 * 10^-4 * wtr2[, -c(1)]^3) - (1.120083 * 10^-6 * wtr2[, -c(1)]^4) + (6.536336 * 10^-9 * wtr2[, -c(1)]^5) 
+      (1.001685 * 10^-4 * wtr2[, -c(1)]^3) - (1.120083 * 10^-6 * wtr2[, -c(1)]^4) + (6.536336 * 10^-9 * wtr2[, -c(1)]^5)
     out_list[[length(out_list) + 1]] <- dens
     names(out_list)[length(out_list)] <- "dens"
   }
-  
+
   if("salt" %in% vars){
     message('FLake does not support simulation of salinity dynamics.')
     # calculate temperature profile
@@ -176,17 +203,17 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
     h <- flake_out[["h_ML"]] # mixed layer depth
     C <- flake_out[["C_T"]] # shape factor
     D <- max(depths) # mean depth
-    
+
     if(long){
       l_wtr <- list()
     }else{
       mat <- matrix(NA, nrow = length(datetime), ncol = length(depths))
     }
-    
+
     # Make sure dates are ordered
     depths <- depths[order(depths)]
-    
-    
+
+
     for(kk in seq_len(length(depths))){
       z <- depths[kk]
       zeta <- (z - h) / (D - h)
@@ -200,7 +227,7 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
                   (18 - 30 * C + zeta * (20 * C - 12 + zeta * (c3 - c4 * C)))) *
           (Tb - Ts) + Ts
       })
-      
+
       if(long){
         dd <- data.frame(dateTime = seq_len(length(Tz)),
                          depth = z,
@@ -210,10 +237,10 @@ read_flake_out <- function(output, vars, depths,  folder = ".", nml_file, long =
         mat[, kk] <- Tz
       }
     }
-    
+
     if(long){
       wtr2 <- do.call("rbind", l_wtr)
-      
+
       # sort in temporal order
       wtr2 <- wtr2[order(wtr2$dateTime, wtr2$depth), ]
       colnames(wtr2) <- c("datetime", "Depth_meter", "Water_Temperature_celsius")
