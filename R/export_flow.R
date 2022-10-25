@@ -14,6 +14,7 @@
 #' @importFrom gotmtools get_yaml_value calc_cc input_yaml
 #' @importFrom glmtools read_nml set_nml write_nml
 #' @importFrom configr read.config
+#' @importFrom lubridate floor_date ceiling_date
 #'
 #' @export
 export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake", "MyLake"),
@@ -400,9 +401,11 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     load(get_yaml_value(config_file, "config_files", "MyLake"))
 
     if(!use_inflows){
-      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                                    to = as.POSIXct(stop_date),
-                                                                    by = "day"))),
+      mylake_config[["Inflw"]] <- matrix(rep(0, 8 * length(seq.POSIXt(from = floor_date(as.POSIXct(start_date),
+                                                                                        unit = "day"),
+                                                                      to = ceiling_date(as.POSIXct(stop_date),
+                                                                                        unit = "day"),
+                                                                      by = "day"))),
                                          ncol = 8)
 
       # save lake-specific config file for MyLake
@@ -428,6 +431,15 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     stop_date <- get_yaml_value(config_file, "time", "stop")
     inflow_start <- which(inflow$datetime == as.POSIXct(start_date))
     inflow_stop <- which(inflow$datetime == as.POSIXct(stop_date))
+    
+    # In case the start and stop dates do not occur in the flow files
+    if(length(inflow_start) == 0L){
+      inflow_start <- max(1L, min(which(inflow$datetime >= as.POSIXct(start_date))) - 1L)
+    }
+    if(length(inflow_stop) == 0L){
+      inflow_stop <- min(nrow(inflow), max(which(inflow$datetime <= as.POSIXct(stop_date))) + 1L)
+    }
+    
     inflow <- inflow[inflow_start:inflow_stop, ]
 
     ### Naming conventions standard input
@@ -663,9 +675,9 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
       # discharge [m3/d], temperature [deg C], conc of passive tracer [-], conc of passive
       # sediment tracer [-], TP [mg/m3], DOP [mg/m3], Chla [mg/m3], DOC [mg/m3]
       dummy_inflow <- matrix(rep(1e-10, 8 *
-                                   length(seq.POSIXt(from = as.POSIXct(start_date),
-                                                            to = as.POSIXct(stop_date),
-                                                            by = "day"))),
+                                   length(seq.POSIXt(from = floor_date(as.POSIXct(start_date), unit = "day"),
+                                                     to = ceiling_date(as.POSIXct(stop_date), unit = "day"),
+                                                     by = "day"))),
                              ncol = 8)
       dummy_inflow[, 1] <- mylake_inflow$Flow_metersCubedPerDay
       dummy_inflow[, 2] <- mylake_inflow$Water_Temperature_celsius
@@ -705,6 +717,14 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
     outflow_start <- which(outflow$datetime == as.POSIXct(start_date))
     outflow_stop <- which(outflow$datetime == as.POSIXct(stop_date))
+    
+    # In case the start and stop dates do not occur in the flow files
+    if(length(outflow_start) == 0L){
+      outflow_start <- max(1L, min(which(outflow$datetime >= as.POSIXct(start_date))) - 1L)
+    }
+    if(length(outflow_stop) == 0L){
+      outflow_stop <- min(nrow(outflow), max(which(outflow$datetime <= as.POSIXct(stop_date))) + 1L)
+    }
 
     outflow <- outflow[outflow_start:outflow_stop, ]
 
