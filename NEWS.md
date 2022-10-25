@@ -3,7 +3,7 @@
 ### Changes
 
 Bug fixes:
-- Fixed error in `analyse_ncdf` when ice is not present in the ncdf file
+- Fixed error in `analyse_ncdf` when ice is not present in the ncdf file and if not enough observational data.
 
 ## version 1.1.5
 
