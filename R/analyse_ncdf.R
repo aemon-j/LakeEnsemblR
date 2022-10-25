@@ -26,7 +26,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
                          drho = 0.1){
   
   # check if model input is correct
-  model <- check_models(model)
+  model <- LakeEnsemblR:::check_models(model)
   # check if netCDF exists
   if(!file.exists(ncdf)){
     stop("File: '", ncdf, "' does not exist!\nPlease check the file path.")
@@ -37,10 +37,8 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
     stop(paste("Variable 'temp', is not present in", ncdf,
                "\nAdd 'temp' to variables list in the yaml file and re-run 'run_ensemble()'"))
   }
-  if(("ice_height" %in% vars)){
-    ice_present <- TRUE
-  }
-  
+  ice_present <- "ice_height" %in% vars
+
   temp <- load_var(ncdf, "temp", return = "list", dim = dim,
                    dim_index = dim_index, print = FALSE)
   
@@ -145,9 +143,10 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
   
   if(ice_present){
     obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = obs_ice[, 2], drho = drho)
-    obs_strat$model <- "obs"
   }else{
     obs_strat <- analyse_strat(data = obs_temp, NH = NH, H_ice = NULL, drho = drho)
+  }
+  if(!is.null(obs_strat)) {
     obs_strat$model <- "obs"
   }
   

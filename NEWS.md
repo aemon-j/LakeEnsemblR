@@ -1,3 +1,10 @@
+## version 1.1.6
+
+### Changes
+
+Bug fixes:
+- Fixed error in `analyse_ncdf` when ice is not present in the ncdf file
+
 ## version 1.1.5
 
 ### Changes
