@@ -372,14 +372,19 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
         # Create empty matrix and interpolate to new depths
         wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-        for(i in seq_len(nrow(temp))) {
+        
+        for(i in seq_len(nrow(temp))){
           y <- as.vector(unlist(temp[i, -1]))
           wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
           # Ensure that the data includes water level fluctuations
-          if (any(is.na(y))){
-            wat_mat[i, (min(which(is.na(y))) : length(wat_mat[i, ]))] <- NA
+          if(any(is.na(y))){
+            # Set values to NA from this index onwards
+            min_depth_na <- mod_depths[min(which(is.na(y)))]
+            min_ind_na <- min(which(depths <= min_depth_na))
+            wat_mat[i, (min_ind_na : length(wat_mat[i, ]))] <- NA
           }
         }
+        
         message("Finished interpolating! ",
                 paste0("[", Sys.time(), "]"))
         df <- data.frame(wat_mat)
@@ -482,10 +487,18 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
         # Create empty matrix and interpolate to new depths
         wat_mat <- matrix(NA, nrow = nrow(temp), ncol = length(depths))
-        for(i in seq_len(nrow(temp))) {
+        for(i in seq_len(nrow(temp))){
           y <- as.vector(unlist(temp[i, -1]))
           wat_mat[i, ] <- approx(mod_depths, y, depths, rule = 2)$y
+          # Ensure that the data includes water level fluctuations
+          if(any(is.na(y))){
+            # Set values to NA from this index onwards
+            min_depth_na <- mod_depths[min(which(is.na(y)))]
+            min_ind_na <- min(which(depths <= min_depth_na))
+            wat_mat[i, (min_ind_na : length(wat_mat[i, ]))] <- NA
+          }
         }
+        
         message("Finished interpolating! ",
                 paste0("[", Sys.time(), "]"))
         df <- data.frame(wat_mat)

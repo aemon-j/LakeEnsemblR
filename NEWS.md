@@ -1,3 +1,11 @@
+## version 1.1.5
+
+### Changes
+
+Bug fixes:
+- Fixed error in `export_flow` when using a start or stop date that was not included in the inflow or outflow file
+- Fixed bug in `get_output` which would show wrong NA values in Simstrat temperature output due to water level change when including depths in observation files that were not included in the Simstrat output. 
+
 ## version 1.1.4
 
 ### Changes
