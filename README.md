@@ -4,10 +4,13 @@ LakeEnsemblR
 
 [![R-CMD-check](https://github.com/aemon-j/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/aemon-j/LakeEnsemblR/actions) [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 <a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
+[![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1016/j.envsoft.2021.105101)](https://juleskreuer.eu/projekte/citation-badge/)
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
 
 You can find example setups here: https://github.com/aemon-j/LER_examples.
+
+Check out our published paper [here](https://doi.org/10.1016/j.envsoft.2021.105101).
 
 In v1.1, some changes occurred in the configuration file. If you want to adapt your existing setup, see: https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1
 
