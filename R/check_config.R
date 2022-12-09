@@ -102,6 +102,13 @@ check_master_config <- function(config_file,
   #   as the number of in-/outflows
   configr_master_config <- configr::read.config(file.path(config_file))
   use_inflows <- get_yaml_value(config_file, label = "inflows", key = "use")
+  tryCatch({get_yaml_value(config_file, "inflows", "mass-balance")
+    warning(paste0("The 'mass-balance' argument is no longer used after ",
+                   "version 1.1. If you would like to have outflows ",
+                   "matching the inflows, please add the inflow file ",
+                   "manually to the 'outflows' section. You can use the same ",
+                   "or a different file as for inflows."))},
+    error = function(e) { })
   use_outflows <- get_yaml_value(config_file, label = "outflows", key = "use")
   
   if(!is.null(configr_master_config[["scaling_factors"]][["all"]]

@@ -1,3 +1,10 @@
+## version 1.1.7
+
+### Changes
+
+Bug fixes:
+- Warning message shows up when pre-v1.1 `mass-balance` argument is used, pointing towards a solution when the `outflows` section is missing.
+
 ## version 1.1.6
 
 ### Changes
