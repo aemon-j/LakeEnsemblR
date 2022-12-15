@@ -197,9 +197,16 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   obs <- obs[obs$datetime %in% out_time$datetime, ]
 
   obs_deps <- sort(unique(obs$Depth_meter))
-
+  
+  # check if all entries are unique
+  if(any(duplicated(paste0(obs$datetime, obs$Depth_meter)))){
+    warning(paste0("There are non-unique observations in the observed",
+                   " water temperature file ", obs_file, "!"))
+  }
+  
   # change data format from long to wide
-  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius")
+  obs_out <- dcast(obs, datetime ~ Depth_meter, value.var = "Water_Temperature_celsius",
+                   fun.aggregate = mean, na.rm = TRUE)
   str_depths <- colnames(obs_out)[2:ncol(obs_out)]
   colnames(obs_out) <- c("datetime", paste("wtr_", str_depths, sep = ""))
   obs_out$datetime <- as.POSIXct(obs_out$datetime)
