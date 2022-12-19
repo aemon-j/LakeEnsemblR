@@ -93,7 +93,8 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     # check if all entries are unique
     if(any(duplicated(paste0(obs$datetime, obs$Depth_meter)))) {
       warning(paste0("There are non-unique observations in the observed",
-                     " water temperature file ", obs_file, "!"))
+                     " water temperature file ", obs_file, "! Non-unique ",
+                     "observations are averaged."))
     }
     
     # check for NAs in the observation
