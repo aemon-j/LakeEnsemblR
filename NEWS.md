@@ -3,6 +3,7 @@
 ### Changes
 
 - To convert temperature observations to long-format, the `dcast` function within `run_ensemble` and `cali_ensemble` now uses `mean(..., na.rm = TRUE)` as aggregation function. Previously, this could cause problems in case of non-unique observations (a warning is thrown if these exist).
+- added a check if the mean depth is below 1.5 meters as this could cause the `export_init_cond` function to crash for FLake as `calc_hmix` has a default value of 1.5 m for a minimum depth
 
 ## version 1.1.7
 
