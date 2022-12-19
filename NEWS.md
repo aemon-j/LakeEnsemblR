@@ -1,3 +1,9 @@
+## version 1.1.8
+
+### Changes
+
+- To convert temperature observations to long-format, the `dcast` function within `run_ensemble` and `cali_ensemble` now uses `mean(..., na.rm = TRUE)` as aggregation function. Previously, this could cause problems in case of non-unique observations (a warning is thrown if these exist).
+
 ## version 1.1.7
 
 ### Changes
@@ -45,7 +51,7 @@ Bug fixes:
 ### Changes
 
 Bug fixes:
-- fixed error in formating of Simstrat flow where a flow of 0 would lead to NA in the Simstrat inflow forcing files
+- fixed error in formatting of Simstrat flow where a flow of 0 would lead to NA in the Simstrat inflow forcing files
 
 ## version 1.1.0
 
