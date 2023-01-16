@@ -43,8 +43,9 @@ LHC_model <- function(pars, type, model, var, config_file, met, folder, out_f, o
                          obs_deps = obs_deps, obs_out = obs_out, out_hour = out_hour,
                          qualfun = qualfun, config_f = config_f)
     if(any(is.na(qual_i))) {
-      qual_i <- rep(NA, nout_fun)
-      out_i <- t(c(par_set = pars[p, ncol(pars)], qual_i))
+      names_out_qfun <- colnames(qualfun(c(1, 1), c(0.9, 0.8)))
+      qual_i <- setNames(rep(NA, nout_fun), names_out_qfun)
+      out_i <- t(c(par_id = pars[p, ncol(pars)], qual_i))
     } else {
       # paste parameter values and quality measure
       out_i <- c(par_id = pars[p, ncol(pars)], qual_i)

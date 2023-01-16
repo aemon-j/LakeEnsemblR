@@ -1,3 +1,9 @@
+## version 1.1.9
+
+### Changes
+
+- fixed a bug in the LHC calibration where if a model would crash on the first run the headding of the ouput file would be wrong
+
 ## version 1.1.8
 
 ### Changes
