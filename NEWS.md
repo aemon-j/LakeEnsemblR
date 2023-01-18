@@ -3,6 +3,7 @@
 ### Changes
 
 - fixed a bug in the LHC calibration where if a model would crash on the first run the headding of the ouput file would be wrong
+- Add the number of rows in the hypsograph file to the calculated `max_layers` parameter in GLM, to avoid failure of Lagrangian algorithm
 
 ## version 1.1.8
 

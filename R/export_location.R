@@ -112,9 +112,9 @@ export_location <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "F
     bsn_len <- 2 * bsn_wid
     # Can be overwritten by providing values in the model_parameters section of config_file
 
-    # Calculate max number of layers
+    # Calculate max number of layers - to avoid failure of Lagrangian algorithm
     min_layer_thick <- get_nml_value(nml, "min_layer_thick")
-    max_layers <- round(max_depth / min_layer_thick)
+    max_layers <- round(max_depth / min_layer_thick) + nrow(hyp)
     
     # 2022-02-03: template file in GLM3r, ggplot-overhaul branch does not have crest_elev
     if(!("crest_elev" %in% names(nml[["morphometry"]]))){
