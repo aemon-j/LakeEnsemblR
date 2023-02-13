@@ -265,7 +265,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                      upper = c(p_upper_met, p_upper_kw, p_upper_mod[[m]], recursive = TRUE),
                      lower = c(p_lower_met, p_lower_kw, p_lower_mod[[m]], recursive = TRUE),
                      type = c(rep("met", length(params_met)),
-                              "kw",
+                              rep("kw", length(params_kw)),
                               rep("model", length(params_mod[[m]])), recursive = TRUE),
                      log = c(p_log_met, p_log_kw, log_mod[[m]], recursive = TRUE),
                      stringsAsFactors = FALSE)
