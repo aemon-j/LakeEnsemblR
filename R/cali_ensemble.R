@@ -119,7 +119,6 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                                exportEnv = "R_GlobalEnv")
     return(invisible(job))
   }
-#######
 
 ##----------------- check inputs and set things up -------------------------------------------------
 
@@ -226,6 +225,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   params_met <- sapply(names(cal_section), function(n) cal_section[[n]]$initial)
   p_lower_met <- sapply(names(cal_section), function(n) cal_section[[n]]$lower)
   p_upper_met <- sapply(names(cal_section), function(n) cal_section[[n]]$upper)
+  p_log_met <- sapply(names(cal_section), function(n) cal_section[[n]]$log)
+  # Kw parameter
+  cal_section <- configr_master_config[["calibration"]][["Kw"]]
+  params_kw <- c(Kw = cal_section$initial)
+  p_lower_kw <- c(Kw = cal_section$lower)
+  p_upper_kw <- c(Kw = cal_section$upper)
+  p_log_kw <- c(Kw = cal_section$log)
   # get names of models for which parameter are given
   model_p <- model[model %in% names(configr_master_config[["calibration"]])]
   # model specific parameters
@@ -254,13 +260,14 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   # create a list with parameters for every model
   pars_l <- lapply(model, function(m){
-    df <- data.frame(pars = c(params_met, params_mod[[m]], recursive = TRUE),
-                     name = c(names(params_met), names(params_mod[[m]]), recursive = TRUE),
-                     upper = c(p_upper_met, p_upper_mod[[m]], recursive = TRUE),
-                     lower = c(p_lower_met, p_lower_mod[[m]], recursive = TRUE),
+    df <- data.frame(pars = c(params_met, params_kw, params_mod[[m]], recursive = TRUE),
+                     name = c(names(params_met), names(params_kw), names(params_mod[[m]]), recursive = TRUE),
+                     upper = c(p_upper_met, p_upper_kw, p_upper_mod[[m]], recursive = TRUE),
+                     lower = c(p_lower_met, p_lower_kw, p_lower_mod[[m]], recursive = TRUE),
                      type = c(rep("met", length(params_met)),
+                              "kw",
                               rep("model", length(params_mod[[m]])), recursive = TRUE),
-                     log = c(rep(FALSE, length(params_met)), log_mod[[m]], recursive = TRUE),
+                     log = c(p_log_met, p_log_kw, log_mod[[m]], recursive = TRUE),
                      stringsAsFactors = FALSE)
     colnames(df) <- c("pars", "name", "upper", "lower", "type", "log")
     return(df)

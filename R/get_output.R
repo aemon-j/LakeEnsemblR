@@ -670,8 +670,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                   y = temps[, i],
                                   xout = depths,
-                                  yleft = dplyr::first(na.omit(temps)),
-                                  yright = dplyr::last(na.omit(temps)))$y
+                                  rule = 2)$y
       }
 
       mylake_out[[length(mylake_out) + 1]] <- data.frame("datetime" = dates, temp_interp)

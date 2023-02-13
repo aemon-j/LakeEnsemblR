@@ -1,3 +1,10 @@
+## version 1.2.1
+
+### Changes
+
+- added possibility to calibrate Kw value for all models. to do so they LakeEnsemblR config file needs a new entry `Kw` in the calibration section of the file (see changed LakeEnsemblR.yaml template file)
+- fixed an issue with `get_output()` for MyLake where under dplyr v. 1.1 a crash would occure
+
 ## version 1.1.9
 
 ### Changes
