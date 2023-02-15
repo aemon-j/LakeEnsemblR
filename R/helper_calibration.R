@@ -244,7 +244,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
       # Load MyLake config file
       load(file.path(folder, get_yaml_value(config_file, "config_files", "MyLake")))
       
-      mylake_config[["Bio.par"]][2] <- kw_pars
+      mylake_config[["Bio.par"]][2] <- as.numeric(kw_pars)
       
       cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
       save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
