@@ -1,3 +1,9 @@
+## version 1.2.2
+
+### Changes
+
+- added possibility to set model specific `Kw` values or time series in the config file. If you want to use the same value for all models or just modify the value for a single model you need to supply a value for `all`. Old config files with a single value still work.
+
 ## version 1.2.1
 
 ### Changes
