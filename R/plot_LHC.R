@@ -38,6 +38,8 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   configr_master_config <- read.config(file.path(config_file))
   # meteo parameter
   met_pars <- names(configr_master_config[["calibration"]][["met"]])
+  # kw parameter
+  kw_pars <- "Kw"
   # get names of models for which parameter are given
   model_p <- model[model %in% names(configr_master_config[["calibration"]])]
   # model specific parameters
@@ -71,13 +73,13 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
     if(!(qual_met %in% colnames(res[[m]]))) {
       # availbale metrics
       av_met <- colnames(res[[m]])[!(colnames(res[[m]])) %in% 
-                                     c("par_id", met_pars, model_pars[[m]])]
+                                     c("par_id", met_pars, kw_pars, model_pars[[m]])]
       stop(paste0("Model performance metric ", qual_met, " not available for model ", m,
                   " available metrics: ", paste0(av_met, collapse = ", ")))
     }
     
     # plot all available parameters
-    for (p in c(met_pars, model_pars[[m]])) {
+    for (p in c(met_pars, kw_pars, model_pars[[m]])) {
 
       ret_l[[m]][[p]] <-  ggplot(res[[m]]) + geom_point(aes_string(x = p, y = qual_met)) +
         scale_color_gradient(low="green", high="red") +

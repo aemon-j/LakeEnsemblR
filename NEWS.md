@@ -1,3 +1,16 @@
+## version 1.2.2
+
+### Changes
+
+- added possibility to set model specific `Kw` values or time series in the config file. If you want to use the same value for all models or just modify the value for a single model you need to supply a value for `all`. Old config files with a single value still work.
+
+## version 1.2.1
+
+### Changes
+
+- added possibility to calibrate Kw value for all models. to do so they LakeEnsemblR config file needs a new entry `Kw` in the calibration section of the file (see changed LakeEnsemblR.yaml template file)
+- fixed an issue with `get_output()` for MyLake where under dplyr v. 1.1 a crash would occure
+
 ## version 1.1.9
 
 ### Changes

@@ -154,6 +154,8 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
   par_names <- names(pars)
   # meteo pars
   met_pars <- pars[type == "met"]
+  # Kw pars
+  kw_pars <- pars[type == "kw"]
   # model specific pars
   model_pars <- pars[type == "model"]
 
@@ -163,6 +165,90 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     # scale meteo
     scale_met(met = met, pars = met_pars, model = model,
               out_file = file.path(folder, model, met_name))
+  }
+  
+  if (length(kw_pars) > 0){
+
+    if("FLake" %in% model){
+      
+
+      fla_fil <- get_yaml_value(config_file, "config_files", "FLake")
+      
+      suppressMessages(input_nml(file.path(folder, fla_fil), label = "TRANSPARENCY", key = "extincoef_optic", kw_pars))
+    }
+    
+    if("GLM" %in% model){
+      
+      # Read the GLM config file from config_file, and write it to the GLM directory
+      glm_nml <- get_yaml_value(config_file, "config_files", "GLM")
+      glm_nml <- file.path(folder, glm_nml)
+      
+      # Write to nml: if any, replace the line with Kw_file and put Kw
+      file_con <- file(file.path(glm_nml))
+      glm_string <- readLines(file_con)
+      # find the line with "Kw" in it and write the new line
+      line_nr <- grep("Kw", glm_string)
+      glm_string[line_nr] <- paste("   Kw =", kw_pars)
+      
+      # Write nml file
+      writeLines(glm_string, glm_nml)
+      close(file_con)
+      
+    }
+    
+    if("GOTM" %in% model){
+      
+      # Read the GOTM config file from config_file, and write it to the GOTM directory
+      got_yaml <- get_yaml_value(config_file, "config_files", "GOTM")
+      got_yaml <- file.path(folder, got_yaml)
+      
+      suppressMessages(gotmtools::input_yaml(got_yaml, "g2", "method", 0))
+      suppressMessages(gotmtools::input_yaml(got_yaml, "g2", "constant_value", 1 / kw_pars))
+     
+    }
+    
+    if("Simstrat" %in% model){
+      
+      # Read the Simstrat config file from config_file, and write it to the Simstrat directory
+      sim_par <- get_yaml_value(config_file, "config_files", "Simstrat")
+      sim_par <- file.path(folder, sim_par)
+      
+      light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
+      file.copy(from = light_fil, to = file.path(folder, "Simstrat", "light_absorption.dat"))
+      
+      suppressMessages(input_json(sim_par, "Input", "Absorption", '"light_absorption.dat"'))
+      
+      # Write absorption file
+      absorption_line_1 <- "Time [d] (1.col)    z [m] (1.row)    Absorption [m-1] (rest)"
+      absorption_line_2 <- "1"
+      absorption_line_3 <- "-1 -1.00"
+      
+
+      start_sim <- get_json_value(sim_par, "Simulation", "Start d")
+      end_sim <- get_json_value(sim_par, "Simulation", "End d")
+      absorption_line_4 <- paste(start_sim, kw_pars)
+      absorption_line_5 <- paste(end_sim, kw_pars)
+      
+      file_connection <- file("Simstrat/light_absorption.dat")
+      writeLines(c(absorption_line_1, absorption_line_2, absorption_line_3,
+                   absorption_line_4, absorption_line_5),
+                 file_connection)
+      close(file_connection)
+      
+      
+    }
+    
+    if("MyLake" %in% model){
+      
+      
+      # Load MyLake config file
+      load(file.path(folder, get_yaml_value(config_file, "config_files", "MyLake")))
+      
+      mylake_config[["Bio.par"]][2] <- as.numeric(kw_pars)
+      
+      cnf_name <- gsub(".*/", "", gotmtools::get_yaml_value(config_file, "config_files", "MyLake"))
+      save(mylake_config, file = file.path(folder, "MyLake", cnf_name))
+    }
   }
 
   if (length(model_pars) > 0){
