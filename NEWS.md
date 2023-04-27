@@ -1,3 +1,8 @@
+## version 1.2.3
+
+### Changes
+
+- fixed a small mistake with the model specific `Kw` values
 ## version 1.2.2
 
 ### Changes
