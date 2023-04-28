@@ -1,3 +1,8 @@
+## version 1.2.4
+
+### Changes
+
+- fixed a mistake with when time series of `Kw` values were given
 ## version 1.2.3
 
 ### Changes
