@@ -37,7 +37,8 @@ export_extinction <- function(config_file,
   model <- check_models(model)
   
   # Check if the value in the config file is a fixed value, or a file (time series)
-  Kw <- get_yaml_value(config_file, "light", "Kw")
+  Kw <- tryCatch(get_yaml_value(config_file, "light", "Kw"),
+                 error = function(e)"")
   
   if(Kw == "") {
     Kw <- configr::read.config(config_file)$input$light$Kw
