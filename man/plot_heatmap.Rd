@@ -10,7 +10,9 @@ plot_heatmap(
   dim = "model",
   dim_index = 1,
   var_list = NULL,
-  model = NULL
+  model = NULL,
+  tile_width = NULL,
+  tile_height = NULL
 )
 }
 \arguments{
@@ -25,6 +27,8 @@ plot_heatmap(
 \item{var_list}{list of variables in the format when loaded using `load_var()`. Defaults to NULL}
 
 \item{model}{Vector of models which should be included in the plot}
+
+\item{tile_width}{height of tiles in geom_tile. Default to NULL to determine automatically}
 }
 \value{
 ggplot object of heatmaps
@@ -35,10 +39,10 @@ Plot a heat map of ensemble output data. It can either plot directly from the ne
 \examples{
 \dontrun{
 ncdf <- 'output/ensemble_output.nc'
-# Plot ensemble mean at 0.9m
-plot_ensemble(ncdf = ncdf, model = model, var = 'temp', depth = 0.9)
+# Plot heat maps
+plot_heatmap(ncdf = ncdf, model = model, var = "temp")
 }
 }
 \author{
-Tadhg Moore, Johannes Feldbauer
+Tadhg Moore, Johannes Feldbauer, Jorrit Mesman
 }

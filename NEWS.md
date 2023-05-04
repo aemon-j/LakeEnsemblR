@@ -1,8 +1,15 @@
+## version 1.2.4
+
+### Changes
+
+- New version of the `plot_heatmap` function, as the old version could show unintended shifts or white lines with certain data compositions
+
 ## version 1.2.3
 
 ### Changes
 
 - fixed a small mistake with the model specific `Kw` values
+
 ## version 1.2.2
 
 ### Changes
