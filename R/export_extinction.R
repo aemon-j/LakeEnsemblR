@@ -64,10 +64,10 @@ export_extinction <- function(config_file,
         
         start_time_series <- as.POSIXct(get_yaml_value(config_file, "time", "start"))
         end_time_series <- as.POSIXct(get_yaml_value(config_file, "time", "stop"))
-        Kw_mylake <- time_average(Kw_file,
-                                  start = start_time_series,
-                                  end = end_time_series,
-                                  n = 1000)
+        Kw_flake <- time_average(Kw_file,
+                                 start = start_time_series,
+                                 end = end_time_series,
+                                 n = 1000)
       }
     }
     if(is.null(Kw$GLM)) {
@@ -123,17 +123,17 @@ export_extinction <- function(config_file,
       
       # Calculate time-averaged extinction coefficient, for models that can only
       # use a constant value
-      Kw <- time_average(Kw_file,
+      Kw_c <- time_average(Kw_file,
                          start = start_time_series,
                          end = end_time_series,
                          n = 1000)
     }
     
-    Kw_flake <- Kw
+    Kw_flake <- Kw_c
     Kw_glm <- Kw
     Kw_gotm <- Kw
     Kw_simstrat <- Kw
-    Kw_mylake <- Kw
+    Kw_mylake <- Kw_c
     constant_value_flake <- constant_value
     constant_value_glm <- constant_value
     constant_value_gotm <- constant_value
@@ -174,7 +174,8 @@ export_extinction <- function(config_file,
       close(file_con)
     }else{
       # Write csv file
-      Kw_GLM <- Kw_file_glm
+      Kw_GLM <- read.csv(file.path(folder, Kw_glm))
+      Kw_GLM$datetime <- as.POSIXct(Kw_GLM$datetime)
       colnames(Kw_GLM) <- c("Date", "Kd") # sic
       write.csv(Kw_GLM, file.path(folder, "GLM", "Kw_GLM.csv"), row.names = FALSE, quote = FALSE)
 
@@ -206,7 +207,8 @@ export_extinction <- function(config_file,
       gotmtools::input_yaml(got_yaml, "g2", "method", 2)
 
       # Write GOTM g2 file to the GOTM folder
-      Kw_GOTM <- Kw_file_gotm
+      Kw_GOTM <- read.csv(file.path(folder, Kw_gotm))
+      Kw_GOTM$datetime <- as.POSIXct(Kw_GOTM$datetime)
       Kw_GOTM$datetime <- format(Kw_GOTM$datetime, "%Y-%m-%d %H:%M:%S")
       Kw_GOTM$Extinction_Coefficient_perMeter <- 1 / Kw_GOTM$Extinction_Coefficient_perMeter
       colnames(Kw_GOTM)[2] <- "g2"
@@ -250,7 +252,8 @@ export_extinction <- function(config_file,
       close(file_connection)
     }else{
       # Change POSIXct into the Simstrat time format
-      Kw_Simstrat <- Kw_file_simstrat
+      Kw_Simstrat <- read.csv(file.path(folder, Kw_simstrat))
+      Kw_Simstrat$datetime <- as.POSIXct(Kw_Simstrat$datetime)
       reference_year <- get_json_value(sim_par, "Simulation", "Start year")
       Kw_Simstrat$datetime <- as.numeric(difftime(Kw_Simstrat$datetime,
                                                   as.POSIXct(paste0(reference_year, "-01-01")),
