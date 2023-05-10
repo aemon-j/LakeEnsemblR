@@ -113,6 +113,7 @@ export_extinction <- function(config_file,
   } else {
     if(is.numeric(Kw)){
       constant_value <- TRUE
+      Kw_c <- Kw
     }else{
       constant_value <- FALSE
       Kw_file <- read.csv(file.path(folder, Kw))
