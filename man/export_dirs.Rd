@@ -21,8 +21,4 @@ Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 \description{
 Creates directories with file setups for each model, based on the master LakeEnsemblR config file
 }
-\examples{
-
-
-}
 \keyword{methods}

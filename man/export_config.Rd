@@ -56,9 +56,6 @@ configuration file. Calls export_model_parameters. Defaults to TRUE.}
 \description{
 Exports all settings from the master LakeEnsemblR config file
 }
-\examples{
-
-}
 \author{
 Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 }
