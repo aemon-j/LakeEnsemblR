@@ -16,6 +16,7 @@ cali_ensemble(
   folder = ".",
   spin_up = NULL,
   out_f = "cali",
+  ncores = NULL,
   ...
 )
 }
@@ -48,6 +49,9 @@ https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/}
 \item{spin_up}{numeric; Number of days to disregard as spin-up for analysis.}
 
 \item{out_f}{character; name of the folder to store results into}
+
+\item{ncores}{numeric; number of cores to be used. If NULL, will default to 
+`parallel::detectCores() - 1`.}
 
 \item{...}{additional arguments passed to FME::modFit or FME::modMCMC. Only used when method is
 modFit or MCMC}

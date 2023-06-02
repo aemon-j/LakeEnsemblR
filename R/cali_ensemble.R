@@ -21,6 +21,8 @@
 #' @param job_name character; optional name to use as an RStudio job and as output variable
 #'  name. It has to be a syntactically valid name. Check out this webpage for more info on jobs:
 #'  https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/
+#' @param ncores numeric; number of cores to be used. If NULL, will default to 
+#'    `parallel::detectCores() - 1`.
 #' @param ... additional arguments passed to FME::modFit or FME::modMCMC. Only used when method is
 #'    modFit or MCMC
 #' @details Parallelisation is done using the `parallel` package and `parLapply()`. The number of
@@ -69,7 +71,8 @@
 cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = "LHC",
                           qualfun = qual_fun, parallel = FALSE, job_name,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
-                          folder = ".", spin_up = NULL, out_f = "cali", ...) {
+                          folder = ".", spin_up = NULL, out_f = "cali",
+                          ncores = NULL, ...) {
 
 
   # ---- Send to RStudio Jobs -----
@@ -422,7 +425,10 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   if(parallel){
     
-    ncores <- 2 #parallel::detectCores() - 1
+    if (is.null(ncores)) {
+      ncores <- parallel::detectCores() - 1
+    }
+    
     cl <- parallel::makeCluster(ncores)
     on.exit(parallel::stopCluster(cl))
     parallel::clusterExport(cl, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
@@ -487,7 +493,6 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
           # Bind all the results together and write to file
           g1 <- do.call(rbind, model_out)
           g1
-          print(g1)
           out_name <- paste0(m, "_", outf_n, ".csv")
           # switch if file is existing
           flsw <- file.exists(file.path(oldwd, out_f, out_name))
