@@ -276,7 +276,7 @@ test_that("can calibrate models", {
   cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
-  testthat::expect_true(length(list.files("cali")) == 10 )
+  testthat::expect_true(length(list.files("cali")) == 10)
 })
 
 test_that("can calibrate models in parallel", {
@@ -290,11 +290,12 @@ test_that("can calibrate models in parallel", {
                 folder = ".")
   
   # 2. Calibrate models
-  cali_ensemble(config_file = config_file, cmethod = "LHC", num = 10,
-                model = model, 
-                parallel = TRUE)
+  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC", num = 10,
+                           model = model,
+                           parallel = TRUE, ncores = 2)
+  chk <- all(!is.na(unlist(cal_out)))
   
-  testthat::expect_true(length(list.files("cali")) == 10 )
+  testthat::expect_true(chk)
 })
 
 test_that("check plots", {
