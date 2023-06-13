@@ -77,9 +77,9 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
 
   if(use_outflows){
     # number of outflows
-    num_outflows <- get_yaml_value(config_file, "outflows", "number_outflows")
+    num_outflows <- yml_fl$outflows$number_outflows
     # outflow depths
-    lvl_outflows <- get_yaml_value(config_file, "outflows", "outflow_lvl")
+    lvl_outflows <- yml_fl$outflows$outflow_lvl
     # Get scaling parameter
     if(!is.null(yml_fl$scaling_factors$all$outflow)){
       scale_param_out <- get_yaml_value(file = config_file, "all", "outflow")
