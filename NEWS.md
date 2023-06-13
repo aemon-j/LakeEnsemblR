@@ -1,3 +1,10 @@
+## version 1.2.6
+
+### Changes
+
+- Rewrote the LHC calibration in parallel mode so that it can parallelize for each model rather than by model and thus speeds up the LHC in parallel.
+- Correspong update in MyLakeR which resets the working directory after running the model.
+
 ## version 1.2.5
 
 ### Changes
