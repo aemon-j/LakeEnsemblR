@@ -1,3 +1,10 @@
+## version 1.2.5
+
+### Changes
+
+- fixed a bug with multiple outflows that would get `export_flow()` to crash
+- fixed another small bug with the recent changes in `Kw`
+
 ## version 1.2.4
 
 ### Changes
