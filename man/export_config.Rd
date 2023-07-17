@@ -56,6 +56,15 @@ configuration file. Calls export_model_parameters. Defaults to TRUE.}
 \description{
 Exports all settings from the master LakeEnsemblR config file
 }
+\examples{
+\dontrun{
+config_file <- "LakeEnsemblR.yaml"
+export_config(config_file = config_file,
+              model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+              folder = ".")
+}
+
+}
 \author{
 Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
 }
