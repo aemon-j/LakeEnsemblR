@@ -279,7 +279,7 @@ test_that("can calibrate models", {
   testthat::expect_true(length(list.files("cali")) == 10)
 })
 
-test_that("can calibrate models in parallel", {
+test_that("can calibrate models in parallel using old LHC", {
   
   # 1. Example - creates directories with all model setup
   file.remove("output/ensemble_output.nc")
@@ -290,9 +290,27 @@ test_that("can calibrate models in parallel", {
                 folder = ".")
   
   # 2. Calibrate models
-  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC", num = 10,
-                           model = model,
-                           parallel = TRUE, ncores = 2)
+  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC_old", 
+                           num = 10, model = model, parallel = TRUE, ncores = 2)
+  chk <- all(!is.na(unlist(cal_out)))
+  
+  testthat::expect_true(chk)
+})
+
+test_that("can calibrate models in parallel using new LHC", {
+  
+  # 1. Example - creates directories with all model setup
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  export_config(config_file = config_file,
+                model = model,
+                folder = ".")
+  
+  # 2. Calibrate models
+  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC",
+                           out_f =  "LHC",
+                           num = 10, model = model, parallel = TRUE, ncores = 2)
   chk <- all(!is.na(unlist(cal_out)))
   
   testthat::expect_true(chk)

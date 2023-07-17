@@ -29,8 +29,8 @@ num = number of parameters in that file.}
 \item{param_file}{file path; to previously created parameter file set. If NULL creates a new
 parameter set. Defaults to NULL}
 
-\item{cmethod}{character; Method for calibration. Can be "LHC", "MCMC" or "modFit".
-Defaults to "LHC"}
+\item{cmethod}{character; Method for calibration. Can be "LHC", "LHC_model,
+"MCMC" or "modFit". Defaults to "LHC"}
 
 \item{qualfun}{function; function that calculates measure of fit from observed and simulated
 variables, takes the two arguments Observed and Simulated}
