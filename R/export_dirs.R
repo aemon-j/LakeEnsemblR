@@ -7,8 +7,6 @@
 #'  Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")
 #'@param folder folder
 #'@keywords methods
-#'@examples
-#'
 #'
 #'@export
 

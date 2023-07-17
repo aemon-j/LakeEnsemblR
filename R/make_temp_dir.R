@@ -8,8 +8,6 @@
 #'
 #' @return vector of temporary directories.
 #' @export
-#'
-#' @examples
 make_temp_dir <- function(model, folder = ".", n = 2) {
   
   oldwd <- getwd()
