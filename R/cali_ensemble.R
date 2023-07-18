@@ -7,8 +7,10 @@
 #' num = number of parameters in that file.
 #' @param param_file file path; to previously created parameter file set. If NULL creates a new
 #' parameter set. Defaults to NULL
-#' @param cmethod character; Method for calibration. Can be "LHC", "LHC_model,
-#'  "MCMC" or "modFit". Defaults to "LHC"
+#' @param cmethod character; Method for calibration. Can be "LHC", "LHC_old,
+#'  "MCMC" or "modFit". Defaults to "LHC". LHC and LHC_old only differ in the
+#'  way the parallelization is set up, whereas the new and default LHC version is
+#'  more efficient and LHC_old is only kept for possible backwards compatibility.
 #' @param config_file file path; to LakeEnsemblr yaml master config file
 #' @param model vector; model to export driving data. Options include c("GOTM", "GLM", "Simstrat",
 #' "FLake", "MyLake")
@@ -23,10 +25,11 @@
 #'  https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/
 #' @param ncores numeric; number of cores to be used. If NULL, will default to 
 #'    `parallel::detectCores() - 1`.
+#' @param tmp_dir location where the temporary files for LHC calibration in parallel are stored
 #' @param ... additional arguments passed to FME::modFit or FME::modMCMC. Only used when method is
 #'    modFit or MCMC
 #' @details Parallelisation is done using the `parallel` package and `parLapply()`. The number of
-#'    cores used is set to the number of available cores minus one.
+#'    cores used is set to the value specified in `ncores`.
 #'
 #' @examples
 #' \dontrun{
@@ -72,7 +75,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
                           qualfun = qual_fun, parallel = FALSE, job_name,
                           model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
                           folder = ".", spin_up = NULL, out_f = "cali",
-                          ncores = NULL, ...) {
+                          ncores = NULL, tmp_dir = NULL, ...) {
 
 
   # ---- Send to RStudio Jobs -----
@@ -136,7 +139,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # check the master config file
   check_master_config(config_file, model)
 
-  # It"s advisable to set timezone to GMT in order to avoid errors when reading time
+  # It's advisable to set timezone to GMT in order to avoid errors when reading time
   original_tz <- Sys.getenv("TZ")
   Sys.setenv(TZ = "UTC")
   tz <- "UTC"
@@ -150,7 +153,6 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   on.exit({
     setwd(oldwd)
     Sys.setenv(TZ = original_tz)
-    
     # Remove temporary files
     if(file.exists(file.path(folder, "LER_CNFG_TMP.yaml"))){
       file.remove(file.path(folder, "LER_CNFG_TMP.yaml"))
@@ -161,15 +163,15 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   # path to master config file
   yaml <- file.path(folder, config_file)
   # get setup parameter
-  start <- gotmtools::get_yaml_value(file = yaml, label = "time", key = "start")
-  stop <- gotmtools::get_yaml_value(file = yaml, label = "location", key = "stop")
+  start <- gotmtools::get_yaml_value(yaml, label = "time", key = "start")
+  stop <- gotmtools::get_yaml_value(yaml, label = "location", key = "stop")
   obs_file <- gotmtools::get_yaml_value(file = yaml, label = "temperature", key = "file")
-  time_unit <- gotmtools::get_yaml_value(config_file, "output", "time_unit")
-  time_step <- gotmtools::get_yaml_value(config_file, "output", "time_step")
-  cnfg_l <- lapply(model, function(m) gotmtools::get_yaml_value(config_file, "config_files", m))
+  time_unit <- gotmtools::get_yaml_value(yaml, "output", "time_unit")
+  time_step <- gotmtools::get_yaml_value(yaml, "output", "time_step")
+  cnfg_l <- lapply(model, function(m) gotmtools::get_yaml_value(yaml, "config_files", m))
   names(cnfg_l) <- model
   met_timestep <- get_meteo_time_step(file.path(folder,
-                                                gotmtools::get_yaml_value(config_file, "meteo", "file")))
+                                                gotmtools::get_yaml_value(yaml, "meteo", "file")))
 
 ##----------------- read in observed data  ---------------------------------------------------------
 
@@ -223,7 +225,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
   ## use initial values from master config file as starting values
   # load master config file
-  configr_master_config <- configr::read.config(file.path(folder, config_file))
+  configr_master_config <- configr::read.config(yaml)
   # meteo parameter
   cal_section <- configr_master_config[["calibration"]][["met"]]
   params_met <- sapply(names(cal_section), function(n) cal_section[[n]]$initial)
@@ -353,8 +355,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   if(file.exists(file.path(folder, "LER_CNFG_TMP.yaml"))){
     stop("The file 'LER_CNFG_TMP.yaml' exists in your folder and this is a reserved file name!")
   }else{
-    file.copy(file.path(folder, config_file),
-              file.path(folder, "LER_CNFG_TMP.yaml"))
+    file.copy(yaml, file.path(folder, "LER_CNFG_TMP.yaml"))
   }
   
   # If scaling factors are in the calibration section, set them to 1.0 in the TMP file
@@ -432,11 +433,6 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     
     cl <- parallel::makeCluster(ncores)
     on.exit(parallel::stopCluster(cl))
-    parallel::clusterExport(cl, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
-                                        "folder", "out_f", "cnfg_l", "obs_deps",
-                                        "obs_out", "out_hour", "qualfun",
-                                        "outf_n"),
-                  envir = environment())
     parallel::clusterExport(cl = cl, 
                             unclass(lsf.str(envir = asNamespace("LakeEnsemblR"), 
                                             all = T)),
@@ -444,6 +440,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
     )
     
     if (cmethod == "LHC_old") {
+      parallel::clusterExport(cl, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
+                                                 "folder", "out_f", "cnfg_l", "obs_deps",
+                                                 "obs_out", "out_hour", "qualfun",
+                                                 "outf_n"),
+                              envir = environment())
       message("\nStarted parallel LHC [", Sys.time(), "]\n")
       model_out <- setNames(
         parLapply(cl, model, function(m) LHC_model(pars = pars_lhc[[m]],
@@ -466,14 +467,18 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
       model_out <- setNames(
         lapply(model, \(m) {
         
-          temp_dirs <- make_temp_dir(model = m, folder = folder, n = ncores)
+          temp_dirs <- make_temp_dir(model = m, folder = folder, n = ncores,
+                                     tmp_dir = tmp_dir)
           param_list <- split(pars_lhc[[m]], rep(1:ncores))
           type <- pars_l[[m]]$type
           met <- met_l[[m]]
           config_f <- cnfg_l[[m]]
           
           varlist = list("config_file", "m", "temp_dirs", "type", "met",
-                         "obs_out", "out_hour","config_f", "nout_fun")
+                         "obs_out", "out_hour","config_f", "nout_fun",
+                         "qualfun", "folder", "out_f", "obs_deps",
+                         "outf_n")
+          
           parallel::clusterExport(cl, varlist = varlist,
                                   envir = environment())
           message(m, ": Starting LHC calibration with ", num, " parameters using ", 
@@ -513,7 +518,7 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
           
           # Bind all the results together and write to file
           g1 <- do.call(rbind, model_out)
-          g1
+          g1 <- g1[order(g1$par_id), ]
           out_name <- paste0(m, "_", outf_n, ".csv")
           # switch if file is existing
           flsw <- file.exists(file.path(oldwd, out_f, out_name))
@@ -524,9 +529,21 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
           }),
         model)
     }
+
+    # if own filepath for temp dirs was provided delete files on exit
+    on.exit({
+      if(!is.null(tmp_dir)) {
+      unlink(tmp_dir, recursive = TRUE, force = TRUE)
+      }
+    })
 ##------------------------- parallel MCMC calibration ----------------------------------------------
 
     if(cmethod == "MCMC") {
+      parallel::clusterExport(cl, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
+                                                 "folder", "out_f", "cnfg_l", "obs_deps",
+                                                 "obs_out", "out_hour", "qualfun",
+                                                 "outf_n"),
+                              envir = environment())
       message("\nStarted parallel MCMC\n")
       model_out <- setNames(
         parLapply(cl, model, function(m){
@@ -558,6 +575,11 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
 
 ##------------------------- parallel modFit calibration ------------------------------------------
     if(cmethod == "modFit") {
+      parallel::clusterExport(cl, varlist = list("pars_lhc", "pars_l", "model", "config_file", "met_l",
+                                                 "folder", "out_f", "cnfg_l", "obs_deps",
+                                                 "obs_out", "out_hour", "qualfun",
+                                                 "outf_n"),
+                              envir = environment())
       message("\nStarted parallel modFit\n")
       model_out <- setNames(
         parLapply(cl, model, function(m){

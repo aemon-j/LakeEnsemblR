@@ -8,7 +8,7 @@
 #'
 #' @return vector of temporary directories.
 #' @export
-make_temp_dir <- function(model, folder = ".", n = 2) {
+make_temp_dir <- function(model, folder = ".", n = 2, tmp_dir = NULL) {
   
   oldwd <- getwd()
   cfg_file <- list.files(oldwd, pattern = "LER_CNFG_TMP", full.names = TRUE)
@@ -21,12 +21,18 @@ make_temp_dir <- function(model, folder = ".", n = 2) {
   fils <- fils[!grepl("nc", fils)]
 
   temp_dirs <- sapply(1:n, \(n) {
-    dir <- file.path(tempdir(), paste0("n_", n), model)
+    if(is.null(tmp_dir)) {
+      tmp_dir <- tempdir()
+    } else {
+      tmp_dir <- file.path(tmp_dir, tempdir())
+    }
+    dir <- file.path(tmp_dir, paste0("n_", n), model)
     unlink(dir, recursive = TRUE, force = TRUE)
     dir.create(dir, recursive = TRUE)
     dir.create(file.path(dir, "output"), recursive = TRUE)
     file.copy(cfg_file, file.path(tempdir(), paste0("n_", n)), recursive = TRUE)
     file.copy(fils, dir, recursive = TRUE)
-    file.path(tempdir(), paste0("n_", n))
+    return(file.path(tmp_dir, paste0("n_", n)))
   })
+  return(temp_dirs)
 }
