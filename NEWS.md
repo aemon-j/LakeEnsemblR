@@ -1,3 +1,11 @@
+## version 1.2.6
+
+### Changes
+
+- addition to the bug fix from v1.2.1 (related to a change in the dplyr package), but now also applied when density and salinity output are requested
+- bug fix: an issue could occur if output variables were requested in a different order than used by the `get_output` function, which has been solved
+- water level changes are now handled correctly for GOTM salinity and density (previously only temperature)
+
 ## version 1.2.5
 
 ### Changes
