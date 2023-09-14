@@ -741,8 +741,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       dens_interp <- 999.842594 + (6.793952 * 10^-2 * temp_interp) - (9.095290 * 10^-3 * temp_interp^2) +
         (1.001685 * 10^-4 * temp_interp^3) - (1.120083 * 10^-6 * temp_interp^4) + (6.536336 * 10^-9 * temp_interp^5)
@@ -777,8 +776,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       salt_interp <- temp_interp * NaN
 
