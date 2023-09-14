@@ -22,14 +22,14 @@
 create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
                                  longitude = 0, latitude = 0, compression = 4,
                                  members = 25, out_file = "ensemble_output.nc"){
-
+  
   # Creat output directory
   if(!dir.exists(file.path(folder, "output"))) {
     message("Creating directory for output: ", file.path(folder, "output"))
     dir.create(file.path(folder, "output"), showWarnings = FALSE)
   }
-
-
+  
+  
   #Create ncdf
   message("Writing NetCDF file... [", Sys.time(), "]")
   ref_time <- as.POSIXct("1970-01-01 00:00:00", tz = "GMT") # Reference time for netCDF time
@@ -40,26 +40,26 @@ create_netcdf_output <- function(output_lists, folder = ".", model, out_time,
   # Define lon and lat dimensions
   lon1 <- ncdf4::ncdim_def("lon", "degrees_east", vals = as.double(xvals))
   lat2 <- ncdf4::ncdim_def("lat", "degrees_north", vals = as.double(yvals))
-
+  
   # Set dimensions
   # Time dimension
   timedim <- ncdf4::ncdim_def("time", units = "seconds since 1970-01-01 00:00:00",
                        vals = as.double(nsecs), calendar = "proleptic_gregorian")
-
+  
   # Define model dimensions
   mod_names <- c(model, "Obs")
   moddim <- ncdf4::ncdim_def("model", units = "-",
                              vals = as.double(seq_len(length(mod_names))))
-
+  
   # Define member dimensions
   memdim <- ncdf4::ncdim_def("member", units = "", unlim = TRUE,
                              vals = as.double(seq_len(members)))
-
+  
   fillvalue <- 1e20 # Fill value
   missvalue <- 1e20 # Missing value
-
+  
   nc_vars <- list() #Initialize empty list to fill netcdf variables
-
+  
   for(i in seq_len(length(output_lists))){
     # Get variable name (e.g. "temp" from "temp_list")
     splitted_name <- strsplit(names(output_lists[[i]])[1], "_")[[1]]
