@@ -7,7 +7,7 @@
 #' @param n integer; number of directories to create.
 #'
 #' @return vector of temporary directories.
-#' @export
+#' @noRd
 make_temp_dir <- function(model, folder = ".", n = 2, tmp_dir = NULL) {
   
   oldwd <- getwd()
