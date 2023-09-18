@@ -353,11 +353,13 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   
   # Do not work in original file
   if(file.exists(file.path(folder, "LER_CNFG_TMP.yaml"))){
-    stop("The file 'LER_CNFG_TMP.yaml' exists in your folder and this is a reserved file name!")
-  }else{
-    file.copy(yaml, file.path(folder, "LER_CNFG_TMP.yaml"))
+    
+    warning(strwrap("The file 'LER_CNFG_TMP.yaml' exists in your folder which
+                    is a reserved file name. This will be overwritten."))
+    unlink(file.path(folder, "LER_CNFG_TMP.yaml"))
   }
-  
+  file.copy(yaml, file.path(folder, "LER_CNFG_TMP.yaml"))
+
   # If scaling factors are in the calibration section, set them to 1.0 in the TMP file
   lst_config_tmp <- configr::read.config(file.path(folder, "LER_CNFG_TMP.yaml"))
   scfctrs_to_calibrate <- names(lst_config_tmp[["calibration"]][["met"]])

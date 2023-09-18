@@ -17,6 +17,7 @@ cali_ensemble(
   spin_up = NULL,
   out_f = "cali",
   ncores = NULL,
+  tmp_dir = NULL,
   ...
 )
 }
@@ -29,8 +30,10 @@ num = number of parameters in that file.}
 \item{param_file}{file path; to previously created parameter file set. If NULL creates a new
 parameter set. Defaults to NULL}
 
-\item{cmethod}{character; Method for calibration. Can be "LHC", "LHC_model,
-"MCMC" or "modFit". Defaults to "LHC"}
+\item{cmethod}{character; Method for calibration. Can be "LHC", "LHC_old,
+"MCMC" or "modFit". Defaults to "LHC". LHC and LHC_old only differ in the
+way the parallelization is set up, whereas the new and default LHC version is
+more efficient and LHC_old is only kept for possible backwards compatibility.}
 
 \item{qualfun}{function; function that calculates measure of fit from observed and simulated
 variables, takes the two arguments Observed and Simulated}
@@ -53,6 +56,8 @@ https://blog.rstudio.com/2019/03/14/rstudio-1-2-jobs/}
 \item{ncores}{numeric; number of cores to be used. If NULL, will default to 
 `parallel::detectCores() - 1`.}
 
+\item{tmp_dir}{location where the temporary files for LHC calibration in parallel are stored}
+
 \item{...}{additional arguments passed to FME::modFit or FME::modMCMC. Only used when method is
 modFit or MCMC}
 }
@@ -61,7 +66,7 @@ Use one of three methods to calibrate specified models.
 }
 \details{
 Parallelisation is done using the `parallel` package and `parLapply()`. The number of
-   cores used is set to the number of available cores minus one.
+   cores used is set to the value specified in `ncores`.
 }
 \examples{
 \dontrun{

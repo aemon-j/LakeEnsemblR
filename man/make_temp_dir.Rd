@@ -4,7 +4,7 @@
 \alias{make_temp_dir}
 \title{Create temporary directories from model folders.}
 \usage{
-make_temp_dir(model, folder = ".", n = 2)
+make_temp_dir(model, folder = ".", n = 2, tmp_dir = NULL)
 }
 \arguments{
 \item{model}{string; for which model. Options are c("dy_cd", "glm_aed" and
