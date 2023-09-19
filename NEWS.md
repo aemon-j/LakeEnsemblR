@@ -2,6 +2,9 @@
 
 ### Changes
 
+- addition to the bug fix from v1.2.1 (related to a change in the dplyr package), but now also applied when density and salinity output are requested
+- bug fix: an issue could occur if output variables were requested in a different order than used by the `get_output` function, which has been solved
+- water level changes are now handled correctly for GOTM salinity and density (previously only temperature)
 - Rewrote the LHC calibration in parallel mode so that it can parallelize for each model rather than by model and thus speeds up the LHC in parallel. 
 - From feedback from Jorrit and Johannes, this has been added as `cmethod = "LHC"` where the original LHC mode is preserved as `cmethod = "LHC_old"`.
 - Corresponding update in MyLakeR which resets the working directory after running the model.

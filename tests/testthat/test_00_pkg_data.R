@@ -316,6 +316,21 @@ test_that("can calibrate models in parallel using new LHC", {
   testthat::expect_true(chk)
 })
 
+test_that("can generate all output vars", {
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  input_yaml(config_file, label = "output", key = "format", value = "netcdf")
+  input_yaml_multiple(config_file, key1 = "output", key2 = "variables",
+                      value = c("temp", "salt", "dens", "ice_height", "w_level", "q_sens", "q_lat"))
+  
+  export_config(config_file = config_file, model = model)
+  run_ensemble(config_file = config_file,
+               model = model)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
 test_that("check plots", {
 
   # Change to netcdf output

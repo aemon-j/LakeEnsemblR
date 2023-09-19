@@ -162,10 +162,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 ##--------------------------- GOTM ------------------------------------------------
 
   if("GOTM" %in% model){
-
+    
     got_out <- list()
     if("temp" %in% vars){
-
       temp <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
                        print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
@@ -184,7 +183,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(temp, z, depths = depths, print = T)
@@ -199,14 +198,13 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       got <- as.data.frame(got)
       idz <- which(got_wlvl == T, arr.ind = T)
       idz[, 2] <- idz[, 2] + 1
-      got[idz] <-NA
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "temp"
-
     }
 
     if("ice_height" %in% vars){
@@ -216,10 +214,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       #                        var = "Hfrazil", print = FALSE)
       # ice_height[,2] <- ice_height[,2] + ice_frazil[,2]
       colnames(ice_height) <- c("datetime", "ice_height")
-
+      
       got_out[[length(got_out) + 1]] <- ice_height
       names(got_out)[length(got_out)] <- "ice_height"
-
     }
     
     if("w_level" %in% vars){
@@ -231,7 +228,6 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- w_level
       names(got_out)[length(got_out)] <- "w_level"
-      
     }
 
     if("q_sens" %in% vars){
@@ -241,7 +237,6 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- q_sens
       names(got_out)[length(got_out)] <- "q_sens"
-      
     }
     
     if("q_lat" %in% vars){
@@ -251,17 +246,17 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- q_lat
       names(got_out)[length(got_out)] <- "q_lat"
-      
     }
     
 
     if("dens" %in% vars){
-
       density <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "rho",
                        print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
-
+      z[, 2:ncol(z)] <- t(apply(z[, 2:ncol(z)], 1, 
+                                function(x) as.numeric(x) - max(as.numeric(x))))
+      
       # Add in obs depths which are not in depths and less than mean depth
       depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
@@ -272,32 +267,40 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(density, z, depths = depths, print = T)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
-
+      
       got <- dcast(got, date ~ depths)
+      
+      # check water level fluctuations
+      got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
+                                                         (as.numeric(colnames(got)[-1]))))))
+      got <- as.data.frame(got)
+      idz <- which(got_wlvl == T, arr.ind = T)
+      idz[, 2] <- idz[, 2] + 1
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "dens"
-
     }
 
     if("salt" %in% vars){
-
       salinity <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "salt",
                           print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
-
+      z[, 2:ncol(z)] <- t(apply(z[, 2:ncol(z)], 1, 
+                                function(x) as.numeric(x) - max(as.numeric(x))))
+      
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -306,21 +309,28 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(salinity, z, depths = depths, print = T)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
-
+      
       got <- dcast(got, date ~ depths)
+      
+      # check water level fluctuations
+      got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
+                                                         (as.numeric(colnames(got)[-1]))))))
+      got <- as.data.frame(got)
+      idz <- which(got_wlvl == T, arr.ind = T)
+      idz[, 2] <- idz[, 2] + 1
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "salt"
-
     }
 
     return(got_out)
@@ -741,8 +751,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       dens_interp <- 999.842594 + (6.793952 * 10^-2 * temp_interp) - (9.095290 * 10^-3 * temp_interp^2) +
         (1.001685 * 10^-4 * temp_interp^3) - (1.120083 * 10^-6 * temp_interp^4) + (6.536336 * 10^-9 * temp_interp^5)
@@ -777,8 +786,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       salt_interp <- temp_interp * NaN
 
