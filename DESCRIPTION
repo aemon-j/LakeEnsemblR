@@ -12,7 +12,7 @@ Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),
     email = "johannes.feldbauer@tu-dresden.de"),
     person("Jorrit", "Mesman", role = "aut",
     email = "jorrit.mesman@ebc.uu.se"))
-Maintainer: Tadhg Moore <tadhg.moore@dkit.ie>
+Maintainer: Tadhg Moore <tadhg.moore6@gmail.com>
 Description: Run ensemble of lake models cross-platform and tools for analyzing
   model output.
 License: GPL-2.0

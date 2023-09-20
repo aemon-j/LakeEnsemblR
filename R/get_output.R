@@ -258,7 +258,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                                 function(x) as.numeric(x) - max(as.numeric(x))))
       
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * gotmtools::get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * gotmtools::get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {

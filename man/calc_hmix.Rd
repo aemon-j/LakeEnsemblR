@@ -18,6 +18,9 @@ calc_hmix(
 \arguments{
 \item{temps}{a numeric vector of water temperature in degC.}
 
+\item{depths}{a numeric vector corresponding to the depths (in m) of the temps
+measurements}
+
 \item{min.dT}{numeric; minimum change in water temperature}
 
 \item{therm.dz}{numeric; depth resolution for calculating thermoclime}
@@ -28,9 +31,6 @@ calc_hmix(
 Defaults to FALSE}
 
 \item{...}{arguments to be passed to base plot}
-
-\item{depth}{a numeric vector corresponding to the depths (in m) of the temps
-measurements}
 }
 \description{
 This function estimates the mixed depth. It finds the minimum curvature

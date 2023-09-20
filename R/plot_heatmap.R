@@ -9,7 +9,7 @@
 #' @param var_list list of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model Vector of models which should be included in the plot
 #' @param tile_width width of tiles in geom_tile. Defaults to NULL to determine automatically
-#' @param tile_width height of tiles in geom_tile. Default to NULL to determine automatically
+#' @param tile_height height of tiles in geom_tile. Default to NULL to determine automatically
 #' @return ggplot object of heatmaps
 #' @author Tadhg Moore, Johannes Feldbauer, Jorrit Mesman
 #' @importFrom reshape2 melt
