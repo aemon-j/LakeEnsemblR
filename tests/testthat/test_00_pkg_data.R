@@ -110,6 +110,21 @@ test_that("can run MyLake", {
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })
 
+test_that("can run all models in parallel", {
+  
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")  
+  # 1. Example - creates directories with all model setup
+  export_config(config_file = config_file, model = model)
+  
+  # 2. run models
+  run_ensemble(config_file = config_file,
+               model = model, parallel = TRUE)
+  
+  testthat::expect_true((file.exists("output/ensemble_output.nc")))
+})
+
 
 test_that("can add members to netCDF models", {
 
@@ -261,7 +276,44 @@ test_that("can calibrate models", {
   cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
                 model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
 
-  testthat::expect_true(length(list.files("cali")) == 10 )
+  testthat::expect_true(length(list.files("cali")) == 10)
+})
+
+test_that("can calibrate models in parallel using old LHC", {
+  
+  # 1. Example - creates directories with all model setup
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  export_config(config_file = config_file,
+                model = model,
+                folder = ".")
+  
+  # 2. Calibrate models
+  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC_old", 
+                           num = 10, model = model, parallel = TRUE, ncores = 2)
+  chk <- all(!is.na(unlist(cal_out)))
+  
+  testthat::expect_true(chk)
+})
+
+test_that("can calibrate models in parallel using new LHC", {
+  
+  # 1. Example - creates directories with all model setup
+  file.remove("output/ensemble_output.nc")
+  config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  export_config(config_file = config_file,
+                model = model,
+                folder = ".")
+  
+  # 2. Calibrate models
+  cal_out <- cali_ensemble(config_file = config_file, cmethod = "LHC",
+                           out_f =  "LHC",
+                           num = 10, model = model, parallel = TRUE, ncores = 2)
+  chk <- all(!is.na(unlist(cal_out)))
+  
+  testthat::expect_true(chk)
 })
 
 test_that("can generate all output vars", {

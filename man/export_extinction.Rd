@@ -21,8 +21,4 @@ Options include c("GOTM", "GLM", "Simstrat", "FLake", "MyLake")}
 \description{
 Exports extinction coefficients for each model based on a master LakeEnsemblR config file
 }
-\examples{
-
-
-}
 \keyword{methods}

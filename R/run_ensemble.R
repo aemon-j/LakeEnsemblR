@@ -160,7 +160,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          out_vars = out_vars)
 
   if (parallel) {
-    ncores <- parallel::detectCores() - 1
+    ncores <- min(c(length(model), (parallel::detectCores() - 1)))
     clust <- parallel::makeCluster(ncores)
     parallel::clusterExport(clust, varlist = list("run_model_args"),
                   envir = environment())

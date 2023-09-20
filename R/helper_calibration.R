@@ -172,7 +172,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     if("FLake" %in% model){
       
 
-      fla_fil <- get_yaml_value(config_file, "config_files", "FLake")
+      fla_fil <- gotmtools::get_yaml_value(config_file, "config_files", "FLake")
       
       suppressMessages(input_nml(file.path(folder, fla_fil), label = "TRANSPARENCY", key = "extincoef_optic", kw_pars))
     }
@@ -180,7 +180,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     if("GLM" %in% model){
       
       # Read the GLM config file from config_file, and write it to the GLM directory
-      glm_nml <- get_yaml_value(config_file, "config_files", "GLM")
+      glm_nml <- gotmtools::get_yaml_value(config_file, "config_files", "GLM")
       glm_nml <- file.path(folder, glm_nml)
       
       # Write to nml: if any, replace the line with Kw_file and put Kw
@@ -199,7 +199,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     if("GOTM" %in% model){
       
       # Read the GOTM config file from config_file, and write it to the GOTM directory
-      got_yaml <- get_yaml_value(config_file, "config_files", "GOTM")
+      got_yaml <- gotmtools::get_yaml_value(config_file, "config_files", "GOTM")
       got_yaml <- file.path(folder, got_yaml)
       
       suppressMessages(gotmtools::input_yaml(got_yaml, "g2", "method", 0))
@@ -210,7 +210,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
     if("Simstrat" %in% model){
       
       # Read the Simstrat config file from config_file, and write it to the Simstrat directory
-      sim_par <- get_yaml_value(config_file, "config_files", "Simstrat")
+      sim_par <- gotmtools::get_yaml_value(config_file, "config_files", "Simstrat")
       sim_par <- file.path(folder, sim_par)
       
       light_fil <- system.file("extdata/absorption_langtjern.dat", package = "SimstratR")
@@ -242,7 +242,7 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
       
       
       # Load MyLake config file
-      load(file.path(folder, get_yaml_value(config_file, "config_files", "MyLake")))
+      load(file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "MyLake")))
       
       mylake_config[["Bio.par"]][2] <- as.numeric(kw_pars)
       
@@ -264,9 +264,9 @@ change_pars <- function(config_file, model, pars, type, met, folder) {
         key <- spl[[1]][2]
       }
       # change model specific parameters
-      suppressMessages(input_config_value(model = model, file = config_f, label = label,
+      input_config_value(model = model, folder = folder, file = config_f, label = label,
                                           key = key,
-                                          value = model_pars[i]))
+                                          value = model_pars[i])
     }
   }
 
