@@ -8,8 +8,6 @@
 #'  Options include c("FLake", "GLM, "GOTM", "Simstrat", "MyLake")
 #'@param folder folder
 #'@keywords methods
-#'@examples
-#'
 #'
 #'@importFrom configr read.config
 #'@importFrom gotmtools get_yaml_value input_yaml input_nml

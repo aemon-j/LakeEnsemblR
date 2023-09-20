@@ -28,7 +28,9 @@ plot_heatmap(
 
 \item{model}{Vector of models which should be included in the plot}
 
-\item{tile_width}{height of tiles in geom_tile. Default to NULL to determine automatically}
+\item{tile_width}{width of tiles in geom_tile. Defaults to NULL to determine automatically}
+
+\item{tile_height}{height of tiles in geom_tile. Default to NULL to determine automatically}
 }
 \value{
 ggplot object of heatmaps

@@ -160,7 +160,7 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
                          out_vars = out_vars)
 
   if (parallel) {
-    ncores <- parallel::detectCores() - 1
+    ncores <- min(c(length(model), (parallel::detectCores() - 1)))
     clust <- parallel::makeCluster(ncores)
     parallel::clusterExport(clust, varlist = list("run_model_args"),
                   envir = environment())
@@ -330,10 +330,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(!is.list(glm_out)) {
       glm_out <- merge(glm_out, out_time, by = "datetime", all.y = TRUE)
     } else {
+      names_before <- names(glm_out)
       glm_out <- lapply(seq_len(length(glm_out)), function(x){
         merge(glm_out[[x]], out_time, by = 1, all.y = TRUE)
       })
-      names(glm_out) <- out_vars # Re-assign names to list
+      names(glm_out) <- names_before # Re-assign names to list
     }
 
   }
@@ -372,10 +373,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(!is.list(fla_out)) {
       fla_out <- merge(fla_out, out_time, by = "datetime", all.y = TRUE)
     } else {
+      names_before <- names(fla_out)
       fla_out <- lapply(seq_len(length(fla_out)), function(x){
         merge(fla_out[[x]], out_time, by = 1, all.y = TRUE)
       })
-      names(fla_out) <- out_vars # Re-assign names to list
+      names(fla_out) <- names_before # Re-assign names to list
     }
   }
   message("FLake run is complete! ", paste0("[", Sys.time(), "]"))
@@ -408,10 +410,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(!is.list(gotm_out)) {
       gotm_out <- merge(gotm_out, out_time, by = "datetime", all.y = T)
     } else {
+      names_before <- names(gotm_out)
       gotm_out <- lapply(seq_len(length(gotm_out)), function(x){
         merge(gotm_out[[x]], out_time, by = 1, all.y = T)
       })
-      names(gotm_out) <- out_vars # Re-assign names to list
+      names(gotm_out) <- names_before # Re-assign names to list
     }
   }
 
@@ -444,10 +447,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(!is.list(sim_out)) {
       sim_out <- merge(sim_out, out_time, by = "datetime", all.y = T)
     } else {
+      names_before <- names(sim_out)
       sim_out <- lapply(seq_len(length(sim_out)), function(x){
         merge(sim_out[[x]], out_time, by = 1, all.y = T)
       })
-      names(sim_out) <- out_vars # Re-assign names to list
+      names(sim_out) <- names_before # Re-assign names to list
     }
   }
   return(sim_out)
@@ -471,10 +475,11 @@ run_ensemble <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLak
     if(!is.list(mylake_out)) {
       mylake_out <- merge(mylake_out, out_time, by = "datetime", all.y = T)
     } else {
+      names_before <- names(mylake_out)
       mylake_out <- lapply(seq_len(length(mylake_out)), function(x){
         merge(mylake_out[[x]], out_time, by = 1, all.y = T)
       })
-      names(mylake_out) <- out_vars # Re-assign names to list
+      names(mylake_out) <- names_before # Re-assign names to list
     }
   }
   return(mylake_out)

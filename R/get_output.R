@@ -28,10 +28,10 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     # Extract output
     fold <- file.path(folder, "FLake")
-    nml_file <- file.path(folder, get_yaml_value(config_file, "config_files", "FLake"))
+    nml_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "FLake"))
 
     mean_depth <- suppressWarnings(get_nml_value(arg_name = "depth_w_lk", nml_file = nml_file))
-    out_depths <- get_yaml_value(config_file, "output", "depths")
+    out_depths <- gotmtools::get_yaml_value(config_file, "output", "depths")
     depths <- seq(0, mean_depth, by = out_depths)
 
     # Add in obs depths which are not in depths and less than mean depth
@@ -56,11 +56,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   gotmtools::get_yaml_value(config_file,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -112,11 +112,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   gotmtools::get_yaml_value(config_file,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -133,11 +133,11 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
       # Add in obs depths which are not in depths and less than mean depth
       depth <- suppressWarnings(get_nml_value(nml_file = file.path(folder,
-                                                                   get_yaml_value(config_file,
+                                                                   gotmtools::get_yaml_value(config_file,
                                                                                   "config_files",
                                                                                   "GLM")),
                                               arg_name = "lake_depth"))
-      depths <- seq(0, depth, by = get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, depth, by = gotmtools::get_yaml_value(config_file, "output", "depths"))
       add_deps <- obs_depths[!(obs_depths %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(depths)]
@@ -162,10 +162,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 ##--------------------------- GOTM ------------------------------------------------
 
   if("GOTM" %in% model){
-
+    
     got_out <- list()
     if("temp" %in% vars){
-
       temp <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "temp",
                        print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
@@ -175,7 +174,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                                  function(x) as.numeric(x) - max(as.numeric(x))))
 
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * gotmtools::get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -184,7 +183,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(temp, z, depths = depths, print = T)
@@ -199,14 +198,13 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       got <- as.data.frame(got)
       idz <- which(got_wlvl == T, arr.ind = T)
       idz[, 2] <- idz[, 2] + 1
-      got[idz] <-NA
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("wtr_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "temp"
-
     }
 
     if("ice_height" %in% vars){
@@ -216,10 +214,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       #                        var = "Hfrazil", print = FALSE)
       # ice_height[,2] <- ice_height[,2] + ice_frazil[,2]
       colnames(ice_height) <- c("datetime", "ice_height")
-
+      
       got_out[[length(got_out) + 1]] <- ice_height
       names(got_out)[length(got_out)] <- "ice_height"
-
     }
     
     if("w_level" %in% vars){
@@ -231,7 +228,6 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- w_level
       names(got_out)[length(got_out)] <- "w_level"
-      
     }
 
     if("q_sens" %in% vars){
@@ -241,7 +237,6 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- q_sens
       names(got_out)[length(got_out)] <- "q_sens"
-      
     }
     
     if("q_lat" %in% vars){
@@ -251,19 +246,19 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       
       got_out[[length(got_out) + 1]] <- q_lat
       names(got_out)[length(got_out)] <- "q_lat"
-      
     }
     
 
     if("dens" %in% vars){
-
       density <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "rho",
                        print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
-
+      z[, 2:ncol(z)] <- t(apply(z[, 2:ncol(z)], 1, 
+                                function(x) as.numeric(x) - max(as.numeric(x))))
+      
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * gotmtools::get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -272,32 +267,40 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(density, z, depths = depths, print = T)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
-
+      
       got <- dcast(got, date ~ depths)
+      
+      # check water level fluctuations
+      got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
+                                                         (as.numeric(colnames(got)[-1]))))))
+      got <- as.data.frame(got)
+      idz <- which(got_wlvl == T, arr.ind = T)
+      idz[, 2] <- idz[, 2] + 1
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("dens_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "dens"
-
     }
 
     if("salt" %in% vars){
-
       salinity <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "salt",
                           print = FALSE)
       z <- get_vari(ncdf = file.path(folder, "GOTM", "output", "output.nc"), var = "z",
                     print = FALSE)
-
+      z[, 2:ncol(z)] <- t(apply(z[, 2:ncol(z)], 1, 
+                                function(x) as.numeric(x) - max(as.numeric(x))))
+      
       # Add in obs depths which are not in depths and less than mean depth
-      depths <- seq(0, min(z[1, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
+      depths <- seq(0, min(z[, -1]), by = -1 * get_yaml_value(config_file, "output", "depths"))
       if(is.null(obs_depths)) {
         obs_dep_neg <- NULL
       } else {
@@ -306,21 +309,28 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       add_deps <- obs_dep_neg[!(obs_dep_neg %in% depths)]
       depths <- c(add_deps, depths)
       depths <- depths[order(-depths)]
-
+      
       message("Interpolating GOTM temp to include obs depths... ",
               paste0("[", Sys.time(), "]"))
       got <- setmodDepths(salinity, z, depths = depths, print = T)
       message("Finished interpolating! ",
               paste0("[", Sys.time(), "]"))
-
+      
       got <- dcast(got, date ~ depths)
+      
+      # check water level fluctuations
+      got_wlvl <- as.matrix(t(apply(z, 1, function(x) (as.numeric(x[length(x)]) > 
+                                                         (as.numeric(colnames(got)[-1]))))))
+      got <- as.data.frame(got)
+      idz <- which(got_wlvl == T, arr.ind = T)
+      idz[, 2] <- idz[, 2] + 1
+      got[idz] <- NA
       got <- got[, c(1, (ncol(got):2))]
       str_depths <- abs(as.numeric(colnames(got)[2:ncol(got)]))
       colnames(got) <- c("datetime", paste("sal_", str_depths, sep = ""))
-
+      
       got_out[[length(got_out) + 1]] <- got
       names(got_out)[length(got_out)] <- "salt"
-
     }
 
     return(got_out)
@@ -331,9 +341,9 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
   if("Simstrat" %in% model){
 
     ### Convert decimal days to yyyy-mm-dd HH:MM:SS
-    par_file <- file.path(folder, get_yaml_value(config_file, "config_files", "Simstrat"))
-    timestep <- get_json_value(file.path(folder, par_file), "Simulation", "Timestep s")
-    reference_year <- get_json_value(file.path(folder, par_file), "Simulation", "Start year")
+    par_file <- file.path(folder, gotmtools::get_yaml_value(config_file, "config_files", "Simstrat"))
+    timestep <- get_json_value(par_file, "Simulation", "Timestep s")
+    reference_year <- get_json_value(par_file, "Simulation", "Start year")
 
     sim_out <- list()
 
@@ -346,7 +356,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                          sep = ",", check.names = FALSE)
       temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+      temp[, 1] <- lubridate::round_date(temp[, 1], unit = lubridate::seconds_to_period(timestep))
 
       # First column datetime, then depth from shallow to deep
       temp <- temp[, c(1, ncol(temp):2)]
@@ -409,7 +419,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       ice_height[, 1] <- as.POSIXct(ice_height[, 1] * 3600 * 24,
                                    origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      ice_height[, 1] <- round_date(ice_height[, 1], unit = seconds_to_period(timestep))
+      ice_height[, 1] <- lubridate::round_date(ice_height[, 1], unit = seconds_to_period(timestep))
       colnames(ice_height) <- c("datetime", "ice_height")
 
       sim_out[[length(sim_out) + 1]] <- ice_height
@@ -422,7 +432,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       w_level[, 1] <- as.POSIXct(w_level[, 1] * 3600 * 24,
                                     origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      w_level[, 1] <- round_date(w_level[, 1], unit = seconds_to_period(timestep))
+      w_level[, 1] <- lubridate::round_date(w_level[, 1], unit = seconds_to_period(timestep))
       colnames(w_level) <- c("datetime", "w_level")
 
       sim_out[[length(sim_out) + 1]] <- w_level
@@ -435,7 +445,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
       q_sens[, 1] <- as.POSIXct(q_sens[, 1] * 3600 * 24,
                                  origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      q_sens[, 1] <- round_date(q_sens[, 1], unit = seconds_to_period(timestep))
+      q_sens[, 1] <- lubridate::round_date(q_sens[, 1], unit = seconds_to_period(timestep))
       colnames(q_sens) <- c("datetime", "q_sens")
       
       sim_out[[length(sim_out) + 1]] <- q_sens
@@ -461,7 +471,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                          sep = ",", check.names = FALSE)
       temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+      temp[, 1] <- lubridate::round_date(temp[, 1], unit = lubridate::seconds_to_period(timestep))
 
       # First column datetime, then depth from shallow to deep
       temp <- temp[, c(1, ncol(temp):2)]
@@ -518,7 +528,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                         sep = ",", check.names = FALSE)
       sal[, 1] <- as.POSIXct(sal[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      sal[, 1] <- round_date(sal[, 1], unit = seconds_to_period(timestep))
+      sal[, 1] <- lubridate::round_date(sal[, 1], unit = lubridate::seconds_to_period(timestep))
 
       # First column datetime, then depth from shallow to deep
       sal <- sal[, c(1, ncol(sal):2)]
@@ -588,7 +598,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
                          sep = ",", check.names = FALSE)
       temp[, 1] <- as.POSIXct(temp[, 1] * 3600 * 24, origin = paste0(reference_year, "-01-01"))
       # In case sub-hourly time steps are used, rounding might be necessary
-      temp[, 1] <- round_date(temp[, 1], unit = seconds_to_period(timestep))
+      temp[, 1] <- lubridate::round_date(temp[, 1], unit = lubridate::seconds_to_period(timestep))
 
       # First column datetime, then depth from shallow to deep
       temp <- temp[, c(1, ncol(temp):2)]
@@ -651,8 +661,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     if("temp" %in% vars){
 
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- gotmtools::get_yaml_value(config_file, "output", "depths")
+      #max_depth <- gotmtools::get_yaml_value(config_file, "location", "depth")
 
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -722,8 +732,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
 
     if("dens" %in% vars){
 
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- gotmtools::get_yaml_value(config_file, "output", "depths")
+      #max_depth <- gotmtools::get_yaml_value(config_file, "location", "depth")
 
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -741,8 +751,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       dens_interp <- 999.842594 + (6.793952 * 10^-2 * temp_interp) - (9.095290 * 10^-3 * temp_interp^2) +
         (1.001685 * 10^-4 * temp_interp^3) - (1.120083 * 10^-6 * temp_interp^4) + (6.536336 * 10^-9 * temp_interp^5)
@@ -758,8 +767,8 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
     if("salt" %in% vars){
       message('MyLake does not support simulation of salinity dynamics.')
 
-      output_depths <- get_yaml_value(config_file, "output", "depths")
-      #max_depth <- get_yaml_value(config_file, "location", "depth")
+      output_depths <- gotmtools::get_yaml_value(config_file, "output", "depths")
+      #max_depth <- gotmtools::get_yaml_value(config_file, "location", "depth")
 
       init_depths <- res$zz
       seq_depths <- seq(0, max(init_depths), by = output_depths)
@@ -777,8 +786,7 @@ get_output <- function(config_file, model, vars, obs_depths = NULL, folder = "."
         temp_interp[i, ] <- approx(x = init_depths,
                                    y = temps[, i],
                                    xout = depths,
-                                   yleft = dplyr::first(na.omit(temps)),
-                                   yright = dplyr::last(na.omit(temps)))$y
+                                   rule = 2)$y
       }
       salt_interp <- temp_interp * NaN
 

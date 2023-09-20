@@ -13,7 +13,7 @@
 #' thermocline in blue.
 #' @name calc_hmix
 #' @param temps a numeric vector of water temperature in degC.
-#' @param depth a numeric vector corresponding to the depths (in m) of the temps
+#' @param depths a numeric vector corresponding to the depths (in m) of the temps
 #'  measurements
 #' @param min.dT numeric; minimum change in water temperature
 #' @param therm.dz numeric; depth resolution for calculating thermoclime

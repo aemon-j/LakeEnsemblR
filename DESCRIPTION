@@ -1,18 +1,18 @@
 Package: LakeEnsemblR
 Type: Package
 Title: Run Ensemble of Lake Models
-Version: 1.2.5
-Date: 2023-05-10
+Version: 1.2.6
+Date: 2023-09-19
 URL: https://github.com/aemon-j/LakeEnsemblR
 Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),
-    email = "tadhg.moore@ucc.ie"),
+    email = "tadhg.moore6@gmail.com"),
     person("Robert", "Ladwig", role = "aut",
     email = "rladwig2@wisc.edu"), 
     person("Johannes", "Feldbauer", role = "aut", 
     email = "johannes.feldbauer@tu-dresden.de"),
     person("Jorrit", "Mesman", role = "aut",
     email = "jorrit.mesman@ebc.uu.se"))
-Maintainer: Tadhg Moore <tadhg.moore@dkit.ie>
+Maintainer: Tadhg Moore <tadhg.moore6@gmail.com>
 Description: Run ensemble of lake models cross-platform and tools for analyzing
   model output.
 License: GPL-2.0
@@ -47,5 +47,5 @@ Suggests:
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.3
 VignetteBuilder: knitr

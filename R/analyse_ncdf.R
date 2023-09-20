@@ -26,7 +26,7 @@ analyse_ncdf <- function(ncdf, model, dim = "model", dim_index = 1, spin_up = 0,
                          drho = 0.1){
   
   # check if model input is correct
-  model <- LakeEnsemblR:::check_models(model)
+  model <- check_models(model)
   # check if netCDF exists
   if(!file.exists(ncdf)){
     stop("File: '", ncdf, "' does not exist!\nPlease check the file path.")

@@ -26,7 +26,13 @@
 #'@keywords methods
 #'@author
 #'Tadhg Moore, Jorrit Mesman, Johannes Feldbauer, Robert Ladwig
-#'@examples
+#' @examples
+#' \dontrun{
+#' config_file <- "LakeEnsemblR.yaml"
+#' export_config(config_file = config_file,
+#'               model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+#'               folder = ".")
+#' }
 #'
 #'@export
 

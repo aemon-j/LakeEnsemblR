@@ -152,6 +152,16 @@ check_master_config <- function(config_file,
   # Check if lower limits for calibration are smaller than upper limits
   # load master config file
   if ("calibration" %in% names(configr_master_config)) {
+    
+    # Kw parameter
+    cal_section <- configr_master_config[["calibration"]][["Kw"]]
+    p_lower_kw <- cal_section$lower
+    p_upper_kw <- cal_section$upper
+    if (p_lower_kw > p_upper_kw) {
+      stop(paste0("Lower boundary for calibration of Kw",
+                  " is larger than upper value!"))
+    }
+    
     # meteo parameter
     cal_section <- configr_master_config[["calibration"]][["met"]]
     params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
