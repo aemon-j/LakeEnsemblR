@@ -8,6 +8,7 @@
 - Rewrote the LHC calibration in parallel mode so that it can parallelize for each model rather than by model and thus speeds up the LHC in parallel. 
 - This has been added as `cmethod = "LHC"` where the original LHC mode is preserved as `cmethod = "LHC_old"`.
 - Corresponding update in MyLakeR which resets the working directory after running the model.
+- fixed bug in `check_congig()` that would throw an error if `Kw` section was not present in the calibration part of the config yaml file
 
 ## version 1.2.5
 

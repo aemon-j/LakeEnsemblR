@@ -155,23 +155,26 @@ check_master_config <- function(config_file,
     
     # Kw parameter
     cal_section <- configr_master_config[["calibration"]][["Kw"]]
-    p_lower_kw <- cal_section$lower
-    p_upper_kw <- cal_section$upper
-    if (p_lower_kw > p_upper_kw) {
-      stop(paste0("Lower boundary for calibration of Kw",
-                  " is larger than upper value!"))
+    if(!is.null(cal_section)) {
+      p_lower_kw <- cal_section$lower
+      p_upper_kw <- cal_section$upper
+      if (p_lower_kw > p_upper_kw) {
+        stop(paste0("Lower boundary for calibration of Kw",
+                    " is larger than upper value!"))
+      }
     }
-    
     # meteo parameter
     cal_section <- configr_master_config[["calibration"]][["met"]]
-    params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
-    p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
-    p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
-
-    # test if any of the lower limits are larger than the upper limits
-    if (any(p_lower_met > p_upper_met)) {
-      stop(paste0("Lower boundary for calibration of meteo variable ", names(params_met)[p_lower_met > p_upper_met],
-                  " is larger than upper value!"))
+    if(!is.null(cal_section)) {
+      params_met <- sapply(names(cal_section), function(n)cal_section[[n]]$initial)
+      p_lower_met <- sapply(names(cal_section), function(n)cal_section[[n]]$lower)
+      p_upper_met <- sapply(names(cal_section), function(n)cal_section[[n]]$upper)
+  
+      # test if any of the lower limits are larger than the upper limits
+      if (any(p_lower_met > p_upper_met)) {
+        stop(paste0("Lower boundary for calibration of meteo variable ", names(params_met)[p_lower_met > p_upper_met],
+                    " is larger than upper value!"))
+      }
     }
 
     # get names of models for which parameter are given
