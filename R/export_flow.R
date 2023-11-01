@@ -203,8 +203,12 @@ export_flow <- function(config_file, model = c("GOTM", "GLM", "Simstrat", "FLake
     # number of inflows in the yaml file so far
     num_inf_yaml <- length(grep("inflow\\_*\\d*:", yml_no_comment, value = TRUE))
 
-    # number of outflows in the yaml file so far
-    num_outf_yaml <- length(grep("outflow\\_*\\d*:", yml_no_comment, value = TRUE))
+    if(use_outflows) {
+      # number of outflows in the yaml file so far
+      num_outf_yaml <- length(grep("outflow\\_*\\d*:", yml_no_comment, value = TRUE))
+    } else {
+      num_outf_yaml <- 0
+    }
 
 
     ## Switch off streams

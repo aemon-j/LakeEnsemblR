@@ -360,4 +360,63 @@ test_that("check plots", {
   file.remove(config_file)
 })
 
+
+test_that("export and run_ensemble old yaml file (version 1.0) still works", {
+  
+  # Set config file
+  masterConfigFile <- "LakeEnsemblR_v1.yaml"
+  config_file <- "LakeEnsemblR_v1_copy.yaml"
+  file.copy(masterConfigFile, config_file, overwrite = TRUE)
+  
+  unlink("FLake", recursive = TRUE)
+  unlink("GLM", recursive = TRUE)
+  unlink("GOTM", recursive = TRUE)
+  unlink("Simstrat", recursive = TRUE)
+  unlink("MyLake", recursive = TRUE)
+  
+  # 1. Example - export configuration settings
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = ".")
+  
+  # 2. Run models
+  run_ensemble(config_file = config_file,
+               model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+  
+  testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
+                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
+                           file.exists("MyLake/mylake.Rdata") & file.exists("output/ensemble_output.nc")))
+  
+  unlink("output", recursive = TRUE)
+  file.remove(config_file)
+})
+
+test_that("calibration with old yaml file (version 1.0) still works", {
+  
+  # Set config file
+  masterConfigFile <- "LakeEnsemblR_v1.yaml"
+  config_file <- "LakeEnsemblR_v1_copy.yaml"
+  file.copy(masterConfigFile, config_file, overwrite = TRUE)
+  
+  unlink("FLake", recursive = TRUE)
+  unlink("GLM", recursive = TRUE)
+  unlink("GOTM", recursive = TRUE)
+  unlink("Simstrat", recursive = TRUE)
+  unlink("MyLake", recursive = TRUE)
+  unlink("cali", recursive = TRUE)
+  
+  # 1. Example - export configuration settings
+  export_config(config_file = config_file,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                folder = ".")
+  # 2. Calibrate models
+  cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
+                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+  
+  testthat::expect_true(length(list.files("cali")) == 10)
+  
+  unlink("output", recursive = TRUE)
+  file.remove(config_file)
+})
+
 # end

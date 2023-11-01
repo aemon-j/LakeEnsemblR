@@ -109,7 +109,30 @@ check_master_config <- function(config_file,
                    "manually to the 'outflows' section. You can use the same ",
                    "or a different file as for inflows."))},
     error = function(e) { })
-  use_outflows <- get_yaml_value(config_file, label = "outflows", key = "use")
+  
+  tryCatch({get_yaml_value(config_file, "inflows", "number_inflows")},
+    error = function(e) {
+      use_inflows <- get_yaml_value(config_file, label = "inflows", key = "use")
+      if(use_inflows) {
+        stop(paste0("No 'number_inflows' entry found in 'inflows', ",
+                    "section of master config file '", config_file,
+                    "'. Please update your config file. For help see: ",
+                    "https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1"))
+      } else {
+        warning(paste0("No 'number_inflows' entry found in 'inflows', ",
+                       "section of master config file '", config_file,
+                       "'. Please update your config file. For help see: ",
+                       "https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1"))
+      }
+    })
+  
+  use_outflows <- tryCatch({get_yaml_value(config_file, label = "outflows", key = "use")},
+                           error = function(e) {
+                             warning(paste0("No 'outflow' section found in the ",
+                                            "master config file '",  config_file,
+                                            "'. It seems you are using an older ",
+                                            "config file."))
+                             return(FALSE)})
   
   if(!is.null(configr_master_config[["scaling_factors"]][["all"]]
               [["inflow"]]) & use_inflows){
