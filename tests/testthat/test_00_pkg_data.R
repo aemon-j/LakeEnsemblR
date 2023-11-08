@@ -120,7 +120,7 @@ test_that("can run all models in parallel", {
   
   # 2. run models
   run_ensemble(config_file = config_file,
-               model = model, parallel = TRUE)
+               model = model, parallel = TRUE, ncores = 2)
   
   testthat::expect_true((file.exists("output/ensemble_output.nc")))
 })

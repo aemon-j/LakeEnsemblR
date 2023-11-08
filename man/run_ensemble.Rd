@@ -10,6 +10,7 @@ run_ensemble(
   folder = ".",
   verbose = FALSE,
   parallel = FALSE,
+  ncores = NULL,
   return_list = FALSE,
   create_output = TRUE,
   add = FALSE
@@ -26,6 +27,10 @@ c('GOTM', 'GLM', 'Simstrat', 'FLake', 'MyLake')}
 \item{verbose}{Boolean; Should model output be shown in the console. Defaults to FALSE}
 
 \item{parallel}{Boolean; should the model calibration be parallelized}
+
+\item{ncores}{integer; number of cores to use for parallelization. Defaults 
+to NULL. If NULL then the number of cores used is either the number of models
+selecte or the number of cores on the machine, whichever is smaller.}
 
 \item{return_list}{boolean; Return a list of dataframes of model output. Defaults to FALSE}
 
