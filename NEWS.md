@@ -1,3 +1,8 @@
+## version 1.2.7
+
+### Changes
+- bug fix of `plot_LHC` function; can be used also when not calibrating `Kw`
+
 ## version 1.2.6
 
 ### Changes
