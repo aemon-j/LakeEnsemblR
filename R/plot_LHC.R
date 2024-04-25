@@ -39,7 +39,11 @@ plot_LHC <- function(config_file, model, res_files, qual_met = "rmse", best_quan
   # meteo parameter
   met_pars <- names(configr_master_config[["calibration"]][["met"]])
   # kw parameter
-  kw_pars <- "Kw"
+  if("Kw" %in% names(configr_master_config[["calibration"]])){
+    kw_pars <- "Kw"
+  }else{
+    kw_pars <- NULL
+  }
   # get names of models for which parameter are given
   model_p <- model[model %in% names(configr_master_config[["calibration"]])]
   # model specific parameters
