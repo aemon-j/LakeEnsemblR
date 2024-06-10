@@ -24,6 +24,6 @@ citEntry(
   textVersion = paste("Tadhg N. Moore, Jorrit P. Mesman, Robert Ladwig, Johannes Feldbauer,",
                       " Freya Olsson, Rachel M. Pilla, Tom Shatwell, Jason J. Venkiteswaran,",
                       " Austin D. Delany, Hilary Dugan, Kevin C. Rose, Jordan S. Read ",
-                      "(in submission).  LakeEnsemblR: An R package that facilitates ensemble",
-                      " modelling of lakes. Environ. Model. Softw. ")
+                      "(2021).  LakeEnsemblR: An R package that facilitates ensemble",
+                      " modelling of lakes. Environ. Model. Softw., 143, 105101 ")
 )
