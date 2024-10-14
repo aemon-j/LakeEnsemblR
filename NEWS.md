@@ -1,3 +1,8 @@
+## version 1.2.8
+
+### Changes
+- bug fix of `export_model_parameters` function when using `folder` argument other than `"."`
+
 ## version 1.2.7
 
 ### Changes
