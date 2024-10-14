@@ -50,7 +50,8 @@ export_model_parameters <- function(config_file,
       }
       
       tryCatch({input_config_value(model = i,
-                                   file = model_config,
+                                   file = basename(model_config),
+                                   folder = dirname(model_config),
                                    label = label,
                                    key = key,
                                    value = master_config[["model_parameters"]][[i]][[j]])
