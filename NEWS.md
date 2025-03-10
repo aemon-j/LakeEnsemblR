@@ -1,3 +1,9 @@
+## version 1.2.8
+
+### Changes
+- bug fix of `export_model_parameters` function when using `folder` argument other than `"."`
+- bug fix in `cali_ensemble` when unit of observations is seconds
+
 ## version 1.2.7
 
 ### Changes
