@@ -167,6 +167,10 @@ cali_ensemble <- function(config_file, num = NULL, param_file = NULL, cmethod = 
   stop <- gotmtools::get_yaml_value(yaml, label = "location", key = "stop")
   obs_file <- gotmtools::get_yaml_value(file = yaml, label = "temperature", key = "file")
   time_unit <- gotmtools::get_yaml_value(yaml, "output", "time_unit")
+  if(time_unit == "second"){
+    # Needed to create out_time vector
+    time_unit <- "sec"
+  }
   time_step <- gotmtools::get_yaml_value(yaml, "output", "time_step")
   cnfg_l <- lapply(model, function(m) gotmtools::get_yaml_value(yaml, "config_files", m))
   names(cnfg_l) <- model
