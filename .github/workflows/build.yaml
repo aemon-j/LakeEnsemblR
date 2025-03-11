@@ -40,19 +40,19 @@ jobs:
           http-user-agent: ${{ matrix.config.http-user-agent }}
           use-public-rspm: true
           
-      
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
         run: |
-          sudo apt-get install libnetcdf-dev libnetcdff-dev
-          sudo apt-get install libgfortran3
-          sudo apt-get install libc6
-          sudo apt-get install libxml2-dev
-          sudo apt-get install kst
+          sudo apt-get update
+          sudo apt-get install -y libnetcdf-dev libnetcdff-dev
+          sudo apt-get install -y libgfortran5  # Updated from libgfortran3
+          sudo apt-get install -y libc6
+          sudo apt-get install -y libxml2-dev
+          sudo apt-get install -y kst
           while read -r cmd
           do
             eval sudo $cmd
-          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "18.04"))')
+          done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "22.04"))')
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
