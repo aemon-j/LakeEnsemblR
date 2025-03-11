@@ -33,19 +33,29 @@ Imports:
     dplyr,
     RColorBrewer
 Suggests:
-    FLakeR,
-    GLM3r,
-    GOTMr,
-    MyLakeR,
-    SimstratR,
     testthat,
     knitr,
     rmarkdown,
     rstudioapi,
     lintr,
-    kableExtra
+    kableExtra,
+    rLakeAnalyzer (>= 1.12.0),
+    GLM3r (>= 3.1.17),
+    FLakeR (>= 0.0.9),
+    GOTMr (>= 0.0.0.10),
+    SimstratR (>= 0.0.9),
+    MyLakeR (>= 0.0.1)
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+Remotes:  
+    github::GLEON/rLakeAnalyzer,
+    github::aemon-j/GLM3r@v3.1.1,
+    github::USGS-R/glmtools@ggplot_overhaul,
+    github::aemon-j/FLakeR@inflow,
+    github::aemon-j/GOTMr,
+    github::aemon-j/gotmtools,
+    github::aemon-j/SimstratR,
+    github::aemon-j/MyLakeR
