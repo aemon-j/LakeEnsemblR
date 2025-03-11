@@ -1,9 +1,8 @@
-LakeEnsemblR
+# LakeEnsemblR <a href="https://aemon-j.github.io/LakeEnsemblR/"><img src="man/figures/logo.png" alt="LakeEnsemblR website" align="right" height="120"/></a>
 =====
-[![](http://github-actions.40ants.com/aemon-j/LakeEnsemblR/matrix.svg)](https://github.com/aemon-j/LakeEnsemblR)
 
 [![R-CMD-check](https://github.com/aemon-j/LakeEnsemblR/workflows/R-CMD-check/badge.svg)](https://github.com/aemon-j/LakeEnsemblR/actions) [![codecov](https://codecov.io/github/aemon-j/LakeEnsemblR/branch/master/graphs/badge.svg)](https://codecov.io/github/aemon-j/LakeEnsemblR/) [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-<a href="url"><img src="images/logo.png" align="right" height="220" width="220" ></a>[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
+[![DOI](https://zenodo.org/badge/217581132.svg)](https://zenodo.org/badge/latestdoi/217581132)
 [![Citation Badge](https://api.juleskreuer.eu/citation-badge.php?doi=10.1016/j.envsoft.2021.105101)](https://juleskreuer.eu/projekte/citation-badge/)
 
 Tools for running an ensemble of lake models using standardised input data. Lake models currently incorporated are [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
