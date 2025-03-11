@@ -1,8 +1,7 @@
-url: https://tadhg-moore.github.io/LakeEnsemblR/
+url: https://aemon-j.github.io/LakeEnsemblR/
 template:
   bootstrap: 5
   bslib:
     bg: "#5EC9D4"
     fg: "#B8BCC2"
     primary: "#000080"
-
