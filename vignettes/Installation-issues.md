@@ -1,0 +1,25 @@
+## How to install
+To install LakeEnsemblR, first install the packages it relies on, as described at https://github.com/aemon-j/LakeEnsemblR#Installation
+
+If you get `error converted from warning` messages while installing the packages, this means that the version of LakeEnsemblR was built with a newer R version than yours. To avoid this issue, either install the latest R version, or run the line `Sys.setenv("R_REMOTES_NO_ERRORS_FROM_WARNINGS" = "true")` before installing the packages. 
+
+If you see `Downloading GitHub repo aemon-j/LakeEnsemblR@main. Error in utils::download.file(... Cannot open URL ...`: there is a migration from the word "master" to "main" for the major branch of a repository, and the R function you use to install the package - e.g. devtools::install_github - might use a different name. Change the `ref` argument in the function to the correct name of the branch you want to install. 
+
+## Installing LakeEnsemblR on Mac or Linux
+While we have made an effort to provide executables and supporting libraries for Windows, Mac, and Linux operating systems, the different builds of MacOS and Linux can result in unexpected errors when trying to run the models. To mediate these issues, we would first like to point you to the following script, that tests whether all models are working correctly (Note that you only need to install the model packages that you plan to use): https://github.com/aemon-j/LakeEnsemblR/blob/main/inst/extdata/test_model_packages.R 
+
+If some of the model packages do not work on your Mac or Linux PC, we propose the fixes below. If you are still experiencing problems afterwards, please start an Issue on this Github page.  
+
+### Mac
+Firstly, the model packages have been built in and tested for only MacOS Catalina. MacOS Mojave may not be able to run LakeEnsemblR. 
+
+If you experience problems on macOS with error messages like `dyld: Library not loaded`, you can try to install the missing libraries, e.g. by using 'brew'. Install brew in the terminal: `/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"`
+-	Install the missing libraries and you will need to update your current versions of gfortran, netcdf and gc: `brew install gcc`, `brew install netcdf`, `brew install gc`
+-	check if everything is working: `gcc -v` and `gfortran --version` which should give you `"Apple clang version 12.0.0 (clang-1200.0.32.2)"` and `"GNU Fortran (Homebrew GCC 10.2.0) 10.2.0"`, respectively
+-	if you still experience library problems, you can continue installing the missing dependencies using 'brew'” (e.g. `dyld: Library not loaded: /usr/local/opt/fontconfig/lib/libfontconfig.1.dylib` -> `brew install fontconfig`)
+### Linux
+If you get error messages related to `shared libraries`, `libnetcdf`, or similar, go to the directory where your installed R packages are stored. For GLM3r, GOTMr, FLakeR, and SimstratR you need to delete the `libm.so.6` file and for GLM3r you need to copy the `libnetcdf.so.13` and two `libhdf_5...` files from the GOTMr `inst/extbin/nix/` folder to the GLM3r `inst/extbin/nix/` folder.
+
+
+### Docker
+You can also use docker to run LakeEnsemblr, see [this wiki page](https://github.com/aemon-j/LakeEnsemblR/wiki/Docker).
