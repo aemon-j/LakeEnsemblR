@@ -63,6 +63,7 @@ jobs:
       - name: Install Mac packages
         if: runner.os == 'macOS'
         run: |
+          install.packages("remotes")
           remotes::install_github("aemon-j/GLM3r", ref = "macOS")
           remotes::install_github("aemon-j/FLakeR", ref = "macOS")
           remotes::install_github("aemon-J/GOTMr", ref = "macOS")
