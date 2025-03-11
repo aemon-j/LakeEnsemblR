@@ -3,7 +3,7 @@ Type: Package
 Title: Run Ensemble of Lake Models
 Version: 1.2.9
 Date: 2025-03-12
-URL: https://github.com/aemon-j/LakeEnsemblR, https://aemon-j.github.io/LakeEnsemblR/
+URL: https://github.com/aemon-j/LakeEnsemblR, https://tadhg-moore.github.io/LakeEnsemblR/
 Author: Authors@R: c(person("Tadhg", "Moore", role = c("aut","cre"),
     email = "tadhg.moore6@gmail.com", comment = c(ORCID = "0000-0002-3834-8868")),
     person("Robert", "Ladwig", role = "aut",
