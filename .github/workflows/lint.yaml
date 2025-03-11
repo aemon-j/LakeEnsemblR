@@ -28,11 +28,9 @@ jobs:
 
       - name: Lint
         run: |
-          LER_linters <- lintr::with_defaults(line_length_linter = lintr::line_length_linter(100),
-                               commented_code_linter = NULL,
-                               cyclocomp_linter = NULL,
-                               paren_brace_linter = NULL,
-                               spaces_left_parentheses_linter = NULL)
+          LER_linters <- lintr::linters_with_defaults(line_length_linter = lintr::line_length_linter(100),
+                                    commented_code_linter = NULL,
+                                    spaces_left_parentheses_linter = NULL)
           lintr::lint_package(linters = LER_linters)
         shell: Rscript {0}
         env:
