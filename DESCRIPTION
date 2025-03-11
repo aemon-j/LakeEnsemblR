@@ -44,13 +44,14 @@ Suggests:
     FLakeR (>= 0.0.9),
     GOTMr (>= 0.0.0.10),
     SimstratR (>= 0.0.9),
-    MyLakeR (>= 0.0.1)
+    MyLakeR (>= 0.0.1),
+    xtable
 Encoding: UTF-8
 LazyData: true
 LazyLoad: true
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
-Remotes:  
+Remotes: 
     github::GLEON/rLakeAnalyzer,
     github::aemon-j/GLM3r@v3.1.1,
     github::USGS-R/glmtools@ggplot_overhaul,
