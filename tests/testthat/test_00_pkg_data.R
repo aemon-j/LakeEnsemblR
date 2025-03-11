@@ -1,17 +1,11 @@
 # this is a junk test to just create a placeholder. It doesn't really test anything:
 test_that("test data can be created", {
   testthat::skip_on_cran()
-  library(LakeEnsemblR)
-
-
   testthat::expect_error(run_ensemble(model = c("GRE")),
                          'Unknown model: "GRE" in input argument "model"')
 })
 
 test_that("create model meteo & config files", {
-
-  library(LakeEnsemblR)
-  library(gotmtools)
   template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
   setwd(template_folder) # Change working directory to example folder
 
@@ -164,8 +158,9 @@ test_that("can add members to netCDF models", {
   test_add <- tryCatch({
     run_ensemble(config_file = config_file,
                  model = model, add = TRUE)
+    TRUE
   }, error = function(e) return(FALSE))
-  testthat::expect_null(test_add)
+  testthat::expect_true(test_add)
 
 
 
