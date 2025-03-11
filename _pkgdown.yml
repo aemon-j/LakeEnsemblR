@@ -2,6 +2,6 @@ url: https://tadhg-moore.github.io/LakeEnsemblR/
 template:
   bootstrap: 5
   bslib:
-    bg: "#5EC9D4"
-    fg: "#B8BCC2"
+    bg: "#f8f6f2"
+    fg: "#2E382E"
     primary: "#000080"
