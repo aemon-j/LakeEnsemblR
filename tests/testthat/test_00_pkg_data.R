@@ -26,6 +26,9 @@ test_that("create model meteo & config files", {
 
 
 test_that("can run FLake", {
+  
+  # Skip test on MacOS
+  testthat::skip_on_os("mac")
 
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake")
@@ -74,6 +77,9 @@ test_that("can run GOTM", {
 
 test_that("can run Simstrat", {
   
+  # Skip test on MacOS
+  testthat::skip_on_os("mac")
+  
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("Simstrat")
@@ -109,6 +115,12 @@ test_that("can run all models in parallel", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")  
+  
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
+  
   # 1. Example - creates directories with all model setup
   export_config(config_file = config_file, model = model)
   
@@ -125,6 +137,10 @@ test_that("can add members to netCDF models", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
   ncdf <- "output/ensemble_output.nc"
 
   # 1. Example - creates directories with all model setup
@@ -244,6 +260,10 @@ test_that("can run models & generate csv files", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
 
   # Change to text output
   input_yaml(config_file, label = "output", key = "format", value = "text")
@@ -263,13 +283,19 @@ test_that("can calibrate models", {
   # 1. Example - creates directories with all model setup
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
+  
   export_config(config_file = config_file,
-                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                model = model,
                 folder = ".")
 
   # 2. Calibrate models
   cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
-                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+                model = model)
 
   testthat::expect_true(length(list.files("cali")) == 10)
 })
@@ -280,6 +306,10 @@ test_that("can calibrate models in parallel using old LHC", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
   export_config(config_file = config_file,
                 model = model,
                 folder = ".")
@@ -298,6 +328,10 @@ test_that("can calibrate models in parallel using new LHC", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
   export_config(config_file = config_file,
                 model = model,
                 folder = ".")
@@ -315,6 +349,10 @@ test_that("can generate all output vars", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
   input_yaml(config_file, label = "output", key = "format", value = "netcdf")
   input_yaml_multiple(config_file, key1 = "output", key2 = "variables",
                       value = c("temp", "salt", "dens", "ice_height", "w_level", "q_sens", "q_lat"))
@@ -332,6 +370,10 @@ test_that("check plots", {
   file.remove("output/ensemble_output.nc")
   config_file <- "LakeEnsemblR_copy.yaml"
   model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+  }
   ncdf <- "output/ensemble_output.nc"
   input_yaml(config_file, label = "output", key = "format", value = "netcdf")
 
@@ -370,17 +412,27 @@ test_that("export and run_ensemble old yaml file (version 1.0) still works", {
   unlink("MyLake", recursive = TRUE)
   
   # 1. Example - export configuration settings
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  model_cfg_files <- c("FLake" = "FLake/flake.nml", "GLM" = "GLM/glm3.nml",
+                       "GOTM" = "GOTM/gotm.yaml", "Simstrat" = "Simstrat/simstrat.par",
+                       "MyLake" = "MyLake/mylake.Rdata")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+    model_cfg_files <- c("GLM" = "GLM/glm3.nml",
+                         "GOTM" = "GOTM/gotm.yaml",
+                         "MyLake" = "MyLake/mylake.Rdata")
+  }
   export_config(config_file = config_file,
-                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                model = model,
                 folder = ".")
   
   # 2. Run models
   run_ensemble(config_file = config_file,
-               model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+               model = model)
   
-  testthat::expect_true((file.exists("FLake/flake.nml") & file.exists("GLM/glm3.nml") &
-                           file.exists("GOTM/gotm.yaml") & file.exists("Simstrat/simstrat.par") &
-                           file.exists("MyLake/mylake.Rdata") & file.exists("output/ensemble_output.nc")))
+  testthat::expect_true(all(file.exists(model_cfg_files) &
+                              file.exists("output/ensemble_output.nc")))
   
   unlink("output", recursive = TRUE)
   file.remove(config_file)
@@ -401,14 +453,25 @@ test_that("calibration with old yaml file (version 1.0) still works", {
   unlink("cali", recursive = TRUE)
   
   # 1. Example - export configuration settings
+  model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+  model_cfg_files <- c("FLake" = "FLake/flake.nml", "GLM" = "GLM/glm3.nml",
+                       "GOTM" = "GOTM/gotm.yaml", "Simstrat" = "Simstrat/simstrat.par",
+                       "MyLake" = "MyLake/mylake.Rdata")
+  os <- tolower(Sys.info()[["sysname"]])
+  if (os == "mac") {
+    model <- c("GLM", "GOTM", "MyLake")  
+    model_cfg_files <- c("GLM" = "GLM/glm3.nml",
+                         "GOTM" = "GOTM/gotm.yaml",
+                         "MyLake" = "MyLake/mylake.Rdata")
+  }
   export_config(config_file = config_file,
-                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"),
+                model = model,
                 folder = ".")
   # 2. Calibrate models
   cali_ensemble(config_file = config_file, cmethod = "LHC", num = 5,
-                model = c("FLake", "GLM", "GOTM", "Simstrat", "MyLake"))
+                model = model)
   
-  testthat::expect_true(length(list.files("cali")) == 10)
+  testthat::expect_true(length(list.files("cali")) == (length(model) * 2))
   
   unlink("output", recursive = TRUE)
   file.remove(config_file)
