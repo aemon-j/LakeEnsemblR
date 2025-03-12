@@ -43,7 +43,7 @@ library(LakeEnsemblR)
 
 ```{r include=FALSE}
 # Store output format for later use
-options(vignetteDocumentFormat = rmarkdown::all_output_formats("LakeEnsemblR_vignette.Rmd"))
+options(vignetteDocumentFormat = rmarkdown::all_output_formats("LakeEnsemblR.Rmd"))
 options(xtable.comment = FALSE)
 ```
 
