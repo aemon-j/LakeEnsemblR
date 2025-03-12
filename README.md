@@ -121,7 +121,7 @@ export_config(config_file = config_file, model = model)
 run_ensemble(config_file = config_file, model = model)
 #> [1] "Running MyLake from 01/01/10 to 01/01/11..."
 #>    user  system elapsed 
-#>    3.28    0.61    8.93
+#>    2.35    0.38    9.75
 ```
 
 ## Post-processing
@@ -152,7 +152,7 @@ p1
 ``` r
 # Change the theme and increase text size for saving
 p1 <- p1 +
-  theme_classic(base_size = 24) + 
+  theme_classic(base_size = 14) + 
   scale_colour_gradientn(limits = c(0, 21),
                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 
@@ -269,7 +269,7 @@ workflow:
 
 2.  clone the github repository to your computer:
 
-    \$git clone <git@github.com:%7Busername%7D/LakeEnsemblR.git>
+    \$git clone <git@github.com:USER_NAME/LakeEnsemblR.git>
 
 3.  modify code or add new functionality, save the code
 

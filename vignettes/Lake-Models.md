@@ -1,1 +1,0 @@
-For more information on the current five models in LakeEnsemblR: the Freshwater Lake Model (FLake), General Lake Model (GLM), General Ocean Turbulence Model (GOTM) (lake-branch), Simstrat, and MyLake, you are referred to the [AEMON-J Aquatic Ecosystem Model Library](https://github.com/aemon-j/aquatic-ecosystem-model-library/wiki) for in depth information for each model.

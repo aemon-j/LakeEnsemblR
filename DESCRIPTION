@@ -60,3 +60,4 @@ Remotes:
     github::aemon-j/gotmtools,
     github::aemon-j/SimstratR,
     github::aemon-j/MyLakeR
+Config/Needs/website: rmarkdown

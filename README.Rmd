@@ -110,7 +110,7 @@ p1 <- plot_heatmap(ncdf)
 p1
 # Change the theme and increase text size for saving
 p1 <- p1 +
-  theme_classic(base_size = 24) + 
+  theme_classic(base_size = 14) + 
   scale_colour_gradientn(limits = c(0, 21),
                          colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
 
@@ -160,7 +160,7 @@ In order to contribute to this code, we recommend the following workflow:
 
 2.  clone the github repository to your computer:
 
-    $git clone <git@github.com:{username}/LakeEnsemblR.git>
+    $git clone <git@github.com:USER_NAME/LakeEnsemblR.git>
 
 3.  modify code or add new functionality, save the code
 

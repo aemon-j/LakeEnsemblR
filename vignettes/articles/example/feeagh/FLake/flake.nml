@@ -1,0 +1,59 @@
+!Namelist configuraltion file for FLAKE (Code /LER/ means that this is overwritten by settings in the LakeEnsemblR master config file)
+
+!------------------------------------------------------------------------------
+!  Length of the simulation period, time step, saving interval
+!------------------------------------------------------------------------------
+
+&SIMULATION_PARAMS
+del_time_lk   = 86400,! Time step [s]
+time_step_number = 365,! /LER/ The total number of time steps (17 years 1980-1996)
+save_interval_n  = 1        ! Saving interval in time steps
+T_wML_in = 4.977,! /LER/ initial temperature of the upper mixed layer
+T_bot_in = 4.905,! /LER/ initial temperature at the bottom
+h_ML_in = 16.05,! /LER/ initial mixed layer thickness
+/
+
+
+!------------------------------------------------------------------------------
+! Measurement heights/depths [m], names of input and output files
+!------------------------------------------------------------------------------
+&METEO
+z_wind_m(1) =  10.00,
+z_Taqa_m(1) =  2.00,
+z_Tw_m(1)   =  0.00,
+meteofile     = 'all_meteo_file.dat',
+outputfile    = 'output/output.dat',
+/
+
+
+!------------------------------------------------------------------------------
+!  Lake-specific parameters
+!------------------------------------------------------------------------------
+&LAKE_PARAMS
+depth_w_lk  = 16.05,! /LER/ Lake depth [m]
+fetch_lk    = 2000,! Typical wind fetch [m]
+depth_bs_lk =  5.0,         ! Depth of the thermally active layer of the bottom sediments [m]
+T_bs_lk     =  4.0,         ! Temperature at the outer edge of the thermally active layer of the bottom sediments [C]
+latitude_lk = 53.9,! /LER/ Geographical latitude [dgr]
+c_relax_C = 0.0027802,! Adjustable constant in the relaxation equation for the shape factor
+/
+
+
+!------------------------------------------------------------------------------
+! water transparency
+!------------------------------------------------------------------------------
+! Mueggelsee (Opaque Water, gamma = 1.5)
+&TRANSPARENCY
+nband_optic =     1        ! Number of wave-length bands
+frac_optic =      1        ! Fractions of total radiation flux
+extincoef_optic = 0.98,! /LER/ Extinction coefficients
+/
+
+&inflow
+DTinflow = 0.0,    ! not relevant if inflows are not used
+DTfixed  = .true., ! not relevant if inflows are not used
+QS       = 0.0,    ! inflow rate per lake area [m/s], not relevant if inflows are not used
+Qfromfile = .true.,! /LER/
+Qfile='Tinflow',   ! a filename with inflow data should be substituted for 'Tinflow'
+time_step_number = 366,! number of the model time steps, should be less than or equal to the number of rows in Qfile
+/
