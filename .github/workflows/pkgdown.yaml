@@ -10,8 +10,9 @@ on:
 
 name: Build & Deploy
 
-permissions: read-all
-
+permissions:
+  contents: write
+  
 jobs:
   build:
     runs-on: windows-latest # The first job utilizes windows-latest
