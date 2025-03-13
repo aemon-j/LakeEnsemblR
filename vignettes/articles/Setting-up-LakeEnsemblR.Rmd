@@ -1,5 +1,5 @@
 ---
-title: "1. Setting up LakeEnsemblR"
+title: "Setting up LakeEnsemblR"
 editor_options: 
   markdown: 
     wrap: 100

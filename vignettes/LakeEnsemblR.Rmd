@@ -373,9 +373,9 @@ p <- plot_ensemble(ncdf = ens_out, model = c("FLake", "GLM",  "GOTM", "Simstrat"
 ```
 
 ```{r, out.width = "650px", echo = FALSE}
-include_graphics("../images/model_ensemble_timeseries_depth.png")
+include_graphics("../man/figures/model_ensemble_timeseries_depth.png")
 
-include_graphics("../images/model_ensemble_vertical_depth.png")
+include_graphics("../man/figures/model_ensemble_vertical_depth.png")
 ```
 
 
@@ -417,7 +417,7 @@ plist <- plot_resid(ncdf = ens_out,var = "temp",
 ```
 
 ```{r, out.width = "450px", echo = FALSE}
-include_graphics("../images/model_ensemble_diagnostics.png")
+include_graphics("../man/figures/model_ensemble_diagnostics.png")
 ```
 
 
@@ -439,7 +439,7 @@ ggsave("output/model_ensemble_stratification.png", p,  dpi = 300, width = 284,
 ```
 
 ```{r, out.width = "250px", echo = FALSE}
-include_graphics("../images/model_ensemble_stratification.png")
+include_graphics("../man/figures/model_ensemble_stratification.png")
 ```
 
 
