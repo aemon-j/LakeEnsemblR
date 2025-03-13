@@ -5,3 +5,33 @@ template:
     bg: "#f8f6f2"
     fg: "#2E382E"
     primary: "#000080"
+
+articles:
+- title: Get started
+  navbar: Get started
+  contents:
+  - lakeensemblr-overview
+  - "articles/setting-up-lakeensemblr"
+  - "articles/running-lakeensemblr"
+  - "articles/running-lakeensemblr-in-parallel"
+  - "articles/post-processing-lakeensemblr"
+  - "articles/calibrating-lakeensemblr"
+
+- title: Installation
+  navbar: Installation
+  contents:
+  - "articles/docker"
+  - "articles/installation-issues"
+  - "articles/faq"
+
+- title: Other
+  navbar: Other
+  contents:
+  - "articles/what-is-a-netcdf-file"
+  - "articles/lake-models"
+  - "articles/package-structure"
+  - "articles/from-v1-0-to-v1-1-changes"
+
+news:
+  one_page: false
+  
