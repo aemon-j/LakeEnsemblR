@@ -12,7 +12,8 @@ knitr::opts_chunk$set(
 Once LakeEnsemblR did successfully run all lake models, you can either extract the output data from the netcdf file for custom analysis and plotting, or use post-processing scripts for an initial look at the output.
 
 ## Quick post-processing
-```R
+
+``` r
 # define path to the LakeEnsemblR netcdf output
 ens_out <- "output/ensemble_output.nc"
 
@@ -20,9 +21,12 @@ ens_out <- "output/ensemble_output.nc"
 p <- plot_ensemble(ncdf = ens_out, model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'), depth = 0.9,
               var = 'watertemp', date = as.POSIXct("2010-06-13", tz = "UTC"), boxwhisker = TRUE, residuals = TRUE)
 ```
-![](https://github.com/aemon-j/LakeEnsemblR/blob/master/images/model_ensemble_timeseries_depth.png)<!-- -->
-![](https://github.com/aemon-j/LakeEnsemblR/blob/master/images/model_ensemble_vertical_depth.png)<!-- -->
-```R
+
+![](images/model_ensemble_timeseries_depth.png)
+
+![](images/model_ensemble_vertical_depth.png)
+
+``` r
 # Take a look at the model fits to the observed data
 calc_fit(ncdf = "output/ensemble_output.nc",
          model = c("FLake", "GLM",  "GOTM", "Simstrat", "MyLake"),
@@ -50,15 +54,17 @@ $MyLake
 1 2.548408 0.6258777 0.9059941 -0.1880694 0.1946865
 ```
 
-```R
+``` r
 # Take a look at the model performance against residuals, time and depth
 plist <- plot_resid(ncdf = ens_out,var = "watertemp",
                    model = c('FLake', 'GLM',  'GOTM', 'Simstrat', 'MyLake'))
 ```
-![](https://github.com/aemon-j/LakeEnsemblR/blob/master/images/model_ensemble_diagnostics.png)<!-- -->
+
+![](images/model_ensemble_diagnostics.png)
 
 ## Further custom post-processing
-```R
+
+``` r
 # Load post-processed output data into your workspace
 analyse_df <- analyse_ncdf(ncdf = ens_out, spin_up = NULL, drho = 0.1)
 
@@ -72,4 +78,5 @@ p <- ggplot(strat_df, aes(model, TotStratDur)) +
   theme_classic()
 ggsave("output/model_ensemble_stratification.png", p,  dpi = 300, width = 284, height = 284, units = "mm")
 ```
-![](https://github.com/aemon-j/LakeEnsemblR/blob/master/images/model_ensemble_stratification.png)<!-- -->
+
+![](images/model_ensemble_stratification.png)
