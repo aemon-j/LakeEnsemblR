@@ -1,5 +1,5 @@
 ---
-title: 'R package LakeEnsemblR: Basic Use and Sample Applications'
+title: 'LakeEnsemblR: Basic Use and Sample Applications'
 author:
    - "johannes.feldbauer@tu-dresden.de"
    - "tadhg.moore@dkit.ie"
@@ -13,7 +13,7 @@ output:
      toc_depth: 3
 bibliography: references.bib
 vignette: >
-  %\VignetteIndexEntry{R package LakeEnsemblR: Basic Use and Sample Applications}
+  %\VignetteIndexEntry{LakeEnsemblR: Basic Use and Sample Applications}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -43,7 +43,7 @@ library(LakeEnsemblR)
 
 ```{r include=FALSE}
 # Store output format for later use
-options(vignetteDocumentFormat = rmarkdown::all_output_formats("LakeEnsemblR.Rmd"))
+options(vignetteDocumentFormat = rmarkdown::all_output_formats("lakeensemblr-overview.Rmd"))
 options(xtable.comment = FALSE)
 ```
 
