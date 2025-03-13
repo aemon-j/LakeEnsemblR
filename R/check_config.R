@@ -117,12 +117,12 @@ check_master_config <- function(config_file,
         stop(paste0("No 'number_inflows' entry found in 'inflows', ",
                     "section of master config file '", config_file,
                     "'. Please update your config file. For help see: ",
-                    "https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1"))
+                    "https://aemon-j.github.io/LakeEnsemblR/articles/from-v1-0-to-v1-1-changes.html"))
       } else {
         warning(paste0("No 'number_inflows' entry found in 'inflows', ",
                        "section of master config file '", config_file,
                        "'. Please update your config file. For help see: ",
-                       "https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1"))
+                       "https://aemon-j.github.io/LakeEnsemblR/articles/from-v1-0-to-v1-1-changes.html"))
       }
     })
   
