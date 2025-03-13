@@ -121,7 +121,7 @@ export_config(config_file = config_file, model = model)
 run_ensemble(config_file = config_file, model = model)
 #> [1] "Running MyLake from 01/01/10 to 01/01/11..."
 #>    user  system elapsed 
-#>    2.35    0.38    9.75
+#>    8.68    0.65    9.40
 ```
 
 ## Post-processing
@@ -251,14 +251,14 @@ stats
 #> 5 -1.922755 1.958657 2.548731 0.6257830    -19447.17
 ```
 
-See the
-[vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf)
-for further examples.
+See the [vignette](articles/lakeensemblr-overview.html) for further
+examples.
 
 # How do I setup `LakeEnsemblR` for my lake?
 
-Head on over to our [Wiki](https://github.com/aemon-j/LakeEnsemblR/wiki)
-for guides on how to set up your lake for LakeEnsemblR
+Head on over to our
+[website](https://aemon-j.github.io/LakeEnsemblR/index.html) for guides
+on how to set up your lake for LakeEnsemblR
 
 # How do I contribute new code back to the `LakeEnsemblR` project?
 

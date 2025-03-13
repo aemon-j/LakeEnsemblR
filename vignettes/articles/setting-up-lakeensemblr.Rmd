@@ -128,4 +128,4 @@ file. For first time users we would recommend to set up a folder with just these
 the LakeEnsemblR yaml configuration file.
 
 Now you should be ready to [run
-LakeEnsemblR](https://github.com/aemon-j/LakeEnsemblR/wiki/3.-Running-LakeEnsemblR) on your site.
+LakeEnsemblR](articles/running-lakeensemblr.html) on your site.

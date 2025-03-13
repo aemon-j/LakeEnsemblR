@@ -145,12 +145,12 @@ stats <- out[["stats"]]
 stats
 ```
 
-See the [vignette](https://github.com/aemon-j/LakeEnsemblR/blob/master/vignettes/LakeEnsemblR_vignette.pdf) for further examples.
+See the [vignette](articles/lakeensemblr-overview.html) for further examples.
 
 
 # How do I setup `LakeEnsemblR` for my lake?
 
-Head on over to our [Wiki](https://github.com/aemon-j/LakeEnsemblR/wiki) for guides on how to set up your lake for LakeEnsemblR
+Head on over to our [website](https://aemon-j.github.io/LakeEnsemblR/index.html) for guides on how to set up your lake for LakeEnsemblR
 
 # How do I contribute new code back to the `LakeEnsemblR` project?
 

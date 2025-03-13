@@ -71,8 +71,8 @@ time?**
     change the values of in- and outflow in the model-specific
     directories, but LER did not assist in this.
 -   In version 1.1 of LER, you can now vary inflows and outflows
-    independently from each other. For more information, see [our
-    wiki](https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1).
+    independently from each other. For more information, see 
+    [this article](articles/from-v1-0-to-v1-1-changes.html).
 
 **How do I add additional members to my netcdf file?**
 
@@ -138,11 +138,9 @@ extremely high or low temperatures. What can I do?**
     reinstall the model-specific packages (GLM3r, SimstratR, etc.) and
     to use a LER config file that corresponds to the new template, e.g.
     `<code>`{=html}get_template("LakeEnsemblR_config")`</code>`{=html}.
-    More information can be found on [our
-    wiki](https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1).
+    More information can be found on this [article](articles/from-v1-0-to-v1-1-changes.html).
 -   If you would like to keep using the old version, please also have a
-    look at the [wiki
-    page](https://github.com/aemon-j/LakeEnsemblR/wiki/From-v1.0-to-v1.1)
+    look at the this [article](articles/from-v1-0-to-v1-1-changes.html)
     for instructions.
 -   If you are still experiencing problems, don't hesitate to create a
     new Issue on this GitHub.
