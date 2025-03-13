@@ -15,5 +15,4 @@ To facilitate future incorporation of models into LER a modularized approach has
 
 To facilitate interaction with model configuration files "helper" packages were also incorporate such as [glmtools](https://github.com/USGS-R/glmtools/) and [gotmtools](https://github.com/aemon-j/gotmtools). For analysis of lake data the [rLakeAnalyzer](https://github.com/GLEON/rLakeAnalyzer) was created within the [Global Lake Ecological Observation Network (GLEON)](https://gleon.org/) so this was also incorporated to ensure that the data produced from this package is compatible with existing tools.
 
-<a href="url"><img src="man/figures/LER_modularization.png"></a>
-*Figure 1. Package structure and modularization of LakeEnsemblR.*
+![Package structure and modularization of LakeEnsemblR.](images/LER_modularization.png)
