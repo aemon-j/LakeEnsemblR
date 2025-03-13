@@ -5,18 +5,3 @@ template:
     bg: "#f8f6f2"
     fg: "#2E382E"
     primary: "#000080"
-
-articles:
-- title: Introduction
-  navbar: ~
-  contents:
-  - Setting-up-LakeEnsemblR
-  - Running-LakeEnsemblR
-  - Post-processing-LakeEnsemblR
-
-- title: Installation
-  desc: Vignettes aimed at helping with install issues
-  contents:
-  - Installation issues
-  - FAQ
-  
