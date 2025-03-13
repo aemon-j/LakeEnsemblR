@@ -15,7 +15,7 @@ In March 2022, we updated LakeEnsemblR to version 1.1. The main advantage of thi
 
 However, some of these improvements required a change in the configuration file, which may cause unexpected errors when updating LakeEnsemblR to v1.1. Here we describe how to avoid or fix these problems, and we also give instructions on how you can keep working with v1.0, if you prefer this.
 
-As a general advice, please first reinstall the latest versions of the model-specific packages (GLM3r, SimstratR, etc.) after updating LakeEnsemblR. Also, new example test cases and configuration files are provided in LakeEnsemblR, the model-specific packages, and at the "LER_examples Github page":<https://github.com/aemon-j/LER_examples>. The advice below is therefore mostly if you want to adapt your existing setup to v1.1.
+As a general advice, please first reinstall the latest versions of the model-specific packages (GLM3r, SimstratR, etc.) after updating LakeEnsemblR. Also, new example test cases and configuration files are provided in LakeEnsemblR, the model-specific packages, and at the [LER_examples Github page](https://github.com/aemon-j/LER_examples). The advice below is therefore mostly if you want to adapt your existing setup to v1.1.
 
 ### Changes in the LakeEnsemblR configuration file
 
@@ -34,7 +34,8 @@ outflow_lvl:
   - 10
 ```
 
-Inflows are always assumed to be surface inflows. \* "fix_wlvl" (<em>inflows</em>-only and optional): If set to "true", the water level in GOTM will be fixed to the initial water level. This reproduces v1.0 behaviour. However, note that this means that the water balance is no longer correctly resolved in GOTM. If this argument is absent, it is assumed to be "false"
+-   Inflows are always assumed to be surface inflows.
+-   "fix_wlvl" (<em>inflows</em>-only and optional): If set to "true", the water level in GOTM will be fixed to the initial water level. This reproduces v1.0 behaviour. However, note that this means that the water balance is no longer correctly resolved in GOTM. If this argument is absent, it is assumed to be "false".
 
 Note that the "mass_balance" argument from v1.0 is no longer used. If you want to recreate the situation of v1.0 where inflow = outflow, you can just provide the same file name in the "file" argument of both the inflows and outflows section. Also the "scale_param" parameter from the v1.0 <em>inflows</em> section has been (re)moved (see next paragraph).
 
@@ -92,6 +93,6 @@ devtools::install_github("aemon-j/SimstratR@LakeEnsemblR_v1.0.0")
 devtools::install_github("aemon-j/MyLakeR@LakeEnsemblR_v1.0.0")
 ```
 
-To access the LER_examples corresponding to v1.0 of LakeEnsemblR, download "this zip file":<https://github.com/aemon-j/LER_examples/releases/tag/v1.0.0>.
+To access the LER_examples corresponding to v1.0 of LakeEnsemblR, download [this zip file](https://github.com/aemon-j/LER_examples/releases/tag/v1.0.0).
 
 Alternatively, you can install v1.1 and the new model-specific packages, change your configuration file as described above, set the outflow file to the same file as the inflow file, and "fix_wlvl" to "true". This should result in very similar behaviour compared to v1.0 (although a later version of the Simstrat model will be used).
