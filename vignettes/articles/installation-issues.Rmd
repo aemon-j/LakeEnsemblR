@@ -35,4 +35,4 @@ If you get error messages related to `shared libraries`, `libnetcdf`, or similar
 
 ### Docker
 
-You can also use docker to run LakeEnsemblr, see [this article](docs/articles/docker.html).
+You can also use docker to run LakeEnsemblr, see [this article](docker.html).
