@@ -1,0 +1,18 @@
+---
+title: "Package structure"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Currently there are five lake models in LakeEnsemblR (LER). They are the [Freshwater Lake Model (FLake)](http://www.flake.igb-berlin.de/), [General Lake Model (GLM)](http://aed.see.uwa.edu.au/research/models/GLM/), [General Ocean Turbulence Model (GOTM)](https://gotm.net/) (lake-branch), [Simstrat](https://www.eawag.ch/en/department/surf/projects/simstrat/), and [MyLake](https://github.com/biogeochemistry/MyLake_public).
+
+To facilitate future incorporation of models into LER a modularized approach has been developed where each model has its own stand-alone package which hosts the model executables and functions for running the models (Figure 1). They are [FLakeR](https://github.com/aemon-j/FLakeR), [GLM3r](https://github.com/GLEON/GLM3r), [GOTMr](https://github.com/aemon-j/GOTMr), [MyLakeR](https://github.com/aemon-j/MyLakeR) and [SimstratR](https://github.com/aemon-j/SimstratR).
+
+To facilitate interaction with model configuration files "helper" packages were also incorporate such as [glmtools](https://github.com/USGS-R/glmtools/) and [gotmtools](https://github.com/aemon-j/gotmtools). For analysis of lake data the [rLakeAnalyzer](https://github.com/GLEON/rLakeAnalyzer) was created within the [Global Lake Ecological Observation Network (GLEON)](https://gleon.org/) so this was also incorporated to ensure that the data produced from this package is compatible with existing tools.
+
+![Package structure and modularization of LakeEnsemblR.](images/LER_modularization.png)
