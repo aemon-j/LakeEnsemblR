@@ -1,0 +1,21 @@
+pandoc: 3.1.11
+pkgdown: 2.1.1
+pkgdown_sha: ~
+articles:
+  articles/calibrating-lakeensemblr: calibrating-lakeensemblr.html
+  articles/docker: docker.html
+  articles/faq: faq.html
+  articles/from-v1-0-to-v1-1-changes: from-v1-0-to-v1-1-changes.html
+  articles/installation-issues: installation-issues.html
+  articles/lake-models: lake-models.html
+  lakeensemblr-overview: lakeensemblr-overview.html
+  articles/package-structure: package-structure.html
+  articles/post-processing-lakeensemblr: post-processing-lakeensemblr.html
+  articles/running-lakeensemblr-in-parallel: running-lakeensemblr-in-parallel.html
+  articles/running-lakeensemblr: running-lakeensemblr.html
+  articles/setting-up-lakeensemblr: setting-up-lakeensemblr.html
+  articles/what-is-a-netcdf-file: what-is-a-netcdf-file.html
+last_built: 2025-03-16T21:39Z
+urls:
+  reference: https://aemon-j.github.io/LakeEnsemblR/reference
+  article: https://aemon-j.github.io/LakeEnsemblR/articles
