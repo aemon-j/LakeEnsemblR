@@ -9,3 +9,8 @@
 ^LakeEnsemblR\.Rproj$
 ^\.travis\.yml$
 ^\.github$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^README\.Rmd$
+^vignettes/articles$

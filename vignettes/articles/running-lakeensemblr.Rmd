@@ -1,0 +1,73 @@
+---
+title: "Running LakeEnsemblR"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Once you have your hypsograph, water temperature observations and meteorological
+files prepared, running LakeEnsemblR is relatively straightforward.
+
+## Example model run
+
+```{r copy-files,echo = TRUE,result = "hide",warning = FALSE,message=FALSE}
+
+# Load LakeEnsemblR
+library(LakeEnsemblR)
+
+# Copy template folder
+template_folder <- system.file("extdata/feeagh", package= "LakeEnsemblR")
+dir.create("example") # Create example folder
+file.copy(from = template_folder, to = "example", recursive = TRUE)
+setwd("example/feeagh") # Change working directory to example folder
+
+```
+
+```{r, setup, include=FALSE}
+knitr::opts_knit$set(root.dir = "example/feeagh")
+```
+
+```{r run-LER,result = "hide",warning = FALSE,message=FALSE}
+
+# Set config file & models
+config_file <- "LakeEnsemblR.yaml"
+model <- c("FLake", "GLM", "GOTM", "Simstrat", "MyLake")
+
+# Example run
+# 1. Export settings - creates directories with all model setups and exports settings from the LER configuration file
+export_config(config_file = config_file, model = model)
+
+# 2. Run ensemble lake models
+run_ensemble(config_file = config_file, model = model)
+```
+
+
+## Post-processing
+
+```{r post-process}
+
+# Load libraries for post-processing
+library(gotmtools)
+library(ggplot2)
+
+## Plot model output using gotmtools/ggplot2
+# Extract names of all the variables in netCDF
+ncdf <- "output/ensemble_output.nc"
+vars <- gotmtools::list_vars(ncdf)
+vars # Print variables
+
+p1 <- plot_heatmap(ncdf)
+p1
+# Change the theme and increase text size for saving
+p1 <- p1 +
+  theme_classic(base_size = 14) + 
+  scale_colour_gradientn(limits = c(0, 21),
+                         colours = rev(RColorBrewer::brewer.pal(11, "Spectral")))
+
+p1
+
+```

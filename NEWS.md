@@ -1,3 +1,11 @@
+## version 1.2.9
+
+### Changes
+- Added pkgdown website for LakeEnsemblR
+- Added pkgdown build to GitHub Actions
+- Updated DESCRIPTION file with GitHub dependencies
+- Updated old GitHub Actions to new format
+
 ## version 1.2.8
 
 ### Changes
