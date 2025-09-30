@@ -35,6 +35,10 @@ calc_hmix <- function(temps, depths, min.dT = 1,
     while(depths[i2] <= min.hmix) {
       d2Tdz2[i2] <- NA
       i2 <- which.min(d2Tdz2)
+      if(all(is.na(d2Tdz2))){
+        warning("Warning: Too few temperature values below 'min.hmix'")
+        return(as.numeric(NA))
+      }
     }
     while(i1 <= i2) {
       dTdz[i1] <- NA
@@ -74,8 +78,8 @@ calc_hmix <- function(temps, depths, min.dT = 1,
     if(abs(Ts - Tb) < min.dT) h <- max(depths) # assume mixed to max(depths) if Ts-Tb < min.dT
     if(!is.na(h) & h < 0) h <- NA
   } else {
-    h <- NA
-    warning("Warning:need more than 3 temperature values")
+    h <- as.numeric(NA)
+    warning("Warning: need more than 3 temperature values")
   }
   if(plot){
     plot(temps, depths, 
