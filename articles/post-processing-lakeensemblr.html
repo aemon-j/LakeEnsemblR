@@ -6,12 +6,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Post-processing LakeEnsemblR • LakeEnsemblR</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
-<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
-<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="../apple-touch-icon.png">
-<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="../apple-touch-icon-120x120.png">
-<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="../apple-touch-icon-76x76.png">
-<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="../apple-touch-icon-60x60.png">
+<!-- favicons --><link rel="icon" type="image/png" sizes="96x96" href="../favicon-96x96.png">
+<link rel="icon" type="”image/svg+xml”" href="../favicon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="../apple-touch-icon.png">
+<link rel="icon" sizes="any" href="../favicon.ico">
+<link rel="manifest" href="../site.webmanifest">
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -102,7 +101,7 @@ output.</p>
 <span><span class="co"># Plot depth and time-specific results</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_ensemble.html">plot_ensemble</a></span><span class="op">(</span>ncdf <span class="op">=</span> <span class="va">ens_out</span>, model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'FLake'</span>, <span class="st">'GLM'</span>,  <span class="st">'GOTM'</span>, <span class="st">'Simstrat'</span>, <span class="st">'MyLake'</span><span class="op">)</span>, depth <span class="op">=</span> <span class="fl">0.9</span>,</span>
 <span>              var <span class="op">=</span> <span class="st">'watertemp'</span>, date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.POSIXlt.html" class="external-link">as.POSIXct</a></span><span class="op">(</span><span class="st">"2010-06-13"</span>, tz <span class="op">=</span> <span class="st">"UTC"</span><span class="op">)</span>, boxwhisker <span class="op">=</span> <span class="cn">TRUE</span>, residuals <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images%2Fmodel_ensemble_timeseries_depth.png"></p>
+<p><img src="images/model_ensemble_timeseries_depth.png"></p>
 <p><img src="images/model_ensemble_vertical_depth.png"></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="co"># Take a look at the model fits to the observed data</span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">calc_fit</span>(<span class="at">ncdf =</span> <span class="st">"output/ensemble_output.nc"</span>,</span>
@@ -133,7 +132,7 @@ output.</p>
 <code class="sourceCode R"><span><span class="co"># Take a look at the model performance against residuals, time and depth</span></span>
 <span><span class="va">plist</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plot_resid.html">plot_resid</a></span><span class="op">(</span>ncdf <span class="op">=</span> <span class="va">ens_out</span>,var <span class="op">=</span> <span class="st">"watertemp"</span>,</span>
 <span>                   model <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">'FLake'</span>, <span class="st">'GLM'</span>,  <span class="st">'GOTM'</span>, <span class="st">'Simstrat'</span>, <span class="st">'MyLake'</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images%2Fmodel_ensemble_diagnostics.png"></p>
+<p><img src="images/model_ensemble_diagnostics.png"></p>
 </div>
 <div class="section level2">
 <h2 id="further-custom-post-processing">Further custom post-processing<a class="anchor" aria-label="anchor" href="#further-custom-post-processing"></a>
@@ -151,7 +150,7 @@ output.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">""</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_classic</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html" class="external-link">ggsave</a></span><span class="op">(</span><span class="st">"output/model_ensemble_stratification.png"</span>, <span class="va">p</span>,  dpi <span class="op">=</span> <span class="fl">300</span>, width <span class="op">=</span> <span class="fl">284</span>, height <span class="op">=</span> <span class="fl">284</span>, units <span class="op">=</span> <span class="st">"mm"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="images%2Fmodel_ensemble_stratification.png"></p>
+<p><img src="images/model_ensemble_stratification.png"></p>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>
@@ -164,7 +163,7 @@ output.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>
