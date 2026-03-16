@@ -65,7 +65,7 @@ at this page:
 
 ### Visualize
 
-You can download [PyNcView](http://sourceforge.net/projects/pyncview/),
+You can download [PyNcView](https://github.com/BoldingBruggeman/pyncview/releases/),
 a cross-platform NetCDF viewer, for viewing the NetCDF output.
 
 ## Example model run

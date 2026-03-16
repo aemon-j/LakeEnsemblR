@@ -360,7 +360,7 @@ ggsave("output/model_ensemble_watertemp.png", g1,  dpi = 300,width = 384,height 
 Once LakeEnsemblR did successfully run all lake models, you can either extract the output data from the netcdf file for custom analysis and plotting, or use post-processing scripts for an initial look at the output.
 
 ### Quick post-processing
-Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://sourceforge.net/projects/pyncview/) can be used to look at netcdf output.
+Now that the model simulations are finished, you can extract the data with `load_var`, or plot it with `plot_ensemble`. You can extract data from the netcdf file to do any further analysis. The `ncdf4` R package supports working with netcdf data in R, and the PyNcView software (https://github.com/BoldingBruggeman/pyncview/releases/) can be used to look at netcdf output.
 
 ```{r gh-installation, eval = FALSE}
 # Import the LER output into your workspace
