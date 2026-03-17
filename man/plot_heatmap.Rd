@@ -11,6 +11,7 @@ plot_heatmap(
   dim_index = 1,
   var_list = NULL,
   model = NULL,
+  spin_up = 0,
   tile_width = NULL,
   tile_height = NULL
 )
@@ -27,6 +28,8 @@ plot_heatmap(
 \item{var_list}{list of variables in the format when loaded using `load_var()`. Defaults to NULL}
 
 \item{model}{Vector of models which should be included in the plot}
+
+\item{spin_up}{numeric; Number of days to disregard as spin-up for plotting}
 
 \item{tile_width}{width of tiles in geom_tile. Defaults to NULL to determine automatically}
 
