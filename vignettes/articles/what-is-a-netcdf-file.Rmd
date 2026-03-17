@@ -22,7 +22,7 @@ Network Common Data Form (netCDF) is a file format for storing multidimensional 
 It was chosen as the main file format because of its ability to store multi-dimensional variables (e.g. time, depth, model) in a relatively small file size. The ability to store metadata is extremely useful to facilitate post-processing and its flexibility means as LakeEnsemblR grows to allow for parameter and meteorological ensemble runs, it will be easy to store all these variables within one relatively small file compared to multiple text files?
 
 ## How do I view a netCDF file?
-We use the program PyNcView for viewing netCDF files. PyNcView is a cross-platform NetCDF viewer written in Python. It provides an easy-to-use graphical user interface to the creation of animations and publication-quality figures. It is free to download from SourceForge [here](https://sourceforge.net/projects/pyncview/).
+We use the program PyNcView for viewing netCDF files. PyNcView is a cross-platform NetCDF viewer written in Python. It provides an easy-to-use graphical user interface to the creation of animations and publication-quality figures. It is free to download from SourceForge [here](https://github.com/BoldingBruggeman/pyncview/releases/).
 
 ## Do I _*HAVE*_ to work with netCDF files?
 No you do not. We are aware that many users might prefer simple and easy to use output data so we have incorporated the functionality to output ".csv" files with [rLakeAnalyzer](https://github.com/GLEON/rLakeAnalyzer) formatting to allow the use of the functions from that package for loading and analysing the data within R. To do this you just need to change the "format" option in the LakeEnsmblr.yaml file. e.g.
