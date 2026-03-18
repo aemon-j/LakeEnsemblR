@@ -8,6 +8,7 @@
 #' @param dim_index numeric; Index of dimension chosen to extract from. Defaults to 1. Only used if plotting from netCDF file.
 #' @param var_list list of variables in the format when loaded using `load_var()`. Defaults to NULL 
 #' @param model Vector of models which should be included in the plot
+#' @param spin_up numeric; Number of days to disregard as spin-up for plotting
 #' @param tile_width width of tiles in geom_tile. Defaults to NULL to determine automatically
 #' @param tile_height height of tiles in geom_tile. Default to NULL to determine automatically
 #' @return ggplot object of heatmaps
@@ -24,7 +25,7 @@
 #' }
 #' @export
 plot_heatmap <- function(ncdf = NULL, var = "temp", dim = "model", dim_index = 1,
-                         var_list = NULL, model = NULL, tile_width = NULL,
+                         var_list = NULL, model = NULL, spin_up = 0, tile_width = NULL,
                          tile_height = NULL){
   
   # check if model input is correct
@@ -62,6 +63,11 @@ plot_heatmap <- function(ncdf = NULL, var = "temp", dim = "model", dim_index = 1
   data <- as.data.frame(data)
   data$Model <- factor(data$Model)
   data$Model <- factor(data$Model, levels = mod_names)
+  
+  if(spin_up > 0){
+    start_date <- data[1, "datetime"] + lubridate::days(spin_up)
+    data <- data[data$datetime >= start_date,]
+  }
   
   if(is.null(tile_width)){
     # Get the timestep from the output
