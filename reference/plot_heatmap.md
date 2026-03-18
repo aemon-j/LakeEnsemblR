@@ -14,6 +14,7 @@ plot_heatmap(
   dim_index = 1,
   var_list = NULL,
   model = NULL,
+  spin_up = 0,
   tile_width = NULL,
   tile_height = NULL
 )
@@ -47,6 +48,10 @@ plot_heatmap(
 - model:
 
   Vector of models which should be included in the plot
+
+- spin_up:
+
+  numeric; Number of days to disregard as spin-up for plotting
 
 - tile_width:
 
